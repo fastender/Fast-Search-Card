@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1680 - 2026-05-24
+
+**Title:** 🐛 Universal-Device — edit-mode quick_stats prefill fix + preview section removed
+**Hero:** none
+**Tags:** Bugfix, Polish, Integration, Universal
+
+### Why
+
+User reported: even though quick-stat pills were rendering correctly on the live card (left panel), opening the device for editing showed "Quick Stats: None" in the wizard's Step 2. Toggling entities in the picker felt unresponsive — count never reflected what was actually saved.
+
+Root cause was prefill, not reactivity. In `UniversalDeviceView.handleOpenSettings` the `existing` object passed to `<UniversalSetup mode="edit" existingDevice={existing}>` was missing the `quick_stats` field (and `icon` too — same bug for icons since v1.1.1352, just less visible):
+
+```js
+const existing = {
+  id, name, ha_device_id, hero, hidden_entities  // ← quick_stats + icon missing
+};
+```
+
+`UniversalSetup`'s state init reads `existingDevice.quick_stats || []` → always falls back to `[]` on edit, regardless of what's persisted. Picker opens with everything unchecked, count shows "None".
+
+Toggling in the picker actually worked correctly — state updated locally. But because the initial state was wrong, the user's existing 3-pill setup appeared lost, and any new selections would replace (not extend) what was saved.
+
+### Fix #1 — prefill `existing` properly
+
+`UniversalDeviceView.jsx` now seeds:
+
+```js
+const existing = {
+  id, name, ha_device_id,
+  hero: ...hero...,
+  hidden_entities: ...hidden...,
+  icon: entity?.attributes?.icon || entity?.icon || null,    // v1.1.1680 (was always null)
+  quick_stats: entity?.attributes?.quick_stats || [],        // v1.1.1680 (was always [])
+};
+```
+
+Edit wizard now opens with the correct saved values pre-selected. Toggle counter updates as expected.
+
+### Live-pill update during edit
+
+Pills on the left card still only update **after Save** — that's by design. The wizard holds local state; only `handleFinish` propagates via `updateDevice`. Per-toggle persistence would break Cancel semantics (changes would already be live before user confirms). If a real-time preview is desired later, we'd need a parallel "in-progress override" attribute that EntityIconDisplay reads — separate feature.
+
+### Fix #2 — Preview section removed (user request)
+
+The collapsible "Vorschau / Preview" row in Step 2 (added in v1.1.1352, rendered an inline `UniversalPreviewCard`) was redundant: the live card on the left panel of the detail-view IS the preview, updated live as the user changes hero/hidden/icon (and now also quick_stats after save).
+
+Removed:
+- `<PreviewSection>` element + import from `Step2Customize.jsx`
+- `previewExpanded` state + `previewDeviceConfig` useMemo from orchestrator
+- `hass` prop no longer needed by `Step2Customize` (only PreviewSection used it)
+- `Step2Customize/PreviewSection.jsx` (file deleted — only consumer was Step2Customize)
+- `integration/components/UniversalPreviewCard.jsx` (file deleted — only consumer was PreviewSection)
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` (prefill fix)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (preview state removed)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx` (preview section removed)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/PreviewSection.jsx` (**deleted**)
+- `src/system-entities/entities/integration/components/UniversalPreviewCard.jsx` (**deleted**)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1679 - 2026-05-24
 
 **Title:** ⚡ Universal-Setup — Step 2 + 3 merged + new Quick-Stats picker (renders as detail-info-row pills analog Bambu)
