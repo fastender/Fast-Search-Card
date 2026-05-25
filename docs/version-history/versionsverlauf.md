@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1698 - 2026-05-25
+
+**Title:** 🏷️ HeroPicker — visible "Image" / "Camera" badge on entities that will render as a picture
+**Hero:** none
+**Tags:** UX, Integration, Universal
+
+### Why
+
+v1.1.1697's diagnostic told us: the user wasn't actually picking an `image.*` / `camera.*` entity — they were picking a sensor with a similar `friendly_name` (e.g., `sensor.bambu_lab_a1_titelbild_year` instead of `image.bambu_lab_a1_titelbild`). Both had "Bambu Lab A1 Titelbild" as the visible label so they looked identical in the picker.
+
+The entity_id WAS already visible in the subtitle (so technically they could see the difference), but in a long list with many similar names it's easy to miss.
+
+### Fix — colored badge next to image/camera entities
+
+`HeroPickerView` now renders a small blue badge labelled "Bild" / "Image" or "Kamera" / "Camera" next to the friendly_name for any entity whose domain is `image` or `camera`. Visual highlight makes it impossible to miss the picture-capable entities.
+
+```jsx
+{(e.domain === 'image' || e.domain === 'camera') && (
+  <span style={{
+    fontSize: '10px', fontWeight: 600,
+    padding: '2px 6px', borderRadius: '4px',
+    background: 'rgba(0, 122, 255, 0.18)',
+    color: 'rgb(120, 180, 255)',
+    border: '1px solid rgba(0, 122, 255, 0.32)',
+    letterSpacing: '0.5px', textTransform: 'uppercase',
+  }}>
+    {e.domain === 'image' ? 'Bild' : 'Kamera'}
+  </span>
+)}
+```
+
+Plus the section description in HeroPicker updated to explicitly mention:
+
+> "Entities mit 'Bild'- oder 'Kamera'-Badge werden als Foto statt als Wert dargestellt."
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1697 - 2026-05-25
 
 **Title:** 🔎 Universal hero image — diagnostic states (no-src, load-error) instead of silent fall-back to slider
