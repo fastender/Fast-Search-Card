@@ -276,6 +276,16 @@ All open-source dependencies. No proprietary code. Fully auditable.
 
 <br>
 
+## Built openly, with AI
+
+AI is a powerful tool. It's used to build this card — mostly Claude. It's also used inside Home Assistant itself: voice, conversation, summarization.
+
+Every commit in this repo declares it. A `Co-Authored-By` footer names the model that helped. Every release is reviewed before it ships. AI accelerated the work; a human still decides what's good enough.
+
+No mystery. No pretending.
+
+<br>
+
 ## Documentation
 
 <details>
