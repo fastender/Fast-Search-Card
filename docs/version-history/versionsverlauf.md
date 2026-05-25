@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.1696 - 2026-05-25
+
+**Title:** 🩹 Hero image/camera URL building hardened (access_token + state-fallback + per-domain proxy)
+**Hero:** none
+**Tags:** Bugfix, Integration, Universal
+
+### Why
+
+v1.1.1695 added image/camera hero rendering but the image didn't show up — the CircularSlider rendered "2026" + "Bambu Lab A1 Titelbild" instead. The "2026" gave the diagnosis away: `parseFloat("2026-01-15T10:30:00+00:00")` returns 2026, so the universal_device sliderConfig's `isNumeric` branch fires and displays the year of the entity's ISO-timestamp state. That happens **only** when `isHeroImage && heroImageSrc` evaluates to false → the conditional falls through to the slider. Conclusion: `heroImageSrc` was returning null/invalid for the user's `image.bambu_lab_a1_titelbild` entity.
+
+### Root cause
+
+The original src builder was too thin:
+
+```js
+return st.attributes?.entity_picture || `/api/camera_proxy/${activeUniversalHero}`;
+```
+
+Two gaps:
+
+1. **Missing `access_token`** — HA image entities require `?token={access_token}` appended for un-cookied requests. Without it, the URL 401s; some setups (proxied, etc.) return an error page and the `<img>` shows broken.
+2. **Wrong fallback proxy** — `/api/camera_proxy/{id}` is camera-only. For an `image.*` entity it returns 404. Should be `/api/image_proxy/{id}` for image domain.
+3. **Missing state-as-URL fallback** — older Bambu and several integrations put the image URL directly in `state` rather than `entity_picture`.
+
+### Fix — mirror the EnergyDashboardImageView pattern
+
+```js
+const heroImageSrc = useMemo(() => {
+  if (!isHeroImage || !activeUniversalHero) return null;
+  const st = hass?.states?.[activeUniversalHero];
+  if (!st) return null;
+  let src = null;
+  if (st.attributes?.entity_picture) {
+    src = st.attributes.entity_picture;
+    if (st.attributes.access_token) {
+      src = `${src}${src.includes('?') ? '&' : '?'}token=${st.attributes.access_token}`;
+    }
+  } else if (activeHeroDomain === 'image' && st.state && st.state !== 'unavailable' && st.state !== 'unknown') {
+    src = st.state;
+  } else if (activeHeroDomain === 'camera') {
+    src = `/api/camera_proxy/${activeUniversalHero}`;
+  } else if (activeHeroDomain === 'image') {
+    src = `/api/image_proxy/${activeUniversalHero}`;
+  }
+  return src;
+}, [isHeroImage, activeUniversalHero, activeHeroDomain, hass?.states]);
+```
+
+Priority order: `entity_picture (+ access_token query)` → `state-as-url for image domain` → `/api/{image|camera}_proxy/{id}` per domain.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` (`heroImageSrc` builder hardened with access_token + state-fallback + per-domain proxy)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1695 - 2026-05-25
 
 **Title:** 🖼️ Universal-Device — image / camera hero entities render as picture instead of circular slider (Bambu-style)
