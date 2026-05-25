@@ -109,6 +109,20 @@ No YAML. No copy-paste. No second source of truth.
 
 <br>
 
+## Why this exists
+
+A smart home should be measured by what runs without you. By automations. By scripts. By things that happen because they should.
+
+Not by how its dashboard looks.
+
+But you still need a dashboard. And the hours you spend dragging cards, writing YAML, picking icons — that time belongs to automations, not to layout.
+
+This card flips it. Do the work once in Home Assistant — name your devices, group them by area, label them properly. The dashboard builds itself. In under a minute.
+
+Spend the rest of your weekend on something that actually runs.
+
+<br>
+
 ---
 
 ## Security
