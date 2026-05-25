@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1700 - 2026-05-25
+
+**Title:** 🎯 Hero image render — fixed second render path that the v1.1.1695 image-replacement missed
+**Hero:** none
+**Tags:** Bugfix, Integration, Universal
+
+### Root cause discovered via console diagnostics
+
+v1.1.1699's console log confirmed `isHeroImage: true` and `version: '1.1.1699'`, yet the slider still rendered. That ruled out a cache problem and pointed at a render-path issue. Grepping for `CircularSlider` in `UniversalControlsTab.jsx` revealed **two** separate render branches:
+
+- **Lines 600-628** — special-case render path (handled by v1.1.1695 image-replacement). Where the image conditional WAS.
+- **Lines 712-746** — `// ✅ STANDARD Layout für alle anderen Devices` — used by `universal_device` and every other domain that doesn't hit the special-case branch.
+
+The user's Universal-Device went through the STANDARD layout, which never got the image-replacement conditional. The CircularSlider rendered unconditionally there.
+
+### Fix
+
+The STANDARD-layout branch now mirrors the special-case branch:
+
+```jsx
+<motion.div key={isHeroImage ? `img-${activeUniversalHero}` : (slideShowKey ?? item?.entity_id)} ...>
+  {isHeroImage ? (
+    <UniversalHeroImage
+      entityId={activeUniversalHero}
+      heroImageSrc={heroImageSrc}
+      heroImageLabel={heroImageLabel}
+    />
+  ) : (
+    <CircularSlider ... />
+  )}
+</motion.div>
+```
+
+Same component, same props, same key-on-image semantics. Both render paths now produce identical behavior for image/camera heroes.
+
+### Cleanup
+
+The v1.1.1699 console diagnostic (`console.warn('[UniversalControlsTab] hero diag', ...)`) is removed — bug identified, no longer needed.
+
+### Why the duplication existed
+
+`UniversalControlsTab` historically grew with per-domain special handling. The first render branch covers exotic domains with custom layouts (Solar, Energy-Charts in some configs); everything else falls to the STANDARD branch. When v1.1.1695 added image-hero support, only the first branch got the conditional — a "shared piece" lived in two places. Lesson logged: when editing `UniversalControlsTab` slider rendering, grep `<CircularSlider` to make sure both paths get the change.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1699 - 2026-05-25
 
 **Title:** 🔬 UniversalControlsTab — one-shot console.warn for hero-image diagnostics
