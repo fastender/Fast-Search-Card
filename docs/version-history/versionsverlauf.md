@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.1684 - 2026-05-25
+
+**Title:** 💧 LiquidGlassSlider — compact defaults made universal (50% size, every consumer affected)
+**Hero:** none
+**Tags:** Polish, Refactor, UX
+
+### Why
+
+v1.1.1683 added a scoped `.universal-list-slider` override that shrunk the slider to ~60% for the inline `NumberSliderControl` in the Universal-Device entity-list only. User asked for two changes: (a) take it down to **50%** of the original size, and (b) make it **universal** — every `LiquidGlassSlider` consumer (Settings-Cards, Hero-Gauges, Scheduler) should pick up the compact look, not just the entity-list.
+
+### What changed
+
+Defaults baked into `LiquidGlassSlider.css` + `LiquidGlassSlider.jsx` directly. No more scoped overrides — everyone gets the compact look.
+
+| Property | Old default | New default | Source |
+|---|---:|---:|---|
+| `--thumb-w` | 52px | 26px | `LiquidGlassSlider.css` |
+| `--thumb-h` | 34px | 17px | `LiquidGlassSlider.css` |
+| `--track-h` | 8px | 4px | `LiquidGlassSlider.css` |
+| `.fm-thumb-specular` inset glow | `inset 0 0 22px rgba(255,255,255,.60)` | `inset 0 0 8px rgba(255,255,255,.45)` | `LiquidGlassSlider.css` |
+| `SHADOWS.light` blur | `0 1px 8px 0 rgba(0,30,63,.10)` | `0 1px 4px 0 rgba(0,30,63,.12)` | `LiquidGlassSlider.jsx` |
+| `SHADOWS.dark` blur | `0 2px 10px 0 rgba(0,0,0,.35)` | `0 1px 4px 0 rgba(0,0,0,.22)` | `LiquidGlassSlider.jsx` |
+
+Glass aesthetic kept — all three layers (`fm-thumb-filter` backdrop blur, `fm-thumb-overlay` white tint, `fm-thumb-specular` inset specular) still render, just proportional to the new smaller thumb.
+
+### Cleanup
+
+- `.universal-list-slider` CSS overrides in `iOSSettingsView.css` removed (replaced by a short comment pointing to the universal defaults).
+- `className="universal-list-slider"` wrapper removed from `NumberSliderControl.jsx`.
+
+### Touch-target note
+
+26×17 px is below Apple's 44×44 recommendation. For pointer-precise UIs (desktop, iPad with cursor) this is fine; on touch-only mobile it might feel small. If users report tap-misses we can add a `size` prop with a "large" variant restoring the old 52×34. For now the universal compact default matches the user's explicit request.
+
+### Files
+
+- `src/components/common/LiquidGlassSlider.css` (defaults + specular)
+- `src/components/common/LiquidGlassSlider.jsx` (SHADOWS presets)
+- `src/system-entities/entities/news/components/iOSSettingsView.css` (scoped override removed)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/NumberSliderControl.jsx` (wrapper class removed)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1683 - 2026-05-25
 
 **Title:** 💧 Compact LiquidGlassSlider — keep the glass, shrink the bloom
