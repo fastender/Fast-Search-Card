@@ -2,7 +2,7 @@
 
 # Fast Search Card
 
-### Find anything. Control everything.
+### Search anything. Run anything.
 
 _Faster. Together._
 
@@ -18,7 +18,7 @@ A complete dashboard for Home Assistant.<br>
 [![Telemetry](https://img.shields.io/badge/telemetry-none-1D1D1F?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md)
 [![License](https://img.shields.io/badge/license-GPL--3.0-1D1D1F?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE)
 
-[![Sponsor](https://img.shields.io/github/sponsors/fastender?style=flat-square&color=EA4AAA&label=sponsor&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/fastender)
+[![Sponsor](https://img.shields.io/badge/%E2%99%A1_sponsor-EA4AAA?style=flat-square&logo=githubsponsors&logoColor=white)](https://github.com/sponsors/fastender)
 [![Buy Me a Coffee](https://img.shields.io/badge/buy_me_a_coffee-FFDD00?style=flat-square&logo=buymeacoffee&logoColor=black)](https://www.buymeacoffee.com/fastender)
 
 <sub>On GitHub since 2016 · 2,000+ releases shipped · Zero telemetry, audited every release</sub>
@@ -40,21 +40,13 @@ A complete dashboard for Home Assistant.<br>
 
 ## Install
 
-Through HACS. Three steps.
+Through HACS, in three steps:
 
-```yaml
-# 1. Add custom repository
-URL:  https://github.com/fastender/Fast-Search-Card
-Type: Lovelace
+1. **Add this repo** as a Custom Repository in HACS — Type `Lovelace`, URL `https://github.com/fastender/Fast-Search-Card`.
+2. **Install** Fast Search Card from HACS.
+3. **Register the resource** in your dashboard — URL `/hacsfiles/fast-search-card/fast-search-card.js`, Type `JavaScript Module`.
 
-# 2. Install through HACS
-
-# 3. Add resource
-URL:  /hacsfiles/fast-search-card/fast-search-card.js
-Type: JavaScript Module
-```
-
-Then drop one line into your dashboard.
+Then drop one line into your dashboard:
 
 ```yaml
 type: custom:fast-search-card
@@ -76,8 +68,6 @@ That's it.
 
 <br>
 
----
-
 ## Preparation
 
 _Optional. Worth it._
@@ -96,8 +86,6 @@ Already organized? The card picks it up automatically. Hidden entities stay hidd
 New to this? Start with [areas](https://www.home-assistant.io/docs/organizing/areas/), then [floors](https://www.home-assistant.io/docs/organizing/floors/), then [labels](https://www.home-assistant.io/docs/organizing/labels/). The full guide is at [home-assistant.io/docs/organizing](https://www.home-assistant.io/docs/organizing/).
 
 <br>
-
----
 
 ## Configure once
 
@@ -130,15 +118,13 @@ See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/S
 
 <br>
 
----
-
 ## Survives every update
 
 One file in `www/`. No Docker. No add-on. No daemon. Nothing to install, nothing to maintain.
 
 Home Assistant restart? Still there. Core upgrade? Still there. Full system crash? Right where you left it when you boot back.
 
-Nothing to break, because nothing is running.
+Nothing on the server runs. The card lives only in your browser.
 
 <br>
 
@@ -146,22 +132,20 @@ Nothing to break, because nothing is running.
 
 ## More than search
 
-A start screen. A calendar. Reminders. News. Energy monitoring. Music control. A scheduler. A settings hub.
+A start screen. A calendar. Reminders. News. Energy monitoring. Music control. A scheduler. A settings hub. A device builder.
 
-**One card. Eight built-in apps. All local.**
+**One card. A complete dashboard. All local.**
 
 <br>
-
----
 
 ## What's inside
 
 <details>
-<summary><b>Bento Start.</b> A start screen made of moments.</summary>
+<summary><b>Bento Start.</b> A start screen made of widgets. Live.</summary>
 
 <br>
 
-Four configurable slots. Weather, calendar, todos, news, favorites. Live. Slides automatically. Adapts to mobile.
+Four configurable slots. Weather, calendar, todos, news, favorites — all live. Slides automatically. Adapts to mobile.
 
 </details>
 
@@ -271,9 +255,9 @@ Preact · Framer Motion · Fuse.js · Chart.js · virtua · IndexedDB
 
 Single file. ~390 KB gzipped. Boots in under a second.
 
-<br>
+All open-source dependencies. No proprietary code. Fully auditable.
 
----
+<br>
 
 ## Documentation
 
@@ -295,7 +279,6 @@ Single file. ~390 KB gzipped. Boots in under a second.
 - [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
 - [Performance roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
 - [Custom component roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
-- [Bundle audit](https://github.com/fastender/Fast-Search-Card/blob/main/docs/BUNDLE_AUDIT_2026-05-21.md) — Latest analysis
 
 </details>
 
@@ -319,17 +302,19 @@ npm run build    # Production bundle → dist/fast-search-card.js
 
 ## Contributing
 
-Open an issue. Open a PR. Both welcome.
+Found a bug? Open an issue.
+Want a feature? Open an issue.
+Got code? Open a PR — contributions are merged under GPL-3.0 and credited.
+
+Forks are legally allowed under the GPL but must use a different name. See [TRADEMARKS.md](https://github.com/fastender/Fast-Search-Card/blob/main/TRADEMARKS.md).
 
 <br>
-
----
 
 ## License
 
 [GPL-3.0-or-later](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use. Modifications and forks must remain open-source under the same license.
 
-The name "Fast Search Card" is reserved — see [TRADEMARKS.md](https://github.com/fastender/Fast-Search-Card/blob/main/TRADEMARKS.md).
+The name "Fast Search Card" is reserved — see [TRADEMARKS.md](https://github.com/fastender/Fast-Search-Card/blob/main/TRADEMARKS.md) for the trademark notice and what forks may and may not do with the branding.
 
 <br>
 
@@ -341,7 +326,7 @@ The name "Fast Search Card" is reserved — see [TRADEMARKS.md](https://github.c
 
 <br>
 
-<sub>Built for the Home Assistant community. Since 2016.</sub>
+<sub>Built for the Home Assistant community by a developer on GitHub since 2016.</sub>
 
 <br>
 
