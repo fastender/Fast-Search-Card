@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1697 - 2026-05-25
+
+**Title:** 🔎 Universal hero image — diagnostic states (no-src, load-error) instead of silent fall-back to slider
+**Hero:** none
+**Tags:** Bugfix, UX, Integration, Universal
+
+### Why
+
+v1.1.1696 hardened the URL builder, user still doesn't see the image. The previous render logic was `{isHeroImage && heroImageSrc ? <img> : <CircularSlider>}` — if `isHeroImage` was true but `heroImageSrc` was null, the slider showed instead and the user had no way to tell whether (a) the image-detection failed, (b) the src builder returned null, or (c) the `<img>` loaded but failed at the network layer.
+
+### Fix — visible diagnostics
+
+Render a dedicated `<UniversalHeroImage>` sub-component whenever `isHeroImage` is true. The slider only renders when `isHeroImage` is false. Inside the new component:
+
+- **`heroImageSrc === null`** → shows a placeholder with `🖼️` + "Kein Bild verfügbar" + the entity_id. Means: domain-detection worked, but no `entity_picture` / state-as-URL / proxy fallback yielded anything usable.
+- **`<img>` onError fires** → swaps to `❌` + "Bild konnte nicht geladen werden" + the entity_id + truncated URL. Means: detection + URL-builder both worked, but HA's backend rejected the request (auth, 404, etc.).
+- **Otherwise** → the actual `<img>` renders at full container size.
+
+`loadError` resets when `heroImageSrc` or `entityId` changes (so slideshow rotation to another image doesn't carry over the error state).
+
+### How to diagnose with this in place
+
+After updating, if the user picks an image/camera hero:
+
+1. **They see the image** → fixed, done.
+2. **They see "Kein Bild verfügbar" + entity_id** → entity domain is image/camera but neither `entity_picture` nor `state` nor a `/api/{image|camera}_proxy/{id}` fallback worked. Probably the user picked an entity that's not actually an image (e.g., a `sensor.*_titelbild` with the same friendly_name as `image.*_titelbild`). The visible entity_id tells which one was actually picked.
+3. **They see "Bild konnte nicht geladen werden" + URL** → URL was built but HA rejected it. The displayed URL gives us the exact request to chase (open it in a new browser tab, look at HA's logs).
+4. **They see the old "2026" slider** → `isHeroImage` is false. The active hero's domain is not `image` and not `camera` — the user picked a non-image entity even though they thought they picked an image.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` (new `UniversalHeroImage` sub-component with no-src placeholder + onError state; slider only renders when `isHeroImage` is false)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1696 - 2026-05-25
 
 **Title:** 🩹 Hero image/camera URL building hardened (access_token + state-fallback + per-domain proxy)
