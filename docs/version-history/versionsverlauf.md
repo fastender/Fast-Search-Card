@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1687 - 2026-05-25
+
+**Title:** 🔘 LiquidGlassSwitch — `.s-sm` default shrunk ~20% (universal, 77 consumers picked up automatically)
+**Hero:** none
+**Tags:** Polish, UX
+
+### Why
+
+After shrinking the LiquidGlassSlider in v1.1.1684/85/86, user asked to also shrink the LiquidGlassSwitch slightly. The 64×30 default size felt a touch too big alongside the now-compact slider.
+
+### What changed
+
+`LiquidGlassSwitch` already had four pre-defined size classes (`.s-sm` / `.s-md` / `.s-lg` / `.s-xl`); the JSX defaults to `size='sm'`. None of the 77 consumers across the codebase explicitly pass a `size=` prop, so they all render at `.s-sm`. Editing the `.s-sm` definition flips them all in one go.
+
+| Property | Before | After |
+|---|---:|---:|
+| `--w` (track width) | 64px | **52px** |
+| `--h` (track height) | 30px | **26px** |
+| `--dot-w` (knob width) | 38px | **32px** |
+| `--pad` | 3px | 3px (unchanged) |
+| Travel distance | 20px | **14px** |
+
+Aspect ratio shifts slightly from 2.13:1 → 2.0:1 — switch looks marginally more square but the oval pill shape is preserved. Travel 14px is still a clearly visible slide animation between OFF / ON.
+
+Other size variants (`.s-md` / `.s-lg` / `.s-xl`) untouched — anyone explicitly opting into them keeps the previous look.
+
+### Files
+
+- `src/components/common/LiquidGlassSwitch.css` (`.s-sm` values)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1686 - 2026-05-25
 
 **Title:** 🎯 NumberSliderControl — thumb-overflow padding so min/max align with the row's text edge
