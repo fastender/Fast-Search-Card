@@ -1,5 +1,78 @@
 # Versionsverlauf
 
+## Version 1.1.1695 - 2026-05-25
+
+**Title:** 🖼️ Universal-Device — image / camera hero entities render as picture instead of circular slider (Bambu-style)
+**Hero:** none
+**Tags:** Feature, Integration, Universal
+
+### Why
+
+User wants `image.*` and `camera.*` entities, when picked as a hero, to display the actual picture in the hero area — same UX as Bambu's Printer3D camera view. The 4 tab buttons below (Controls / Sensors / Diagnostics / Misc) should keep working unchanged.
+
+### Detection
+
+In `UniversalControlsTab`, after computing `activeUniversalHero` from the slideshow rotation:
+
+```js
+const activeHeroDomain = activeUniversalHero?.split('.')[0] || null;
+const isHeroImage = isUniversalDevice && (activeHeroDomain === 'image' || activeHeroDomain === 'camera');
+const heroImageSrc = useMemo(() => {
+  if (!isHeroImage || !activeUniversalHero) return null;
+  const st = hass?.states?.[activeUniversalHero];
+  return st?.attributes?.entity_picture || `/api/camera_proxy/${activeUniversalHero}`;
+}, [isHeroImage, activeUniversalHero, hass?.states]);
+```
+
+Source priority follows Bambu's `Printer3DDeviceView`:
+1. `entity_picture` attribute — HA rotates a signed token in this URL, refreshes naturally on entity-state poll
+2. Fallback to `/api/camera_proxy/${entity_id}` — works for any camera even if entity_picture isn't exposed
+
+### Render
+
+The `slider-wrapper` motion.div now conditionally renders either the `<CircularSlider>` (default) or an `<img>` element (when hero is image/camera). Key on the motion.div composes `img-${entity_id}` so AnimatePresence sees a new key when the slideshow advances from one image hero to another (clean cross-fade).
+
+```jsx
+<motion.div
+  className="slider-wrapper"
+  key={isHeroImage ? `img-${activeUniversalHero}` : 'slider-wrapper'}
+  variants={...}
+>
+  {isHeroImage && heroImageSrc ? (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', width:'100%', height:'100%', padding:'0 16px' }}>
+      <img
+        src={heroImageSrc}
+        alt={heroImageLabel}
+        style={{ maxWidth:'100%', maxHeight:'320px', borderRadius:'20px', objectFit:'contain', display:'block' }}
+      />
+    </div>
+  ) : (
+    <CircularSlider {...sliderConfig} ... />
+  )}
+</motion.div>
+```
+
+Tab buttons (`Controls / Sensors / Diagnostics / Misc`) below the slider-wrapper render unchanged — same `<ControlButton>` array driven by `controlConfig.primary`.
+
+### Multi-hero interaction
+
+If the user picks a mix of regular sensors + image/camera entities, the slideshow rotates between them at the existing 10-s interval. As each hero becomes active:
+- Sensor hero → CircularSlider with that sensor's live value
+- Image / camera hero → `<img>` with that entity's `entity_picture`
+
+Dots indicator at the bottom stays the same — one dot per hero regardless of domain.
+
+### Auto-refresh note
+
+`entity_picture` includes HA's signed token that rotates when the entity is polled by HA itself. So the URL changes naturally and the browser re-fetches. No explicit refresh-interval needed for v1.1.1695. If a stale-image issue surfaces, follow-up can add a Bambu-style periodic timestamp-bump (`?t=Date.now()`).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` (`activeHeroDomain`, `isHeroImage`, `heroImageSrc`, `heroImageLabel` derivations + conditional render inside slider-wrapper)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1694 - 2026-05-25
 
 **Title:** 🔧 UniversalSetup CustomScrollbar — callback-ref pattern so the scrollbar survives sub-view navigation
