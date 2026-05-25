@@ -1,5 +1,72 @@
 # Versionsverlauf
 
+## Version 1.1.1708 - 2026-05-25
+
+**Title:** 🐛 Marquee state-line: fix overflow detection (inline span returned wrong width)
+**Hero:** none
+**Tags:** Bugfix, DeviceCard, Universal
+
+### Why
+
+After v1.1.1707 user reported "es scrollt nicht" — the truncated `Energy: 5.7kWh · F` card looked exactly as before, no scroll animation.
+
+### Root cause
+
+The measure span in v1.1.1707 had no `display` style → default `inline`. For inline elements, `scrollWidth` does NOT reflect the natural content width — it tracks the visible box, which is clamped by the parent's `overflow: hidden; white-space: nowrap`. So the check `m.scrollWidth > c.clientWidth + 4` was comparing two nearly-equal numbers (both effectively the visible card width), and overflow was never detected. The marquee branch was never activated, the static branch kept rendering, and the existing gradient text-fade truncated the text just like before.
+
+A secondary issue: even with the fix, a single rAF after mount can race with the grid layout finishing — `getBoundingClientRect` might still return 0 if the card hasn't been positioned yet.
+
+### Fix
+
+Three changes:
+
+1. **Hidden measure layer** — a dedicated `<span>` rendered with `position: absolute; visibility: hidden; display: inline-block; white-space: nowrap`. Inline-block has its own layout box, so its bounding-rect width equals the natural text width regardless of parent clipping. Rendered in BOTH modes (static + marquee) so measurement stays valid across state transitions.
+2. **`getBoundingClientRect().width`** instead of `scrollWidth` — more reliable for cross-display-mode measurements and gives sub-pixel accuracy.
+3. **Double `requestAnimationFrame`** before measuring — waits for layout-commit AND the next paint, eliminating the late-mount race. Plus a `ResizeObserver` on the container so card resize (grid rearrange, window resize) re-measures automatically.
+
+```jsx
+const measureLayer = (
+  <span
+    ref={measureRef}
+    aria-hidden="true"
+    style={{
+      position: 'absolute', top: 0, left: 0,
+      visibility: 'hidden', pointerEvents: 'none',
+      whiteSpace: 'nowrap', display: 'inline-block',
+    }}
+  >{text}</span>
+);
+
+useEffect(() => {
+  const measure = () => {
+    const contentW = Math.ceil(measureRef.current.getBoundingClientRect().width);
+    const containerW = Math.floor(containerRef.current.getBoundingClientRect().width);
+    if (contentW > containerW + 2) { /* activate marquee */ }
+    else { /* deactivate */ }
+  };
+  let raf1 = requestAnimationFrame(() => {
+    let raf2 = requestAnimationFrame(measure);
+  });
+  const ro = new ResizeObserver(measure);
+  ro.observe(containerRef.current);
+  return () => { /* cancel rAF + disconnect ro */ };
+}, [text]);
+```
+
+Also guarded `setState` against same-value updates to prevent infinite re-render via ResizeObserver triggering on every measurement.
+
+### Result
+
+`Energy: 5.7kWh · Filterstatus OK` (or any multi-stat universal_device line that exceeds card width) now scrolls horizontally instead of fading to truncation. Single short stats still render statically with no animation.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardGridView.jsx` — `ScrollingDeviceState` rewritten with hidden measure layer, double-rAF, ResizeObserver, equality-guarded state updates
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1708
+- `docs/version-history/versionsverlauf.md` → this entry
+
+---
+
 ## Version 1.1.1707 - 2026-05-25
 
 **Title:** ✨ Auto-scroll marquee for overflowing DeviceCard state-line (Universal-Device quick_stats)
