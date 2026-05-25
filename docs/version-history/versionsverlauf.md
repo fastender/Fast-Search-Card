@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1681 - 2026-05-25
+
+**Title:** 🎨 Universal-Device list polish — subtler hover, MISC sub-headers (Settings/Actions), fixed 420 height, scroll-fade mask
+**Hero:** none
+**Tags:** Polish, Integration, Universal, UX
+
+### Why
+
+Four user-reported issues with the Universal-Device entity-list:
+
+1. **Hover unscharf** — the global `.ios-item:hover` rule applies a dramatic tvOS-style effect (white background + `scale(1.02)` + box-shadow + backdrop-blur). Inside a long Universal-Device entity-list it felt heavy and blurry. User wanted a softer hover.
+2. **MISC contains too many types under one header** — `MISC` mixes config-toggles (`switch`/`input_boolean`), selects, numbers, text/time inputs AND zustandslose Aktionen (buttons, scripts, scenes, automations). User wanted sub-headers to distinguish them.
+3. **`max-height: 420px` jumps with content** — User wanted a fixed `height: 420px` container so the panel doesn't grow/shrink based on item count.
+4. **Missing scroll-fade mask** — News-Widget + News-Detail-View have a top-edge soft fade when scrolled (`.is-scrolling` toggle); Universal-Device list didn't.
+
+### Fix 1 — Scoped hover override
+
+Added a `.printer-sensors-wrapper .ios-item:hover:not(:active)` rule that resets the global tvOS effect: `transform: none`, `background: rgba(255,255,255,0.12)`, `box-shadow: none`. Text colors stay light (no inversion to black). The dramatic white-pill effect is appropriate for short top-level Setting-cards; for a long device-entity list it was overkill.
+
+### Fix 2 — MISC sub-grouping
+
+New helper `subGroupMiscItems(items, lang)` in `UniversalEntityList/helpers.js` splits the flat misc-array into two named sub-buckets:
+
+```
+MISC_ACTION_DOMAINS = { button, input_button, scene, script, automation }
+
+  → EINSTELLUNGEN / SETTINGS  — everything else (toggles, selects, numbers, text, time)
+  → AKTIONEN / ACTIONS        — domains in MISC_ACTION_DOMAINS
+```
+
+Renderer special-cases `groupId === 'misc'`: instead of a single section with one header, it renders one `ios-section` per non-empty sub-bucket, each with its own header. Other group-ids (controls / sensors / diagnostics) keep the original single-header layout.
+
+### Fix 3 — Fixed height
+
+`.printer-sensors-wrapper` changed from `max-height: 420px` to `height: 420px` (and mobile responsive variant `max-height: 190px` → `height: 190px`). Container is now stable regardless of item count — empty groups still get the same vertical footprint.
+
+### Fix 4 — Scroll-fade mask
+
+Mirrors the NewsView pattern: orchestrator now holds `isScrolling` state, toggled by `onScroll` when `scrollTop > 0`. Class `is-scrolling` applied to `.printer-sensors-scroll`. New CSS:
+
+```css
+.printer-sensors-scroll.is-scrolling {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 40px, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, black 40px, black 100%);
+}
+```
+
+40-px top fade activates as soon as the list scrolls; snaps back to no-mask when returned to top.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx` (isScrolling state + handleScroll + sub-group render branch + class toggle)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/helpers.js` (`subGroupMiscItems` + `MISC_ACTION_DOMAINS`)
+- `src/system-entities/entities/news/components/iOSSettingsView.css` (height: 420, scoped hover override, is-scrolling mask, mobile height: 190)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1680 - 2026-05-24
 
 **Title:** 🐛 Universal-Device — edit-mode quick_stats prefill fix + preview section removed
