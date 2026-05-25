@@ -256,7 +256,11 @@ Background filters. Squircle cards. Splashscreen styles. Excluded patterns with 
 
 <br>
 
-Tipps. Versionsverlauf. All-Schedules. Bambu Lab 3D printer support. Liquid-Glass switches. Handwritten splashscreen. Toast notifications. AI Mode (experimental). Listen virtualization for thousands of entities.
+**Apps.** Changelog. Tips. All-Schedules. Live weather. Bambu Lab 3D printer support.
+
+**Design.** Liquid-Glass sliders and switches. Smooth motion throughout. Handwritten splashscreen. Toast notifications. Chart.js graphs everywhere.
+
+**Smart.** Predictive suggestions that learn your habits. List virtualization for thousands of entities. AI Mode (experimental).
 
 See [FEATURES.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) for the full list.
 

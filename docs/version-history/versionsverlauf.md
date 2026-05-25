@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1694 - 2026-05-25
+
+**Title:** 🔧 UniversalSetup CustomScrollbar — callback-ref pattern so the scrollbar survives sub-view navigation
+**Hero:** none
+**Tags:** Bugfix, Integration, Universal
+
+### Why
+
+v1.1.1692 added `key={String(step)}` to force a CustomScrollbar remount on step-change. That helped on entry, but the scrollbar still disappeared when entering a sub-view AND failed to reappear on returning to the main step.
+
+### Root cause — `mode="wait"` timing window
+
+`AnimatePresence mode="wait"` waits for the old motion.div's EXIT animation to complete before mounting the new child. Sequence during navigation:
+
+1. `step` changes (e.g., main → hero-picker)
+2. CustomScrollbar with `key=hero-picker` remounts **immediately** (state changed)
+3. At this moment, the new HeroPickerView is **not yet rendered** (waiting for exit)
+4. `scrollRef.current` is `null` (or pointing to the now-unmounted old div)
+5. CustomScrollbar's `useEffect` reads container, sees `null`, bails (`if (!container) return;`)
+6. New HeroPickerView mounts → `scrollRef.current` updates to new div
+7. **But** CustomScrollbar's useEffect has already finished and won't re-run — `scrollContainerRef` is a stable useRef object, no dep change to trigger re-run
+
+Result: scrollbar attached to nothing, never recovers.
+
+### Fix — callback-ref + state-driven container
+
+Instead of `useRef`, the orchestrator now uses a state-based "callback ref" pattern. Sub-views call `setScrollNode(domNode)` via React's callback-ref support; the setter triggers a re-render with the new container, which triggers CustomScrollbar's `useEffect` (its `scrollContainerRef` prop is wrapped in `useMemo([scrollNode])` so its identity changes when the container changes).
+
+```js
+const [scrollNode, setScrollNode] = useState(null);
+const scrollRef = useCallback((node) => setScrollNode(node), []);
+const scrollContainerRef = useMemo(() => ({ current: scrollNode }), [scrollNode]);
+
+// ...elsewhere...
+<HeroPickerView scrollRef={scrollRef} ... />     // <div ref={scrollRef}> in the sub-view
+<CustomScrollbar scrollContainerRef={scrollContainerRef} ... />
+```
+
+How it plays out now:
+1. `step` changes → exit animation starts on old motion.div
+2. Old sub-view unmounts → React calls `scrollRef(null)` → `setScrollNode(null)`
+3. `scrollContainerRef` identity changes → `CustomScrollbar` useEffect re-runs → sees `null` → hides
+4. New sub-view mounts → React calls `scrollRef(newDiv)` → `setScrollNode(newDiv)`
+5. `scrollContainerRef` identity changes again → `CustomScrollbar` useEffect re-runs → sees new container → attaches listeners + observers, shows scrollbar
+
+The `key={String(step)}` workaround is removed — no longer needed.
+
+### Lesson
+
+Per session memo: "the CustomScrollbar component checks `getComputedStyle().overflowY`, `offsetParent`, `Element.checkVisibility(...)` and refuses to render if the container is invisible". Combined with `AnimatePresence mode="wait"`, the container can be transiently `null` at remount, so a stable ref object doesn't survive the navigation. Callback refs are the React-idiomatic solution to react to container-identity changes.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (scrollRef as callback + scrollContainerRef as memoized object; removed `key={String(step)}` on CustomScrollbar)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1693 - 2026-05-25
 
 **Title:** 🎬 Universal-Device hero dots — adopt Widget 2 progress-fill animation (10-s linear fill in active dot)
