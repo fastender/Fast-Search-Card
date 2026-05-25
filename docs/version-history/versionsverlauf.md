@@ -1,5 +1,90 @@
 # Versionsverlauf
 
+## Version 1.1.1679 - 2026-05-24
+
+**Title:** ⚡ Universal-Setup — Step 2 + 3 merged + new Quick-Stats picker (renders as detail-info-row pills analog Bambu)
+**Hero:** none
+**Tags:** Feature, Integration, Universal
+
+### Why
+
+Two related changes asked together:
+
+1. The 3-step wizard was unnecessarily long — Name/Icon (Step 3) and Hero/Visibility/Preview (Step 2) are all "configure how this device is displayed". Merging them into one "Customize" step gives a single scannable page instead of a Next-Back-Next dance.
+2. Bambu's printer cards show small pill-chips in the detail-info-row (`Bed: 21°C`, `0.0`) that the user can toggle on/off in settings. Universal-Devices needed the same — let the user pick which device entities show as quick-stats overlays.
+
+### Schema (Option A — flat ID array)
+
+```json
+{
+  "category": "universal",
+  "ha_device_id": "...",
+  "hero": "sensor....",
+  "hidden_entities": [...],
+  "quick_stats": ["sensor.foo", "binary_sensor.bar"]
+}
+```
+
+Per-device. Persisted via `deviceConfigStorage` (HA frontend/get_user_data + localStorage mirror). Hero-entity allowed in `quick_stats` too (Hero is "main display", Quick-Stats are "additional metrics" — orthogonal).
+
+### Eligibility filter
+
+Only read-only metric domains can be picked as quick-stats:
+
+```
+sensor, binary_sensor, weather, person, device_tracker, sun
+```
+
+Switches/buttons/scenes are excluded because their "state" is not a meaningful displayable value.
+
+### UI changes — Step-merge
+
+- `Step2DisplayCustomization.jsx` + `Step3Naming.jsx` deleted.
+- New `Step2Customize.jsx` with sections in order: **Name · Icon · Hero · Visibility · Quick-Stats · Preview · Nav**. Save button enabled when name is non-empty.
+- `StepHeader` (in `shared.jsx`): 2-bar progress in add-mode, no indicator/counter in edit-mode (edit lands directly on Step 2). Title: "Customize" (add) / "Edit" (edit).
+- Sub-views still slide in via AnimatePresence — added `'quick-stats'` alongside `'hero-picker'` / `'visibility'` / `'icon-picker'`.
+
+### New `QuickStatsView` sub-view
+
+ios-card list of eligible device entities with a `LiquidGlassSwitch` per row. Selection state stored as a Set, persists via the unified `quick_stats` array. Hero entity included in the list (clearly visible, user picks freely).
+
+### Rendering — analog Bambu pattern
+
+`utils/stateHelpers.js → getQuickStats(item, lang, hass)` extended with a `universal_device` branch:
+
+```js
+if (item.domain === 'universal_device') {
+  const ids = item.attributes?.quick_stats || [];
+  for (const eid of ids) {
+    const st = hass.states[eid]; if (!st) continue;
+    // strip device-name prefix from friendly_name so pill stays short
+    // e.g. "Waschraum Klima Outdoor Temperature" → "Outdoor Temperature: 21°C"
+    // truncate at 22 chars + '…'
+  }
+}
+```
+
+Live values pulled from `hass.states[entity_id]`. Friendly-name shortened by stripping the universal-device's name prefix (so `"Waschraum Klima Outdoor Temperature: 21°C"` becomes `"Outdoor Temperature: 21°C"`). Truncated at 22 chars + ellipsis. Unavailable / unknown entities silently skipped.
+
+To get `hass` into the formatter, `EntityIconDisplay` now accepts a `hass` prop, forwarded from `DetailView`. Same pill renderer (`.detail-info-row` + `.quick-stats` + `.stat-item`) — visually 1:1 with Printer3D's overlay.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (orchestrator — quickStats state, `'quick-stats'` sub-view dispatch, Step2Customize render, handleFinish + handleSelectDevice include `quick_stats`)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx` (new — merged Step 2+3 content + Quick-Stats drill-down row)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/QuickStatsView.jsx` (new — toggleable picker)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/shared.jsx` (StepHeader 2-step variant + no-indicator edit-mode)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2DisplayCustomization.jsx` (**deleted**)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step3Naming.jsx` (**deleted**)
+- `src/system-entities/entities/integration/index.js` (`updateDevice` action propagates `quick_stats` to entity attributes)
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` (edit-save handler forwards `quick_stats`)
+- `src/utils/stateHelpers.js` (`getQuickStats` accepts optional `hass`; `universal_device` branch resolves live values + shortens labels)
+- `src/components/DetailView/EntityIconDisplay.jsx` (accepts + forwards `hass`)
+- `src/components/DetailView.jsx` (passes `hass` to `EntityIconDisplay`)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1678 - 2026-05-24
 
 **Title:** 🎨 Universal-Setup Step 1 — integration groups now use the polished HistoryTab accordion design
