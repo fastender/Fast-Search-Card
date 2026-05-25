@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1676 - 2026-05-24
+
+**Title:** ♻️ UniversalEntityList split — 856-LOC monolith → 213-LOC orchestrator + 8 focused files
+**Hero:** none
+**Tags:** Refactor, Integration, Universal
+
+### Why
+
+`UniversalEntityList.jsx` had grown to 856 LOC over a year of additions: `v1.1.1344` introduced it as a single file with `EntityRow`; `v1.1.1358` bolted on inline `NumberSliderControl` + `TextControl`; `v1.1.1359` added `SelectPickerView` + `TimePickerView` sub-views; `v1.1.1673`–`v1.1.1675` added (and then replaced) `ClimateControlView` + `LightControlView` with the unified `EntityControlView` reuse pattern. Result was a single file mixing 6 concerns: helpers, orchestrator, per-row routing, 3 picker sub-views, 2 inline controls.
+
+User wants to focus on the integration tree and refactor before adding more features. Same sub-dir split pattern as `UniversalSetup` (v1.1.1670).
+
+### Split
+
+New folder `UniversalEntityList/` next to the orchestrator. The orchestrator imports 4 named modules (3 picker sub-views + EntityRow). EntityRow internally imports the other 4 (shared atoms, helpers, NumberSliderControl, TextControl).
+
+| File | LOC | Purpose |
+|------|----:|---------|
+| `UniversalEntityList.jsx` (orchestrator) | 213 | State (picker / pending / optimistic), useEffects (hass-ref, pending-cleanup, HA-confirm-drop), items useMemo, toggle/press handlers, picker dispatch, list render |
+| `UniversalEntityList/shared.jsx` | 18 | `Chevron`, `NavbarBackIcon` SVG atoms |
+| `UniversalEntityList/helpers.js` | 124 | `RICH_CONTROL_DOMAINS` set, `isDeepLightEntity()`, `isRichControlEntity()`, `formatEntityDisplay()` — pure functions, no JSX |
+| `UniversalEntityList/EntityRow.jsx` | 221 | Per-row domain routing: select/time → picker, rich-control → EntityControlView, toggleable/pressable/number/text → inline, fallback → read-only value |
+| `UniversalEntityList/SelectPickerView.jsx` | 88 | Sub-view for `select.*` / `input_select.*` — ios-card list with checkmark, 200 ms close delay after pick |
+| `UniversalEntityList/TimePickerView.jsx` | 85 | Sub-view wrapping `TimePickerWheel`, 500 ms debounced auto-save + flush on close |
+| `UniversalEntityList/EntityControlView.jsx` | 81 | Sub-view mounting `UniversalControlsTab` with the child entity — reuses regular entity-card UI |
+| `UniversalEntityList/NumberSliderControl.jsx` | 65 | Inline `LiquidGlassSlider` with 150 ms trailing-edge debounce for `number.*` / `input_number.*` |
+| `UniversalEntityList/TextControl.jsx` | 46 | Inline text input for `text.*` / `input_text.*` |
+
+### Behavior 1:1
+
+No behavior changes — every state machine, every service call, every UX path matches the v1.1.1675 monolith. The `PENDING_TTL_MS` constant stays in the orchestrator (only consumed there). The `domain === 'input_text' ? 'set_value' : 'set_value'` no-op ternary in TextControl was collapsed to a literal during extraction (pure cleanup).
+
+### Net file impact
+
+`UniversalEntityList.jsx` orchestrator: **856 → 213 LOC (−75%)**. Total across the 9 files: 941 LOC (≈10% more than the monolith due to JSDoc headers + import boilerplate per file). Largest sub-file is `EntityRow.jsx` at 221 LOC (central per-row routing — appropriate size).
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx` (rewritten, 856 → 213 LOC)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/shared.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/helpers.js` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/EntityRow.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/SelectPickerView.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/TimePickerView.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/EntityControlView.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/NumberSliderControl.jsx` (new)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/TextControl.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1675 - 2026-05-24
 
 **Title:** ♻️ Universal-Device — rich-control entities now reuse the regular entity-card UI (`EntityControlView` wrapper), drops 470 LOC of duplicated climate/light code
