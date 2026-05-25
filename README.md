@@ -229,6 +229,17 @@ Real-time charts. Sensor setup wizard. Multi-schema support — works with every
 </details>
 
 <details>
+<summary><b>Device Builder.</b> Custom devices, without code.</summary>
+
+<br>
+
+A visual builder for any device — energy monitors, 3D printers, weather stations, or fully custom. Pick a category, choose your sensors, name them. The card adds the view to your dashboard.
+
+No YAML. No code. Edit anytime.
+
+</details>
+
+<details>
 <summary><b>Settings.</b> In the card. Not somewhere else.</summary>
 
 <br>
