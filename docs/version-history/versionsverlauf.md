@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.1692 - 2026-05-25
+
+**Title:** 🐛 v1.1.1691 fix-ups — CustomScrollbar re-binds on sub-view change + Multi-Hero dots moved to bottom-center pill (analog Media-Player)
+**Hero:** none
+**Tags:** Bugfix, Polish, Integration, Universal
+
+### Bug 1 — CustomScrollbar fehlt in HeroPickerView (und nach Save in Main-Step)
+
+`CustomScrollbar`'s `useEffect` has `[scrollContainerRef, updateTriggerEvent]` as deps. The ref-object reference is stable, so the effect only runs **once on mount**. When sub-views switch (e.g., main → hero-picker → main), the orchestrator's shared `scrollRef.current` reassigns to whatever sub-view mounted, but `CustomScrollbar`'s already-attached scroll/resize/mutation observers stay bound to the previous (now-unmounted) container. Result: no scrollbar in any sub-view after the first one.
+
+**Fix**: `<CustomScrollbar key={String(step)} ... />` in the orchestrator. Step-change forces a full remount of `CustomScrollbar`, which re-runs the effect against the new `scrollRef.current`. Cleanup of old observers happens automatically via useEffect's return.
+
+### Bug 2 — Multi-Hero dots not displayed where Media-Player dots are
+
+v1.1.1691 rendered the dots inline between the slider and the control buttons (top area). User wanted them like Media-Player's existing pattern: **bottom-center inside a pill** (`.mp-page-dots-wrap` + `.mp-page-dots` classes with `margin: auto auto 16px` for flex-column bottom-alignment + `backdrop-filter: blur(10px)` pill background).
+
+**Fix**: Removed the inline-styled dots block. Added a new render at the END of the `controls-tab` JSX, mirroring the Media-Player dots structure but driven by `universalHeroes` / `safeUniversalIdx` instead of `MP_SLIDE_COUNT` / `mpSlide`:
+
+```jsx
+{isUniversalDevice && universalHeroes.length > 1 && !expandedControl && (
+  <div className="mp-page-dots-wrap">
+    <div className="mp-page-dots">
+      {universalHeroes.map((_, idx) => (
+        <motion.div
+          className={`mp-dot ${safeUniversalIdx === idx ? 'active' : ''}`}
+          onClick={() => setUniversalHeroIdx(idx)}
+          animate={{
+            width: safeUniversalIdx === idx ? 24 : 8,
+            backgroundColor: safeUniversalIdx === idx
+              ? 'rgba(255, 255, 255, 0.9)'
+              : 'rgba(255, 255, 255, 0.4)',
+          }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          style={{ height: 8, borderRadius: 4, cursor: 'pointer' }}
+        />
+      ))}
+    </div>
+  </div>
+)}
+```
+
+Visually identical to MP dots. Universal-Device gets the same pill chrome, same dot-animation (8 px circle → 24 px pill on active), same click-to-jump behavior. Hidden when an expandable tab is open (analog MP) — same `!expandedControl` gate.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` (removed inline dots between slider/buttons; added MP-style dots at controls-tab end)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (`key={String(step)}` on CustomScrollbar)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1691 - 2026-05-25
 
 **Title:** 🎠 Universal-Device — Multi-Hero (up to 5) with 10-s slideshow + dots indicator
