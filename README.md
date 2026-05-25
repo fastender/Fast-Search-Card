@@ -99,6 +99,27 @@ New to this? Start with [areas](https://www.home-assistant.io/docs/organizing/ar
 
 ---
 
+## Configure once
+
+You already named every device. You already grouped them by area. You already decided what's visible and what isn't.
+
+Why do it twice?
+
+The card reads your Home Assistant — floors, areas, labels, visibility — and builds itself from what it finds.
+
+Add a light to a room? It appears.
+Rename a floor? The card follows.
+Hide an entity? Hidden.
+Reorder areas? Reshuffled.
+
+No YAML. No copy-paste. No second source of truth.
+
+<sub>Same idea behind Home Assistant's own [dashboard strategies](https://developers.home-assistant.io/docs/frontend/custom-ui/custom-strategy/) — render from your settings, not from a config file. But as a card, so your dashboard structure stays yours.</sub>
+
+<br>
+
+---
+
 ## Security
 
 No telemetry. No tracking. No external API calls. No authentication material stored.
