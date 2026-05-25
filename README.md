@@ -6,7 +6,10 @@
 
 _Faster. Together._
 
-A complete dashboard for Home Assistant.<br>
+A search card. A complete dashboard. Same card.<br>
+Type to find. Tap to control. Glance to know.
+
+A modern dashboard for Home Assistant.<br>
 **Setup in under 10 seconds. One line.**
 
 [![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
