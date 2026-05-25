@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.1689 - 2026-05-25
+
+**Title:** ✂️ `.ios-navbar-title` — single-line + right-edge fadeout (no more 2-line wrap on long entity names)
+**Hero:** none
+**Tags:** Polish, UX
+
+### Why
+
+Long entity names in sub-view navbars (e.g., "Bambu Lab A1 Druckkopflüfter") wrapped to two lines because the `.ios-navbar-title` element had no width constraint and no `white-space` rule. The 2-line title broke the iOS-look (which is single-line by convention) and pushed the rest of the navbar layout off.
+
+User wanted a soft fadeout instead of the standard ellipsis-truncation when text exceeds the available width.
+
+### Fix
+
+```css
+.ios-navbar-title {
+  /* ...existing... */
+  max-width: calc(100% - 160px);  /* 80px each side for back-button + safety */
+  white-space: nowrap;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 40px), transparent 100%);
+  mask-image: linear-gradient(to right, black 0, black calc(100% - 40px), transparent 100%);
+}
+```
+
+Four-part defense:
+- `max-width: calc(100% - 160px)` caps the title at the navbar width minus 80 px on each side (room for the back button + breathing space).
+- `white-space: nowrap` forces single-line.
+- `overflow: hidden` clips text that exceeds the max-width.
+- `mask-image: linear-gradient(...)` applies a soft 40-px fadeout on the right edge — instead of harsh `text-overflow: ellipsis` with `…`.
+
+When the title is short and fits the available width, the mask zone is empty (no visible content to fade), so short titles look exactly the same as before — no fade effect on them. Only long, truncated titles get the gradient fadeout.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1688 - 2026-05-25
 
 **Title:** 🪟 UniversalEntityList sub-views — render inside the dark wrapper (no more missing background + cut-off content)
