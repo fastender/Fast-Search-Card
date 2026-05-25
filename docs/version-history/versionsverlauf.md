@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1678 - 2026-05-24
+
+**Title:** 🎨 Universal-Setup Step 1 — integration groups now use the polished HistoryTab accordion design
+**Hero:** none
+**Tags:** Polish, Integration, Universal
+
+### Why
+
+v1.1.1677 added integration-grouping to the device picker but the group headers used ad-hoc inline styles (flat header bar with a tiny ▶ rotate). User pointed out the existing `accordion-section` design in `HistoryTab.jsx` (used for "Usage Charts" / "Recent Events (50)") is the in-house pattern and looks way better.
+
+### What changed
+
+- New shared CSS `src/components/common/accordion.css` — extracted the `.accordion-section / .accordion-header / .accordion-title / .accordion-icon / .accordion-content` classes from `HistoryTab.css`. `HistoryTab.css` still has its local copy (no refactor of unrelated file); both copies use identical class names so combining them later is a no-op.
+- `Step1DevicePicker` group rows rewritten to use those classes + the existing `accordionVariants`, `iconVariants`, `headerVariants` from `src/utils/animations/accordionAnimations.js`.
+- Open/close animation now uses framer-motion `AnimatePresence` with the same height + opacity curve HistoryTab uses (height 0.4s `[0.16, 1, 0.3, 1]` ease, opacity 0.3s delayed 0.1s on expand).
+- Icon: rotating "+" SVG (0° → 45°) instead of the ad-hoc ▶ chevron — same icon HistoryTab uses.
+- Header has the proper rounded-card look (`rgba(255,255,255,0.03)` bg, 16px radius, 12px margin-bottom, hover lifts to 0.05).
+- Group still expands automatically when search is non-empty (`isSearching` overrides `expandedKeys`), but the icon now correctly reflects the expand state (rotated), and clicks still work to manually toggle.
+
+### Functional changes
+
+None — purely visual. Same data flow, same expand-on-search, same already-added dimming, same click-to-pick behavior.
+
+### Files
+
+- `src/components/common/accordion.css` (new)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step1DevicePicker.jsx` (rewritten with accordion classes + framer-motion variants)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1677 - 2026-05-24
 
 **Title:** 📂 Universal-Setup Step 1 — devices grouped by integration (Konfiguriert-style), scroll-stutter fix
