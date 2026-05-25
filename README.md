@@ -167,6 +167,15 @@ Four configurable slots. Weather, calendar, todos, news, favorites — all live.
 </details>
 
 <details>
+<summary><b>Sidebar.</b> A liquid-glass dock for your apps.</summary>
+
+<br>
+
+Left on desktop. Bottom on mobile. Pick which apps appear. Hover to expand — smooth glass deblur, labels stagger in. Active app stays highlighted.
+
+</details>
+
+<details>
 <summary><b>Search.</b> Fuzzy, fast, forgiving.</summary>
 
 <br>
@@ -181,6 +190,8 @@ Type a typo. Type a room. Type a feeling. Combine area and domain as chips. Find
 <br>
 
 Five tabs per device. Controls. Context. History. Schedule. Settings. Circular sliders, scene execution, Chart.js graphs, built-in scheduler. Made for one-tap actions.
+
+Video backgrounds when you have them — drop `video/{domain}/{state}.mp4` and the detail view plays it behind the controls. Looped. Muted. Automatic.
 
 </details>
 
