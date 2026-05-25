@@ -1,5 +1,66 @@
 # Versionsverlauf
 
+## Version 1.1.1693 - 2026-05-25
+
+**Title:** 🎬 Universal-Device hero dots — adopt Widget 2 progress-fill animation (10-s linear fill in active dot)
+**Hero:** none
+**Tags:** Polish, Integration, Universal
+
+### Why
+
+v1.1.1692 used Media-Player-style dots (framer-motion `width` transition between 8 px circle and 24 px pill). User pointed out Widget 2 (BentoRichSlider) has a richer animation: the active dot has an **inner progress-bar that fills from 0 % to 100 % over 10 s**, synchronised with the auto-advance timer. Restart-on-jump via React-key remount. That's the spec we want.
+
+### Adapted from BentoRichSlider
+
+```css
+.universal-hero-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transition: width 0.4s ease, background 0.2s ease, border-radius 0.2s ease;
+  position: relative; overflow: hidden;
+}
+.universal-hero-dot.is-active {
+  background: rgba(255, 255, 255, 0.3);  /* halb-transparenter Track */
+  width: 24px; border-radius: 4px;
+}
+.universal-hero-dot-progress {
+  position: absolute; top: 0; left: 0; bottom: 0; width: 0%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  animation: universal-hero-progress 10s linear forwards;
+}
+@keyframes universal-hero-progress {
+  from { width: 0%; } to { width: 100%; }
+}
+```
+
+JSX uses `<button>` with conditional `<span>` inside the active dot:
+
+```jsx
+<button className={`universal-hero-dot ${active ? 'is-active' : ''}`} onClick={...}>
+  {active && (
+    <span
+      key={`progress-${safeUniversalIdx}`}
+      className="universal-hero-dot-progress"
+    />
+  )}
+</button>
+```
+
+The `key={`progress-${safeUniversalIdx}`}` forces React to unmount + remount the span when the active index changes → CSS animation restarts from 0 % every time the slideshow advances (or the user clicks another dot).
+
+### Why scoped instead of reusing `.bento-carousel-dot`
+
+BentoStartView's `.bento-carousel-dots` container has `position: absolute; right: 0; bottom: 0;` — designed for the bottom-right of the bento footer. Doesn't fit our bottom-center-pill placement inside `controls-tab`. The new `.universal-hero-dot` classes mirror the bento dot styling without the container positioning baggage. The MP-style container `.mp-page-dots-wrap` + `.mp-page-dots` (with `margin: auto auto 16px` + pill bg) stays as-is.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` (new `.universal-hero-dot*` classes + keyframes)
+- `src/components/tabs/UniversalControlsTab.jsx` (replaced motion.div dots with button + conditional progress span)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1692 - 2026-05-25
 
 **Title:** 🐛 v1.1.1691 fix-ups — CustomScrollbar re-binds on sub-view change + Multi-Hero dots moved to bottom-center pill (analog Media-Player)
