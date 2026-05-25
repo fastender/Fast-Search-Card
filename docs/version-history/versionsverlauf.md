@@ -1,5 +1,95 @@
 # Versionsverlauf
 
+## Version 1.1.1707 - 2026-05-25
+
+**Title:** ✨ Auto-scroll marquee for overflowing DeviceCard state-line (Universal-Device quick_stats)
+**Hero:** none
+**Tags:** Polish, Universal, DeviceCard
+
+### Why
+
+User screenshot showed a Universal-Device card ("Waschraum / Klima") whose 3rd line was `Energy: 5.7kWh · F` — the second quick-stat got truncated to a single letter under the existing gradient text-fade. With multiple quick-stats configured the joined string regularly exceeds the card width, and the gradient mask hides the rest. User asked: scroll it instead of truncating.
+
+### What
+
+New `ScrollingDeviceState` sub-component inside DeviceCardGridView:
+
+```jsx
+const ScrollingDeviceState = ({ text, className }) => {
+  const containerRef = useRef(null);
+  const measureRef = useRef(null);
+  const [state, setState] = useState({ active: false, distance: 0, duration: 12 });
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      const contentW = measureRef.current.scrollWidth;
+      const containerW = containerRef.current.clientWidth;
+      if (contentW > containerW + 4) {
+        const gap = 40;
+        const distance = contentW + gap;
+        const duration = Math.max(8, distance / 50);  // ~50 px/s
+        setState({ active: true, distance, duration });
+      } else {
+        setState({ active: false, distance: 0, duration: 12 });
+      }
+    });
+  }, [text]);
+  // ...
+};
+```
+
+Render path:
+
+- **No overflow:** plain `<div className="device-state"><span>{text}</span></div>` — identical to the existing layout, so single short quick-stats are unaffected.
+- **Overflow:** the text is duplicated inside a flex track that translates from 0 → -(contentW + gap) over a duration proportional to text length. The second copy lands exactly where the first started, producing a seamless loop. CSS keyframes drive the animation (`device-state-marquee-scroll`).
+
+CSS additions:
+
+```css
+.device-state.is-marquee {
+  background: none !important;          /* drop the right-edge text-gradient */
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.85);
+  -webkit-mask-image: linear-gradient(to right,
+    transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+.device-state.is-marquee .device-state-marquee-track {
+  display: inline-flex;
+  gap: 40px;
+  animation: device-state-marquee-scroll var(--marquee-duration, 12s) linear infinite;
+}
+@keyframes device-state-marquee-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * var(--marquee-distance, 100%))); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .device-state.is-marquee .device-state-marquee-track { animation: none; }
+}
+```
+
+Two important details:
+
+1. **Solid color in marquee mode.** The normal `.device-state` uses background-clip:text with a linear-gradient that goes transparent past 85%. If we kept that during marquee, the right portion of every copy would simply not be visible. So we restore the standard color path with `background: none` + explicit `color`.
+2. **`mask-image` on the container, not the text.** That fades 6% on each side so the second copy appearing on the right and the first leaving on the left both ease in/out instead of popping. Active-card variant gets its own dark color override (`rgba(0, 0, 0, 0.7)`).
+
+Scope is intentionally limited to `device.domain === 'universal_device'`. Other domains' state lines keep their current gradient-truncation behavior because their content (e.g. "Open", "Off", "1°C") doesn't routinely overflow.
+
+### Result
+
+Cards with multi-stat quick_stats now scroll the full string instead of truncating. Speed adapts to length (≥8s minimum so short overflow doesn't whip past). Single-stat cards (no overflow) keep the static layout — no animation cost, no visual change.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardGridView.jsx`
+  - New `ScrollingDeviceState` component (40 LOC)
+  - `useRef, useState, useEffect` imports added
+  - Universal-Device render path switched from string-in-`device-state` to `<ScrollingDeviceState />`
+  - CSS additions: `.device-state.is-marquee` + track + `@keyframes` + active-state override
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1707
+- `docs/version-history/versionsverlauf.md` → this entry
+
+---
+
 ## Version 1.1.1706 - 2026-05-25
 
 **Title:** 🐛 quick_stats persistence + DeviceCard formatting unified with existing state-line
