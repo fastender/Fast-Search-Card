@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.1677 - 2026-05-24
+
+**Title:** 📂 Universal-Setup Step 1 — devices grouped by integration (Konfiguriert-style), scroll-stutter fix
+**Hero:** none
+**Tags:** Feature, Performance, Integration, Universal
+
+### Why
+
+Two pains in the Universal-Device Setup's Step 1 (Device-Picker):
+
+1. **Scroll-Ruckler** — user with 100+ HA-devices had visible stuttering when scrolling the flat list. Every device row was wrapped in `<motion.div>` even though no animation was attached. Each motion-wrapper carries framer-motion subscription overhead; multiplied by 100 rows, that's a measurable hit on every render and scroll-frame.
+
+2. **Flache 100+ Liste schlecht navigierbar** — user wanted to see the same grouping HA's own "Konfiguriert"-view shows (one card per integration: MELCloud Home, Bambu Lab, MQTT, Aqara, ...) so they can jump to the integration that owns their device instead of scrolling through everything.
+
+### Grouping logic
+
+New helper `buildDeviceIntegrationMap(hass)` in `UniversalSetup/hooks.js` builds a `deviceId → { key, title }` map in one pass over `hass.entities`. Priority:
+
+1. The `platform` field on the first entity that belongs to the device (e.g., `melcloud_home`, `bambu_lab`, `mqtt`, `aqara`) → title-cased to "MELCloud Home", "Bambu Lab", "MQTT", "Aqara".
+2. `device.manufacturer` as fallback for devices with no entities (rare).
+3. `'Other'` final catch-all.
+
+Title-casing has a small lookup table for acronyms that snake-case-to-title-case mangles: `mqtt → MQTT`, `ipp → IPP`, `hacs → HACS`, `upnp → UPnP`, etc.
+
+`useDeviceList()` now returns an additional `groupedFilteredDevices` — array of `{ title, devices }` sorted alphabetically. Filter applies inside groups; empty groups disappear. Search matches device name / manufacturer / model / area **and** the integration title (so "MELCloud" finds all MELCloud devices even if the device name doesn't contain that string).
+
+### UI changes (Step1DevicePicker)
+
+- **Collapsible groups.** Each group renders as a header row (integration title + `· N` count + chevron). Click toggles expand; expanded groups show the device rows in an `ios-card`. Default state is collapsed — you see ~10-30 integration headers instead of 100-300 device rows.
+- **Search auto-expands.** When the search field is non-empty, all matching groups force-expand and the chevron disappears (no manual toggle needed).
+- **`<motion.div>` → `<div>` for device rows.** No behavior change, but removes framer-motion subscription cost per row. Same with the integration-header click — plain `<div>` with inline onClick.
+- **Empty state.** When `totalCount === 0` after filtering, shows the "Keine Geräte gefunden" message instead of empty groups.
+
+### Performance impact (qualitative)
+
+For a 150-device setup:
+- **Render cost**: 150 framer-motion instances replaced with 150 plain divs. Less re-render churn, smaller component tree.
+- **Initial paint**: groups collapsed by default → only ~30 integration headers in the DOM instead of 150 full device rows.
+- **Search typing**: filter + group re-compute is O(N) on each keystroke, still fast for 1000+ devices. No debounce needed.
+- **Scroll**: smooth — no more framer-motion overhead per row.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/hooks.js` (+90 LOC: `titleCase`, `SPECIAL_INTEGRATION_NAMES`, `buildDeviceIntegrationMap`, `groupedFilteredDevices` memo)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step1DevicePicker.jsx` (rewritten — collapsible groups + plain divs)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` (orchestrator now destructures `groupedFilteredDevices`)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1676 - 2026-05-24
 
 **Title:** ♻️ UniversalEntityList split — 856-LOC monolith → 213-LOC orchestrator + 8 focused files
