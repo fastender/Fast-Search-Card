@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1705 - 2026-05-25
+
+**Title:** ↩️ Revert v1.1.1704 active-card color changes (kept quick-stats 3rd line)
+**Hero:** none
+**Tags:** Revert
+
+### Why
+
+v1.1.1704 made two card changes: (1) added the quick-stats 3rd line for universal_device, (2) brightened the card background when `isActive` and fixed the long-broken `isEntityActive(device)` call signature. The signature fix flipped behaviour for every domain that had previously relied on the buggy fallback always returning false — visible regressions in other devices' card colour. User asked to revert the colour-related changes.
+
+### What was reverted
+
+- `DeviceCard.jsx` `isActive` computation back to its v1.1.1703 form (no `universal_device` early-return, `isEntityActive(device)` call left with its original buggy single-arg signature).
+- `DeviceCardGridView.jsx` `.device-card.active` background + `::before` warm-glow gradient + `.device-card.active .device-quick-stats` brighter-text overrides — all removed.
+
+### What stayed
+
+The quick-stats 3rd line is unrelated to the colour bug and still useful — kept:
+
+- `getQuickStats` import in `DeviceCardGridView`
+- The conditional `<div className="device-quick-stats">` render for universal_device with non-empty `quick_stats`
+- The `.device-quick-stats` base CSS (font-size, color, fadeout mask)
+
+If we want active-state brightening later, the right approach is probably a separate prop / class that doesn't touch the existing `isActive` semantics for other domains — needs a more surgical design.
+
+### Files
+
+- `src/components/DeviceCard.jsx`
+- `src/components/DeviceCard/DeviceCardGridView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1704 - 2026-05-25
 
 **Title:** 💡 Universal-Device card — quick-stats as 3rd line + brighter background when active
