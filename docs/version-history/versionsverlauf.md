@@ -1,5 +1,65 @@
 # Versionsverlauf
 
+## Version 1.1.1675 - 2026-05-24
+
+**Title:** ♻️ Universal-Device — rich-control entities now reuse the regular entity-card UI (`EntityControlView` wrapper), drops 470 LOC of duplicated climate/light code
+**Hero:** none
+**Tags:** Refactor, Integration, Universal
+
+### Why
+
+v1.1.1673 + v1.1.1674 added two hand-coded sub-views (`ClimateControlView`, `LightControlView`) to control climate + light entities from inside the Universal-Device's Controls tab. While they worked, both duplicated logic that already lives in `src/utils/deviceConfigs.js` — the `getControlConfig` / `getSliderConfig` switch statements that drive every regular entity-card across the whole app. A new preset added to `getControlConfig.light` (e.g. an extra brightness step) would NOT have appeared in `LightControlView` because they were two unrelated render paths.
+
+User caught this: *"eigentlich habe ich doch für light, cover, usw vordefinierte stile; bitte analisieren"*. They were right. The audit confirmed: `deviceConfigs.js` already covers `light` / `cover` / `lock` / `media_player` / `fan` / `vacuum` / `humidifier` / `water_heater` / `climate` / `scene` / `script` / `automation` — 12 domains with capability-gated tab buttons + preset items + hero slider configs. All consumed by `UniversalControlsTab` to render regular entity cards.
+
+### What changed
+
+The rich-control row-click now mounts `<UniversalControlsTab item={builtItem} hass onServiceCall />` inside a thin `EntityControlView` wrapper. That gives **every** rich-control domain the full existing UI **for free** — no per-domain implementation needed.
+
+Removed (~470 LOC):
+- `ClimateControlView` component (~170 LOC)
+- `LightControlView` component (~210 LOC)
+- `COLOR_SWATCHES` constant
+- `formatClimateDisplay` helper
+- `formatLightDisplay` helper
+- `'climate'` + `'light'` picker dispatches in UniversalEntityList
+- Per-domain `isClimate` / `isDeepLight` branches in EntityRow
+
+Added (~110 LOC):
+- `RICH_CONTROL_DOMAINS` set (climate, cover, lock, media_player, vacuum, humidifier, water_heater — light + fan are capability-gated)
+- `isRichControlEntity(item, stateObj)` — unified detection. Light requires brightness/color/temp/effects; fan requires percentage/oscillate/direction/preset_modes
+- `formatEntityDisplay(item, stateObj)` — unified row-value switch across all rich-control domains. Climate → `{state} · {target}°`, cover → `{state} · {pos}%`, media_player → `{title}` truncated to 30 chars, etc.
+- `EntityControlView` wrapper component (~80 LOC) — builds item-shape from `hass.states[entityId]` and mounts `UniversalControlsTab`
+- `'entity'` picker dispatch in UniversalEntityList
+- `UniversalControlsTab` import in UniversalEntityList
+
+`isDeepLightEntity` helper was kept (now consumed only by `isRichControlEntity`'s light gate).
+
+### Net file impact
+
+`UniversalEntityList.jsx`: **1212 → 856 LOC (−356 LOC)**.
+
+### What the user now gets
+
+Tap a climate row → opens the same UI as opening that climate entity directly (hero temperature circle + HVAC mode buttons + DomainSettingsPicker for fan/preset/swing).
+Tap a deep-light row → brightness hero wheel + Brightness/ColorTemp/Color/Effects tabs with the existing preset palettes (10/25/50/75/100%, Sehr-warm/Warm/Neutral/Kalt/Tageslicht, Rot/Grün/Blau/Gelb/Cyan/Magenta/Orange/Pink, first 8 effects).
+Tap a cover row → position slider + Open/Stop/Close + 0/25/50/75/100% position presets.
+Tap a media_player row → volume slider + transport buttons (play/pause/next/prev) + source picker via the existing media_player config.
+Same for lock, fan-with-features, vacuum, humidifier, water_heater — **all 9 rich-control domains, zero new domain-specific code**.
+
+Single source of truth restored: any future tweak to `deviceConfigs.js` flows through to both regular entity cards AND Universal-Device drill-ins automatically.
+
+### Known visual caveat
+
+The sub-view renders inside the expanded preset area of the outer `UniversalControlsTab` (Universal-Device), so you see the parent's hero + 4-tab strip above the child's UI. Functional but visually nested. If it feels cramped on screen we can lift the sub-view higher in a follow-up (e.g. cover the entire tab-area instead of just the preset slot).
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1674 - 2026-05-24
 
 **Title:** 💡 Universal-Device — full light sub-view (brightness slider + color-temp slider + 10-swatch color grid + effect picker)
