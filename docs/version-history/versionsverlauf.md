@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1703 - 2026-05-25
+
+**Title:** 👆 Hero slideshow swipe — larger detection zone (whole `.controls-tab`) + native pointer events
+**Hero:** none
+**Tags:** Polish, UX, Integration, Universal
+
+### Why
+
+v1.1.1702 attached framer-motion's `drag` API to `.slider-wrapper` only — the hero-circle/image area. User reported "Touch-Swipe funktioniert nicht so gut" because the hit zone was too small. Asked for the entire container to be swipeable.
+
+### Fix
+
+Switched from framer-motion `drag` on the inner slider-wrapper to native pointer events on the outer `.controls-tab` (both render paths). Detection zone is now the whole controls-tab area — anywhere in the Universal-Device card you can horizontally swipe.
+
+```js
+const swipeStartRef = useRef(null);
+const handleSwipePointerDown = (e) => {
+  if (!heroSwipeEnabled) return;
+  swipeStartRef.current = { x: e.clientX, y: e.clientY, t: Date.now() };
+};
+const handleSwipePointerUp = (e) => {
+  if (!swipeStartRef.current) return;
+  const dx = e.clientX - swipeStartRef.current.x;
+  const dy = e.clientY - swipeStartRef.current.y;
+  const dt = Date.now() - swipeStartRef.current.t;
+  swipeStartRef.current = null;
+  if (Math.abs(dx) < 50) return;             // tap, not swipe
+  if (Math.abs(dy) > Math.abs(dx)) return;   // mostly-vertical (page scroll)
+  if (dt > 800) return;                      // too slow
+  if (dx < 0) setUniversalHeroIdx(i => (i + 1) % universalHeroes.length);
+  else        setUniversalHeroIdx(i => (i - 1 + universalHeroes.length) % universalHeroes.length);
+};
+```
+
+Attached to both `.controls-tab` parent divs via `onPointerDown` / `onPointerUp` / `onPointerCancel`.
+
+### Why pointer events instead of framer-motion drag
+
+- **Larger hit zone**: framer-motion drag on a parent would visually shift the WHOLE parent including tab buttons + dots, which is ugly. Pointer events on the parent only detect the gesture; no visual displacement.
+- **No conflict with internal click targets**: tap < 50 px filter means tab buttons / dots still register as clicks. Browser-native semantic (drag > 50 px cancels the click).
+- **Better browser-scroll cooperation**: `touchAction: 'pan-y'` lets the browser handle native vertical scrolling unchanged; we only consume horizontal gestures.
+
+### Filters
+
+- `Math.abs(dx) < 50` → tap-style touch, ignore (lets clicks happen normally)
+- `Math.abs(dy) > Math.abs(dx)` → mostly-vertical motion = user is scrolling the page, ignore
+- `dt > 800ms` → too slow = user was hesitating or dragged then thought about it, ignore
+
+### Cleanup
+
+Removed `drag` / `dragConstraints` / `dragElastic` / `onDragEnd` props from both `.slider-wrapper` motion.divs.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1702 - 2026-05-25
 
 **Title:** 👆 Hero slideshow — touch + mouse swipe to navigate (framer-motion drag)
