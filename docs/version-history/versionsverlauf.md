@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1688 - 2026-05-25
+
+**Title:** 🪟 UniversalEntityList sub-views — render inside the dark wrapper (no more missing background + cut-off content)
+**Hero:** none
+**Tags:** Bugfix, Polish, Integration, Universal
+
+### Why
+
+User reported that drilling from the Universal-Device entity list into a sub-view (Select / Time picker, or the rich-control `EntityControlView`) lost the dark rounded container that the main list view has, AND the content was visually clipped (e.g., the EntityControlView's hero circle extended beyond the visible area).
+
+### Root cause
+
+The picker dispatch in `UniversalEntityList` early-returned BEFORE the `.printer-sensors-wrapper` was rendered:
+
+```js
+if (pickerEntity?.type === 'select') return <SelectPickerView ... />;
+if (pickerEntity?.type === 'time')   return <TimePickerView ... />;
+if (pickerEntity?.type === 'entity') return <EntityControlView ... />;
+
+return <div className="printer-sensors-wrapper" ...>  /* list */  </div>;
+```
+
+So sub-views rendered without the wrapper's dark background (`rgba(0,0,0,0.25)`), border-radius, fixed `height: 420px`, and overflow handling. They free-floated inside the parent's expanded preset area, picking up whatever transparent background was there and extending beyond visible bounds with no overflow rule.
+
+### Fix
+
+Pulled the picker dispatch INTO the wrapper. Now `printer-sensors-wrapper` always renders; its child is either the picker (when `pickerEntity` is set) or the list scroll-container (the existing main view). The `CustomScrollbar` is conditional too — only mounts for the list view since each sub-view has its own internal scroll.
+
+```jsx
+return (
+  <div className="printer-sensors-wrapper" ...>
+    {pickerView ? pickerView : (
+      <div ref={scrollRef} className="ios-settings-view printer-sensors-scroll ...">
+        {/* list */}
+      </div>
+    )}
+    {!pickerView && <CustomScrollbar ... />}
+  </div>
+);
+```
+
+Both fixes land together:
+- **Dark background restored** — sub-views inherit the wrapper's `rgba(0,0,0,0.25)` bg + 20-px radius + 1-px border + the bottom-fade mask.
+- **No more cut-off** — wrapper's `height: 420px` clips the sub-view to the same area as the list. Each picker's own `.ios-view-wrapper` has `height: 100%` + flex-column structure with an inner `overflow-y: auto`, so content that doesn't fit (e.g., the full UniversalControlsTab hero in EntityControlView) scrolls inside the dark container instead of overflowing or being clipped.
+
+### Caveat for EntityControlView
+
+The `EntityControlView` mounts the full `UniversalControlsTab` (regular entity card UI: hero circle + 4-tab strip + preset rows). That UI was designed for a much taller container — inside 420 px it's tight and the hero circle nearly fills the visible area. Now it scrolls inside the wrapper instead of being clipped. If user wants a larger sub-view area for richer entities, follow-up could expand the wrapper height when `pickerView` is open. For now: scroll works, visual cohesion restored.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1687 - 2026-05-25
 
 **Title:** 🔘 LiquidGlassSwitch — `.s-sm` default shrunk ~20% (universal, 77 consumers picked up automatically)
