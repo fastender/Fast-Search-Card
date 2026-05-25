@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1685 - 2026-05-25
+
+**Title:** 💧 LiquidGlassSlider — +10% size bump on the universal compact defaults
+**Hero:** none
+**Tags:** Polish, UX
+
+### Why
+
+v1.1.1684 set the universal compact defaults at 50% of the original (26×17 / track 4 / specular 8 / shadow 4). User wanted a 10% bump for a slightly more comfortable touch target while staying compact.
+
+### Numbers
+
+| Property | v1.1.1684 | v1.1.1685 (+10%) |
+|---|---:|---:|
+| `--thumb-w` | 26px | **29px** |
+| `--thumb-h` | 17px | **19px** |
+| `--track-h` | 4px | **5px** |
+| Specular inset glow | 8px | **9px** |
+| `SHADOWS.light` blur | 4px | **5px** |
+| `SHADOWS.dark` blur | 4px | **5px** |
+
+All other proportions, opacities, and visual layers unchanged.
+
+### Files
+
+- `src/components/common/LiquidGlassSlider.css`
+- `src/components/common/LiquidGlassSlider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx`
+
+---
+
 ## Version 1.1.1684 - 2026-05-25
 
 **Title:** 💧 LiquidGlassSlider — compact defaults made universal (50% size, every consumer affected)
