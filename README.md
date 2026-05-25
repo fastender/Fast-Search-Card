@@ -78,6 +78,27 @@ That's it.
 
 ---
 
+## Preparation
+
+_Optional. Worth it._
+
+The card works the moment you install it. It shines when your Home Assistant is organized.
+
+Four things make the difference:
+
+- **Floors** — your home's levels. Used for sidebar structure.
+- **Areas** — your rooms. Used for grouping.
+- **Labels** — tags you choose. Used for filtering.
+- **Visibility** — hide what doesn't belong. Respected everywhere.
+
+Already organized? The card picks it up automatically. Hidden entities stay hidden. Disabled entities stay disabled. Nothing leaks through.
+
+New to this? Start with [areas](https://www.home-assistant.io/docs/organizing/areas/), then [floors](https://www.home-assistant.io/docs/organizing/floors/), then [labels](https://www.home-assistant.io/docs/organizing/labels/). The full guide is at [home-assistant.io/docs/organizing](https://www.home-assistant.io/docs/organizing/).
+
+<br>
+
+---
+
 ## Security
 
 No telemetry. No tracking. No external API calls. No authentication material stored.
