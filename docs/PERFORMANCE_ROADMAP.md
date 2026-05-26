@@ -1,6 +1,68 @@
 # Performance-Roadmap
 
-**Status: PAUSIERT ab 2026-04-19 nach v1.1.1206.** Erreicht: -9.5 % Bundle (419 → 379 KB gzip). Weitere Hebel nur noch mit hohem Risiko – siehe Entscheidung unten.
+**Status: REAKTIVIERT 2026-05-25 mit v1.1.1710+ (Runtime-Fokus).** Bundle-Fokus war bei v1.1.1206 pausiert; mit dem neuen Audit ist klar dass die größten Hebel nicht im Bundle, sondern in der Runtime-Architektur liegen. Bundle bleibt sekundär, aber chart.js-Ersatz ist jetzt mit konkreter Option vermessen.
+
+## Resumed Roadmap 2026-05-25 (post-audit)
+
+### Phase 7: Runtime — Re-Render Storm + DOM-Bloat (im Gange)
+
+| # | Win | Status | Aufwand | Impact |
+|---|-----|--------|---------|--------|
+| 1 | `hass` aus DataProvider contextValue deps | ✅ v1.1.1710 | 1h | 🔴🔴🔴 Eliminiert per-Tick-Re-Renders aller useData-Consumer |
+| 2 | `<App>` einmal mounten via hassStore | ✅ v1.1.1710 | 1h | 🔴🔴🔴 Kein Root-Reconcile mehr pro HA-Tick |
+| 3 | DeviceCard MutationObserver+resize → shared store | ✅ v1.1.1711 | 1h | 🟠🟠 200 Observer → 1 |
+| 4 | Card inline `<style>` Blocks → CSS-Files | ✅ v1.1.1712 | 1h | 🟠🟠 −11 kB Bundle + DOM-Cleanup |
+| 5 | Quick-Wins (searchCache, matchMedia, weather-dict, StatsBar) | ✅ v1.1.1713 | 30min | 🟡 4 kleine Hebel |
+
+### Phase 8: Chart-Library-Ersatz — chart.js → uPlot oder d3-Primitives
+
+**Befund**: chart.js ist ~80 kB gz und wird in 2 Stellen genutzt (HistoryTab + EnergyChartsView). HistoryTab ist Hot-Path (jeder DetailView-Klick). Lazy-Loading daher verworfen. Stattdessen kleinere Library.
+
+**Was chart.js wirklich nutzt** (Audit 2026-05-25):
+- 3 Chart-Typen: line, bar, doughnut (2 konzentrische Ringe in EnergyDashboard net-usage)
+- Nur LinearScale + CategoryScale (KEINE Time-Axis, KEIN date-fns-Adapter)
+- Custom Crosshair-Plugin (~20 LOC Canvas-Draw)
+- Custom Tooltip mit title/label-Callbacks
+- 2 dead exports zu löschen: `EnergyConsumptionChart`, `DeviceCategoriesChart`
+- Möglicher Latent-Bug: Doughnut-View nutzt `ArcElement` aber das ist nicht registriert in `chartConfig.js`
+
+#### Option A — uPlot + SVG-Donut
+- **uPlot** ~14 kB gz für line/bar (Canvas, Crosshair eingebaut)
+- **Hand-rolled SVG** mit `d3-shape arc()` für die 2-Ring-Donut (~5 kB + ~40 LOC)
+- **Total: ~19 kB gz** (−61 kB vs aktuell, **−75 %**)
+- **Aufwand: ~1 fokussierter Tag**
+- **Vorteil**: uPlot's eingebauter Cursor übernimmt das Custom-Crosshair-Plugin geschenkt; minimaler Migrations-Code
+- **Nachteil**: Zwei Tooling-Ebenen (Canvas + SVG), Canvas in ShadowDOM kann Eigenheiten haben
+
+#### Option B — Vollständig hand-rolled mit d3-scale + d3-shape
+- **d3-scale + d3-shape + d3-array** tree-shaken: ~14 kB gz für alles
+- **SVG mit Preact selbst rendern** (line via `line()`, bar via rects, donut via `arc()`)
+- Crosshair: ~20 LOC selbst
+- Tooltip: ~30 LOC Preact-Komponente
+- **Total: ~14 kB gz** (−66 kB vs aktuell, **−83 %**)
+- **Aufwand: ~1.5–2 Tage**
+- **Vorteil**: Native Preact-Integration (keine Canvas/DOM-Mischung in ShadowDOM), eine einzige Tooling-Ebene, Donut "for free" via arc(), volle Kontrolle
+- **Nachteil**: Mehr Render-Code selbst schreiben, manueller Crosshair/Tooltip
+
+#### Verworfene Alternativen (Round 2 Audit)
+- **Observable Plot** ~60 kB — zu groß
+- **Toast UI Chart** ~80 kB — kein Win vs chart.js
+- **visx (xychart)** ~50 kB + Preact-compat-Overhead
+- **billboard.js, dygraphs, Britecharts, flot, roughViz, Chartist, chartkick, perspective, LayerChart** — Größe / Inaktivität / Tech-Mismatch
+- **react-sparklines** — React-only
+
+**Empfehlung**: Option A (uPlot) wenn minimaler Aufwand zählt; Option B (d3-primitives) für saubere SVG-only Architektur. Entscheidung offen — vor Migration: Dead-Code (2 unused exports) + Doughnut-`ArcElement`-Bug klären (1-2h).
+
+### Phase 9: Weitere Performance-Recherche (in Arbeit)
+
+Geplante Agenten-gestützte Audits:
+- Animation-Audit: framer-motion in 87 Files — was kann CSS-Transition werden?
+- Memory/Event-Listener-Audit: lange Sessions, Cleanup-Lücken
+- First-Paint Critical-Path: was läuft synchron vor erstem Render?
+
+---
+
+
 
 Erstellt 2026-04-19, Baseline **v1.1.1201**.
 
