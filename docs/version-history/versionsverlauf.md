@@ -1,5 +1,104 @@
 # Versionsverlauf
 
+## Version 1.1.1718 - 2026-05-26
+
+**Title:** 🧹 Cleanup Q1-Q5 — Chevron + useIsMobile + getLocale + formatRelativeTime + systemSettings consolidated
+**Hero:** none
+**Tags:** Cleanup, Dedup, DX
+
+### Why
+
+5 duplication clusters from the v1.1.1716 audit (Agent B), bundled in one release because each is a small mechanical change but together they remove a real source of drift + maintenance overhead.
+
+### What
+
+**Q1 — Central icon module (`src/components/common/icons/ui.jsx`, NEW ~80 LOC)**
+
+Exports `Chevron`, `ChevronLarge`, `NavbarBackIcon`, `CloseX`. Replaces 4 separate `const Chevron` declarations with identical SVG path data:
+- `UniversalEntityList/shared.jsx` — converted to re-export
+- `UniversalSetup/shared.jsx` — converted to re-export
+- `CategorySelectionView.jsx` — switched to import
+- `DomainSettingsPicker.jsx` — switched to import (kept its custom 9×14 NavbarBackIcon variant local because semantically different size)
+
+22+ inline `<svg className="ios-chevron">` SVGs in other files stay as-is — full migration deferred to a future sweep.
+
+**Q2 — Shared `isMobileStore` + `useIsMobile()` hook**
+
+New `src/utils/isMobileStore.js` (analog `iconSizeStore.js` pattern from v1.1.1711) + new `src/hooks/useIsMobile.js`. One module-level `window.resize` listener instead of 6 duplicate ones across:
+- `DetailView.jsx` (was `useState(false)` + own resize-effect, now `useIsMobile()`)
+- `SearchField.jsx` (own resize-effect → subscribe to store)
+- `useSearchFieldState.js` (lazy-init read from store)
+- `settingsReaders.js` (sync read from store)
+- `videoHelpers.js` (sync read from store)
+
+The store does an early-out when the mobile-bucket doesn't actually flip (`<=768` vs `>768`) — so window resize within a bucket doesn't fire subscribers. Same pattern as iconSizeStore.
+
+**Q3 — `getLocale(lang)` helper**
+
+Added to `src/utils/translations/index.js`. `CalendarView.jsx` had `lang === 'de' ? 'de-DE' : 'en-US'` repeated 12× inline; replaced via `sed` bulk-replace → 9 callsites (one line had 2 occurrences). Adding more locales is now a one-line change.
+
+**Q4 — `formatRelativeTime` consolidation**
+
+Added canonical `formatRelativeTime(date, lang)` to `src/utils/timeFormatters.js`. Replaces 3 inline copies with subtly-divergent plural rules + math:
+- `bento/helpers.js` — full reimplementation deleted, file now does a 1-line re-export so existing import paths keep working
+- `NotificationsPanel.jsx` — local copy deleted, imports from timeFormatters
+- `articleHelpers.js` formatTimestamp was already deleted in v1.1.1716
+
+**Fixed latent bug**: bento previously rendered "vor 5 Tg" (kurz, no plural) while NotificationsPanel rendered "vor 5 Tagen" (full plural). Canonical version uses `vor ${d} Tag${d === 1 ? '' : 'en'}` — correct German plural everywhere. English: `${d}d ago`. Fallback for ≥7 days: `locale.toLocaleDateString({ day: '2-digit', month: 'short' })` via `getLocale(lang)`.
+
+DetailView's `formatTimeAgo` uses **long-form** ("Minuten/Stunden/Tagen") for a different visual style and is intentionally NOT consolidated — kept local.
+
+**Q5 — `systemSettings`-Reader migration**
+
+The audit flagged 12+ direct `localStorage.getItem('systemSettings') + JSON.parse(...)` callsites bypassing the existing `readSystemSettingsSection(path)` helper in `systemSettingsStorage.js`. Migrated the high-traffic ones:
+- `utils/kioskMode.js` — `loadHomeAssistantUISettings` (1 site)
+- `utils/videoHelpers.js` — `getVideoSettings` (1 site)
+- `utils/toastSettings.js` — `getToastSettings` + `saveToastSettings` (2 sites)
+- `components/StatsBar.jsx` — `widgetSettings` lazy-init (1 site)
+
+5 sites done; 5 still inline in larger files (`GeneralSettingsTab.jsx`, `MusicAssistantPanel.jsx`, `energyDashboardService.js`, `index.jsx`, `useSearchFieldState.js`) — followup. The wins enable a future in-memory cache + `storage`-event sync layer in `systemSettingsStorage.js` without touching consumers.
+
+### Result
+
+- 4 duplicate `const Chevron` → 1 canonical
+- 6 separate window-resize listeners for mobile-detection → 1
+- 12 inline `lang === 'de' ? 'de-DE' : 'en-US'` → 1 helper
+- 3 divergent `formatRelativeTime` (one with latent plural bug) → 1 canonical + 1 intentional long-form remains
+- 5 inline systemSettings readers → centralized
+
+Bundle: JS −2 kB (`1,536 → 1,534`), CSS unchanged. The real wins are correctness (plural bug fix) + maintainability (single source of truth for several patterns).
+
+### Files
+
+New (3):
+- `src/components/common/icons/ui.jsx`
+- `src/utils/isMobileStore.js`
+- `src/hooks/useIsMobile.js`
+
+Modified:
+- `src/utils/translations/index.js` — getLocale helper
+- `src/utils/timeFormatters.js` — canonical formatRelativeTime
+- `src/components/bento/helpers.js` — re-export
+- `src/components/NotificationsPanel.jsx` — local copy deleted
+- `src/system-entities/entities/calendar/CalendarView.jsx` — getLocale migration (9 sites)
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/shared.jsx` — re-export
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/shared.jsx` — re-export
+- `src/system-entities/entities/integration/components/CategorySelectionView.jsx` — import
+- `src/components/common/DomainSettingsPicker.jsx` — import (Chevron) + kept local NavbarBackIcon
+- `src/components/DetailView.jsx` — useIsMobile hook
+- `src/components/SearchField.jsx` — subscribe to store
+- `src/components/SearchField/hooks/useSearchFieldState.js` — getIsMobile
+- `src/components/SearchField/utils/settingsReaders.js` — getIsMobile
+- `src/utils/videoHelpers.js` — getIsMobile + readSystemSettingsSection
+- `src/utils/kioskMode.js` — readSystemSettingsSection
+- `src/utils/toastSettings.js` — readSystemSettingsSection + updateSystemSettingsSection
+- `src/components/StatsBar.jsx` — readSystemSettingsSection
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1718
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1717 - 2026-05-26
 
 **Title:** 🧹 console.log sweep — logger.js wrapper + 186 calls gated behind debug flag
