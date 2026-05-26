@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.1716 - 2026-05-26
+
+**Title:** 🧹 Dead-Code-Cleanup — ~1,500 LOC removed (orphan files, dead exports, debug helpers, dev-only mock code)
+**Hero:** none
+**Tags:** Cleanup, Cleanup, DeadCode, Bundle
+
+### Why
+
+Two parallel research agents (`Dead Code Audit` + `Code Duplication Audit`) catalogued the cleanup surface. This release deletes the entire HIGH-confidence dead-code list plus the explicitly-confirmed Section C items (News debug helpers + all dev-only mock infrastructure). The duplication-cluster extractions are deferred to separate later releases (they need careful refactors, not deletions).
+
+### What was deleted
+
+**Orphan files** (no file imports them anywhere):
+- `src/assets/icons/actions/Scene.jsx` (20 LOC) — iconRegistry imports SceneOff + SceneWhite, never Scene
+- `src/assets/icons/actions/Script.jsx` (22 LOC) — same pattern with ScriptOff + ScriptWhite
+- `src/assets/icons/other/Switch.jsx` (33 LOC) — SwitchOn + SwitchOff imported instead
+- `src/components/controls/ClimateSettingsBar.jsx` + `.css` (261 LOC)
+- `src/system-entities/entities/calendar/components/CalendarEventForm.jsx` (255 LOC) — superseded by CalendarEventDialog
+- `src/system-entities/entities/calendar/components/CalendarEventDetail.jsx` (153 LOC) — same
+- `src/providers/MockDataMigration.js` (60 LOC) — see dev-only mock section below
+- `src/data/mockDevices.js` (orphan after MockDataMigration removal; whole `src/data/` directory removed)
+- `src/utils/mockDataGenerator.js` (60 LOC) — see dev-only mock section below
+
+**Dead exports** (defined + exported but no file imports them):
+- `EnergyConsumptionChart` + `DeviceCategoriesChart` in `ChartComponents.jsx` (~174 LOC together)
+- `generateCategoryData` in `historyUtils.js` (~22 LOC) — only consumer was the deleted `DeviceCategoriesChart`
+- `deviceCardVariants` in `animations/components.js` (~38 LOC) + matching re-export in `animationVariants.js` — DeviceCard uses `deviceListItemVariants`/`deviceGridItemVariants` instead
+- `resolveDeviceMeta` in `entityGrouping.js` (~17 LOC)
+- `calculateReadingTime` + `formatTimestamp` in `articleHelpers.js` (~30 LOC) — NewsView has its own inline copies
+- `__resetBootstrap` in `deviceConfigStorage.js` (6 LOC) — test seam with no test caller
+- `gridColsFor` in `bento/constants.js` (1 LOC) — BentoWidget hardcodes 3 columns
+- `icons` alias in `utils/icons.js` (1 LOC) — last "backward compatibility" alias
+
+**News-Debug-Helper** (`src/system-entities/entities/news/index.jsx`, ~115 LOC):
+- `window.newsEntity` (global entity ref)
+- `window.debugNews()` (state + localStorage cache dumper)
+- `window.debugNewsImages()` (feedparser thumbnail debugger)
+- `window.logNewsLiveEvents()` + `.stop()` (live state-changed listener)
+
+These attached to `window` at every module load — invisible to non-power-users but in the bundle. User confirmed: "Komplett löschen". If needed for future RSS debugging, we'll add tools then.
+
+**Dev-only mock code** (~370 LOC across multiple files):
+- Entire `MockDataMigration` component + `<MockDataMigration />` JSX in `index.jsx` + the `isDevelopment` flag derived from `!getStoredHass() && window.location.hostname === 'localhost'`
+- `generateMockActions` (`utils/mockDataGenerator.js`)
+- `generateMockHistory` (`utils/historyUtils.js`, ~75 LOC) + matching `MOCK_DATA_CONFIG` import cleanup
+- `generateMockSchedules` (`utils/scheduleUtils.js`, ~67 LOC) + 3 private helpers only it used: `generateRandomWeekdays`, `getRandomAction`, `calculateNextExecution` (~95 LOC)
+- All `isDevelopment` branches in:
+  - `ContextTab.jsx` (Mock-Action-Branch in main load useEffect + log effect)
+  - `HistoryTab.jsx` (Mock-History-Branch in load useEffect)
+  - `useScheduleData.js` (Mock-Schedules-Branch in loadData + isDevelopment guard in deleteItem)
+- `scheduleConstants` imports trimmed: `WEEKDAY_KEYS`, `SCHEDULE_ACTIONS`, `MOCK_SCHEDULE_CONFIG`, `TIME_CONSTANTS`, `calculateRemainingTime`, `formatClockTime` removed from the `scheduleUtils.js` import list (only `REPEAT_TYPES`, `formatWeekdays`, `getActionLabel` actually used now)
+
+User confirmed delete: localhost mock-card testing capability is gone. From now on, dev work needs a real HA connection.
+
+**Exports downgraded to internal** (no LOC saved, just visibility tightened):
+- `getHvacModeLabel` in `timerNameGenerators.js` — only used inside its own file
+- `matchesPattern` in `patternMatching.js` — only used inside its own file
+
+### What was NOT deleted (and why)
+
+- **`BarController`/`BarElement`/`Filler` imports in `chartConfig.js`** — initial cleanup plan flagged these, but cross-check showed `EnergyChartsView` still uses `chartType = 'bar'` for week/month/year views and `fill: timeRange === 'day'` for the day-area-chart. Keep.
+- **Duplication clusters from Agent B** (`useEntityPolling`, `<AnimatedTabBar>`, `<Chevron>` icons module, `systemSettings`-reader migration, `formatRelativeTime` consolidation, `useScrollIndicators`) — these are extractions/refactors, not deletions. Deferred to separate Phase 9 releases on the roadmap so each one gets its own focused diff.
+- **314 `console.log` statements** across 30+ files — separate sweep (will introduce a logger wrapper to make stripping easier).
+- **Translation dict dead keys** — would need an AST-walker to verify; out of scope.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| JS bundle | 1,536 kB | 1,527 kB (−9 kB) |
+| CSS bundle | 208 kB | 203 kB (−5 kB) |
+| Total | ~1,744 kB | ~1,730 kB (−14 kB) |
+| LOC removed | — | ~1,500 |
+| Orphan files removed | — | 9 + 1 empty dir |
+| Dead-exports removed | — | 11 |
+| `window.*` debug-globals removed | — | 4 |
+
+The bundle delta is smaller than the raw LOC because much of the deleted code minifies very well (mock-data generators are mostly comments + simple loops). The real wins are: cleaner source tree, no more "wait, is this code actually used?" friction during reads, no orphaned files showing up in IDE search results, no `window.debug*` namespace pollution.
+
+### Files
+
+Deleted (10): Scene.jsx, Script.jsx, Switch.jsx, ClimateSettingsBar.jsx, ClimateSettingsBar.css, CalendarEventForm.jsx, CalendarEventDetail.jsx, MockDataMigration.js, mockDevices.js, mockDataGenerator.js
+
+Edited (16): `src/index.jsx`, `src/system-entities/entities/news/index.jsx`, `src/components/tabs/HistoryTab.jsx`, `src/utils/historyUtils.js`, `src/components/tabs/ContextTab.jsx`, `src/components/tabs/ScheduleTab/hooks/useScheduleData.js`, `src/utils/scheduleUtils.js`, `src/components/charts/ChartComponents.jsx`, `src/system-entities/entities/integration/device-entities/views/entityGrouping.js`, `src/system-entities/entities/news/utils/articleHelpers.js`, `src/system-entities/entities/integration/deviceConfigStorage.js`, `src/utils/animations/components.js`, `src/utils/animationVariants.js`, `src/components/bento/constants.js`, `src/utils/icons.js`, `src/components/tabs/ScheduleTab/utils/timerNameGenerators.js`, `src/utils/patternMatching.js`, `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` (version bump), `docs/version-history/versionsverlauf.md`
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1715 - 2026-05-25
 
 **Title:** ⚡ Perf P3 — News localStorage batching (20-80 sync writes → 1 per feed-refresh)
