@@ -1,5 +1,93 @@
 # Versionsverlauf
 
+## Version 1.1.1721 - 2026-05-26
+
+**Title:** 🧹 Long-Tail console.log sweep + targeted will-change + useSettingBroadcast hook
+**Hero:** none
+**Tags:** Cleanup, Logging, Performance, Hook
+
+### Why
+
+User requested the last batch of cleanup wins from the v1.1.1716 audit (Agent B):
+- Remaining ~128 `console.log` calls across long-tail files (1-11 calls each)
+- L4: 25 permanent `will-change` CSS declarations — audit for over-eager Compositor-Layer pinning
+- L5: Translation dead-keys via AST-Walker
+- M5: `useSettingBroadcast` hook for the 30+ `dispatchEvent('xxxChanged') + addEventListener` pair pattern
+- M6: `isEntityActive()` adoption for 41+ direct `state === 'on'` checks
+
+This release ships 3 of the 5; L5 and M6 are deferred (see "Deferred" section).
+
+### What
+
+**Long-Tail console.log → logger.debug** (~120 calls swept across 28 files)
+
+Continuation of v1.1.1717's hot-file sweep. Same approach: `sed -i` bulk replace + Python script for import injection. Files touched include WeatherDeviceEntity, TodoFormDialog, versionsverlauf/*, settings/*, tipps/*, AllSchedulesView, DetailViewWrapper, toastNotification, VersionsverlaufView, deviceConfigStorage, Printer3DDeviceEntity, news/iOSSettingsView, integration/index, SystemEntity (base), MusicAssistantPanel, ChartComponents, dataLoaders, TippsView, indexedDB, homeAssistantService, deviceConfigs, registry, todos/index, TodosView.
+
+Two files intentionally kept their `console.log`:
+- `src/utils/logger.js` itself (4 calls — the logger needs to actually call console internally)
+- `src/utils/perfMarks.js` (3 calls — performance traces should be visible)
+
+Combined with v1.1.1717, ~314 → ~7 `console.log` calls in production source. The kept 7 are all intentional infrastructure.
+
+**L4 — targeted `will-change` removal**
+
+Audited all 25 `will-change` CSS declarations. Removed exactly one (`.controls-tab { will-change: opacity }` in `UniversalControlsTab.css:6`) because:
+- It's permanent on an always-rendered element
+- The opacity transition runs ONCE on mount-fade-in, then never again
+- Permanent Compositor-Layer pinning was pure memory waste
+
+The remaining 24 sites are either:
+- Already hover/active-scoped (correct, e.g. `perceivedSpeed.css:88`)
+- On genuinely actively-animated elements (sliders during drag, marquee tracks, bento cross-fade pages)
+
+Touching them blindly would risk subtle jank regressions without measurable wins. A proper L4 sweep needs Chrome DevTools profiling on actual target hardware (mid-tier Android Tablet) which is out of scope for a code-side release.
+
+**M5 — `src/hooks/useSettingBroadcast.js`** (NEW)
+
+The pattern `dispatchEvent(new CustomEvent('xxxChanged', { detail }))` + symmetric `addEventListener('xxxChanged', handler)` occurs 30+ times across the codebase (settings/timeFormatPreference, energy refresh interval, quickStats config, todos profiles, etc).
+
+```js
+// Reader (in a consumer component):
+const lastDetail = useSettingBroadcast('cameraRefreshIntervalChanged');
+
+// Writer (anywhere):
+import { broadcastSetting } from '../hooks/useSettingBroadcast';
+broadcastSetting('cameraRefreshIntervalChanged', { interval: 5000 });
+```
+
+The hook is API-compatible with the existing event-bus shape (window-level `CustomEvent` with `event.detail`). New code can use it immediately; existing 30+ sites can migrate incrementally without breaking anything. Initial migration of the dispatcher sites is deferred — the hook by itself is the win because (a) new code consistently uses one helper, (b) future migrations are mechanical.
+
+### Deferred
+
+**L5 — Translation dead-keys detection**: needs an AST walker that understands dotted-key lookup chains (`translateUI('settings.privacy.title')` vs dynamic builds like `translateUI(\`settings.${section}.title\`)`). Writing that correctly + validating output is a separate multi-hour project. The actual deletion is also risky because dynamic key construction can hide a "live" usage from static analysis.
+
+**M6 — `isEntityActive()` adoption**: audit flagged 25+ direct `state === 'on'` checks, but inspection reveals most are intentional domain-specific logic — e.g. `historyUtils.js` switches on the climate state being explicitly `'on'` vs `'heating'`. Mass-replacing with `isEntityActive(state, domain)` would change semantic — `isEntityActive` also returns true for `'heating'` in some cases. Each callsite needs per-site review: is this checking "any active state" or "specifically state=on"? Not safe to script.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| `console.log` in production source | ~134 | ~7 (logger + perfMarks infrastructure) |
+| Permanent always-on `will-change` declarations | 25 (~1 over-eager) | 24 (all justified) |
+| `dispatchEvent + addEventListener` pair pattern | 30+ inline | hook available, migrations incremental |
+
+Bundle: JS 1,533 → 1,539 kB (+6 kB — the new hook + logger imports across 28 files net positive on raw size). Bundle delta is OK because the win is correctness + console-cleanliness, not bundle reduction.
+
+### Files
+
+New:
+- `src/hooks/useSettingBroadcast.js`
+
+Modified (28 files for console.log sweep): WeatherDeviceEntity.js, TodoFormDialog.jsx, versionsverlauf/index.js + VersionsverlaufView.jsx, integration/{deviceConfigStorage.js, index.js, device-entities/{Printer3DDeviceEntity.js, views/WeatherDeviceView.jsx}}, settings/{index.js, SettingsView.jsx}, tipps/{index.js, TippsView.jsx}, all-schedules/AllSchedulesView.jsx, SearchField/components/DetailViewWrapper.jsx, utils/{toastNotification.js, dataLoaders.js, scheduleUtils.js, indexedDB.js, homeAssistantService.js, historyUtils.js, deviceConfigs.js}, system-entities/{base/SystemEntity.js, registry.js}, news/components/iOSSettingsView.jsx, controls/MusicAssistantPanel.jsx, charts/ChartComponents.jsx, todos/{index.jsx, TodosView.jsx}.
+
+Modified for L4: `src/components/tabs/UniversalControlsTab.css`.
+
+Version bump: `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1721.
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1720 - 2026-05-26
 
 **Title:** 🧹 M2 + M3 + M4 — useScrollIndicators + useTabSliderPosition + useLang (3 hooks, 8 callsites migrated)
