@@ -1,5 +1,102 @@
 # Versionsverlauf
 
+## Version 1.1.1713 - 2026-05-25
+
+**Title:** ⚡ Perf Quick-Wins — searchCache cap, matchMedia cache, weather-dict hoist, StatsBar profile-pic dep
+**Hero:** none
+**Tags:** Performance, Cleanup, DeviceCard, StatsBar
+
+### Why
+
+Four small wins from the performance audit (v1.1.1710) — each cheap on its own but they share a release because they touch the hot path together.
+
+### What
+
+**1. `searchCache` capped at 100 entries (FIFO)**
+
+`src/providers/DataProvider.jsx:780` — Map was unbounded. Every distinct search query accumulated indefinitely. Over a long session this could balloon to MB of duplicated entity-reference arrays.
+
+```js
+const searchCache = cacheRef.current.cache.searchCache;
+searchCache.set(query, results);
+if (searchCache.size > 100) {
+  const oldestKey = searchCache.keys().next().value;
+  searchCache.delete(oldestKey);
+}
+```
+
+Map iteration is insertion-ordered (ES2015+), so the first key is the oldest. FIFO eviction is sufficient for search queries — true LRU would need `delete+set` on every cache hit, not worth it.
+
+**2. `matchMedia('(hover: hover)')` cached at module scope**
+
+`src/components/DeviceCard/DeviceCardGridView.jsx` + `DeviceCardListView.jsx` — both files called `window.matchMedia('(hover: hover)').matches` inline in every card's `whileHover` prop on every render. With 200 cards visible, that's 200 DOM-API reads per render flush.
+
+```js
+const HAS_HOVER = (typeof window !== 'undefined' && window.matchMedia)
+  ? window.matchMedia('(hover: hover)').matches
+  : false;
+// ...
+<motion.div whileHover={HAS_HOVER ? "hover" : undefined} />
+```
+
+Touch vs mouse capability doesn't change during a session, so a one-time module-load read is correct.
+
+**3. Weather-condition translation dict hoisted to module scope**
+
+`src/components/DeviceCard.jsx` — `getWeatherName()` defined a `{ de: {16 entries}, en: {16 entries} }` object literal every time it was called (~every card render for weather cards). The dict is static data, no need to re-allocate.
+
+```js
+// Module scope
+const WEATHER_CONDITION_TRANSLATIONS = {
+  de: { 'clear-night': 'Klare Nacht', /* ... 16 entries */ },
+  en: { 'clear-night': 'Clear', /* ... 16 entries */ },
+};
+
+// Inside getWeatherName
+const langTranslations = WEATHER_CONDITION_TRANSLATIONS[lang] || WEATHER_CONDITION_TRANSLATIONS.de;
+```
+
+**4. StatsBar profile-picture useEffect dep fixed**
+
+`src/components/StatsBar.jsx:74` — `useEffect([hass])` re-fetched the user profile picture on EVERY HA state tick. Before v1.1.1710 this was already firing many times per second; after v1.1.1710 the contextValue is stable but StatsBar still receives `hass` as a prop. Changed dep to `[hass?.user?.id]` — only refetches on actual user-switch. A `hassRef` indirection inside the effect keeps the latest hass available without re-binding.
+
+```js
+const hassRefForPicture = useRef(hass);
+useEffect(() => { hassRefForPicture.current = hass; });
+useEffect(() => {
+  const liveHass = hassRefForPicture.current;
+  if (!liveHass) return;
+  // ... fetch
+}, [hass?.user?.id]);  // ← was [hass]
+```
+
+### Result
+
+| Change | Impact |
+|---|---|
+| searchCache cap | Prevents unbounded memory growth across long sessions |
+| HAS_HOVER cache | 200 DOM-API reads per render flush → 1 module-load read |
+| Weather dict hoist | Removed 32-entry object allocation per weather card render |
+| StatsBar dep | Profile-picture HTTP request: per HA tick → per user-switch |
+
+None of these is dramatic on its own. Together they remove four sources of constant background allocation/computation/network that compounded over sessions.
+
+### Files
+
+- `src/providers/DataProvider.jsx` — searchCache FIFO cap
+- `src/components/DeviceCard/DeviceCardGridView.jsx` — HAS_HOVER module const
+- `src/components/DeviceCard/DeviceCardListView.jsx` — same
+- `src/components/DeviceCard.jsx` — WEATHER_CONDITION_TRANSLATIONS module const
+- `src/components/StatsBar.jsx` — useEffect dep + hassRef
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1713
+- `docs/version-history/versionsverlauf.md` → this entry
+
+### Side-note: chart.js replacement researched in parallel
+
+A background research agent finished while these quick-wins were being committed. Recommendation captured separately: replace chart.js with **uPlot (~14 kB gz)** for line/bar charts plus a hand-rolled SVG doughnut for the EnergyDashboard net-usage view. Net bundle win ~64 kB gz, ~1 focused day of migration work. Two dead exports in `ChartComponents.jsx` (`EnergyConsumptionChart`, `DeviceCategoriesChart`) to delete first. The migration is NOT in this release — flagged for separate decision.
+
+---
+
 ## Version 1.1.1712 - 2026-05-25
 
 **Title:** ⚡ Perf Win #4 — DeviceCard inline `<style>` blocks extracted to CSS files
