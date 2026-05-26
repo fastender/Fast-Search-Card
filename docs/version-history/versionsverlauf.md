@@ -1,5 +1,85 @@
 # Versionsverlauf
 
+## Version 1.1.1719 - 2026-05-26
+
+**Title:** 🧹 M1 useEntityPolling — 5 Printer/Energy List components share one hook (~250 LOC + 2 latent bugs)
+**Hero:** none
+**Tags:** Cleanup, Refactor, Hook, Bugfix
+
+### Why
+
+Audit Agent B identified the biggest single duplication cluster: 5 components (`PrinterDiagnosticsList`, `PrinterMiscList`, `PrinterSensorsList`, `Printer3DOverviewTab`, `EnergyOverviewTab`) all reimplemented the same polling pattern:
+
+- `useRef(hass)` + `useEffect` zum Sync
+- `let cancelled = false`
+- async fetch via `entity.executeAction(actionName, { hass })`
+- `setInterval(fetch, 5000)`
+- cleanup: `cancelled = true` + `clearInterval`
+
+3 of the 5 (Misc/Diagnostics/Sensors) had the modern `hassRef`-pattern so polling didn't restart on every HA-state tick. 2 of the 5 (Printer3DOverview / EnergyOverview) had `useEffect([entity, hass])` — **latent bug**: every HA-state tick caused the effect to tear down + re-setup, restarting the 5-second interval timer several times per second on busy systems. Polling effectively ran continuously.
+
+PrinterMiscList additionally had a `mergePendingPreserved` lock-system against polling-override of optimistic updates — the other lists would have eventually needed the same. Pattern drift was inevitable.
+
+### What
+
+**New hook: `src/hooks/useEntityPolling.js` (~115 LOC including JSDoc)**
+
+```js
+const { data, setData, refetch } = useEntityPolling(entity, actionName, hass, {
+  intervalMs = 5000,
+  params,         // optional extra params for executeAction
+  mergeFn,        // optional: e.g. mergePendingPreserved
+});
+```
+
+Properties:
+- `hass` lives in an internal ref → effect doesn't restart on HA-ticks. Fixes the 2 latent bugs above for free.
+- `mergeFn` is ref-stashed so passing a fresh callback (non-useCallback'd) does NOT restart polling.
+- `params` likewise ref-stashed.
+- Internal `isMountedRef` replaces the per-callsite `let cancelled = false` pattern.
+- `setData(value | updater)` enables optimistic-updates from outside (PrinterMiscList's `handleToggle` needs this).
+- `refetch()` for an immediate extra fetch after service-calls. Uses the same mergeFn → lock-safe.
+- Error-handling matches the original swallow-pattern (silently keep last data on fetch fail).
+
+**Migrations (5 sites):**
+
+| File | LOC removed | Note |
+|---|---|---|
+| `PrinterDiagnosticsList.jsx` | ~22 | trivial migration |
+| `PrinterSensorsList.jsx` | ~22 | trivial migration |
+| `PrinterMiscList.jsx` | ~25 | passes `mergeFn={mergePendingPreserved}`. `callService` now calls `refetch()` after a `setTimeout(_, 500)` instead of inlining a duplicate fetch. `handleToggle` uses the returned `setData` for the optimistic update. |
+| `Printer3DOverviewTab.jsx` | ~20 | **bug fix**: previously `useEffect([entity, hass])` restarted on every HA-tick. Now stable 5s polling. |
+| `EnergyOverviewTab.jsx` | ~20 | **bug fix**: same as above. |
+
+Total ~110 LOC removed in callsites, ~115 LOC added in the hook → near-neutral on LOC count, but:
+- Single source of truth (no more drift between the 5 sites)
+- 2 latent bugs fixed (Printer3DOverview + EnergyOverview no longer restart their interval on every HA-state tick)
+- Future cards get the hook for free without re-implementing the boilerplate
+
+### Result
+
+- 5 polling implementations → 1 hook
+- 2 latent re-render-bugs eliminated
+- `mergeFn`-pattern (Pending-Lock) now available to any future polling consumer
+- Bundle: JS 1,534 → 1,534 kB (neutral — refactor only)
+
+### Files
+
+New:
+- `src/hooks/useEntityPolling.js`
+
+Modified:
+- `src/system-entities/entities/integration/device-entities/components/PrinterDiagnosticsList.jsx`
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx`
+- `src/system-entities/entities/integration/device-entities/components/PrinterSensorsList.jsx`
+- `src/system-entities/entities/integration/device-entities/tabs/Printer3DOverviewTab.jsx`
+- `src/system-entities/entities/integration/device-entities/tabs/EnergyOverviewTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1719
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1718 - 2026-05-26
 
 **Title:** 🧹 Cleanup Q1-Q5 — Chevron + useIsMobile + getLocale + formatRelativeTime + systemSettings consolidated
