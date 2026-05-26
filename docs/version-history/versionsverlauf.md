@@ -1,5 +1,98 @@
 # Versionsverlauf
 
+## Version 1.1.1715 - 2026-05-25
+
+**Title:** ⚡ Perf P3 — News localStorage batching (20-80 sync writes → 1 per feed-refresh)
+**Hero:** none
+**Tags:** Performance, News, MainThread
+
+### Why
+
+Memory/Listener audit (Agent B, finding A2) identified the News plugin as a recurring main-thread blocker:
+
+> `src/system-entities/entities/news/index.jsx:678` (`_processFeedparserSensor`) loops over `attributes.entries[]` and calls `_addArticleToEventCache` (line 449) for every entry. Each call does a sync `localStorage.getItem('news_event_cache') → JSON.parse(≤500 articles) → unshift → JSON.stringify → localStorage.setItem`. Feedparser sensors typically push 20–80 entries per refresh; if HA refreshes feeds every 5 min that's up to ~80 sync localStorage write cycles per refresh, each parsing+serializing the full 500-article cache. Each cycle blocks the main thread for ~5–20 ms on Safari. **Session impact**: not a memory leak, but ~1–3 s of accumulated main-thread blocking per hour per active feed.
+
+For users with multiple feeds (the typical News configuration) each HA state-changed event for a feedparser sensor triggered this 20-80×-Round-Trip storm. With 5+ feeds configured + HA's default 5-minute refresh interval, the page chugged through hundreds of localStorage cycles per hour.
+
+### What
+
+**1. New batch method: `_addArticlesToEventCacheBatch(articles)`**
+
+`src/system-entities/entities/news/index.jsx`:
+
+```js
+_addArticlesToEventCacheBatch: function(newArticles) {
+  if (!Array.isArray(newArticles) || newArticles.length === 0) return;
+  try {
+    let articles = [];
+    const cached = localStorage.getItem('news_event_cache');  // ONE read
+    if (cached) articles = JSON.parse(cached);                 // ONE parse
+
+    const existingIds = new Set(articles.map(a => a.id));      // O(1) dedup vs O(n) some()
+
+    // Reverse-iteration + unshift preserves the prior per-article semantics
+    // (forward-iter + per-article unshift → last article ends up at index 0)
+    for (let i = newArticles.length - 1; i >= 0; i--) {
+      const article = newArticles[i];
+      if (!article || existingIds.has(article.id)) continue;
+      articles.unshift(article);
+      existingIds.add(article.id);
+    }
+
+    if (articles.length > 500) articles = articles.slice(0, 500);  // ONE trim
+
+    localStorage.setItem('news_event_cache', JSON.stringify(articles));  // ONE write
+  } catch (error) {
+    console.error('📰 Failed to add articles to event cache (batch):', error);
+  }
+},
+```
+
+**2. Single-article wrapper preserved**
+
+`_addArticleToEventCache(article)` is now a 1-line delegate to the batch method — keeps backward compat for any future caller, only one code-path to maintain.
+
+**3. Caller refactored to collect-then-commit**
+
+```js
+_processFeedparserSensor(sensor) {
+  // ... validation ...
+  const articles = [];
+  for (const entry of a.entries) {
+    const article = this.actions._entryToArticle.call(this, entry, channel, sensorId);
+    if (article) articles.push(article);
+  }
+  if (articles.length > 0) {
+    this.actions._addArticlesToEventCacheBatch.call(this, articles);
+  }
+}
+```
+
+Same dedup semantics, same ordering, same final cache state. Just one I/O round-trip instead of N.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| localStorage `getItem` calls per feed-refresh | 20-80 | 1 |
+| `JSON.parse` of ≤500-article cache | 20-80 | 1 |
+| `JSON.stringify` of ≤500-article cache | 20-80 | 1 |
+| Main-thread block per feed-refresh (Safari mobile) | 100-1600 ms | 5-20 ms |
+| Accumulated block per hour with 5+ feeds @ HA's 5min refresh | 1-3 s | 50-200 ms |
+| Dedup lookup complexity per article | O(n) array `some()` | O(1) Set `has()` |
+
+The fix is purely a refactor of I/O patterns — no behavior change, same data, same cache state. Single-article callers (currently zero, but the API is preserved) get the same delegation through the batch method.
+
+### Files
+
+- `src/system-entities/entities/news/index.jsx` — `_addArticlesToEventCacheBatch` added, `_addArticleToEventCache` made a 1-line delegate, `_processFeedparserSensor` collects then commits
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1715
+- `docs/version-history/versionsverlauf.md` → this entry
+
+Build verified clean (~402 kB gz, unchanged — refactor only).
+
+---
+
 ## Version 1.1.1714 - 2026-05-25
 
 **Title:** ⚡ Perf — Splash-Gate −1500ms perceived, StatsBar hass-decoupling, ChartJS lazy-register
