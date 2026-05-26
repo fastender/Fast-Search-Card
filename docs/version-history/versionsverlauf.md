@@ -1,5 +1,93 @@
 # Versionsverlauf
 
+## Version 1.1.1720 - 2026-05-26
+
+**Title:** 🧹 M2 + M3 + M4 — useScrollIndicators + useTabSliderPosition + useLang (3 hooks, 8 callsites migrated)
+**Hero:** none
+**Tags:** Cleanup, Refactor, Hooks
+
+### Why
+
+Three medium-effort dedup wins from the v1.1.1716 audit (Agent B), bundled into one release because each is a small mechanical refactor and they share the same architectural pattern (extract repeated useEffect block into a hook).
+
+### What
+
+**M3 — `src/hooks/useScrollIndicators.js`** (NEW)
+
+Replaces 3 near-identical 18-LOC `useEffect` blocks (HourlyForecast, NewsView, TodosView) that each:
+- defined `checkScroll = () => { scrollLeft, scrollWidth, clientWidth → setShowLeft/setShowRight }`
+- registered + cleaned up `scroll` + `resize` event listeners
+- threaded a `setTimeout(checkScroll, 100)` for layout-race-protection
+
+```js
+const { showLeft, showRight } = useScrollIndicators(containerRef, {
+  threshold: 10,      // px tolerance (NewsView/TodosView used 10, HourlyForecast 5)
+  deps: [items],      // re-check after content changes
+});
+```
+
+Internally also adds a `ResizeObserver` on the container so SubcategoryBar-style use-cases get re-check when chips are added/removed. Cleanup is unconditional (no leak surface).
+
+SubcategoryBar itself is NOT migrated — its `checkScroll` is intertwined with the chip-FLIP layout animation; bigger surgery, deferred.
+
+**M4 — `src/utils/langStore.js` + `src/hooks/useLang.js`** (NEW)
+
+App-wide language store. Listens once to `languageChanged` Custom-Event. Replaces 4 duplicate `window.addEventListener('languageChanged', handler)` + `useEffect` cleanups across:
+
+- `SearchField.jsx` — subscribes via `subscribeLang`, still calls `updateSetting('language', ...)` for DataProvider-Sync
+- `SettingsTab.jsx` — local `setLanguage(getLang())` on subscribe
+- `Printer3DDeviceView.jsx` — same
+- `EnergyDashboardDeviceView.jsx` — same
+
+The DOM-event-listener now lives in exactly one place (langStore initialization). Initial value reads from `systemSettings.appearance.language`, falls back to `'de'`. Power-User-Console-flip `window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: 'en' } }))` continues to work for every subscriber automatically.
+
+**M2 — `src/hooks/useTabSliderPosition.js`** (NEW)
+
+The full `<AnimatedTabBar>` component extraction was deferred (visual-spring-config drift risk too high). Instead extracted the **position-calc** part of the duplicate, keeping each callsite's own `<motion.div>` + spring config. Hook replaces a ~30-LOC `useEffect` block with `querySelectorAll(tabSelector)` + `getBoundingClientRect` + `setTimeout(50)` + `window.resize` listener.
+
+Migrated 3 of 4 callsites:
+- `HistoryTab.jsx` — `tabSelector: '.time-range-button'`
+- `ContextTab.jsx` — `tabSelector: '.filter-tab'`
+- `ScheduleFilter.jsx` — `tabSelector: '.filter-tab'`
+
+DetailView's TabNavigation is NOT migrated — uses vertical + horizontal tracking + ref-based per-row position lookups, semantically different shape. Worth keeping local.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| Scroll-indicator implementations | 3 inline + 1 SubcategoryBar | 1 hook + 1 inline (SubcategoryBar) |
+| `languageChanged` window-listeners | 4 inline (always live, never removed properly during full unmount) | 1 (in langStore, module-init-once) |
+| Tab-slider-position useEffects | 4 inline (~30 LOC each) | 1 hook + 1 inline (DetailView) |
+| Lines of duplicate logic removed | — | ~150 |
+
+Bundle: JS 1,534 → 1,533 kB (neutral after hook addition). Real win is single-source-of-truth + future drift prevention.
+
+### Files
+
+New:
+- `src/hooks/useScrollIndicators.js`
+- `src/hooks/useLang.js`
+- `src/hooks/useTabSliderPosition.js`
+- `src/utils/langStore.js`
+
+Modified:
+- `src/system-entities/entities/integration/device-entities/components/weather/HourlyForecast.jsx`
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/components/SearchField.jsx`
+- `src/components/tabs/SettingsTab.jsx`
+- `src/system-entities/entities/integration/device-entities/views/Printer3DDeviceView.jsx`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx`
+- `src/components/tabs/HistoryTab.jsx`
+- `src/components/tabs/ContextTab.jsx`
+- `src/components/tabs/ScheduleTab/components/ScheduleFilter.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1720
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1719 - 2026-05-26
 
 **Title:** 🧹 M1 useEntityPolling — 5 Printer/Energy List components share one hook (~250 LOC + 2 latent bugs)
