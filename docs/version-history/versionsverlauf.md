@@ -1,5 +1,138 @@
 # Versionsverlauf
 
+## Version 1.1.1710 - 2026-05-25
+
+**Title:** ⚡ Perf Wins #1+#2 — external hassStore + DataProvider contextValue stable across HA ticks
+**Hero:** none
+**Tags:** Performance, Architecture, DataProvider
+
+### Why
+
+Performance audit identified two interlocking root causes for the card's biggest CPU sink:
+
+1. `updateHass()` in `index.jsx` called `render(<App hass={hass}/>)` at the root on EVERY Home Assistant state tick — full Preact reconcile from root, several times per second on busy systems.
+2. `DataProvider.contextValue` had `hass` in its `useMemo` deps. Each new `hass` object identity busted the memo → every `useData()` consumer (SearchField, DeviceCard via `dataCtx`, StatsBar, GreetingsBar, IntegrationView, …) re-rendered, even when entities/favorites/settings hadn't changed.
+
+Combined: every HA tick traversed the entire tree, re-evaluated every memoized child's `propsAreEqual`, ran every `useEffect([hass])` in the tree. With 200 visible device cards + multiple bento widgets + sidebar + stats, this was the dominant runtime cost.
+
+### What
+
+**New module: `src/providers/hassStore.js`**
+
+External pub-sub store for the hass object — module-level value + `Set<listener>`. Three API functions:
+
+- `setHass(hass)` — update + notify
+- `getHass()` — sync getter for non-React code
+- `subscribeHass(listener)` — returns unsubscribe fn
+
+Listeners are snapshotted into an array before iteration so a listener registering/unregistering during dispatch doesn't mutate the live Set.
+
+**`index.jsx` — single-mount + store-update pattern**
+
+```js
+mount: function(container, hass, config) {
+  // ... container/root setup
+  setStoredHass(hass);                    // synchronous before first render
+  render(<App config={config} />, root);  // mount ONCE per container
+},
+updateHass: function(container, hass) {
+  setStoredHass(hass);                    // store-update only, no render()
+},
+```
+
+`App` no longer accepts `hass` as a prop — `isDevelopment` reads via `getStoredHass()`. The first render sees the correct hass because `setStoredHass()` is called synchronously before `render()`.
+
+**`DataProvider.jsx` — internal subscription, hass NOT in contextValue**
+
+```jsx
+export const DataProvider = ({ children, config = null }) => {
+  const [hass, setLocalHass] = useState(() => getStoredHass());
+  useEffect(() => {
+    setLocalHass(getStoredHass());        // re-read in case of race
+    return subscribeHass(() => setLocalHass(getStoredHass()));
+  }, []);
+  // ... rest unchanged: hassRef, effects with [hass] dep, etc.
+```
+
+Crucially:
+
+```jsx
+const contextValue = useMemo(() => ({
+  isInitialized, isLoading, error,
+  entities, favorites, settings, areas, notifications,
+  cache: cacheRef.current,
+  toggleFavorite, updateSetting, searchEntities, callService,
+  // ... methods (all useCallback'd)
+  // ❌ hass NOT included anymore
+  pendingTracker: pendingTrackerRef.current,
+}), [
+  isInitialized, isLoading, error,
+  entities, favorites, settings, areas, notifications,
+  // ❌ hass NOT in deps anymore
+  toggleFavorite, updateSetting, searchEntities, callService,
+  calculateSuggestions, resetLearningData, updateEntityState,
+  recordUserAction, refreshNotifications, dismissNotification,
+  generateTestPatterns,
+]);
+```
+
+DataProvider itself still re-renders per tick (its internal `hass` state changed) — its effects watching `[hass]` still run for connection-subscription updates, retry logic, etc. But the contextValue reference stays stable until entities/favorites/etc actually change, so the `<DataContext.Provider value={contextValue}>` sees the same value and Preact skips re-rendering all consumer subtrees.
+
+**`dataSelectors.js` — useHass() reads from store directly**
+
+```js
+export const useHass = () => {
+  const [hass, setHass] = useState(() => getHass());
+  useEffect(() => {
+    setHass(getHass());
+    return subscribeHass(() => setHass(getHass()));
+  }, []);
+  const context = useContext(DataContext);
+  return [hass, context?.callService];
+};
+```
+
+Components that genuinely need live hass (DetailView's HistoryTab/ScheduleTab, SearchField passing hass to DetailView) call `useHass()` and subscribe to per-tick updates. Everyone else stays stable.
+
+**Consumer migration**
+
+Switched 3 places from `const { hass } = useData()` to `const [hass] = useHass()`:
+
+- `src/components/tabs/HistoryTab.jsx`
+- `src/components/tabs/ScheduleTab.jsx`
+- `src/components/tabs/ScheduleTab/hooks/useScheduleData.js`
+
+(SearchField was already using `useHass()`.)
+
+### Result
+
+- **Top-level full reconcile per HA tick** → eliminated. App renders once per container mount.
+- **useData() consumer re-renders per HA tick** → eliminated for all 10+ consumers that don't destructure hass. Examples: DeviceCard (read db/cache/pendingTracker), all SettingsTab forms, MockDataMigration, NotificationsTab, FavoritesTab, EntitiesTab, etc.
+- **Re-renders that DO still happen per HA tick** → only the 4 components that explicitly call `useHass()`. That's correct behavior — they want live hass.
+
+Real-world impact: on a system with frequent state updates (sensors, lights toggling, automations firing), this removes one of the dominant CPU costs of the card. DeviceCard's custom memo comparator now actually pays off because contextValue stability stops invalidating its parent.
+
+### Files
+
+- `src/providers/hassStore.js` (NEW, 67 LOC) — pub-sub store
+- `src/index.jsx` — App without hass prop, mount/updateHass refactored
+- `src/providers/DataProvider.jsx` — internal hass-subscription, hass removed from contextValue + deps
+- `src/providers/dataSelectors.js` — useHass() reads from store
+- `src/components/tabs/HistoryTab.jsx` — useHass instead of useData().hass
+- `src/components/tabs/ScheduleTab.jsx` — same
+- `src/components/tabs/ScheduleTab/hooks/useScheduleData.js` — same
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1710
+- `docs/version-history/versionsverlauf.md` → this entry
+
+### Backwards compat
+
+- All other `useData()` consumers unchanged — they never read hass from context, only entities/db/methods etc.
+- All entity action callers (`entity.executeAction('foo', { hass })`) unaffected — they get hass from a local variable or `this._hass`, not from context.
+- `window._hass` still maintained by DataProvider's existing effect → external integrations that read it keep working.
+- Build verified clean (1.56 MB bundle, no errors).
+
+---
+
 ## Version 1.1.1709 - 2026-05-25
 
 **Title:** 🐛 Marquee state-line: seamless loop via translateX(-50%) pattern (no end-of-cycle jump)
