@@ -1,5 +1,75 @@
 # Versionsverlauf
 
+## Version 1.1.1723 - 2026-05-26
+
+**Title:** 🐛🧹 timerNameGenerators double-prefix bug fix + L5b 107 dead translation keys removed
+**Hero:** none
+**Tags:** Bugfix, Cleanup, DeadCode, i18n
+
+### Why
+
+Two related items from v1.1.1722's "deferred" notes:
+
+1. **timerNameGenerators bug**: `translateUI('ui.climate.heat', lang)` had a duplicate `ui.` prefix because `translateUI()` itself internally prefixes with `ui.`. The actual lookup became `ui.ui.climate.heat` (doesn't exist), so the function fell back to returning the key string. Users saw literally `"ui.climate.heat"` instead of `"Heizen"` / `"Heat"` in timer-name displays. Latent bug across 6 HVAC mode lookups.
+
+2. **L5b dead-key verification**: v1.1.1722 only deleted the verifiable `advice` bucket (41 keys). The AST walker had flagged 113 more candidates that needed per-bucket manual review to confirm true unused vs. dynamic access.
+
+### What
+
+**Bug fix — `src/components/tabs/ScheduleTab/utils/timerNameGenerators.js`**
+
+```js
+// Before
+'heat': translateUI('ui.climate.heat', lang),  // → 'ui.ui.climate.heat' lookup → fallback to key
+// After
+'heat': translateUI('climate.heat', lang),     // → 'ui.climate.heat' lookup → 'Heizen'
+```
+
+Six lines changed (heat/cool/auto/dry/fan_only/off). The keys themselves were already correct in de.js (`ui.climate.heat: 'Heizen'`). Re-running the AST walker after the fix correctly registered them as live.
+
+**L5b — verified + deleted 107 additional dead keys**
+
+Per-bucket manual grep for every dynamic-access pattern (`langData.<bucket>.[key]`, `translateUI('<bucket>.'+x)`, `t('<key>')` etc):
+
+| Bucket | Verdict | Keys removed |
+|---|---|---|
+| `domains` (root) | No code reads `langData.domains` | **21 keys deleted** |
+| `units` (root) | No code reads `langData.units` | **18 keys deleted** |
+| `actions` (root) | No code reads `langData.actions` (subtree was meant for ContextTab but never integrated) | **27 keys deleted** |
+| `ui.climate.*` | Only 6 keys used (HVAC modes); 22 others (auxHeat, fanMode, swingMode, presetMode, modes like quiet/turbo/eco/comfort/sleep/etc) never referenced | **22 keys deleted from de.js** (en.js never had this bucket) |
+| `ui.tooltips.*Tab` | 8 `xxxTab` tooltips (controlsTab/scheduleTab/historyTab/contextTab/generalTab/appearanceTab/privacyTab/aboutTab) never used. Kept 6 toolbar tooltips that ARE used (gridView/listView/filterCategories/filterAreas/filterTypes/toggleFilter) | **8 keys deleted** |
+| `ui.filters.*` | Only `areas` used (SubcategoryBar). `categories`/`types`/`toggleFilter` never read | **3 keys deleted** |
+| `ui.suggestions.*` | Confidence levels (`highlyLikely`/`likely`/`possible`) unreferenced. Group labels (`frequentlyUsed`/`contextBased`/`timeBased`/`areaBased`) used in searchFilters.js | **3 keys deleted** |
+| `ui.viewModes.*` | Entire bucket (`grid`/`list`) unreferenced | **2 keys deleted** |
+| `ui.aiMode.followUp` | Unused (other aiMode keys ARE used) | **1 key deleted** |
+| `ui.common.pleaseSelect` | Only key in bucket, never read | **1 key deleted (bucket gone)** |
+| `ui.general.favorites` | Unused. `noRoom`/`loading`/`initializing` kept | **1 key deleted** |
+
+Total: **107 keys deleted** (66 root-bucket + 41 sub-bucket), spread across de.js + en.js.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| Translation keys (de.json flattened) | 761 | **654** (−14%) |
+| AST-walker dead-key count | 107 | **0** |
+| Bundle JS | 1,536 kB | **1,531 kB** (−5 kB) |
+| Timer-name display for climate | shows `"ui.climate.heat"` literally | shows `"Heizen"` / `"Heat"` |
+
+The translation-cleanup project is now COMPLETE. After v1.1.1722 (41 advice keys) + v1.1.1723 (107 more), all 148 originally-identified dead keys are gone. The AST walker reports 0 dead candidates with 609 keys recognized as live (either statically or via known dynamic prefixes).
+
+### Files
+
+Modified:
+- `src/components/tabs/ScheduleTab/utils/timerNameGenerators.js` — 6× prefix fix
+- `src/utils/translations/languages/de.js` — removed `domains`, `units`, `actions` root buckets + 22 `ui.climate.*` + 8 `ui.tooltips.*` + 3 `ui.filters.*` + 3 `ui.suggestions.*` + 2 `ui.viewModes` + `ui.aiMode.followUp` + `ui.common` bucket + `ui.general.favorites`
+- `src/utils/translations/languages/en.js` — same deletions as de.js (where present)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1723
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1722 - 2026-05-26
 
 **Title:** 🧹 3 deferred wins — M5 dispatch→broadcastSetting (30 sites), M6 isEntityActive (1 safe), L5 advice-bucket dead-keys
