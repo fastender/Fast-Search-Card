@@ -1,5 +1,81 @@
 # Versionsverlauf
 
+## Version 1.1.1712 - 2026-05-25
+
+**Title:** ⚡ Perf Win #4 — DeviceCard inline `<style>` blocks extracted to CSS files
+**Hero:** none
+**Tags:** Performance, DeviceCard, DOM, Bundle
+
+### Why
+
+Performance audit (v1.1.1710) flagged DeviceCardGridView and DeviceCardListView for emitting an entire inline `<style>{`...`}</style>` block per card render — 466 lines of CSS-in-JS template literal for the grid view, ~240 lines for the list view. With 100 visible grid cards, that's 100 identical `<style>` nodes injected into the DOM, all sharing the same selectors. The browser parses every one of them; the constant-string template literal is duplicated into the minified JS bundle once per usage site of the JSX.
+
+### What
+
+Two new dedicated CSS files:
+
+- `src/components/DeviceCard/DeviceCardGrid.css` (~440 LOC) — extracted verbatim from the grid view's inline block
+- `src/components/DeviceCard/DeviceCardList.css` (~235 LOC) — extracted verbatim from the list view's inline block
+
+JSX changes:
+
+```jsx
+// Before — DeviceCardGridView.jsx
+return (
+  <>
+    <style>{`
+      .device-card { aspect-ratio: 1; ... /* 466 lines */ }
+    `}</style>
+    <motion.div className="device-card ...">
+      ...
+    </motion.div>
+  </>
+);
+
+// After
+import './DeviceCardGrid.css';  // module-level, bundled once by Vite
+
+return (
+  <>
+    <motion.div className="device-card ...">
+      ...
+    </motion.div>
+  </>
+);
+```
+
+Same pattern for `DeviceCardListView.jsx`. The fragment `<>` wrapper stays because both views still render a single root element plus comments.
+
+No CSS rules were modified — the extraction is byte-for-byte identical to the previous inline content, including the v1.1.1707/1708/1709 marquee rules and the v1.1.1531 tipps-card / v1.1.1700-ish custom-view overrides. The `--card-clip-path` CSS variable and all `@container` / `@media` queries work the same way because Vite inlines the CSS file into the bundle's global stylesheet via the existing inline-CSS plugin.
+
+### Result
+
+**DOM:**
+- 100 grid cards used to inject 100 identical `<style>` nodes. Now: 0 inline style nodes from cards (rules live in the global stylesheet).
+- List view: same, 0 inline style nodes.
+- Per-card mount/unmount during virtua-scroll no longer needs to attach/detach a style node from the DOM. The cost of mounting a card row drops measurably during fast scroll.
+
+**Bundle:**
+- `dist/assets/index-*.js`: 1,558.73 kB → 1,535.51 kB (`-23 kB`, the JS template literal strings are gone from the JS bundle)
+- `dist/assets/style-*.css`: 196.78 kB → 208.70 kB (`+12 kB`, the rules moved into the dedicated stylesheet)
+- Net: `~-11 kB` total. More importantly, the CSS is now cached separately by the browser and benefits from CSS-specific optimizations (no JS parse overhead, no string-allocation cost on every component render).
+
+**Render cost:**
+- Card render fn used to allocate a 466-line template literal string (or rely on V8 string interning if lucky). With it gone, each render is just the motion.div + children — minimal JS work.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardGrid.css` (NEW, 444 LOC)
+- `src/components/DeviceCard/DeviceCardList.css` (NEW, 232 LOC)
+- `src/components/DeviceCard/DeviceCardGridView.jsx` — `<style>` block removed, CSS import added
+- `src/components/DeviceCard/DeviceCardListView.jsx` — same
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1712
+- `docs/version-history/versionsverlauf.md` → this entry
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1711 - 2026-05-25
 
 **Title:** ⚡ Perf Win #3 — DeviceCard observer N→1: shared icon-size store
