@@ -1,5 +1,131 @@
 # Versionsverlauf
 
+## Version 1.1.1714 - 2026-05-25
+
+**Title:** ⚡ Perf — Splash-Gate −1500ms perceived, StatsBar hass-decoupling, ChartJS lazy-register
+**Hero:** none
+**Tags:** Performance, Boot, StatsBar, Chart, Hygiene
+
+### Why
+
+Three independent runtime wins from the parallel performance audit (3 background agents — first-paint, memory/listeners, animation), targeting different axes:
+
+1. **Perceived boot time** — Agent C identified that the hardcoded 2.5s card-reveal delay is pure cinematic cosmetics; real boot work finishes in ~900ms. User stares at black screen for 1.5s longer than necessary.
+2. **HA-tick CPU spam** — Agent B identified StatsBar's energy-load effect refiring on every HA state tick instead of every 5 minutes. WebSocket calls fire multiple times per second on active dashboards.
+3. **Cold-boot bundle parse** — Agent C identified that `ChartJS.register(...)` runs at module init, costing ~80-150ms on Safari mobile even for users who never open a chart view.
+
+Plus hygiene items from Agent B's listener audit.
+
+### What
+
+**P1 — Splash-Gate Konstanten**
+
+`src/components/WallpaperBootOverlay.jsx`:
+```js
+// Before
+const OVERLAY_HOLD_MS = 500;
+const OVERLAY_FADE_DURATION_MS = 2000;  // = 2.5s total
+
+// After (v1.1.1714)
+const OVERLAY_HOLD_MS = 200;
+const OVERLAY_FADE_DURATION_MS = 800;   // = 1.0s total
+export const REVEAL_AT_MS = OVERLAY_HOLD_MS + OVERLAY_FADE_DURATION_MS;
+```
+
+`src/index.jsx`:
+```js
+import { WallpaperBootOverlay, REVEAL_AT_MS } from './components/WallpaperBootOverlay';
+// ...
+transition={{
+  opacity: { duration: 0.55, delay: shouldReveal ? REVEAL_AT_MS / 1000 : 0, ease: [0.16, 1, 0.3, 1] },
+  scale: { type: 'spring', stiffness: 180, damping: 26, mass: 0.9, delay: shouldReveal ? REVEAL_AT_MS / 1000 : 0 },
+}}
+```
+
+The reveal delay is now derived from the overlay timing (single source of truth) instead of two hardcoded `2.5` literals in separate files. Ease-in-out cubic still gives the cinematic fade-from-black character — the eye recognizes it within the first few frames, no need to drag it out for 2 seconds.
+
+**P2 — StatsBar hass-decoupling**
+
+`src/components/StatsBar.jsx`: Same pattern as v1.1.1710 DataProvider refactor. Energy-load and energy-price effects had `hass` in deps → on every HA state tick the 5-min interval tore down + recreated, AND `loadEnergyData()` fired immediately (sync WebSocket call to HA). Active dashboards fire HA ticks several times per second.
+
+```js
+// hassRef stays current without re-binding effects
+const hassRefEnergy = useRef(hass);
+useEffect(() => { hassRefEnergy.current = hass; });
+
+useEffect(() => {
+  const loadEnergyData = async () => {
+    const currentHass = await waitForHass({ hass: hassRefEnergy.current }, { maxRetries: 20 });
+    // ...
+  };
+  loadEnergyData();
+  const timer = setInterval(loadEnergyData, 300000);
+  return () => clearInterval(timer);
+}, [energySensors]);  // ← was [hass, energySensors]
+```
+
+Same for the `energyPriceChanged` listener effect. Result: energy-data fetches drop from per-HA-tick frequency back to the intended once-per-5-min cadence.
+
+**P4 — ChartJS.register() lazy**
+
+`src/utils/chartConfig.js`: `Chart.register(...)` + `Chart.defaults.*` writes wrapped in `ensureChartsInitialized()` with an idempotent latch. Module init now does nothing.
+
+```js
+let __chartsInitialized = false;
+export function ensureChartsInitialized() {
+  if (__chartsInitialized) return;
+  __chartsInitialized = true;
+  ChartJS.register(LineController, BarController, /* ... */);
+  ChartJS.defaults.color = 'rgba(255, 255, 255, 0.7)';
+  // ...
+}
+```
+
+Each chart component calls `ensureChartsInitialized()` at the top of its render function. Note: a module-level call inside `ChartComponents.jsx` would NOT have helped because that file is eagerly imported via `SearchField → DetailViewWrapper → DetailView → HistoryTab → ChartComponents` — so module evaluation still happens at app boot. The init only defers if it's INSIDE the component bodies.
+
+Chart components updated:
+- `UsageTimelineChart` (in HistoryTab)
+- `EnergyConsumptionChart` (dead export, kept for safety)
+- `DeviceCategoriesChart` (dead export, kept for safety)
+- `EnergyChartsView` (EnergyDashboard)
+
+Cold-boot users who never open a chart view save ~80-150ms of register + defaults work on Safari mobile. First-chart-open is unchanged because the work just moves there.
+
+### Hygiene (from same Agent B audit)
+
+- `src/utils/memoryCache.js`: removed dead `recentSearches: []` property (Agent B-B2 — was never read or written anywhere)
+- `src/system-entities/entities/integration/device-entities/views/Printer3DDeviceView.jsx`: unmount cleanup for `cameraRefreshTimeoutRef` so the 200ms debounce timeout doesn't fire post-unmount, calling `localStorage.setItem` + `dispatchEvent` on a dead component
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx`: same — unmount cleanup for per-entity `numberCallTimeoutsRef` map
+- `src/components/StatsBar.jsx`: cross-tab `storage` listener now filters to relevant keys (`energySensorConfig`, `systemSettings`) instead of firing on every localStorage write anywhere in the app
+
+### Result
+
+| Win | Measurable Effect |
+|---|---|
+| P1 Splash-Gate | **~1500ms perceived boot saved** — user sees card at T=1.0s instead of T=2.5s |
+| P2 StatsBar | Energy-data WebSocket calls: per-tick → per 5min (drops to intended cadence) |
+| P4 ChartJS-lazy | **80-150ms cold boot saved** on Safari mobile for non-chart users |
+| Hygiene timeouts | No more post-unmount setTimeout callbacks; trivial but clean |
+| Hygiene storage | Cross-tab listener no longer fires on irrelevant keys (~52 sites in app) |
+
+Bundle size unchanged (~402 kB gz). All wins are runtime-only.
+
+### Files
+
+- `src/components/WallpaperBootOverlay.jsx` — constants tightened, REVEAL_AT_MS export
+- `src/index.jsx` — uses REVEAL_AT_MS instead of hardcoded 2.5
+- `src/components/StatsBar.jsx` — hassRefEnergy pattern + filtered storage listener
+- `src/utils/chartConfig.js` — ensureChartsInitialized() idempotent latch
+- `src/components/charts/ChartComponents.jsx` — lazy init in each render fn
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx` — same
+- `src/utils/memoryCache.js` — dead property removed
+- `src/system-entities/entities/integration/device-entities/views/Printer3DDeviceView.jsx` — unmount cleanup
+- `src/system-entities/entities/integration/device-entities/components/PrinterMiscList.jsx` — unmount cleanup
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1714
+- `docs/version-history/versionsverlauf.md` → this entry
+
+---
+
 ## Version 1.1.1713 - 2026-05-25
 
 **Title:** ⚡ Perf Quick-Wins — searchCache cap, matchMedia cache, weather-dict hoist, StatsBar profile-pic dep
