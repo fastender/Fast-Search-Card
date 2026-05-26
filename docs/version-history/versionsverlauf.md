@@ -1,5 +1,93 @@
 # Versionsverlauf
 
+## Version 1.1.1717 - 2026-05-26
+
+**Title:** 🧹 console.log sweep — logger.js wrapper + 186 calls gated behind debug flag
+**Hero:** none
+**Tags:** Cleanup, Logging, DX
+
+### Why
+
+Code-quality audit (v1.1.1716, Agent A Section D) flagged 314 `console.log` calls across 30+ production files — accumulated debug traces from many sessions that were never cleaned up. Users with the DevTools console open see endless spam during normal card use, making real warnings + errors hard to spot.
+
+### What
+
+**New utility: `src/utils/logger.js`**
+
+```js
+const isDebugEnabled = () => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (window.localStorage?.getItem('fsc_debug') === 'true') return true;
+    if (window.location?.hostname === 'localhost') return true;
+  } catch (_) { /* private tabs / iframes */ }
+  return false;
+};
+const DEBUG = isDebugEnabled();
+const noop = () => {};
+
+export const logger = {
+  debug: DEBUG ? console.log.bind(console) : noop,
+  info:  console.info?.bind(console) ?? console.log.bind(console),
+  warn:  console.warn.bind(console),
+  error: console.error.bind(console),
+};
+logger.scope = (ns) => ({ /* namespace-prefixed variants */ });
+```
+
+Properties:
+- **`logger.debug(...)`** — no-op in production. Activated by `localStorage.setItem('fsc_debug', 'true')` + reload, OR running on `localhost`. Power users can flip the flag in Browser-Console for bug-report sessions.
+- **`logger.info(...)`** — always visible. For real lifecycle events.
+- **`logger.warn(...)`** — always visible. For soft-failures.
+- **`logger.error(...)`** — always visible. For actual errors.
+- **`logger.scope(name)`** — returns same shape but prefixes every call with `[name]`. For future namespace-driven filtering.
+
+The DEBUG flag is captured once at module-load. Re-toggling needs a reload — bewusst, damit der Live-Check nicht in jedem Log-Call läuft.
+
+**Sweep done across 12 hot files (186 calls replaced):**
+
+| File | Calls replaced |
+|------|---------------|
+| `system-entities/integration/device-entities/views/Printer3DDeviceView.jsx` | 36 |
+| `system-entities/integration/device-entities/EnergyDashboardDeviceEntity.js` | 24 |
+| `system-entities/integration/device-entities/views/EnergyDashboardCameraView.jsx` | 16 |
+| `system-entities/integration/device-entities/views/EnergyDashboardImageView.jsx` | 16 |
+| `components/tabs/ScheduleTab.jsx` | 15 |
+| `services/energyDashboardService.js` | 13 |
+| `utils/scheduleUtils.js` | 12 |
+| `system-entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` | 9 |
+| `system-entities/news/NewsView.jsx` | 8 |
+| `utils/historyUtils.js` | 7 |
+| `components/tabs/HistoryTab.jsx` | 5 |
+| `components/tabs/ScheduleTab/hooks/useScheduleData.js` | 3 |
+
+Each file got:
+1. `console.log(` → `logger.debug(` via `sed -i` bulk replace
+2. `import { logger } from '<rel-path>/utils/logger';` injected after the last existing import line
+
+**Untouched on purpose:**
+- `console.warn` — these signal config-problems, fallback-paths, real warnings worth seeing
+- `console.error` — these signal actual errors, must stay visible
+- ~128 `console.log` calls in long-tail files (1-3 calls each) — future sweep, lower ROI per file
+
+### Result
+
+- **Production console**: clean. Card boot/teardown no longer spams `🎯 HistoryTab Rendered!`, `🚨🚨🚨 SCHEDULETAB RENDERED 🚨🚨🚨`, `🔍 useScheduleData: Loading data...`, `📷 Camera refreshed at...`, etc. Real warnings stand out.
+- **Bug-report friendly**: user with a problem can `localStorage.setItem('fsc_debug', 'true')` + reload, get the full trace stream back, share screenshot — without us shipping it permanently.
+- **Bundle**: ~+1 kB JS for the logger module + 12 import statements. Practically zero — the logger is 50 LOC and minifies tight.
+- **128 calls remaining** in the long-tail (1-3 per file). Captured for a future sweep but not blocking this release.
+
+### Files
+
+- `src/utils/logger.js` (NEW, ~60 LOC)
+- 12 files swept (see table above) — each got bulk-replace + import injection
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1717
+- `docs/version-history/versionsverlauf.md` → this entry
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1716 - 2026-05-26
 
 **Title:** 🧹 Dead-Code-Cleanup — ~1,500 LOC removed (orphan files, dead exports, debug helpers, dev-only mock code)
