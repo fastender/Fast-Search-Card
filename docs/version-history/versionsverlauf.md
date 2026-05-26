@@ -1,5 +1,90 @@
 # Versionsverlauf
 
+## Version 1.1.1722 - 2026-05-26
+
+**Title:** 🧹 3 deferred wins — M5 dispatch→broadcastSetting (30 sites), M6 isEntityActive (1 safe), L5 advice-bucket dead-keys
+**Hero:** none
+**Tags:** Cleanup, Refactor, DeadCode
+
+### Why
+
+User requested the three items previously deferred from v1.1.1721:
+- **M5 migration**: ~30 `dispatchEvent(new CustomEvent(...))` callsites to the new `broadcastSetting()` helper
+- **M6 isEntityActive review**: 41 direct `state === 'on'` checks — find ones where replacing with `isEntityActive()` is semantically safe
+- **L5 translation dead-keys**: build an AST walker that distinguishes static from dynamic key lookups, then delete the safely-unused buckets
+
+Each item involved real engineering decisions about what's actually safe to change — the report explains the reasoning for what was migrated and what stayed.
+
+### What
+
+**M5 — 30 dispatchEvent sites → broadcastSetting()**
+
+Wrote a Python migration script (`/tmp/migrate_broadcast.py`) using balanced-paren tracking to handle both single-line and multi-line `window.dispatchEvent(new CustomEvent('name', { detail: ... }))` calls. Extracts the event name + `detail` expression and replaces with `broadcastSetting(name, detailExpr)`. Adds the import to each touched file with correct relative path.
+
+Migrated 30 dispatches across 17 files:
+- `timeFormatPreference.js`, `settings/index.js` (2×), `integration/index.js`
+- `Printer3DDeviceView.jsx` (2×), `EnergyDashboardDeviceView.jsx` (2×)
+- `AllSchedulesView.jsx`, `SubcategoryBar.jsx`, `DeviceCard.jsx`
+- `SettingsTab.jsx` (4×), `StatsBarSettingsTab.jsx` (2×), `AboutSettingsTab.jsx`
+- `GeneralSettingsTab.jsx` (7×), `PrivacySettingsTab.jsx`, `general/helpers.js`
+- `BentoRichTodos.jsx`, `BentoRichNews.jsx`, `energyDashboardService.js`
+
+One transform produced a syntax error from an inline-comment placement edge-case (`{ interval: value * 1000 } // Convert)` → manually fixed). The script's balanced-paren parser otherwise handled all cases cleanly.
+
+After migration, the only `window.dispatchEvent(new CustomEvent` remaining in `src/` is inside `useSettingBroadcast.js` itself (intentional, that's the helper implementation).
+
+**M6 — isEntityActive per-site review**
+
+The audit estimated 25+ candidates; closer inspection found 41 sites. After reviewing each:
+
+- **Most sites (~38) are intentionally domain-specific**: `historyUtils.js` switches between `'on'`/`'heating'` for climate, `deviceConfigs.js` per-domain controls use literal state values, `scheduleUtils.js`/`AllSchedulesView.jsx` check switch.schedule_* entity's canonical `'on'` state, `UniversalDeviceEntity.js`/`ContextTab.jsx` use it for turn_on/turn_off toggle logic.
+- **`iconRegistry.js`** has its own active-state list with `'recording'`/`'streaming'` (camera), `'cleaning'` (vacuum), `'above_horizon'` (sun) — these are domain-specific UI states NOT covered by `isEntityActive`. Keeping it local is correct.
+- **1 safe replacement found**: `src/utils/entityScoring.js:49` had `entity.state === 'on' || entity.state === 'playing' || entity.state === 'open'` — a manual replication of `isEntityActive` (without the German-state + lock/binary-sensor coverage). Replaced with `isEntityActive(entity.state, entity.domain, entity.attributes)`. Score-boosts now correctly fire for German `'ein'`/`'offen'`, unlocked locks, etc.
+
+Documented finding: the audit's "25+ candidates" was an overestimate. Most `state === 'on'` checks are correctly domain-specific. The `isEntityActive` helper is the right abstraction for the generic "is this entity active in any meaningful sense" question, but rarely the right tool for domain-specific state logic.
+
+**L5 — Translation dead-keys (AST walker + safe deletion)**
+
+Wrote a Python analyzer (`/tmp/find_dead_v2.py`):
+1. Dumps `de.js`/`en.js` to JSON via `node --input-type=module` (cleanest way to handle ES-module-with-comments format)
+2. Greps src for `translateUI('key')`, `t('key')`, `translateState('state')` callsites — records as used
+3. Detects template literal prefixes (`translateUI(\`settings.${x}\`)`) and concatenations (`translateUI('settings.' + x)`) — records as "dynamic prefix"
+4. Cross-references against the flattened key paths from de.json
+5. Whitelists known dynamic-access prefixes (e.g. `states.`, `deviceClasses.` accessed by `translateState` via `langData.states?.[key]`)
+
+Result: 802 total keys, 154 dead candidates after dynamic-prefix filtering, distributed:
+- 41 `advice.*` keys — **verified dead** (getSensorAdvice in `helpers.js` has its own local `adviceData` and never reads from `de.advice`)
+- 27 `actions.*`, 21 `domains.*`, 18 `units.*`, 8 `tooltips.*`, etc — candidates but NOT verified manually
+
+**Deletion this release: only the 41 `advice.*` keys** from both de.js + en.js. Documented in a code comment that this bucket has 0 callers and was historical-cruft. Other dead-key candidates flagged but defer to future targeted review (each top-level bucket needs a confidence check like the one done for `advice`).
+
+**Bonus finding (not fixed)**: `timerNameGenerators.js` calls `translateUI('ui.climate.heat', lang)` — the `ui.` prefix is duplicated because `translateUI` itself prefixes internally. The actual lookup becomes `ui.ui.climate.heat` (doesn't exist) → falls back to the key string. Latent bug, kept as a follow-up.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| `window.dispatchEvent(new CustomEvent` sites in source | 30 | 0 (only helper-impl remains) |
+| `state === 'on'` direct checks (semantically suspect) | 1 (entityScoring) | 0 |
+| Translation key count (de.js + en.js) | 802 × 2 | 761 × 2 (~−5%) |
+| Bundle JS | 1,538 kB | 1,536 kB (−2 kB) |
+
+### Files
+
+New (developer scripts, not shipped):
+- `/tmp/migrate_broadcast.py`, `/tmp/find_dead_translation_keys.py`, `/tmp/find_dead_v2.py`, `/tmp/dump_translations.mjs`
+
+Modified (source):
+- M5: timeFormatPreference.js, settings/index.js, integration/index.js, Printer3DDeviceView.jsx, EnergyDashboardDeviceView.jsx, AllSchedulesView.jsx, SubcategoryBar.jsx, DeviceCard.jsx, SettingsTab.jsx, StatsBarSettingsTab.jsx, AboutSettingsTab.jsx, GeneralSettingsTab.jsx, PrivacySettingsTab.jsx, general/helpers.js, BentoRichTodos.jsx, BentoRichNews.jsx, energyDashboardService.js
+- M6: `src/utils/entityScoring.js`
+- L5: `src/utils/translations/languages/de.js`, `src/utils/translations/languages/en.js`
+
+Version bump: `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1722.
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1721 - 2026-05-26
 
 **Title:** 🧹 Long-Tail console.log sweep + targeted will-change + useSettingBroadcast hook
