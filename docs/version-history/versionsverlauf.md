@@ -1,5 +1,105 @@
 # Versionsverlauf
 
+## Version 1.1.1711 - 2026-05-25
+
+**Title:** ⚡ Perf Win #3 — DeviceCard observer N→1: shared icon-size store
+**Hero:** none
+**Tags:** Performance, DeviceCard, Memory
+
+### Why
+
+The performance audit (see v1.1.1710) flagged DeviceCard's per-instance `useEffect` block that registered a `window.resize` listener AND a `MutationObserver` on `document.documentElement`. With 200 visible cards, that's:
+
+- 200 resize listeners — all fire on every viewport resize / phone rotation
+- 200 MutationObserver instances — all fire on EVERY style-attribute mutation of `<html>`
+
+The `<html>` style attribute gets written for many things: grid-columns setting changes, brightness/blur/contrast/saturation/grayscale CSS-variable writes (initial boot writes 5 in a row), squircle clip-path, theme/wallpaper-mode toggles, etc. Each write fanned out to 200 observer callbacks, each running `updateIconSize()` which did a `getComputedStyle()` lookup. Constant compositor-thread cost; visible thermal load on mobile.
+
+### What
+
+New module `src/utils/iconSizeStore.js` — a single module-level store that owns:
+
+- One `currentSize` value
+- One `Set<listener>` of subscribers
+- One global `window.resize` listener
+- One global `MutationObserver` on `<html>`
+
+```js
+function update() {
+  const next = computeIconSize();
+  if (next === currentSize) return;  // No-op early-out — common case
+  currentSize = next;
+  notify();
+}
+
+function ensureInitialized() {
+  if (initialized) return;
+  initialized = true;
+  currentSize = computeIconSize();
+  window.addEventListener('resize', update, { passive: true });
+  const observer = new MutationObserver(update);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['style'],
+  });
+}
+
+export function getIconSize() { ensureInitialized(); return currentSize; }
+export function subscribeIconSize(listener) {
+  ensureInitialized();
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+```
+
+Lazy initialization: the store doesn't attach its global listeners until the first `getIconSize()` or `subscribeIconSize()` call — keeps test harnesses and non-DeviceCard codepaths zero-cost.
+
+The store also early-outs in `update()` if the computed size hasn't changed. Most `<html>` style mutations (e.g. brightness/blur slider drag at 60fps) don't actually change the icon-size bucket — so the listener Set isn't even walked in the common case. Compare to the old per-card pattern, where every observer fired regardless and ran 200 `setIconSize()` calls.
+
+**DeviceCard refactor:**
+
+```jsx
+// Before — 45 LOC of useEffect with own listener + observer
+useEffect(() => {
+  const updateIconSize = () => { /* ... */ };
+  window.addEventListener('resize', updateIconSize);
+  const observer = new MutationObserver(() => updateIconSize());
+  observer.observe(document.documentElement, { /* ... */ });
+  return () => { /* cleanup */ };
+}, []);
+
+// After — 4 LOC, subscribes to shared store
+useEffect(() => {
+  setIconSize(getIconSize());
+  return subscribeIconSize(() => setIconSize(getIconSize()));
+}, []);
+```
+
+`useState(48)` was also replaced with `useState(() => getIconSize())` so the initial render uses the correct size — no flash-of-wrong-icon-size on first paint.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| Resize listeners with 200 cards | 200 | 1 |
+| MutationObserver instances | 200 | 1 |
+| Callbacks per `<html>` style write | 200 | 1 |
+| Callbacks when size doesn't change | 200 × `setIconSize()` no-ops | 0 (early-out in `update()`) |
+| Listener add/remove cost when scrolling card-grid (cards mount/unmount via virtua) | 2 DOM-API calls per card | 1 Set.add / Set.delete |
+
+The DOM-API attach/detach cost when virtua mounts/unmounts cards as the user scrolls is now O(1) instead of O(2) per card — a hot path during fast scrolling.
+
+### Files
+
+- `src/utils/iconSizeStore.js` (NEW, 86 LOC) — module-level store with lazy global listeners
+- `src/components/DeviceCard.jsx` — 45-LOC useEffect block → 4 LOC subscribe pattern
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1711
+- `docs/version-history/versionsverlauf.md` → this entry
+
+Build verified clean (1.56 MB bundle, no errors).
+
+---
+
 ## Version 1.1.1710 - 2026-05-25
 
 **Title:** ⚡ Perf Wins #1+#2 — external hassStore + DataProvider contextValue stable across HA ticks
