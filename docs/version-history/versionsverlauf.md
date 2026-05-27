@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.1729 - 2026-05-27
+
+**Title:** 🏗️ Energy Dashboard refactor Release 4 (part 2/2) — EnergyChartsView factory pattern (-270 LOC out of the component body, chart-render useEffect: ~300 → ~30 LOC)
+**Hero:** none
+**Tags:** Refactor, EnergyDashboard, Architecture, ChartJS
+
+### Why
+
+`EnergyChartsView.jsx`'s chart-render useEffect was a ~300-LOC monolith with two big if-branches:
+- `if (isNetUsageView)` → ~120 LOC of inline doughnut config (datasets × 2, colors × 6, tooltip callbacks)
+- else → ~180 LOC of inline line/bar config (helper closure `getBarBackgroundColors`, custom vertical-line plugin, scales, tooltip title formatter with month-name lookup table, y-axis tick callback)
+
+Everything captured via closure (timeRange, chartData, lang, periodDateLabel, displayUnit). Hard to read, impossible to test in isolation, anyone adding a third chart type would clone another 150-LOC branch.
+
+### What
+
+New file `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — two pure builder functions + the reusable plugin:
+
+- `buildDoughnutConfig(liveValues, lang)` → chart.js config object for the dual-ring Erzeugung/Verbrauch doughnut. Pulls all the colors, tooltip labels, cutout %.
+- `buildLineBarConfig(chartData, timeRange, energyStats, periodDateLabel, lang)` → chart.js config for the time-series line/bar chart. Chooses `'line'` for `day` view and `'bar'` for `week/month/year`. Includes the month-name → number lookup table, the tooltip-title formatter, the y-axis tick callback, and the bar-color logic (intense blue for current week, faded for previous-week days).
+- `verticalLineOnHoverPlugin` — the crosshair plugin previously inlined in the closure; now a module-level singleton (one instance reused across all chart instances).
+
+The `EnergyChartsView` component's chart-render useEffect collapsed from ~300 LOC to ~30 LOC:
+
+```js
+useEffect(() => {
+  if (!canvasRef.current) return;
+  if (!isNetUsageView && (!chartData || chartData.length === 0)) return;
+  if (isNetUsageView && !liveValues) return;
+  if (chartRef.current) chartRef.current.destroy();
+  try {
+    const ctx = canvasRef.current.getContext('2d');
+    const config = isNetUsageView
+      ? buildDoughnutConfig(liveValues, lang)
+      : buildLineBarConfig(chartData, timeRange, energyStats, periodDateLabel, lang);
+    chartRef.current = new Chart(ctx, config);
+  } catch (error) {
+    console.error('❌ Chart.js creation error:', error);
+  }
+  return () => { if (chartRef.current) chartRef.current.destroy(); };
+}, [chartData, timeRange, isNetUsageView, liveValues, energyStats, periodDateLabel, lang]);
+```
+
+### Result
+
+- `EnergyChartsView.jsx`: **950 → 656 LOC** (`-294 LOC` in the component itself)
+- `energyChartConfigs.js`: new file at **294 LOC** (pure config-builders, no React/Preact deps)
+- Net LOC: similar, but the component's render logic shrunk dramatically — the chart-config "what to draw" is cleanly separated from the React "when to mount and unmount" lifecycle.
+- Testability: the builders are pure functions of their args. You can `console.log(buildDoughnutConfig({productionToHouse: 5, ...}, 'en'))` in isolation, no DOM/canvas needed.
+- Adding a new chart type (e.g., area chart, scatter): write `buildAreaConfig(...)` in the same file, add one `else if` branch in the useEffect. No need to dive into the 950-LOC view.
+
+### Deferred (Release 4 R3-R5)
+
+- **R3 (useEnergyViewState reducer)**: 5 view-states (timeRange, isLoading, chartData, energyStats, liveValues) updated in 4 different code paths. After analysis, a reducer adds boilerplate (action types + cases) without reducing LOC and doesn't fix a real bug — current `setX/setY/setZ` triples are already batched correctly by Preact. Marginal value, deferred.
+- **R4 (storage-layer cleanup)**: requires deeper audit of `deviceConfigStorage.js` (433 LOC, 6 exports). Not Energy-Dashboard-scoped — touches Universal devices too. Punted to its own session.
+- **R5 (iOSChrome icon components)**: the `<Chevron />` / `<NavbarBackIcon />` / `<CloseX />` components already exist in `src/components/common/icons/ui.jsx`. 48 inline `ios-chevron` SVG sites still need migration codebase-wide. Mechanical work that doesn't fit the Energy Dashboard refactor — needs its own pass.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — **new file** (294 LOC, pure chart.js config builders)
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx` — chart-render useEffect refactored (~300 → ~30 LOC); imports from `./energyChartConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1728 → 1.1.1729
+
 ## Version 1.1.1728 - 2026-05-27
 
 **Title:** 🏗️ Energy Dashboard refactor Release 4 (part 1/2) — SensorsConfigView table-driven (767 → 358 LOC, -409 LOC)
