@@ -1,5 +1,98 @@
 # Versionsverlauf
 
+## Version 1.1.1735 - 2026-05-27
+
+**Title:** 🎉 Universal-Charts shipped — every Universal-device can now have time-series charts (D/W/M/Y) for any statistics-enabled sensor
+**Hero:** none
+**Tags:** Feature, Architecture, UniversalDevice, ChartJS
+
+### Why
+
+The Energy Dashboard's charts were powerful but locked to energy-domain sensors. After the 3-agent architectural analysis recommended building Universal-Charts on top of the existing chart infrastructure, v1.1.1733-1734 prepared the groundwork (extracted `services/sensorStatistics.js` + built generic `<SensorChartView>` with `state_class` branching). This release completes the integration: every Universal-device can now expose a "Charts" tab showing time-series for any sensor with HA long-term-statistics support.
+
+### What — Setup-flow extension
+
+**New file `UniversalSetup/ChartsView.jsx`** (~180 LOC):
+- Sub-view picker analog to `QuickStatsView`, but with stricter eligibility
+- Filter: only `sensor`-domain entities WITH `state_class` set (`'total_increasing'` for cumulative meters or `'measurement'` for instantaneous readings). Sensors without `state_class` have no HA statistics → would render empty.
+- Each row shows a colored pill ("Cumulative" / "Instantaneous") next to the entity_id so users understand which kind of chart they'll get.
+- Search-input + LiquidGlassSwitch per row, identical pattern to QuickStatsView.
+
+**`UniversalSetup.jsx`**:
+- `chartSensors` state + `toggleChartSensor` handler (flat array, same pattern as `quickStats`)
+- New `step === 'chart-sensors'` AnimatePresence branch
+- `chart_sensors: chartSensors` added to both `onComplete` paths (add + edit)
+- Reset to `[]` on new-device-pick
+
+**`Step2Customize.jsx`** — new "CHARTS" section below QUICK STATS with chevron drill-down to the picker, showing count of selected sensors.
+
+### What — Runtime dispatch
+
+**`deviceConfigs.js`** — `case 'universal_device'`:
+- Conditionally adds a 5th tab `{ id: 'charts', icon: <line-chart-svg>, label: 'Charts' }` to `universalButtons` IF `item.chart_sensors?.length > 0`.
+- Users who don't configure chart-sensors never see the tab (no visual noise).
+- Icon: simple 24×24 line-chart glyph (currentColor stroke, matches the iOS-glyph aesthetic of the other tab icons).
+
+**`PresetButtonsGroup.jsx`** — new dispatch branch BEFORE the existing universal controls/sensors/diagnostics/misc branch:
+```jsx
+group.renderCustom && item?.domain === 'universal_device' && group.id === 'charts'
+  && Array.isArray(item?.chart_sensors) && item.chart_sensors.length > 0
+```
+Renders one `<SensorChartView>` per configured sensor, stacked vertically in a scrollable container with `gap: 20px`. Each chart auto-resolves its sensor's `state_class` and `friendly_name` from `hass.states` at render time (HA Entity-Registry is the source-of-truth; we never persist this).
+
+### Result
+
+- **Any Universal-device + statistics-enabled sensor → instant chart.** Pick a solar inverter, a Shelly Plug's W-sensor, a temperature sensor with `state_class: 'measurement'`, a gas counter — they all just work.
+- **Multi-sensor support out of the box.** Configure 3 sensors → 3 stacked charts. Each has its own D/W/M/Y tabs + period state.
+- **Zero new chart-rendering code.** Pure reuse of the generic `<SensorChartView>` (v1.1.1734) + `services/sensorStatistics.js` (v1.1.1733) + `energyChartConfigs.js` `buildLineBarConfig` (v1.1.1729). The architectural prep across releases 1733-1734 turned this from "rewrite chart logic" into "wire 4 small files together".
+- **Bundle: 1457 → 1466 kB (+9 kB) / 390.2 → 392.1 gzip (+1.9 kB).** Tiny — most of the chart pipeline was already in the bundle; this release adds ChartsView setup component + dispatch glue + the chart-stack container.
+- **Energy Dashboard unchanged.** Still uses `EnergyChartsView` with its specialized doughnut + EUR tariffs + triple-sensor liveValues — none of those generalize and the user explicitly didn't ask to merge them.
+
+### Storage shape
+
+`device.chart_sensors: string[]` — flat array of entity_ids. Example:
+```js
+{
+  id: 'universal_solar_inverter_xyz',
+  name: 'Solar Inverter',
+  category: 'universal',
+  ha_device_id: '...',
+  hero: ['sensor.inverter_current_power'],
+  quick_stats: ['sensor.inverter_current_power', 'sensor.inverter_today_kwh'],
+  chart_sensors: ['sensor.inverter_lifetime_kwh', 'sensor.inverter_current_power'],
+}
+```
+
+No need to persist `state_class` or `color` — they're derivable from `hass.states` at runtime (entity attributes) or default-able in the component.
+
+### Pitfalls handled
+
+- **`state_class` branching in service**: v1.1.1734 added this. `'measurement'` sensors use `mean` per bucket instead of `lastSum - firstSum` delta. Picking a power-W sensor now correctly averages instead of computing nonsense.
+- **Tab hidden when no sensors**: `deviceConfigs.js` gates on `item.chart_sensors?.length > 0`. New Universal-devices that haven't been configured for charts don't see the tab.
+- **Empty-state UX**: `<SensorChartView>` renders a "No statistics for this sensor" message if HA returns no data — explains the `state_class` requirement to the user.
+- **No code-split**: HACS single-file build (`inlineDynamicImports: true`) means the new ChartsView setup-step + SensorChartView are bundled inline. Cost is fixed at ~9 kB regardless of whether the user uses the feature.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx` — **new file** (~180 LOC, sensor-picker with state_class filter)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` — `chartSensors` state + `toggleChartSensor` + step branch + onComplete payload
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx` — CHARTS section + 2 new props
+- `src/utils/deviceConfigs.js` — conditional 5th tab in `case 'universal_device'`
+- `src/components/controls/PresetButtonsGroup.jsx` — dispatch branch + import
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1734 → 1.1.1735
+
+### Universal-Charts roadmap — total scoreboard (Releases 1731-1735)
+
+| Release | What | LOC delta |
+|---|---|---|
+| v1.1.1731 (hotfix) | R4 regressions fixed (`setSensorSelectionSource` + `t={t}`) | minor |
+| v1.1.1732 (cleanup) | Dead code: `getHistoricalPeriod`, 3 DeviceView wrappers, legacy migration loop, `findRelatedPowerSensor` (+ Perf #1 dep fix) | **−200 LOC** |
+| v1.1.1733 (extract) | `services/sensorStatistics.js` extracted from entity actions | entity −340, service +324 (net ≈ 0) |
+| v1.1.1734 (component) | Generic `<SensorChartView>` + `state_class` branching in service + color param on chart-config | **+220 LOC** (new feature surface) |
+| v1.1.1735 (integration) | Universal-Charts wired end-to-end: setup picker + tab + dispatch | **+~280 LOC** (new feature surface) |
+
+**Energy Dashboard total session: from v1.1.1722 (start of refactor saga) to v1.1.1735 = ~−2,500 LOC dead code removed AND a new Universal-Charts feature shipped on top of the same chart infrastructure. The architectural pattern (table-driven configs, factory-pattern chart-builders, extracted service modules) made the new feature additive instead of a rewrite.**
+
 ## Version 1.1.1734 - 2026-05-27
 
 **Title:** 📊 Generic `<SensorChartView>` component + `state_class` branching in sensorStatistics (Universal-Charts groundwork part 2/3)
