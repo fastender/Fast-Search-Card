@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.1743 - 2026-05-28
+
+**Title:** 🛠️ Universal-Charts hotfix — chart canvas wieder sichtbar (gradient revert) + KPI-Pills zweizeilig (label klein oben, value drunter)
+**Hero:** none
+**Tags:** Bugfix, UniversalCharts, ChartJS, UI
+
+### Why
+
+User-Report nach v1.1.1742: "chart erscheint gar nicht mehr". Plus Pill-Layout-Anpassung gewünscht.
+
+### Was war kaputt
+
+In v1.1.1742 hatte ich die Day-View backgroundColor von einer plain rgba-Color zu einer Chart.js scriptable-Function (`makeDayLineGradient`) umgestellt — sollte einen schönen iOS-Health-style Gradient (kräftig oben → ausfading unten) erzeugen.
+
+Problem: Chart.js Filler-Plugin (das bei `fill: true` die Fläche unter der Linie ausfüllt) spielt mit scriptable backgroundColor je nach Render-Reihenfolge NICHT zuverlässig zusammen. Der Filler bekommt manchmal `null`/`undefined` zurück anstelle der CanvasGradient, kann keinen Fill rendern → die ganze chart-area bleibt leer (Y-Axis, Grid-Lines, Line — alles weg).
+
+Zweites Issue: SensorChartView's outer div hatte nur `minHeight: 320px` aber kein `height: 100%`. Wenn das motion.div in UniversalChartsView größer als 320px war, hat SensorChartView nicht expandiert → der `flex: 1` chart-canvas-wrap konnte ebenfalls nicht expandieren.
+
+### What — Gradient Revert
+
+`energyChartConfigs.js`:
+- `makeDayLineGradient(rgbTriple)` Funktion **entfernt** (~15 LOC)
+- Day-View backgroundColor zurück auf plain `rgba(${rgbTriple}, 0.5)` (50% Opacity)
+- 0.5 ist getestet als goldener Mittelweg: 0.35 (v1.1.1741) war zu dunkel, 0.65 (gradient top in v1.1.1742) wäre solid zu opaque, 0.5 kombiniert klare Sichtbarkeit mit subtle look
+
+### What — SensorChartView height fix
+
+```jsx
+<div style={{
+  ...
+  height: '100%',          // ← NEU
+  minHeight: '320px',
+  boxSizing: 'border-box', // ← NEU
+}}>
+```
+
+Mit `height: 100%` füllt SensorChartView jetzt die volle Höhe seines Containers (motion.div → content div → printer-sensors-wrapper minus pill-tabs). Der `flex: 1` chart-canvas-wrap drinnen expandiert dann sauber, Canvas hat eine sinnvolle Höhe → Chart.js rendert.
+
+### What — KPI-Pills 2-zeilig
+
+User-Wunsch: "zweizeilig MIN (klein) und darunter wert in einem kompakten pill"
+
+```
+Vorher (v1.1.1742): [ Min  0 ]  [ Max 1846.5 ]  [ Avg 495.99 ]  ← inline horizontal
+Nachher (v1.1.1743):
+[  MIN  ]  [  MAX   ]  [  AVG   ]
+[   0   ]  [ 1846.5 ]  [ 495.99 ]
+```
+
+Style-Änderungen:
+- `kpiPillStyle`: `flexDirection: column`, `alignItems: center`, `gap: 1px`, `borderRadius: 14px` (pill-ish), `padding: 4px 12px`, `minWidth: 56px`
+- `kpiPillLabelStyle`: 9px statt 10px, lineHeight 1
+- `kpiPillValueStyle`: 15px-700 (vorher 13px-600), lineHeight 1.1
+
+Resultat: kompakte vertikale pills, Label deutlich kleiner als Wert, Wert prominent in farb-coded Hue.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — `makeDayLineGradient` entfernt, Day-View bg zurück auf plain rgba 0.5
+- `src/components/charts/SensorChartView.jsx` — Outer-Div `height: 100%` + `boxSizing: border-box`, KPI-Pill-Styles auf 2-line column-layout
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1742 → 1.1.1743
+
 ## Version 1.1.1742 - 2026-05-27
 
 **Title:** 🎨 Universal-Charts polish #3 — Value left, KPI pills right, controls inline (no longer floating), gradient fill kills the "black charts"
