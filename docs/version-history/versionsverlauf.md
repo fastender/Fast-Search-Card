@@ -1,5 +1,107 @@
 # Versionsverlauf
 
+## Version 1.1.1725 - 2026-05-26
+
+**Title:** 🗑️ Energy Dashboard refactor Release 1 — Pure deletion (~1,200 LOC of Bambu-template residue)
+**Hero:** none
+**Tags:** Cleanup, EnergyDashboard, DeadCode, Bundle
+
+### Why
+
+User: "analisiere bitte energie dashboard ganz genau; ich habe das gefühl dass da unnützige codes vorliegen und refactoring und optimization (mehrere agenten bitte)"
+
+Three parallel audit agents (dead-code, performance, architecture) all converged on the same finding: the Energy Dashboard subtree carries massive Bambu-Lab Printer3D template DNA from its original copy-paste origin. After v1.1.1724 removed Bambu-Lab support proper, the EnergyDashboard's leftover printer code was technically still bundled and partially still ran (polled every 5s in `getEnergyData`) even though no consumer existed for the data.
+
+This is Release 1 of a multi-release refactor — **pure deletion only**, zero behavior change for users.
+
+### What — files deleted (5)
+
+| File | LOC | Why dead |
+|---|---|---|
+| `views/EnergyDashboardCameraView.jsx` | 163 | `actionButtons` array on the entity has NO `camera` entry → `handleOpenCamera` registered but never invoked → `if (showCamera)` branch unreachable |
+| `views/EnergyDashboardImageView.jsx` | 147 | Same as Camera — `handleOpenImage` registered but unreachable. Plus the function searched for `image.{serial}_titelbild` ("Titelbild" = Bambu printer's print-preview thumbnail) — 100% printer-specific |
+| `tabs/EnergyOverviewTab.jsx` | 134 | Verbatim Printer3D-Tab content: Druckfortschritt-Kreis, Düsentemp, Druckbett, Druckkopflüfter |
+| `tabs/EnergyControlsTab.jsx` | 152 | Same — Druckgeschwindigkeit, Druckraumbeleuchtung, Pause/Stop/Resume buttons with `targetNozzle: 220 / targetBed: 60` |
+| `tabs/EnergyDiagnosticsTab.jsx` | 21 | Thin wrapper around EnergyChartsView, but unreachable because nobody reads `entity.tabs[].component` |
+
+Plus the `tabs/` directory itself was empty after deletion and got removed.
+
+Verification: `PresetButtonsGroup.jsx:56-61` intercepts `domain === 'energy_dashboard_device'` and renders `<EnergyChartsView>` directly via `group.id`. It NEVER reads `entity.tabs[].component`. So the `tabs: [...]` array in `EnergyDashboardDeviceEntity.js` was dead too — also deleted (30 LOC).
+
+### What — files edited
+
+**`EnergyDashboardDeviceEntity.js`**:
+- Removed Bambu attributes from `super({ attributes: ... })`: `progress`, `nozzle_temp`, `bed_temp`, `current_step`, `remaining_time`, `is_printing`
+- Removed `tabs: [...]` array (4 tab entries × ~7 LOC = 30 LOC)
+- `hasTabs: true` → `hasTabs: false`
+
+**`EnergyDashboardDeviceView.jsx`** (618 → 388 LOC, **−230 LOC**):
+- Removed imports of CameraView + ImageView
+- Removed 6 useStates: `showCamera`, `showImage`, `sensorSelectionSource`, `selectedCircularType` (circular-detail branch never built), `notifications`, `soundEffects`, `animations`, `aiModeEnabled`
+- Removed `cameraRefreshInterval` + `cameraImageTimestamp` useStates
+- Removed `readMigratedKey` helper (only used for the now-deleted Bambu legacy keys)
+- Removed `quickStatsConfig` useState + `handleQuickStatToggle` (never wired to UI)
+- Removed `handleCameraRefreshChange` (outer + inner versions) + the `cameraRefreshIntervalChanged` listener useEffect + camera-image-refresh timer useEffect
+- Removed `handleOpenCamera` + `handleOpenImage` from `useRegisterViewRef('printer', {...})` block + the `setShowCamera(false)/setShowImage(false)` calls in other handlers
+- Removed `if (showCamera)` + `if (showImage)` render branches
+- Removed `selectedCircularType` + `setSelectedCircularType` + `sensorSelectionSource` props passed to SettingsView
+- Updated slideshow useEffect deps + guard (no more `showCamera/showImage` flags)
+
+**`EnergyDashboardSettingsView.jsx`** (−70 LOC):
+- Removed `t` prop (never used)
+- Removed `selectedCircularType` + `setSelectedCircularType` props (`circular-detail` branch never implemented)
+- Removed `setSensorSelectionSource` prop (only existed for a two-stage picker that never shipped)
+- Removed `currentSensor` local computation (declared, never read in JSX)
+- Removed 50-LOC `energySensors` useMemo block (duplicate of the live implementation in `EnergyDashboardSensorSelectionView.jsx:34-87`)
+- Removed `handleSensorSelect` local (duplicate of parent's `handleSensorSelect`)
+- Removed `useMemo` import (no longer needed)
+
+**`EnergyChartsView.jsx`** (1158 → 922 LOC, **−236 LOC**):
+- Deleted 4 dead helper functions: `transformToChartData`, `transformToDayChart`, `transformToBarChart`, `calculateEnergyStats`. All were legacy History-API transformers, superseded by `item.actions.getChartData()` which returns pre-aggregated data. Pure orphans.
+
+**`energyDashboardService.js`** (−10 LOC):
+- Removed `saveEnergyPrice` export (no callers anywhere). `getEnergyPrice` + `calculateEnergyCost` kept because they're actually live (used internally for `data.todayCost` which is read by `StatsBar.jsx:428`).
+
+**`EnergyDashboardSetup.jsx`**: one leftover `console.log('✅ Energy Dashboard configured', data)` removed.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| Energy subtree files | 16 | **11** |
+| JS bundle | 1,477 kB | **1,467 kB** (−10 kB) |
+| CSS bundle | 203 kB | **199 kB** (−4 kB) |
+| `EnergyDashboardDeviceView` | 618 LOC | **388 LOC** (−37%) |
+| `EnergyChartsView` | 1158 LOC | **922 LOC** (−20%) |
+| `EnergyDashboardSettingsView` | 350 LOC | **280 LOC** (−20%) |
+| Source LOC removed | — | **~1,200** |
+
+All deletions were verified by 3 independent audit agents converging on the same findings — no risk to user-facing functionality. Behavior change: zero. The slideshow still rotates, the settings flow still works (Main / Sensors / Circular-Overview pages), the chart-views still render line/bar correctly.
+
+### Coming next (planned Releases 2-5)
+
+- **Release 2** — `getEnergyData` action body refactor (`~190 LOC` of Bambu suffix-map + `bambuDevices` discovery loop → keep only camera + area lookup)
+- **Release 3** — DOUGHNUT BUG FIX: register `ArcElement` + `DoughnutController` in `chartConfig.js` so the Nettonutzung-tab stops throwing at runtime. Plus chart `update()` vs destroy+recreate + statistics-metadata cache.
+- **Release 4** — Architecture refactors: `EnergyDashboardSensorsConfigView` table-driven (767→280 LOC), `EnergyChartsView` factory pattern, `useEnergyViewState` reducer, storage-layer migration cleanup.
+- **Release 5** — Remaining perf wins: sub-views memo(), lazy() imports, `getGridImportValue` per-tick eliminator.
+
+### Files
+
+Deleted: 5 files + 1 empty directory
+
+Modified:
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx`
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx`
+- `src/services/energyDashboardService.js`
+- `src/system-entities/entities/integration/components/setup-flows/EnergyDashboardSetup.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1725
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1724 - 2026-05-26
 
 **Title:** 🗑️ Bambu Lab / printer3d device-type removed — Universal-Device covers the use case
