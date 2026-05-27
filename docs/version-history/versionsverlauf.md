@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.1731 - 2026-05-27
+
+**Title:** 🐛 Hotfix — R4 (v1.1.1728) regressions: `setSensorSelectionSource is not a function` + `ReferenceError: t is not defined`
+**Hero:** none
+**Tags:** Bugfix, Hotfix, EnergyDashboard
+
+### Why
+
+A 3-agent post-release audit caught two real runtime bugs that R4 (the SensorsConfigView table-driven refactor in v1.1.1728) introduced. Both are immediate crashes — not subtle regressions — because they only trigger when the Energy-Dashboard Settings → Werte sub-view is opened, which the developer test-flow happened to skip.
+
+### What — Bug 1: `setSensorSelectionSource is not a function`
+
+**Symptom**: TypeError thrown on clicking ANY sensor row in the Werte list.
+
+**Cause**: v1.1.1725 stripped `setSensorSelectionSource` from `EnergyDashboardSettingsView` because the "source-tracking" feature it gated was never implemented. But R4 (v1.1.1728), when rewriting `EnergyDashboardSensorsConfigView` into a table-driven shape, copied the old `setSensorSelectionSource('sensors')` call into the new generic `<SensorRow>` component — which never receives the prop because the parent doesn't have it.
+
+**Fix**: Stripped the dead call from `SensorRow.handleClick` and removed `setSensorSelectionSource` from both the `<SensorRow>` and `<EnergyDashboardSensorsConfigView>` prop signatures + the JSX dispatch (3 sites total in the file).
+
+### What — Bug 2: `ReferenceError: t is not defined`
+
+**Symptom**: ReferenceError thrown the moment the sensors-view conditional branch in SettingsView renders.
+
+**Cause**: `EnergyDashboardSettingsView` passes `t={t}` to `<EnergyDashboardSensorsConfigView>` (line 145), but `t` is NOT destructured from its own props — v1.1.1725 explicitly documented in code comments that `t` was a dead prop and removed it from the parent signature, but the `t={t}` pass-through was missed.
+
+**Fix**: Removed `t={t}` from the `<EnergyDashboardSensorsConfigView>` JSX call site. Also removed `t` from `EnergyDashboardSensorsConfigView`'s own prop signature (it wasn't used inside either). Updated the JSDoc props list at the top of `EnergyDashboardSettingsView.jsx` to reflect the actual current signature (was documentation drift since v1.1.1725).
+
+### Result
+
+- Sensor row clicks now navigate to the sensor-selection modal correctly.
+- Opening Settings → Werte no longer crashes.
+- The fixes are pure subtraction: less code, fewer dead props, accurate JSDoc.
+
+### How this slipped through
+
+Both bugs are conditional-render crashes — code-paths that only execute when the user is INSIDE the Settings → Werte sub-flow. Since the R4 refactor only restructured the JSX layout (table-driven config + generic `<SensorRow>`), the LOC numbers looked clean and the build/lint passed. Lesson: post-refactor manual click-through of each conditional branch should be part of the release checklist for view-state-machine refactors. The 3-agent audit caught both within minutes of running.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx` — `SensorRow` + parent signature, dead `setSensorSelectionSource` calls stripped
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsView.jsx` — `t={t}` removed from sensors-view JSX, JSDoc props list updated
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1730 → 1.1.1731
+
 ## Version 1.1.1730 - 2026-05-27
 
 **Title:** ⚡ Energy Dashboard refactor Release 5 — `getGridImportValue` per-tick no-op-update eliminator + attribute-first sensor lookup
