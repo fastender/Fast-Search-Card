@@ -1,5 +1,72 @@
 # Versionsverlauf
 
+## Version 1.1.1736 - 2026-05-27
+
+**Title:** 🐛 Hotfix — Universal-Charts persistence chain: `chart_sensors` was set in wizard but lost in 4 places along the save path
+**Hero:** none
+**Tags:** Bugfix, Hotfix, UniversalCharts
+
+### Why
+
+User report: "Speichern → in der Device-Detail-View erscheint eine 5. Tab-Schaltfläche Charts; speichern klappt nicht."
+
+v1.1.1735 wired the Universal-Charts feature end-to-end **at the UI layer** — wizard step, picker, Step2 section, tab dispatch, chart render — all working. But the persistence-chain had FOUR identical "field forgotten" bugs that meant `chart_sensors` was set in the wizard's React state, included in the onComplete payload, **even merged into deviceConfig storage**, but NEVER reached the live entity's attributes. So `item.chart_sensors` was always `undefined` at render time → the conditional 5th tab never appeared and chart-stack dispatch never fired.
+
+This is THE SAME bug shape that `quick_stats` had in v1.1.1706 — the code comment in `UniversalDeviceEntity.js` literally documents this exact failure mode. v1.1.1735 didn't follow the same checklist.
+
+### What — 4 fixes in the persistence chain
+
+**1. `UniversalDeviceEntity.js` constructor** — destructure + put into attributes:
+```js
+const { ..., chart_sensors = [] } = universalConfig;
+super({ attributes: { ..., chart_sensors } });
+```
+Without this, NEW devices wouldn't carry `chart_sensors` into entity-attributes even though the storage record had it.
+
+**2. `UniversalDeviceView.jsx` `existing` prefill** — pass through to the edit wizard:
+```js
+chart_sensors: entity?.attributes?.chart_sensors || [],
+```
+Without this, editing an existing device always showed "Charts: None" — overwriting the saved value with `[]` on next save.
+
+**3. `UniversalDeviceView.jsx` `updates` payload** — forward wizard output to `updateDevice` action:
+```js
+updates: { ..., chart_sensors: updatedDevice.chart_sensors }
+```
+And same in the fallback `entity.updateAttributes({...})` path.
+Without this, the wizard's chart_sensors selection was discarded on save.
+
+**4. `integration/index.js` `updateDevice` action's `attrUpdates`** — forward to live entity:
+```js
+if (updates.chart_sensors !== undefined) attrUpdates.chart_sensors = updates.chart_sensors;
+```
+Without this, the storage merge happened (line 171 spreads `updates` into the device record) but the LIVE entity attributes — which `PresetButtonsGroup` + `deviceConfigs` read from — stayed stale. The 5th tab wouldn't appear until full page reload.
+
+### Why this happens
+
+The Universal pattern has FOUR separate locations that have to know about each new device-property:
+1. Constructor (NEW-device path: storage → entity attrs)
+2. View prefill (EDIT-device path: entity attrs → wizard state)
+3. View save (EDIT-device path: wizard state → updates payload)
+4. Integration updateDevice attrUpdates (EDIT-device path: updates payload → live entity attrs)
+
+Plus optionally storage shape changes (in this case `deviceConfig.devices[].chart_sensors` is just a flat array — no schema migration needed).
+
+Forgetting any one of these breaks the feature in a specific way that's hard to debug because partial paths work (e.g., NEW devices might work but EDIT doesn't, or storage looks correct but the tab won't appear without reload).
+
+### Now reliably works
+
+- Add Universal-device → wizard step "Customize" → CHARTS section → pick sensors → Save → 5th tab "Charts" appears immediately
+- Edit existing Universal-device → CHARTS section shows previously-saved sensors pre-selected → toggle → Save → tab updates live
+- Reload → tab still there, sensors still configured
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/UniversalDeviceEntity.js` — destructure `chart_sensors` + put into attributes
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` — `existing` prefill + `updates` payload + fallback `updateAttributes`
+- `src/system-entities/entities/integration/index.js` — `updateDevice` action's `attrUpdates` block forwards `chart_sensors`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1735 → 1.1.1736
+
 ## Version 1.1.1735 - 2026-05-27
 
 **Title:** 🎉 Universal-Charts shipped — every Universal-device can now have time-series charts (D/W/M/Y) for any statistics-enabled sensor
