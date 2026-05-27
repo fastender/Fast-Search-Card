@@ -1,5 +1,87 @@
 # Versionsverlauf
 
+## Version 1.1.1724 - 2026-05-26
+
+**Title:** 🗑️ Bambu Lab / printer3d device-type removed — Universal-Device covers the use case
+**Hero:** none
+**Tags:** Cleanup, Architecture, Bundle
+
+### Why
+
+User: "ich finde ich brauche im integrator die unterstützung für bambu lab nicht mehr, weil ich mit universal es auch selber bauen kann."
+
+Since v1.1.1335 the Universal-Device builder covers any HA device with full customization (name, icon, hero, hidden entities, quick stats, controls). The dedicated `printer3d` device-type was historically the first integration-device built, but is now functionally redundant. Removing it eliminates ~2,500 LOC of single-purpose code, cuts bundle by ~55 kB, and consolidates around one well-tested abstraction.
+
+User confirmed two policy questions via `AskUserQuestion`:
+1. **Silent removal** for any existing saved Bambu printer configs (just disappears at next reload — `createDeviceEntity()` already returns null + logs an error for unknown categories)
+2. **Rename** `bambulab_*` localStorage keys in EnergyDashboardDeviceView to `energy_dashboard_*` with migration-on-first-read
+
+### What
+
+**Deleted files (11):**
+
+| File | LOC |
+|---|---|
+| `system-entities/integration/device-entities/Printer3DDeviceEntity.js` | 360 |
+| `system-entities/integration/device-entities/printer3dHelpers.js` | small |
+| `system-entities/integration/components/setup-flows/Printer3DSetup.jsx` | 282 |
+| `system-entities/integration/device-entities/views/Printer3DDeviceView.jsx` | ~700 |
+| `system-entities/integration/device-entities/tabs/Printer3DOverviewTab.jsx` | 135 |
+| `system-entities/integration/device-entities/tabs/Printer3DControlsTab.jsx` | 152 |
+| `system-entities/integration/device-entities/tabs/Printer3DDiagnosticsTab.jsx` | 257 |
+| `system-entities/integration/device-entities/components/PrinterDiagnosticsList.jsx` | 113 |
+| `system-entities/integration/device-entities/components/PrinterSensorsList.jsx` | 138 |
+| `system-entities/integration/device-entities/components/PrinterMiscList.jsx` | 368 |
+| `assets/icons/other/Printer3D.jsx` | small |
+
+**Total deleted: ~2,500 LOC across 11 files.**
+
+**Edits (no behavior change for non-Printer3D users):**
+
+- `deviceTypeRegistry.js` — removed `printer3d` entry + 2 imports. `createDeviceEntity({ category: 'printer3d', ... })` now hits the existing `'Unknown or unimplemented device category'` console.error and returns null. Existing saved Bambu configs simply vanish from the device-grid at next reload.
+- `PresetButtonsGroup.jsx` — removed 3 conditional render-branches (sensors/diagnostics/misc for `printer3d_device` domain) + 3 imports.
+- `utils/deviceConfigs.js` — removed `case 'printer3d_device'` from `getActionButtonGroup` (tab-buttons + expandables) AND from circular-slider config (progress display). Removed `translatePrinterStatus` import.
+- `utils/stateHelpers.js` — removed `printer3d_device` quick-stats branch (51 LOC including the inline localStorage parse + status-translation dict).
+- `assets/icons/iconRegistry.js` — removed Printer3D import + `printer3d_device` icon-mapping entry.
+
+**Kept intentionally:**
+
+- `iconCatalog.js`'s `printer3d` icon entry (24x24 SVG) — the icon-catalog is used by the Universal-Device builder's icon-picker. Users can still pick a 3D-printer-icon for a self-built Universal-Device printer.
+
+**EnergyDashboardDeviceView migration (bonus, not Bambu-related):**
+
+The EnergyDashboard view had inherited `bambulab_camera_refresh_interval` + `bambulab_quickstats_config` localStorage keys from the original copy-paste-from-Printer3D refactor. Renamed to `energy_dashboard_camera_refresh_interval` + `energy_dashboard_quickstats_config` with a `readMigratedKey(newKey, legacyKey)` helper that reads the new key, falls back to legacy, writes to new + deletes legacy on first access. Existing EnergyDashboard users transparently migrate; no UX impact.
+
+### Result
+
+| Metric | Before | After |
+|---|---|---|
+| Source LOC | ~78,000 | ~75,500 |
+| JS bundle | 1,532 kB | 1,477 kB (`−55 kB`) |
+| CSS bundle | 204 kB | 203 kB (`−1 kB`) |
+| Gzipped JS | ~404 kB | ~393 kB (`−11 kB`) |
+| Available integration device-types | 4 (energy/printer3d/weather/universal) | 3 (energy/weather/universal) |
+| Lines per-domain in `deviceConfigs.js` | included printer3d branches | one less domain to maintain |
+
+The Universal-Device builder remains the canonical way to integrate any HA device including 3D printers. Setup is: pick the HA device → optionally choose an icon (3D-printer icon still in catalog) → optionally configure hero/hidden-entities/quick-stats. User reproduces the previous Bambu UX in ~30 seconds.
+
+### Files
+
+Deleted: 11 (see table above)
+
+Modified:
+- `src/system-entities/entities/integration/device-entities/deviceTypeRegistry.js`
+- `src/components/controls/PresetButtonsGroup.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/utils/stateHelpers.js`
+- `src/assets/icons/iconRegistry.js`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` (localStorage key rename + migration helper)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` → 1.1.1724
+
+Build verified clean.
+
+---
+
 ## Version 1.1.1723 - 2026-05-26
 
 **Title:** 🐛🧹 timerNameGenerators double-prefix bug fix + L5b 107 dead translation keys removed
