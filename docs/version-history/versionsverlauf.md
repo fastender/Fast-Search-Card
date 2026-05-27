@@ -1,5 +1,85 @@
 # Versionsverlauf
 
+## Version 1.1.1739 - 2026-05-27
+
+**Title:** 🎨 Universal-Charts COMBO part 1 — KPI-Tiles (Min/Max/Ø) + per-sensor Color-Picker (storage migration string[] → object[])
+**Hero:** none
+**Tags:** Feature, UniversalCharts, Storage, ColorPicker
+
+### Why
+
+The HTML-mockup-driven COMBO plan starts here. v1.1.1739 ships the two foundation items — KPI-tiles and per-sensor color customization — that set up the storage shape and information density for the bigger layout overhaul in v1.1.1740 (Pill-Tabs + Period-Scrubber).
+
+### What — C1: Min/Max/Ø KPI-Tiles
+
+`SensorChartView.jsx` now computes Min / Max / Average from `chartData.dataPoints` (pure derived state via `useMemo`, no extra WS-call) and renders three iOS-style tiles between the headline-value and the D/W/M/Y tab bar:
+
+```
+┌──────┬──────┬──────┐
+│ Min  │ Max  │  Ø   │
+│ 0.0  │ 8.4  │ 2.6  │  ← color-coded (grün/orange/cyan)
+└──────┴──────┴──────┘
+```
+
+Only renders when `chartData` has valid values (no "0/0/0" during loading). Values rounded to 2 decimals matching the headline format.
+
+### What — C3: Per-Sensor Color-Picker
+
+**Storage migration**: `chart_sensors[]` was `["sensor.foo", ...]` (string array). Now: `[{id: "sensor.foo", color: "0, 145, 255"}, ...]` (object array). Backwards-compatible — old string entries get normalized on read.
+
+New helper module `src/utils/chartSensorEntry.js`:
+- `CHART_COLOR_PALETTE` — 10 iOS-preset RGB-triples (blue / yellow / green / purple / orange / pink / cyan / indigo / red / gray)
+- `normalizeChartSensorEntry(entry)` — accepts string or object, returns `{id, color}`
+- `normalizeChartSensorsArray(arr)` — array variant, filters invalid entries, cycles palette for legacy entries that have no color yet
+- `pickNextChartColor(existingEntries)` — returns next unused palette color (so each new sensor gets a different color out of the box)
+
+New sub-view `ChartsColorPickerView.jsx` (~95 LOC):
+- Triggered from `ChartsView` when user taps the color-swatch next to a selected sensor
+- Renders 10 color circles in a 5×2 grid (iOS-Stil)
+- Tap → calls `updateChartSensorColor(entityId, newColor)` and navigates back
+
+`ChartsView.jsx` updates:
+- Each selected sensor row now shows a color-circle button (24px) next to the toggle switch
+- Tap on the swatch → drills into ChartsColorPickerView for that specific sensor
+- New colors get auto-assigned from the palette when sensor is first toggled on (so 3 sensors → 3 different colors by default)
+
+`UniversalSetup.jsx`:
+- `chartSensors` state shape is `Array<{id, color}>` (normalized on init from existing storage)
+- New `colorPickerSensorId` state tracks which sensor is being color-picked
+- New `chart-color` step branch renders ChartsColorPickerView
+- `toggleChartSensor` now creates `{id, color: nextPaletteColor}` instead of bare string
+- `updateChartSensorColor` handler writes new color while preserving order
+
+`PresetButtonsGroup.jsx` (dispatch):
+- Normalizes each `chart_sensors[]` entry to `{id, color}` before mapping
+- Passes `color={color}` to each `<SensorChartView>` → chart line + bars + active-tab use that color
+
+### Result
+
+- Each chart can have its own personality color (default different per sensor)
+- 3 instant data points per chart (Min/Max/Ø) without any extra HA call
+- Old string-form storage keeps working — no migration script needed; just read-time normalization
+- Color persists through the full save → reload → display cycle (uses the same persistence chain fixed in v1.1.1736/1737)
+
+### Bundle impact
+
+- 1466 → 1472 kB (+5 KB) / 392 → 394 gzip (+1.5 KB)
+- New files: `chartSensorEntry.js` (~75 LOC) + `ChartsColorPickerView.jsx` (~95 LOC) + KPI block (~70 LOC inline)
+
+### Files Changed
+
+- `src/utils/chartSensorEntry.js` — **new file** (color palette + normalize helpers)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsColorPickerView.jsx` — **new file** (sub-view picker)
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx` — color-swatch button on each selected row, `colorByEntityId` map for O(1) lookup
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` — `chartSensors` now object-array, `toggleChartSensor` palette-cycle, `updateChartSensorColor`, `chart-color` step branch
+- `src/components/controls/PresetButtonsGroup.jsx` — normalize each entry, pass `color` prop
+- `src/components/charts/SensorChartView.jsx` — `kpis` useMemo + KPI-Tiles render block
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1738 → 1.1.1739
+
+### Coming next: v1.1.1740
+
+Pill-Tab-Switcher (1 chart at a time, horizontal selector in sensor colors) + Period-Scrubber (← previous week / next week →) + Fullscreen-Modal on long-press.
+
 ## Version 1.1.1738 - 2026-05-27
 
 **Title:** 🎨 Universal-Charts polish: `.printer-sensors-wrapper` container styling + hassRef pattern stops chart from re-rendering every HA tick
