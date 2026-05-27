@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.1734 - 2026-05-27
+
+**Title:** 📊 Generic `<SensorChartView>` component + `state_class` branching in sensorStatistics (Universal-Charts groundwork part 2/3)
+**Hero:** none
+**Tags:** Feature, Architecture, UniversalCharts, ChartJS
+
+### Why
+
+Energy Dashboard's chart UI is purpose-built for energy sensors: cumulative-kWh assumption, EUR tariff calculations, dual-ring doughnut for production-vs-consumption. Most of this DOESN'T generalize. But the underlying *line/bar chart with D/W/M/Y tabs over time-series data* is universal — it applies to any sensor with long-term-statistics. This release builds the generic version so v1.1.1735 can integrate it as a new "Charts" tab on Universal-devices (and eventually replace the line/bar branch in `EnergyChartsView` with it).
+
+### What — `state_class` branching in `services/sensorStatistics.js`
+
+Both `getCurrentPeriodConsumption` + `getChartData` gained a `stateClass` parameter (default `'total_increasing'` for back-compat with energy callers):
+
+- **`stateClass: 'total_increasing'`** (cumulative sensors — kWh meters, gas/water counters): unchanged behavior. `lastSum - baselineSum` math with Wh→kWh normalization if unit matches. Year-special-case (previous-vs-current bar) still applies.
+- **`stateClass: 'measurement'`** (instantaneous sensors — power-W, temperature, humidity): uses each bucket's `mean` field. Returns the period average (for the headline value) or per-bucket mean (for chart data points). NO unit normalization — uses the sensor's native unit. Cumulative-only year-comparison falls through to standard yearly bar.
+
+Plus `readSensorUnit()` helper that pulls `unit_of_measurement` from `hass.states[sensorId].attributes`, with a fallback. So if a sensor reports `'°C'`, the headline shows `25.4 °C` instead of `25.4 kWh`.
+
+This is the CRITICAL fix needed before exposing chart-creation to Universal users. Without `stateClass` branching, picking a power-in-W sensor would return nonsense (last-minus-first delta on instantaneous values).
+
+### What — `<SensorChartView>` component (`src/components/charts/SensorChartView.jsx`, ~220 LOC)
+
+Generic, sensor-agnostic, self-contained chart view. Props:
+
+```jsx
+<SensorChartView
+  hass={hass}
+  sensorId="sensor.solar_inverter_lifetime_kwh"
+  stateClass="total_increasing"   // or "measurement"
+  label="Solar production"        // optional
+  color="255, 204, 0"             // optional RGB triple
+  lang="de"                       // or "en"
+  initialRange="day"              // or "week"|"month"|"year"
+/>
+```
+
+Owns: time-range tab bar (D/W/M/Y), period-date label, statistics fetch (via `sensorStatistics` service), unit-aware headline value with spring-animated rolling number, Chart.js line/bar rendering (via existing `buildLineBarConfig`), loading + empty states, abort-on-rapid-tab-switch (`cancelled` flag in both useEffects).
+
+Does NOT own: dual-ring doughnut (energy-domain only), EUR tariff calculation, triple-sensor live values, settings/sensor-picker. That stuff stays in `EnergyChartsView`.
+
+### What — `buildLineBarConfig` color parameter
+
+`energyChartConfigs.js` `buildLineBarConfig` gained an optional 6th argument `rgbTriple` (default `'0, 145, 255'` = energy-blue, back-compat). `getBarBackgroundColors` helper threaded the same default through. Color is now `rgb(R, G, B)` for borders/points and `rgba(R, G, B, alpha)` for fills/bars. Universal-Charts can now pick whatever color matches the sensor's domain.
+
+### Result
+
+- New reusable building block ready for Universal integration (v1.1.1735).
+- Energy Dashboard's existing chart rendering is UNCHANGED — `EnergyChartsView` still calls the entity actions, which still delegate to `sensorStatistics`. The default `stateClass: 'total_increasing'` in the service preserves the cumulative-kWh semantics for everyone who doesn't explicitly pass `'measurement'`.
+- Bundle: 1456 → 1457 kB (+1 KB) / 389.9 → 390.2 gzip. The new SensorChartView code is bundled but currently unreached at runtime (no consumer yet) — gets activated in v1.1.1735.
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — added `stateClass` parameter to both `getCurrentPeriodConsumption` + `getChartData`; added `readSensorUnit()` helper; cumulative-vs-measurement branching
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — `buildLineBarConfig` + `getBarBackgroundColors` accept optional `rgbTriple` color (default unchanged)
+- `src/components/charts/SensorChartView.jsx` — **new file** (~220 LOC, generic chart component)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1733 → 1.1.1734
+
 ## Version 1.1.1733 - 2026-05-27
 
 **Title:** 🔌 Extract `services/sensorStatistics.js` — prep for Universal-Charts (entity 829 → 489 LOC, -340 LOC)
