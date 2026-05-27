@@ -1,5 +1,113 @@
 # Versionsverlauf
 
+## Version 1.1.1740 - 2026-05-27
+
+**Title:** 🎉 Universal-Charts COMBO part 2 (final) — Pill-Tab-Switcher (A1) + Period-Scrubber (S1) + Fullscreen-Modal (P4)
+**Hero:** none
+**Tags:** Feature, UniversalCharts, UI, ChartJS
+
+### Why
+
+The COMBO finale ships the layout-overhaul. v1.1.1738 stacked all charts vertically (only 1 visible, scroll-only). v1.1.1739 added KPI-tiles + color-picker. v1.1.1740 ships:
+- **A1**: Horizontal pill-tab-switcher → 1 chart visible at a time, pills in sensor colors
+- **S1**: Period-Scrubber → `← Vorige | Datum-Label | Nächste →` to browse historical periods
+- **P4**: Long-press → Fullscreen modal with the active chart in large format
+
+### What — A1: Pill-Tab-Switcher (`UniversalChartsView.jsx` new file)
+
+Replaces the inline stack in `PresetButtonsGroup.jsx`. New component owns:
+- Horizontal pill-bar at top (`overflow-x: auto` so 10+ sensors scroll horizontally)
+- Active pill uses sensor color (`rgba(R,G,B, 0.22)` bg + `rgba(R,G,B, 0.5)` border)
+- 1 `<SensorChartView>` for active sensor, full container height
+- `AnimatePresence` slide-animation between sensor switches (200ms x-axis slide)
+- Pill-bar hidden when only 1 sensor configured (no redundant tab)
+
+### What — S1: Period-Scrubber in SensorChartView
+
+`SensorChartView.jsx` gained a new `periodIndex` state (0 = current, -1 = previous, etc). Three components added below the D/W/M/Y tabs:
+- `←` button — `setPeriodIndex(p => p - 1)`
+- Center label (uses `chartMeta.periodLabel` from the service — already returns "Gestern" / "KW 19 2026" / "Apr 2026" / etc.)
+- `→` button — disabled when `periodIndex >= 0` (no future periods)
+
+`periodIndex` resets to 0 whenever `timeRange` changes (otherwise D → W switch would start at "this week minus N days").
+
+### What — service `periodIndex` support
+
+`services/sensorStatistics.js` — both `getCurrentPeriodConsumption` and `getChartData` accept `periodIndex` param (default 0, back-compat). 
+
+`getChartData` was refactored to use `calculatePeriodDates(periodType, periodIndex, lang)` for the start/end boundaries — was using inline `new Date()` arithmetic that didn't support offsets. The year-special-case (previous-vs-current bar) still only fires when `periodIndex === 0` AND `stateClass === 'total_increasing'`; with `periodIndex < 0` you get a normal monthly-bar of that year.
+
+### What — P4: Fullscreen Modal
+
+`UniversalChartsView.jsx` registers `onPointerDown`/`onPointerUp` long-press timer (500ms). On long-press OR right-click → opens a fullscreen modal:
+- `position: fixed, inset: 0, z-index: 9999`
+- `rgba(0,0,0,0.85)` backdrop + 20px blur
+- Centered card (max 900×600px, scales to viewport)
+- Spring scale-in animation (0.9 → 1.0, 250ms)
+- Click outside / `✕` button closes
+- Same SensorChartView rendered inside, with more vertical real estate for the chart canvas
+
+Long-press detection: `setTimeout(500ms)` on `pointerdown`, cleared on `pointerup`/`pointerleave`. Also intercepts `oncontextmenu` (iOS Safari's long-press shows context-menu by default; preventDefault + show modal instead).
+
+### What — Cleanup
+
+`PresetButtonsGroup.jsx` charts dispatch — went from ~60 LOC inline (stack render + normalize + map) to a 1-line `<UniversalChartsView item={item} hass={hass} lang={lang} />` call. The inline pattern was getting unwieldy with multiple useState + animations + modal; extraction was natural.
+
+### Result
+
+The complete Universal-Charts experience as drafted in the HTML mockup:
+
+```
+┌── Pill-Tabs: [☀️ Solar] [🔌 Grid] [🔋 Battery] [🌡️ Temp] ──┐
+│                                                              │
+│  Solar production forecast              62.95 kWh            │
+│  KW 22 · 25.–31. Mai 2026                                    │
+│                                                              │
+│  ┌──────┬──────┬──────┐                                      │
+│  │ Min  │ Max  │  Ø   │                                      │
+│  │ 0.0  │ 8.4  │ 2.6  │                                      │
+│  └──────┴──────┴──────┘                                      │
+│                                                              │
+│  [T]  W   M   J                                              │
+│                                                              │
+│  [←]   KW 22 · 25.–31. Mai 2026   [→ disabled]               │
+│                                                              │
+│  ╭────────────────────────────────────────╮                  │
+│  │  Solar chart (line/bar, period data)   │                  │
+│  ╰────────────────────────────────────────╯                  │
+└──────────────────────────────────────────────────────────────┘
+           ↓ Long-press hier
+           ↓
+  ┌── Fullscreen-Modal (big chart) ──┐
+```
+
+### Bundle impact
+
+- 1472 → 1475 kB (+4 KB) / 393.6 → 394.3 gzip (+0.7 KB)
+- New file: `UniversalChartsView.jsx` (~210 LOC, including modal)
+- Net per-feature: A1 ~80 LOC, S1 ~50 LOC, P4 ~80 LOC
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — `periodIndex` param on both exports, `getChartData` refactored to use `calculatePeriodDates` (cleaner + supports periodIndex)
+- `src/components/charts/SensorChartView.jsx` — `periodIndex` state + scrubber UI (← Label →) below D/W/M/Y tabs
+- `src/components/charts/UniversalChartsView.jsx` — **new file** (pill-tab-switcher + long-press fullscreen-modal)
+- `src/components/controls/PresetButtonsGroup.jsx` — replaced inline stack with `<UniversalChartsView />`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1739 → 1.1.1740
+
+### Universal-Charts COMBO — total scoreboard (Releases 1735-1740)
+
+| Release | Feature | Bundle |
+|---|---|---|
+| v1.1.1735 | Setup-flow + 5th Charts tab + initial dispatch | initial cost |
+| v1.1.1736 | 4 persistence-chain bugs fixed | 0 |
+| v1.1.1737 | Read-path bug (`item.attributes.chart_sensors`) | 0 |
+| v1.1.1738 | Container styling + hassRef pattern | 0 |
+| v1.1.1739 | KPI-Tiles + Color-Picker (storage migration) | +5 KB / +1.5 KB gz |
+| v1.1.1740 | Pill-Tabs + Period-Scrubber + Fullscreen-Modal | +4 KB / +0.7 KB gz |
+
+**Total feature footprint: 6 releases, ~+13 KB raw / +3.4 KB gzip, ~750 LOC new feature code. Every Universal-device can now have multi-sensor time-series charts with full UX polish.**
+
 ## Version 1.1.1739 - 2026-05-27
 
 **Title:** 🎨 Universal-Charts COMBO part 1 — KPI-Tiles (Min/Max/Ø) + per-sensor Color-Picker (storage migration string[] → object[])
