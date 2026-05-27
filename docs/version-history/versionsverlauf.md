@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1737 - 2026-05-27
+
+**Title:** 🐛 Hotfix #2 — Charts tab still not appearing: read `item.attributes.chart_sensors` (not top-level `item.chart_sensors`)
+**Hero:** none
+**Tags:** Bugfix, Hotfix, UniversalCharts
+
+### Why
+
+After v1.1.1736 fixed the 4 persistence-chain bugs, user reported: configured 1 chart-sensor, hit Save, but the 5th tab "Charts" STILL didn't appear. Screenshot showed only the 4 default tabs (Controls / Sensors / Diagnostics / Misc).
+
+Root cause: in v1.1.1735 I wrote the gating condition as `item?.chart_sensors`, assuming entity-attributes get flattened onto the item top-level. They do NOT. The canonical read pattern in the codebase (see `DeviceCardGridView.jsx:208` for `quick_stats`) is `device.attributes?.quick_stats`. So `item?.chart_sensors` was always `undefined` → `Array.isArray(undefined) && undefined.length > 0` → false → tab never rendered, regardless of what was in storage.
+
+### What — 2 read sites fixed
+
+**`deviceConfigs.js`** `case 'universal_device'` — the gating condition for the optional 5th tab:
+```js
+// before (v1.1.1735, broken)
+const chartSensorIds = item?.chart_sensors;
+
+// after (v1.1.1737)
+const chartSensorIds = item?.attributes?.chart_sensors || item?.chart_sensors;
+```
+Reads attributes first, falls back to top-level as defensive backstop.
+
+**`PresetButtonsGroup.jsx`** — the dispatch branch that gates on whether to render the chart-stack:
+```js
+// before (v1.1.1735, broken)
+group.id === 'charts' && Array.isArray(item?.chart_sensors) && item.chart_sensors.length > 0
+
+// after (v1.1.1737) — IIFE that reads either path
+group.id === 'charts' && (() => {
+  const sensors = item?.attributes?.chart_sensors || item?.chart_sensors;
+  return Array.isArray(sensors) && sensors.length > 0;
+})()
+```
+Same path-fix applied to the `.map(...)` call that renders the actual `<SensorChartView>` instances.
+
+### Why the v1.1.1736 persistence fix didn't surface this
+
+v1.1.1736 correctly added `chart_sensors` to entity-attributes (via constructor) and correctly forwarded it through the updateDevice → updateAttributes chain. So by v1.1.1736:
+- `entity.attributes.chart_sensors === ['sensor.xxx']` ✅ correct
+- But `getControlConfig` and `PresetButtonsGroup` were reading `item.chart_sensors` instead of `item.attributes.chart_sensors` ❌
+
+So the storage layer was finally correct but the rendering layer was looking in the wrong place. Classic "fixed one end of the pipe but the other end is plugged" hotfix-of-a-hotfix.
+
+### Lesson — the full data flow for Universal-Device features
+
+For any per-device prop on Universal:
+
+1. **Setup wizard** (`UniversalSetup.jsx`) — local state + included in `onComplete` payload ✅ v1.1.1735
+2. **Edit prefill** (`UniversalDeviceView.jsx existing`) — read from `entity.attributes` ✅ v1.1.1736
+3. **Edit save payload** (`UniversalDeviceView.jsx handleEditComplete updates`) — forward to action ✅ v1.1.1736
+4. **`updateDevice` action** (`integration/index.js attrUpdates`) — propagate to live entity ✅ v1.1.1736
+5. **Entity constructor** (`UniversalDeviceEntity.js`) — destructure + put into `attributes` ✅ v1.1.1736
+6. **Runtime read in dispatchers/configs** — use `item.attributes?.foo`, NOT `item.foo` ✅ **v1.1.1737 (this release)**
+
+All 6 steps must be aligned. quick_stats in v1.1.1706 had to fix #5. v1.1.1735 created the feature but missed #2-6. v1.1.1736 fixed #2-5. v1.1.1737 fixes #6. The feature should now work end-to-end.
+
+### Files Changed
+
+- `src/utils/deviceConfigs.js` — `case 'universal_device'` reads `item?.attributes?.chart_sensors`
+- `src/components/controls/PresetButtonsGroup.jsx` — gating condition + map source use attribute-path
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1736 → 1.1.1737
+
 ## Version 1.1.1736 - 2026-05-27
 
 **Title:** 🐛 Hotfix — Universal-Charts persistence chain: `chart_sensors` was set in wizard but lost in 4 places along the save path
