@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1726 - 2026-05-27
+
+**Title:** ⚡ Energy Dashboard refactor Release 2 — `getEnergyData` action removed (~185 LOC of Bambu suffix-map + every-5s polling waste)
+**Hero:** none
+**Tags:** Cleanup, EnergyDashboard, Performance, DeadCode
+
+### Why
+
+Release 1 (v1.1.1725) was pure deletion of unreachable view code. But the entity itself still exposed `getEnergyData` — an action whose body iterated `hass.states` + `hass.devices` against a 36-entry German-Bambu-printer-suffix map (`"druckfortschritt"`, `"duese"`, `"druckraumbeleuchtung"`, `"druckraumkamera"`, ...) and wrote results into `progress` / `nozzle_temp` / `bed_temp` / `current_step` / `remaining_time` / `is_printing` attributes — attributes that v1.1.1725 had already removed from the schema and that no view component ever read again.
+
+The action was still being called every 5 seconds via `executeAction('getEnergyData', ...)` from the entity's `refresh` (poller) and once on mount (`Promise.all` in `onMount`). 100% wasted work — full device-graph traversal + suffix-string-matching with zero consumer.
+
+### What
+
+**`EnergyDashboardDeviceEntity.js`** — net `-185 LOC`:
+
+- **Action removed**: the entire `getEnergyData: async function(params) { … }` block (185 LOC of `entitySuffixMap` + `bambuDevices` discovery loop + per-device entity-state lookup + camera-entity fallback search) — completely deleted. Replaced with a doc block documenting why it's gone.
+- **`refresh` action re-wired** from `executeAction('getEnergyData', params)` → `executeAction('getGridImportValue', params)`. The latter is the only live data poller-consumer (its result feeds StatsBar's `todayCost` calculation via `getEnergyPrice` → `calculateEnergyCost`).
+- **`onMount` `Promise.all` slimmed** from 4 parallel calls to 3: dropped the `getEnergyData` row. Boot now does `_loadAreaFromSensors` + `loadEnergyPreferences` + `getGridImportValue` in parallel — the trio that actually populates attributes consumed by live views.
+
+### Result
+
+- 5-second polling cost: the energy-dashboard device's refresh tick used to walk every `hass.states` entry + every `hass.devices` entry, applying ~36 string-suffix-includes checks against entity_ids — gone. Every printer-shaped HA install (everyone whose history once had a Bambu device) now skips that work.
+- Boot critical path: one fewer parallel HA call in `Promise.all` (3 instead of 4) — small win but real.
+- Bundle: `getEnergyData` body was ~185 lines of inline-comments + string-table + nested for-loops. Out.
+- Behaviour: zero user-visible change. Verified `getEnergyData` had no consumers anywhere in `src/` before deletion (only doc-comment references remain).
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — `getEnergyData` action removed, `refresh` re-wired to `getGridImportValue`, `Promise.all` in `onMount` slimmed to 3 calls
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1725 → 1.1.1726
+
 ## Version 1.1.1725 - 2026-05-26
 
 **Title:** 🗑️ Energy Dashboard refactor Release 1 — Pure deletion (~1,200 LOC of Bambu-template residue)
