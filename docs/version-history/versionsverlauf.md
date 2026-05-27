@@ -1,5 +1,78 @@
 # Versionsverlauf
 
+## Version 1.1.1730 - 2026-05-27
+
+**Title:** ⚡ Energy Dashboard refactor Release 5 — `getGridImportValue` per-tick no-op-update eliminator + attribute-first sensor lookup
+**Hero:** none
+**Tags:** Performance, EnergyDashboard, ReRender
+
+### Why
+
+`getGridImportValue` is the only live polling-action remaining on the Energy Dashboard entity after Release 2 (the 5-second refresh tick). On every tick it called `this.updateAttributes({ grid_import_value, grid_import_unit })` unconditionally. Inside `SystemEntity.updateAttributes()` (see `src/system-entities/base/SystemEntity.js:251-267`) every update fires `window.dispatchEvent(new CustomEvent('system-entity-updated', ...))` — which the `DataProvider` listens to and triggers a re-render cascade for any consumer of this entity (StatsBar, Slideshow, charts).
+
+So even when the grid_import sensor returned the SAME value for 12 consecutive ticks (typical at night, in low-power-idle, or for any sensor reporting integer-kWh that only ticks once per hour), we paid for 12 unnecessary DataProvider re-render cycles per minute.
+
+### What — P3 (the real one)
+
+**Value-changed guard around `updateAttributes`**:
+
+```js
+if (this.attributes.grid_import_value !== value
+    || this.attributes.grid_import_unit !== unit) {
+  this.updateAttributes({
+    grid_import_value: value,
+    grid_import_unit: unit
+  });
+}
+```
+
+No more no-op event dispatches. If the sensor reports `4523` Wh now and `4523` Wh in 5 seconds, zero downstream work happens.
+
+### What — bonus: attribute-first sensor lookup
+
+Same function: previously every tick called `loadSensorConfig()` (which calls `getEnergyDashboardConfig()` → reads cached object → spreads into legacy 3-sensor + v2 shapes) to find `grid_import_sensor`. That info is already on `this.attributes.grid_import_sensor` (mapped at `onMount` from unified storage). Reordered to:
+
+```js
+const sensorId = this.attributes.grid_import_sensor
+  || loadSensorConfig().gridImportSensor;  // fallback only
+```
+
+Sync attribute read vs. cached-Map-read+spread. Microsecond-scale but it's the polling hot-path — micros add up over a session.
+
+### Honest scope: P4, P5, P6 deferred
+
+The original plan had four more "P-items"; here's why they're not in this release:
+
+- **P4 (memo() sub-views)**: `EnergyDashboardSensorsConfigView` etc. take `entity` as a prop. `entity` is the very thing that's reference-stable now (thanks to P3 above) — but reference-stable doesn't mean reference-equal across consumers since DataProvider re-derives `entity` on system-entity-updated events. memo() would only skip work when there was no event at all, which already short-circuits at the DataProvider level. Marginal.
+
+- **P5 (virtualEntity slim spread)**: `EnergyDashboardDeviceView.jsx:408` builds `virtualEntity = { ...entity, attributes: { ...entity.attributes, _display_* } }`. Sub-component (`UniversalControlsTab`) actually consumes nearly every attribute — narrowing the spread would force prop-drilling individual fields instead. Net negative for readability.
+
+- **P6 (lazy() imports)**: Our vite config uses `inlineDynamicImports: true` (HACS single-file build constraint). `React.lazy()` would code-split to multiple chunks → broken HACS install. Not applicable to this build.
+
+### Result
+
+- Energy Dashboard's 5-second refresh poll: from "always fires DataProvider event" to "only fires DataProvider event when grid-import sensor reading changed."
+- Idle/night-time savings: potentially 12× fewer cascading re-renders per minute (one fire per actual value-change vs. one per tick).
+- Active-use savings: still meaningful — many grid-import sensors only update every 30-60 seconds upstream from inverter/smart-meter, so even active periods see 5-10× reduction.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — `getGridImportValue`: value-changed guard around `updateAttributes`, attribute-first sensor lookup
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1729 → 1.1.1730
+
+### Energy Dashboard refactor — total scoreboard (Releases 1-5)
+
+| Release | What | Impact |
+|---|---|---|
+| v1.1.1725 (R1) | Pure deletion of Bambu-template-residue views/tabs | -1,225 LOC, 5 files removed |
+| v1.1.1726 (R2) | `getEnergyData` action removed (185-LOC Bambu suffix-map) | -185 LOC, eliminated every-5s pointless device-graph traversal |
+| v1.1.1727 (R3) | Doughnut chart fix (registered ArcElement+DoughnutController) + statistics-metadata cache | Bugfix + cache hit on 4× redundant WS calls per fetch |
+| v1.1.1728 (R4 part 1) | SensorsConfigView table-driven (`SENSOR_SECTIONS` config + `<SensorRow>`) | -409 LOC (767 → 358) |
+| v1.1.1729 (R4 part 2) | EnergyChartsView factory pattern (`energyChartConfigs.js`) | -294 LOC in component body; new 294-LOC pure-fn module |
+| v1.1.1730 (R5) | `getGridImportValue` no-op-update guard | Eliminates DataProvider re-render cascades on every poll-tick when value unchanged |
+
+**Net Energy Dashboard subtree: ~-2,100 LOC, 2 bugfixes (doughnut + per-tick churn), 1 architectural pattern extracted (chart-config builders).**
+
 ## Version 1.1.1729 - 2026-05-27
 
 **Title:** 🏗️ Energy Dashboard refactor Release 4 (part 2/2) — EnergyChartsView factory pattern (-270 LOC out of the component body, chart-render useEffect: ~300 → ~30 LOC)
