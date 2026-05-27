@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.1733 - 2026-05-27
+
+**Title:** 🔌 Extract `services/sensorStatistics.js` — prep for Universal-Charts (entity 829 → 489 LOC, -340 LOC)
+**Hero:** none
+**Tags:** Refactor, Architecture, EnergyDashboard, UniversalCharts
+
+### Why
+
+Energy Dashboard's chart rendering used two entity actions on `EnergyDashboardDeviceEntity`:
+- `getCurrentPeriodConsumption({ hass, periodType })` — fetches aggregated period total from HA Statistics API
+- `getChartData({ hass, periodType, sensorId? })` — fetches time-series data-points for chart visualization
+
+Together: ~340 LOC of pure-function logic (no this-bindings — they always took `hass` as a parameter, looked up the kWh-sensor from unified storage, and made the WS calls). But they LIVED as entity-actions, which meant Universal-mounted devices (which use `UniversalDeviceEntity` with a totally different action set) couldn't consume them. To build the Universal-Charts feature in v1.1.1734-v1.1.1735, the statistics logic needs to live in a shared service module that anyone can import.
+
+### What
+
+**New file `src/services/sensorStatistics.js`** (324 LOC):
+- `getCurrentPeriodConsumption({ hass, sensorId, periodType, lang })` — pure function. Returns `{ consumption: kWh, unit: 'kWh', periodLabel }`. No entity-context needed.
+- `getChartData({ hass, sensorId, periodType, lang })` — pure function. Returns `{ periodType, periodLabel, chartType, unit, dataPoints[] }`. Same `lastStat - firstStat` cumulative semantics as before.
+- Internal helpers (not exported): `pickResolution`, `pickBaselineWindow`, `fetchBaselineSum`, `formatBucketTime`, `getYearComparisonChart`. All previously inlined repeatedly in the two big action bodies.
+- Wh→kWh normalization preserved as-is. Year-special-case (previous-vs-current bar chart) preserved as `getYearComparisonChart` internal helper.
+- Imports `calculatePeriodDates` + `fetchStatistics` from `energyDashboardCalculations.js` (the existing pure-function helpers).
+
+**`EnergyDashboardDeviceEntity.js`** (829 → 489 LOC, **−340 LOC**):
+- `getCurrentPeriodConsumption` action: ~125 LOC → ~14 LOC thin wrapper. Resolves `kwhSensor` from unified storage, delegates to service.
+- `getChartData` action: ~262 LOC → ~14 LOC thin wrapper. Same delegation pattern (with optional `sensorId` override preserved).
+- Removed dead `trend` + `trendPositive` fields from the consumption return-shape — both were always 0/false (TODO comment "TODO: Implement trend calculation" was in the code, no CSS consumer ever read them).
+- Removed `calculatePeriodDates`/`fetchStatistics` imports — no longer used directly here, the service module owns them now.
+
+**`EnergyChartsView.jsx`** — UNCHANGED. Continues calling `item.actions.getCurrentPeriodConsumption(...)` and `item.actions.getChartData(...)`. The action signature is preserved, so the view doesn't know anything moved.
+
+### Result
+
+- Entity is now ~half its previous size (829 → 489 LOC). Reads like the action-registry it always wanted to be: 5 actions, each ≤30 LOC, each delegating to a service or doing simple attribute work.
+- `services/sensorStatistics.js` is consumable from anywhere. v1.1.1734's `<SensorChartView>` will import it directly (no entity-action indirection).
+- Zero behavior change in this release. Chart rendering, period switching, doughnut/line/bar selection, tooltips — all identical. Pure cut-and-move-and-deduplicate.
+- Bundle: 1457 → 1456 kB / 390.0 → 389.9 gzip. Tiny savings from helper-function deduplication (baseline-window logic was duplicated between the two actions).
+
+### Status note for upcoming v1.1.1734-v1.1.1735
+
+The service is intentionally still energy-domain-shaped:
+- `unit: 'kWh'` hard-coded in returns
+- Cumulative-only math (`lastStat.sum - firstStat.sum`) — assumes `state_class: 'total_increasing'`
+- Wh → kWh normalization (always divides by 1000)
+
+v1.1.1734 will add a `stateClass` parameter and branch: for `'measurement'` sensors (instantaneous power, temperature, humidity), use the statistics `mean` value per bucket and skip unit normalization. This MUST land before Universal users can pick non-cumulative sensors, otherwise they'll see nonsense values.
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — **new file** (324 LOC, pure-function service)
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — extracted 340 LOC, replaced with thin wrappers
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1732 → 1.1.1733
+
 ## Version 1.1.1732 - 2026-05-27
 
 **Title:** 🧹 Energy Dashboard post-audit cleanup — `getHistoricalPeriod` action removed, 3 dead wrappers in DeviceView, legacy migration loop, `findRelatedPowerSensor` (~200 LOC out + 1 perf fix)
