@@ -1,5 +1,98 @@
 # Versionsverlauf
 
+## Version 1.1.1742 - 2026-05-27
+
+**Title:** 🎨 Universal-Charts polish #3 — Value left, KPI pills right, controls inline (no longer floating), gradient fill kills the "black charts"
+**Hero:** none
+**Tags:** UI, Bugfix, UniversalCharts, ChartJS
+
+### Why
+
+User-Feedback nach v1.1.1741:
+1. "Fullscreen-modal on long-press entfernen"
+2. "links header 'Solar production forecast' 'Thu, May 21' entfernen, stattdessen soll da gleich der wert angezeigt werden"
+3. "links und rechts soll MIN/MAX/AVG in pills stehen"
+4. "Range (D/W/M/Y) + Datum in derselben Reihe, aber sollen nicht mehr schweben in chart"
+5. "ausserdem noch immer schwarze charts"
+
+Item 5 ist der wichtigste — die opacity-Bump auf 0.35 in v1.1.1741 hat NICHT gereicht. Auf dem darken backdrop sah 35% Color noch immer fast schwarz aus. Die echte Lösung: ein vertikaler LinearGradient (kräftig oben → fade unten, à la iOS Health) statt einer einheitlichen low-opacity Füllung.
+
+### What — Layout-Restructure
+
+**Row 1**: Value LINKS + KPI Pills RECHTS
+- Label/Date pair entfernt (Sensor-Name steht in den Pill-Tabs oben in UniversalChartsView; Datum in der Period-Scrubber-Reihe darunter)
+- Value 30px white-700, KPIs als rounded pills (`borderRadius: 999px`, `padding: 4px 12px`, `background: rgba(255,255,255,0.06)`) mit Label+Value inline in einer Pille
+- 3 Pills: `MIN 0` (grün) / `MAX 4559` (orange) / `Ø 1517` (cyan)
+
+**Row 2**: D/W/M/Y links + ← Datum → rechts — **nicht mehr schwebend**
+- Vorher (v1.1.1741): `position: absolute` über dem Canvas mit `backdrop-filter: blur(8px)` Glass-Pills
+- Jetzt: normaler Flex-Row im Layout-Flow. Beide Pill-Container in `rgba(255,255,255,0.06)` bg, sitzt zwischen Row 1 und Chart
+- Vorteil: Chart-Canvas nicht mehr von schwebendem Chrome überlagert, das während chart-hover events stören könnte
+
+### What — Gradient Fill (die "schwarzen Charts" Lösung)
+
+`energyChartConfigs.js` `buildLineBarConfig` Day-View backgroundColor ist jetzt eine Chart.js-Scriptable-Function `makeDayLineGradient(rgbTriple)`:
+
+```js
+const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+gradient.addColorStop(0, `rgba(${rgbTriple}, 0.65)`);   // oben: kräftig
+gradient.addColorStop(1, `rgba(${rgbTriple}, 0.02)`);   // unten: fast unsichtbar
+return gradient;
+```
+
+Was geht damit weg:
+- 65% Opacity in der oberen Hälfte → kein "fast unsichtbar" mehr selbst auf darkest backdrops
+- Smooth fade-out nach unten → kein harter Box-Look (wie wenn solid 35% wäre)
+- Visuell so wie iOS Health App charts oder Apple's Numbers area-charts
+
+Fallback wenn `chartArea` noch nicht layoutet ist (initial paint): `rgba(${rgbTriple}, 0.4)`. Chart.js bewertet scriptable-functions bei jedem render; nach dem ersten layout-pass haben wir chartArea und der Gradient fired.
+
+### What — Fullscreen-Modal raus
+
+`UniversalChartsView.jsx`:
+- Long-press `onPointerDown`/`onPointerUp`/`onPointerLeave` Handlers entfernt
+- `setTimeout(500ms)` für long-press detection entfernt
+- Fullscreen `<AnimatePresence>` Modal-Block entfernt (~80 LOC)
+- `showFullscreen`/`longPressTimer` state entfernt
+- `onContextMenu` interception entfernt
+
+Die Charts-Karte ist jetzt rein read-only: Tap auf Pill-Tab = switch, Tap auf D/W/M/Y = period change, Tap auf ← → = date browse. Nichts macht Fullscreen.
+
+### Net Visual Change
+
+**Vorher (v1.1.1741):**
+```
+[Pill-Tabs]
+┌─ Container ────────────────────────────────────┐
+│ Solar       1516.52 W   [Min 0][Max 4559][Avg]│  ← 3-col header
+│ Thu May21                                       │
+│ ╭─ [D] W M Y ─╮     ╭─ ← Thu May 21 → ─╮       │  ← floating glass
+│ │                                          │   │
+│ │  ████ Chart fill black-ish              │   │  ← schwarz
+│ ╰──────────────────────────────────────────╯   │
+└─────────────────────────────────────────────────┘
+```
+
+**Nachher (v1.1.1742):**
+```
+[Pill-Tabs]
+┌─ Container ────────────────────────────────────┐
+│ 1516.52 W           [MIN 0][MAX 4559][Ø 1517]  │  ← Wert + KPI Pills
+│ ┌─ [D] W M Y ─┐    ┌─ ← Thu May 21 → ─┐       │  ← inline Row 2
+│ │                                                │
+│ │  Klar erkennbar farbiger Gradient-Fill         │  ← sichtbar farbig
+│ │  Top: 65% color · Bottom: 2% color             │
+│ └────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────┘
+```
+
+### Files Changed
+
+- `src/components/charts/SensorChartView.jsx` — Row 1 (Value | KPI-Pills) + Row 2 (D/W/M/Y | Scrubber) in normalem Flex-Flow, kein floating chrome mehr, Label/Date entfernt
+- `src/components/charts/UniversalChartsView.jsx` — Fullscreen-Modal + long-press handlers entfernt (~80 LOC)
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — `makeDayLineGradient(rgbTriple)` scriptable Function + Day-View backgroundColor benutzt sie statt der opaque rgba string
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1741 → 1.1.1742
+
 ## Version 1.1.1741 - 2026-05-27
 
 **Title:** 🎨 Universal-Charts polish #2 — compact 1-row header (Label | Value | KPI-Tiles) + floating chart chrome (D/W/M/Y + ← Date →) + chart fill visibility fix
