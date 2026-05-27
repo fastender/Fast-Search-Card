@@ -1,5 +1,86 @@
 # Versionsverlauf
 
+## Version 1.1.1741 - 2026-05-27
+
+**Title:** 🎨 Universal-Charts polish #2 — compact 1-row header (Label | Value | KPI-Tiles) + floating chart chrome (D/W/M/Y + ← Date →) + chart fill visibility fix
+**Hero:** none
+**Tags:** UI, Bugfix, UniversalCharts, Polish
+
+### Why
+
+User-Feedback nach v1.1.1740:
+1. "tabs eine reihe — darunter zweite reihe: Wert soll links stehen, daneben MIN/MAX/AVG recht in derselben reihe"
+2. "Range (D/W/M/Y) + Datum in derselben Reihe schweben in der Chart-Ecke"
+3. "warum sind die charts schwarz??"
+
+Layout-Issue: vorher waren das 4 separate Reihen (Header, KPIs, D/W/M/Y, Period-Scrubber), die jede mehr Höhe gekostet haben. Das push'te den Chart auf <140px tatsächliche Fläche im 420px-Container.
+
+Chart-Schwarz-Issue: das war kein Bug im Color-Forwarding — `borderColor` und `backgroundColor` wurden korrekt aus dem `color`-Prop gesetzt. ABER der `backgroundColor` Fill für Day-View hatte nur `rgba(R,G,B, 0.15)` Opacity. Auf dem dunklen `.printer-sensors-wrapper` backdrop (`rgba(0,0,0,0.25)` über einer dunklen Karten-bg) verschwindet 15% Blau praktisch vollständig — das Auge sieht "fast schwarz" obwohl es technisch korrekt ist. Plus der borderWidth: 2 mit smooth tension: 0.4 macht die Linie zusätzlich subtle.
+
+### What — Layout-Restructure
+
+**Row 1** (3-spaltig, flex with wrap fallback):
+- **Links**: `label` (truncated max 180px) + `periodLabel` darunter, kompakt
+- **Mitte**: animatedTotalValue + unit (32px → 28px), bleibt prominent
+- **Rechts**: 3 Min/Max/Ø KPI-Tiles (von voller Breite-grid auf kompakte flex)
+
+Statt `gridTemplateColumns: 1fr 1fr 1fr` (volle Breite) sind die KPI-Tiles jetzt `display: flex; gap: 6px` mit `minWidth: 64px` pro Tile — passt rechts neben dem Wert.
+
+**Chart-Bereich** mit floating Chrome (`position: absolute; top: 4; left: 4; right: 4`):
+- **D/W/M/Y links** in `rgba(0,0,0,0.45)` mit `backdrop-filter: blur(8px)` — Glass-Pill-Look
+- **← Datum →** rechts in derselben Reihe, gleicher Glass-Pill-Style
+- Beide haben `pointerEvents: auto` damit Buttons funktionieren, Container drumrum `pointerEvents: none` damit Chart-Hover-Events durchgehen
+
+Resultat: ein zusammenhängender 3-Spalten-Header oben + Chart füllt jetzt fast die ganze 420px-Höhe (statt durch 4 Steuer-Reihen weggefressen zu werden).
+
+### What — Chart-Fill Sichtbarkeit
+
+`energyChartConfigs.js`:
+- **Day-View backgroundColor Opacity 0.15 → 0.35** — Die Linie ist jetzt unter einer deutlich sichtbaren Färbung anstatt einem fast-unsichtbaren Hauch
+- **Day-View borderWidth 2 → 3** — Linie selbst ist jetzt 50% breiter, deutlich erkennbar auch wenn der Fill subtle bleibt
+
+Vorher: Solar-Sensor blau gefärbt = `rgba(0,145,255, 0.15)` über `rgba(0,0,0,0.25)` über dunkler Karte → effektiv ~ `rgba(0,18,32,1)` (sehr dunkles Blaugrau, sieht wie Schwarz aus).
+
+Jetzt: `rgba(0,145,255, 0.35)` über demselben Backdrop → klar erkennbar blau-getintet. Plus dickere Linie (3px) macht den Verlauf trotzdem cleaner.
+
+### Files Changed
+
+- `src/components/charts/SensorChartView.jsx` — gesamtes Render zu 3-spaltigem Header umgebaut + floating Chrome über dem Chart, KPI-Tiles kompakter (15px Wert statt 16px, minWidth 64px statt 1fr grid)
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — Day-View Fill-Opacity 0.15 → 0.35, borderWidth 2 → 3
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1740 → 1.1.1741
+
+### Visual diff (vor v1.1.1741 vs nach)
+
+**Vorher** (v1.1.1740):
+```
+[Pill-Tabs: Solar  Grid  Battery]
+┌─ Container ─────────────┐
+│ Solar     |    51.25 %  │  ← Row 1: Label/Date + Value
+│ Sat May16 |             │
+│ ┌───┬───┬───┐           │  ← Row 2: KPI-Tiles (eigene Reihe)
+│ │Min│Max│Avg│           │
+│ │ 0 │100│51 │           │
+│ └───┴───┴───┘           │
+│ [D] W  M  Y             │  ← Row 3: D/W/M/Y
+│ [←] Sat May 16 [→]      │  ← Row 4: Period-Scrubber
+│ ⎯⎯⎯⎯ Chart ⎯⎯⎯⎯       │  ← gequetscht
+└─────────────────────────┘
+```
+
+**Nachher** (v1.1.1741):
+```
+[Pill-Tabs: Solar  Grid  Battery]
+┌─ Container ──────────────────────────────────┐
+│ Solar   51.25 % [Min 0][Max 100][Avg 51.25] │  ← Row 1: alles in einer Reihe
+│ Sat May 16                                    │
+│                                               │
+│ ┌─ [D] W M Y ─┐    ┌─ ← Sat May 16 → ─┐     │  ← floating chrome
+│ │              chart fills full area            │
+│ │              clearly visible colored line     │
+│ └─────────────────────────────────────────────┘
+└───────────────────────────────────────────────┘
+```
+
 ## Version 1.1.1740 - 2026-05-27
 
 **Title:** 🎉 Universal-Charts COMBO part 2 (final) — Pill-Tab-Switcher (A1) + Period-Scrubber (S1) + Fullscreen-Modal (P4)
