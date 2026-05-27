@@ -1,5 +1,71 @@
 # Versionsverlauf
 
+## Version 1.1.1738 - 2026-05-27
+
+**Title:** 🎨 Universal-Charts polish: `.printer-sensors-wrapper` container styling + hassRef pattern stops chart from re-rendering every HA tick
+**Hero:** none
+**Tags:** Bugfix, UniversalCharts, Performance, Polish
+
+### Why
+
+After v1.1.1737 made the Charts tab actually appear, user reported two visual/UX issues:
+
+1. **Container doesn't match other tabs**: Controls / Sensors / Diagnostics / Misc all render inside a dark rounded container (`.printer-sensors-wrapper`, 420px fixed height, 20px border-radius, `rgba(0,0,0,0.25)` background). Charts dispatch rendered directly without this wrapper → visually disconnected from the rest of the device-view.
+
+2. **Chart constantly re-renders**: The chart visibly thrashed every second — destroy+recreate cycle visible to the eye. Root cause: `SensorChartView` had `hass` in its useEffect dep arrays, but `hass` is a fresh-object reference every HA WebSocket tick (~5s default). So fetch effects re-fired every tick → `chartData` got a new array reference → chart-render useEffect saw the change → `destroy() + new Chart()`. Re-render storm.
+
+### What — Fix #1: Container styling matches other tabs
+
+`PresetButtonsGroup.jsx` charts dispatch now wraps SensorChartView instances in `<div className="printer-sensors-wrapper">` with the same inline styles used by `UniversalEntityList.jsx:162-177`:
+
+```css
+background: rgba(0, 0, 0, 0.25);
+borderRadius: 20px;
+border: 1px solid rgba(255, 255, 255, 0.06);
+margin: 0 8px;
+overflow: hidden;
+```
+
+Combined with the existing `.printer-sensors-wrapper` CSS in `iOSSettingsView.css:510-525` (height: 420px, flex-column), the Charts tab now looks visually identical to the other 4 tabs.
+
+Inner `.ios-settings-view` div wraps the chart stack with `display: flex; flexDirection: column; gap: 20px; padding: 12px`. Multiple sensors stack vertically; container scrolls when content exceeds 420px.
+
+`<SensorChartView>` itself dropped `height: 100%` (was breaking the stack — 3 sensors would all want 100% of 420px → squashed) in favor of `minHeight: 360px` per card + own background panel (`rgba(255,255,255,0.04)`, 14px border-radius) so each chart visually separates.
+
+### What — Fix #2: hassRef pattern stops re-render storm
+
+The canonical pattern in this codebase (see `EnergyChartsView.jsx:117-121` and `MEMORY.md` `hassStore decoupling`): capture `hass` into a `useRef`, update the ref via dedicated useEffect, then async fetches read from `hassRef.current`. Effect-dep-arrays then exclude `hass` itself.
+
+Applied to all 3 useEffects in SensorChartView:
+```js
+const hassRef = useRef(hass);
+useEffect(() => { hassRef.current = hass; }, [hass]);
+
+// Fetch effects — depend on stable values only
+useEffect(() => {
+  // ...
+  const currentHass = hassRef.current;
+  if (!currentHass) return;
+  const result = await getCurrentPeriodConsumption({ hass: currentHass, ... });
+  // ...
+}, [sensorId, timeRange, lang, stateClass]);  // ← no `hass` here
+```
+
+Also removed `chartMeta` from the chart-render useEffect deps. `chartMeta` is set together with `chartData` (same fetch resolve), so having both in deps fired the render-effect twice per fetch cycle. Now only `chartData` triggers re-render; `chartMeta` is read fresh from closure each render.
+
+### Result
+
+- Charts tab visually matches Controls / Sensors / Diagnostics / Misc tabs (same wrapper styling, same 420px height, same backdrop)
+- Chart renders ONCE per timeRange change (D / W / M / Y tab click). No more per-second flicker.
+- Effect runs in SensorChartView reduced from ~once-per-second to ~once-per-user-interaction
+- Multiple charts stack cleanly within scrollable container — each on its own subtle background card
+
+### Files Changed
+
+- `src/components/charts/SensorChartView.jsx` — hassRef pattern in 3 useEffects, removed `chartMeta` from chart-render deps, removed `height: 100%` + added per-card minHeight/background
+- `src/components/controls/PresetButtonsGroup.jsx` — charts dispatch wraps SensorChartView stack in `.printer-sensors-wrapper` with canonical container styling
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1737 → 1.1.1738
+
 ## Version 1.1.1737 - 2026-05-27
 
 **Title:** 🐛 Hotfix #2 — Charts tab still not appearing: read `item.attributes.chart_sensors` (not top-level `item.chart_sensors`)
