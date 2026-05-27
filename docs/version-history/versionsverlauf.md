@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1732 - 2026-05-27
+
+**Title:** 🧹 Energy Dashboard post-audit cleanup — `getHistoricalPeriod` action removed, 3 dead wrappers in DeviceView, legacy migration loop, `findRelatedPowerSensor` (~200 LOC out + 1 perf fix)
+**Hero:** none
+**Tags:** Cleanup, EnergyDashboard, Performance, DeadCode
+
+### Why
+
+A 3-agent post-release audit (after v1.1.1725-v1.1.1730) found ~450 LOC of dead code that survived the 6-release refactor + one HIGH-priority perf finding. This release ships the safe pure-deletion subset + the perf fix; the architectural items (StatsBar's parallel sensor-resolution-machinery, legacy `extractEnergySensors` flow_from-schema) are deferred to a dedicated session.
+
+### What — Dead code removed
+
+**`EnergyDashboardDeviceEntity.js`** (923 → 829 LOC, **−94 LOC**):
+- `getHistoricalPeriod` action removed entirely (~61 LOC). Zero callers since v1.1.1725 deleted EnergyOverviewTab (the only consumer).
+- `_originalConfig` field + `getConfig()` accessor removed (~7 LOC). Zero external callers.
+- `onUnmount()` override removed (~5 LOC). Was just `await super.onUnmount()` — pure no-op.
+- `_loadAreaFromSensors()` hot-path logger.debug noise reduced 14 calls → 1 summary log (~25 LOC of boolean-existence logging that added zero debug value).
+
+**`EnergyDashboardDeviceView.jsx`** (502 → 477 LOC, **−25 LOC**):
+- `getValueLabel` thin wrapper deleted — zero callers in this file (real consumers in SensorSelectionView import `getValueLabelUtil` directly).
+- `getSensorForType` 14-slot Object-map helper deleted — zero callers anywhere.
+- `getSensorDisplay` thin wrapper deleted — zero callers in this file.
+- Removed `getValueLabel`/`getSensorDisplay` from imports (kept `sensorTypeConfig` — still used by `handleSensorSelect`).
+- Redundant localStorage legacy-migration `useEffect` removed (~12 LOC). Was running on mount, looping all 14 sensorTypeConfig entries, reading `energy_${entity.id}_${attr}` keys and firing N separate `updateAttributes` calls (= N separate `system-entity-updated` events). Redundant — `migrateEnergyDashboardLegacy` in `deviceConfigStorage.js` already handles legacy keys at bootstrap once, for all devices.
+
+**`services/energyDashboardService.js`** (~595 → 514 LOC, **−81 LOC**):
+- `findRelatedPowerSensor` function removed (~80 LOC). Audit confirmed the function had a single caller: ITSELF (recursive call at line 127). No external invocation anywhere in the codebase. Pure dead code from the pre-unified-storage era.
+
+### What — Perf #1: Effect dep over-firing
+
+**`EnergyDashboardDeviceView.jsx:286-309`** — the real-time `getGridImportValue` effect had `[hass?.states, entity.attributes?.grid_import_sensor]` as its dep array. `hass.states` is a fresh object on every HA WebSocket tick (any HA-state-change anywhere mutates the reference), so the effect body fired ~once per second (typical HA tick rate) regardless of whether OUR grid-import sensor changed.
+
+v1.1.1730's value-changed guard inside `getGridImportValue` correctly contained the cascade (no `updateAttributes` event when value unchanged), but the JS-side effect body itself (prop lookup + `executeAction` call) still ran every tick.
+
+**Fix**: narrowed the dep to the specific sensor's `.state` string:
+```js
+const gridImportSensor = entity.attributes?.grid_import_sensor;
+const gridImportSensorState = gridImportSensor ? hass?.states?.[gridImportSensor]?.state : undefined;
+useEffect(() => { ... }, [gridImportSensorState, gridImportSensor]);
+```
+
+Now the effect fires only when grid-import sensor's state string actually changes. Eliminates ~5 effect-runs per second on the Energy Dashboard view.
+
+### Deferred (audit findings NOT in this release)
+
+- **`extractEnergySensors` legacy schema parser** (`energyDashboardService.js`) — still parses HA's `flow_from[]`/`flow_to[]` nested schema. HA Core ≥2026.02 uses flat schema (correctly handled in `EnergyDashboardSensorUtils.js:mapEnergyPrefsToSlots`). Real bug for new HA installs, but a fix needs careful StatsBar API alignment — punted to dedicated session.
+- **StatsBar parallel sensor-resolution machinery** — has its own regex-based detection writing to its own `localStorage 'systemSettings'` key, ignoring the unified `energy_dashboard` storage. ~378 LOC could collapse to ~50 if StatsBar reads `getEnergyDashboardConfig().sensors`. Architectural change — dedicated session.
+- **`getValueLabel` self_sufficiency / self_consumption labels** (`EnergyDashboardSensorUtils.js:194-195`) — declared but those slots don't exist in `ENERGY_SENSOR_SLOTS`. Truly dead but cheap-to-keep documentation of intent for future expansion.
+- **`unitPattern` field on tariff sensorTypeConfig entries** — declared, never read. Documentation drift. Cheap to keep.
+
+### Result
+
+- Net `-200 LOC` across the 3 files.
+- 1 real perf fix: per-tick effect waste eliminated on the Energy Dashboard view.
+- 1 known bug *exposed* but not fixed (legacy-schema `extractEnergySensors`) — see deferred list. Documented for the next session.
+- Build stays at ~1457 kB / 390 kB gzip (same as before — these were truly dead, no runtime impact).
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/EnergyDashboardDeviceEntity.js` — `getHistoricalPeriod`, `_originalConfig`, `getConfig`, `onUnmount`, `_loadAreaFromSensors` log-noise
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx` — 3 dead wrappers, legacy migration loop, Perf #1 dep fix
+- `src/services/energyDashboardService.js` — `findRelatedPowerSensor` (~80 LOC dead recursion)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1731 → 1.1.1732
+
 ## Version 1.1.1731 - 2026-05-27
 
 **Title:** 🐛 Hotfix — R4 (v1.1.1728) regressions: `setSensorSelectionSource is not a function` + `ReferenceError: t is not defined`
