@@ -1,5 +1,75 @@
 # Versionsverlauf
 
+## Version 1.1.1744 - 2026-05-28
+
+**Title:** 🎨 Chart-Color hardening — `safeRgbTriple()` validator + global Chart.js default override (kills "schwarzer Chart" for good)
+**Hero:** none
+**Tags:** Bugfix, UniversalCharts, ChartJS
+
+### Why
+
+User-Report: "warum ist der chart schwarz, farbig machen" (auch nach v1.1.1743). Bisherige Opacity-Bumps (0.15 → 0.35 → 0.5 → 0.5) haben das Problem nicht gelöst, weil das gar nicht die Wurzel war.
+
+### Root cause analysis
+
+Chart.js v4 fällt bei missing/invalid `dataset.backgroundColor` NICHT auf `defaults.color` zurück (das ist nur für Fonts), sondern auf `Chart.defaults.backgroundColor` = `'rgba(0, 0, 0, 0.1)'` — **schwarz mit 10% Opacity**. Auf einem dunklen `.printer-sensors-wrapper` backdrop akkumuliert das visuell zu "schwarzer Fill", egal welche Opacity wir an sich settable hätten.
+
+Wenn unsere `rgbTriple` Color-Property an irgendeiner Stelle in der Chain als ungültiger String ankommt (z.B. `"undefined"` durch falschen Template-Interpolation, oder als hex `"#0091FF"` ohne RGB-Wrapper, oder als bereits-gewrapped `"rgb(0,145,255)"` mit Recursion-Risk), dann produziert ``\`rgb(${invalidTriple})\``` einen ungültigen CSS-String. Chart.js wirft das weg, fällt auf den globalen Default zurück → schwarzer Chart.
+
+### What — defensive 3-layer fix
+
+**Layer 1: `safeRgbTriple()` validator** in `src/utils/chartSensorEntry.js`:
+```js
+export function safeRgbTriple(input) {
+  if (typeof input !== 'string') return DEFAULT_CHART_COLOR;
+  const trimmed = input.trim();
+  if (!trimmed) return DEFAULT_CHART_COLOR;
+  const parts = trimmed.split(',').map(s => s.trim());
+  if (parts.length !== 3) return DEFAULT_CHART_COLOR;
+  for (const p of parts) {
+    if (p === '' || isNaN(Number(p))) return DEFAULT_CHART_COLOR;
+    const n = Number(p);
+    if (n < 0 || n > 255) return DEFAULT_CHART_COLOR;
+  }
+  return trimmed;
+}
+```
+
+Akzeptiert nur strikt `"R, G, B"` mit 3 numerischen Komponenten in 0-255. Alles andere → `DEFAULT_CHART_COLOR` (`'0, 145, 255'`). 
+
+**Layer 2: `buildLineBarConfig` benutzt den Validator** (energyChartConfigs.js):
+```js
+const safeColor = safeRgbTriple(rgbTriple);
+const colorSolid = `rgb(${safeColor})`;
+// alle background/border/point-color-Props benutzen safeColor
+```
+Egal was vorne reinkommt, hinten kommt eine garantiert gültige RGB-Color.
+
+Plus explizit alle Point-Color-Properties auf `colorSolid` gesetzt (`pointBackgroundColor`, `pointBorderColor`, `pointHoverBorderColor`) — falls Chart.js irgendwo defaults benutzen würde, hier nicht mehr.
+
+**Layer 3: `ChartJS.defaults.backgroundColor` global überschrieben** (chartConfig.js):
+```js
+ChartJS.defaults.backgroundColor = 'rgba(0, 145, 255, 0.4)';
+```
+
+Selbst wenn ALLE oben drüber Logik scheitert und Chart.js auf Globale-Defaults zurückfällt → bekommt es Blau statt Schwarz. Worst-case Outcome ist jetzt "Chart ist blau" nicht "Chart ist schwarz".
+
+### What — Visibility-Bumps
+
+- Day-View `backgroundColor` opacity: 0.5 → **0.6** (klarer sichtbarer Fill)
+- Day-View `borderWidth`: 3 → **4** (deutlich dickere Linie)
+
+### Result
+
+Mit allen 3 Layern: Chart MUSS jetzt farbig sein. Selbst wenn ein Edge-Case in der Storage-Chain `null`/`undefined`/garbage liefert, kommt mindestens Energie-Blau raus.
+
+### Files Changed
+
+- `src/utils/chartSensorEntry.js` — neue `safeRgbTriple()` Validator-Function
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js` — Import + Anwendung von safeRgbTriple, alle Point-Properties auf colorSolid, opacity 0.5→0.6, borderWidth 3→4
+- `src/utils/chartConfig.js` — globaler `ChartJS.defaults.backgroundColor` auf Blau-0.4 statt Black-0.1
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1743 → 1.1.1744
+
 ## Version 1.1.1743 - 2026-05-28
 
 **Title:** 🛠️ Universal-Charts hotfix — chart canvas wieder sichtbar (gradient revert) + KPI-Pills zweizeilig (label klein oben, value drunter)
