@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1727 - 2026-05-27
+
+**Title:** 🍩 Energy Dashboard refactor Release 3 — Doughnut chart fix (registered ArcElement + DoughnutController) + statistics-metadata cache
+**Hero:** none
+**Tags:** Bugfix, EnergyDashboard, ChartJS, Performance
+
+### Why — Doughnut runtime crash
+
+`EnergyChartsView` creates a `type: 'doughnut'` chart for the Net Usage view (the dual-ring Erzeugung/Verbrauch widget at line 467). But `chartConfig.js` only registered `LineController` + `BarController` + `LineElement` + `BarElement` + `PointElement`. Doughnut requires `DoughnutController` + `ArcElement` — neither was registered. Effect: opening the Net Usage view threw `Error: "doughnut" is not a registered controller` at runtime and the doughnut never rendered.
+
+Hidden by the fact that the Net Usage view is one of three viewType branches inside the Energy Dashboard. Anyone who only inspected the Consumption/Solar tabs would never have hit it.
+
+### Why — P2 statistics-metadata cache
+
+`EnergyChartsView.getPeriodEnergy()` internally called `recorder/get_statistics_metadata` on every invocation to look up the sensor's unit-of-measurement. `getPeriodEnergy()` is invoked 5× in parallel via `Promise.all` for each fetch-cycle (kwh, pvTotal, gridExport, batteryDischarged, batteryCharged). So every timeRange/view change kicked 5 metadata WS calls. The unit of a sensor never changes at runtime — once you know `sensor.battery_in` reports `kWh`, that's it for the session.
+
+### What
+
+**`src/utils/chartConfig.js`** — registered the two missing chart.js modules:
+- `DoughnutController` added to controllers
+- `ArcElement` added to elements
+
+Bundle cost: ~3 KB gzip. Worth it — the alternative is a runtime crash.
+
+**`src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx`** — added module-level cache `__statsMetadataCache: Map<sensor_id, unit>` + helper `getStatisticsMetadataUnit(hass, sensorId, fallbackUnit)` that returns cached unit synchronously on second+ call. Wired into `getPeriodEnergy()` replacing the inline `callWS({ type: 'recorder/get_statistics_metadata' })` block.
+
+Effect: first time a sensor's metadata is needed (typically during the first Net Usage fetch) → 1 WS call. Every subsequent timeRange/view change → 5 cache-hits (sync) instead of 5 redundant WS calls.
+
+### Skipped — P1 chart.update() vs destroy+recreate
+
+Original plan was to also optimize `chartRef.current.destroy()` + `new Chart()` to `chartRef.current.update('none')` when only dataset values change. After tracing the dependency chain found that `liveValues` (the doughnut's data source) only updates when `timeRange`, `isSolarView`, or `isNetUsageView` changes — NOT on every HA tick. So the destroy+recreate only happens on user view-changes, which is rare. Marginal win not worth the complexity of in-place update logic that handles dataset-shape changes correctly. Deferred.
+
+### Files Changed
+
+- `src/utils/chartConfig.js` — `DoughnutController` + `ArcElement` registered
+- `src/system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx` — `__statsMetadataCache` + `getStatisticsMetadataUnit()` helper, `getPeriodEnergy` wired to use it
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1726 → 1.1.1727
+
 ## Version 1.1.1726 - 2026-05-27
 
 **Title:** ⚡ Energy Dashboard refactor Release 2 — `getEnergyData` action removed (~185 LOC of Bambu suffix-map + every-5s polling waste)
