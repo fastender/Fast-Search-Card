@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.1728 - 2026-05-27
+
+**Title:** 🏗️ Energy Dashboard refactor Release 4 (part 1/2) — SensorsConfigView table-driven (767 → 358 LOC, -409 LOC)
+**Hero:** none
+**Tags:** Refactor, EnergyDashboard, Architecture, DRY
+
+### Why
+
+`EnergyDashboardSensorsConfigView.jsx` was the biggest LOC offender in the Energy Dashboard subtree at 767 LOC, with the structure of "5 sections × 14 sensor-slot-rows × ~30 LOC each of identical inline `motion.div` boilerplate". Adding a new sensor required pasting another 30-LOC block; renaming a label required hunting through all the copies. Pure copy-paste architecture.
+
+### What
+
+Refactored into:
+
+1. **`SENSOR_SECTIONS` config table** — declarative array describing each section (`headerDe`, `headerEn`, `sensors[]`) and each sensor row (`slot`, `labelDe`, `labelEn`, `hasInfo`). The 14 sensor configs total ~80 LOC of structured data.
+
+2. **`<SensorRow>` component** — a single ~50-LOC generic row that consumes a config entry. Takes the slot, looks up the entity attribute, renders the label + optional `<InfoButton>` + subtitle via the existing `renderSensorSubtitle` helper + chevron.
+
+3. **Render loop** — the main component body shrunk from ~550 LOC of nested inline-blocks to a 25-LOC `SENSOR_SECTIONS.map(section => ... section.sensors.map(...))` double-nested map.
+
+Layout, click handlers (`setSensorSelectionType` + `setSensorSelectionSource` + `setShowSensorSelection`), info-button behaviour, divider placement, subtitle rendering, and Auto/Manuell pill logic are all 1:1 preserved. Behavior change: zero.
+
+### Result
+
+- `EnergyDashboardSensorsConfigView.jsx`: **767 → 358 LOC** (`-409 LOC`, -53%)
+- Adding a new sensor row: 1 line in `SENSOR_SECTIONS` (down from ~30 lines of pasted JSX)
+- Renaming a label: 1 location (down from "wherever the slot was duplicated")
+- The remaining 358 LOC are 80 LOC of config + 50 LOC of `SensorRow` + 100 LOC of `renderSensorSubtitle` (untouched) + the `AutoFillSummary` + `InfoButton` helpers + the top-level wrapper. Honest structure, no waste.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx` — rewrote with `SENSOR_SECTIONS` config + `<SensorRow>` component
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1727 → 1.1.1728
+
+### Coming next (Release 4 part 2/2 → v1.1.1729)
+
+R2 (EnergyChartsView factory pattern), R3 (useEnergyViewState reducer), R4 (storage-layer cleanup), R5 (iOSChrome icon components).
+
 ## Version 1.1.1727 - 2026-05-27
 
 **Title:** 🍩 Energy Dashboard refactor Release 3 — Doughnut chart fix (registered ArcElement + DoughnutController) + statistics-metadata cache
