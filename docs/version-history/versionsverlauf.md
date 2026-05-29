@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.1750 - 2026-05-28
+
+**Title:** 🛠️ Charts — current-state fallback wenn keine History-Points + Empty-state message korrigiert
+**Tags:** Bugfix, UI, UniversalCharts
+
+### Why
+
+User-Screenshot zeigt einen vacuum maintenance Sensor ("Verbleibende Zeit der Seitenbürste", unit `s`) im History-Mode — Chart leer, Headline 0.00 s, alte Message "No statistics for this sensor. Make sure `state_class` is set."
+
+Zwei Probleme:
+1. **Empty-state message stale**: war noch aus pre-v1.1.1749 — verwies auf `state_class` requirement, das es nicht mehr gibt
+2. **Chart komplett leer bei stabilen Sensoren**: HA's history-API returnt 0 Points wenn der Sensor sich im gewählten Zeitraum nicht verändert hat (Vacuum-Brush-Timer ändert sich nur während eines Cleaning-Runs). Wir haben dann nichts zum Plotten, obwohl der aktuelle State perfekt verfügbar wäre.
+
+### What — current-state Fallback
+
+In `services/sensorStatistics.js` both `getChartData` und `getCurrentPeriodConsumption` history-mode paths:
+
+```js
+if (rawPoints.length === 0) {
+  // Fallback: aktueller State des Sensors
+  const currentStateStr = hass?.states?.[sensorId]?.state;
+  const currentVal = parseFloat(currentStateStr);
+  const now = new Date();
+  if (!isNaN(currentVal)
+      && currentStateStr !== 'unavailable' && currentStateStr !== 'unknown'
+      && now >= startTime && now <= endTime) {
+    // synthesizer einen einzelnen Point mit der current value
+    rawPoints.push({ timestamp: now, value: currentVal });
+  } else {
+    return { ..., dataPoints: [] }; // wirklich nix da
+  }
+}
+```
+
+Bedingungen für den Fallback:
+- Sensor hat einen aktuellen state in `hass.states`
+- State ist parseable als float
+- State ist nicht `unavailable`/`unknown`
+- Der aktuell-now-Zeitpunkt liegt INNERHALB des angefragten Zeitraums (also nicht in der Vergangenheit gepickte Periode)
+
+Effekt: für unverändert-stabile Sensoren wird der current-state in den Bucket eingefügt der die now-time enthält. Bei day-view → 1 hourly bucket mit dem Wert, alle anderen 23 buckets bei 0. Bei week-view → 1 daily bucket mit dem Wert, andere 6 bei 0. Plus Headline-Value zeigt jetzt den richtigen current value.
+
+### What — Empty-state message
+
+`SensorChartView.jsx`:
+```
+Vorher: "Keine Statistik-Daten für diesen Sensor. Stelle sicher, dass `state_class` gesetzt ist."
+Nachher: "Keine Verlaufsdaten für diesen Zeitraum. Der Sensor wurde in dieser Periode nicht aktualisiert, oder die HA-Aufbewahrungszeit ist überschritten."
+```
+
+Reflektiert v1.1.1749 history-fallback: kein state_class requirement mehr, korrektere Erklärung welche zwei Szenarien zur leeren Datenmenge führen.
+
+### Result
+
+- Vacuum maintenance sensors, Wassertank-Restzeit, andere "lange stabil"-Sensoren zeigen jetzt ihren aktuellen Wert im chart statt leerem 0.00
+- Wenn User in die Vergangenheit-Period switched (z.B. Last Week) wo der current-state nicht relevant ist → fairer empty-state mit korrekter Erklärung
+- Messages no longer misleading
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — current-state Fallback in beiden history-mode paths
+- `src/components/charts/SensorChartView.jsx` — empty-state message korrigiert
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1749 → 1.1.1750
+
 ## Version 1.1.1749 - 2026-05-28
 
 **Title:** 📈 Charts — JEDER numerische Sensor jetzt eligible (state-history-Fallback für non-state-class) + 3-Modes-Badge
