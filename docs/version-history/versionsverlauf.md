@@ -1,5 +1,95 @@
 # Versionsverlauf
 
+## Version 1.1.1752 - 2026-05-28
+
+**Title:** 🔬 Charts history — 3-agent audit findings: significant_changes_only=false (HA-API quirk), last-value statt mean, carry-forward in buckets, dead Stage-2 entfernt
+**Tags:** Bugfix, UniversalCharts, Architecture
+
+### Why
+
+3 parallele Investigation-Agents (history-API audit, data-flow audit, HA-source-recherche) konvergierten auf 4 echte Bugs nach User-Report "native HA hat Daten, FSC zeigt nix":
+
+### Root Cause 1 (Hauptproblem): `significant_changes_only` defaultet zu TRUE
+
+Aus HA-source `homeassistant/components/history/websocket_api.py`:
+```python
+vol.Optional("significant_changes_only", default=True): bool,
+```
+
+Bei numeric sensors mit smooth changes (m² area, Temperatur, Autarkiegrad) filtert das die meisten/alle Datenpunkte raus → leere `{}` response.
+
+**Native HA-Frontend hat dieses Problem nicht** weil es `history/stream` benutzt (initial dump + live deltas; deltas sind nicht significance-gefiltert). Wir machten einen one-shot WS call → bekamen `{}`.
+
+### Root Cause 2: `history/period` existiert NICHT als WS-Command
+
+Modern HA hat nur 2 history-Commands: `history/history_during_period` und `history/stream`. Der Stage-2-Fallback auf `history/period` in v1.1.1751 war Tot-Code der silent failed mit `unknown_command` error.
+
+### Root Cause 3: Mean ist semantisch falsch für History-Mode
+
+Für stable/sparse-reporting sensors (Vacuum-Reinigungsfläche, kWh-Total) sieht die History so aus: `[0, 0, 0, ..., 0, 0, 44.8]`. Mean von vielen Zeros + ein paar non-zero = ~0.04 → `.toFixed(2)` = `"0.00"`. Headline zeigt "0.00" obwohl Sensor 44.8 hat.
+
+Native HA zeigt den AKTUELLEN Wert (= letzter Point). Wir machen jetzt das Gleiche.
+
+### Root Cause 4: Empty buckets mit `value: 0` maskieren das Signal
+
+Für sparse sensors waren 28 von 30 Tages-Buckets bei 0 → Chart visuell fast komplett 0-Linie mit 1-2 unmerklichen Spikes. Sieht aus wie "kein Daten".
+
+### Fixes (alle 4 in einem)
+
+**`fetchHistoryData`** in `sensorStatistics.js`:
+- Stage-2-Fallback komplett entfernt (war Tot-Code)
+- Stage 1 jetzt mit korrekten Flags:
+  ```js
+  significant_changes_only: false,  // KRITISCH — default TRUE filtert smooth-sensors raus
+  minimal_response: true,
+  no_attributes: true,
+  ```
+
+**`getCurrentPeriodConsumption`** history-branch headline:
+```js
+// Vorher: mean dominated by zeros = "0.00"
+const avg = points.reduce((sum, p) => sum + p.value, 0) / points.length;
+// Jetzt: last-point = current reading (matches HA native behavior)
+const lastPoint = points[points.length - 1];
+return { consumption: parseFloat(lastPoint.value.toFixed(2)), ... };
+```
+
+**`bucketHistoryPoints`**: empty buckets nutzen jetzt **carry-forward** vom letzten bekannten Wert statt `0`:
+```js
+let lastKnownValue = null;
+const computeBucketValue = (inBucket) => {
+  if (inBucket.length > 0) {
+    const mean = inBucket.reduce((sum, p) => sum + p.value, 0) / inBucket.length;
+    lastKnownValue = mean;
+    return mean;
+  }
+  return lastKnownValue != null ? lastKnownValue : 0;
+};
+```
+
+→ Chart-Linie bleibt zwischen Datenpunkten konstant auf dem letzten Wert statt auf 0 abzustürzen.
+
+### Erwartetes Verhalten v1.1.1752
+
+Für `sensor.obergeschoss_reinigungsbereich` (m², stable bei 44.8):
+- **Headline**: 44.80 m² (letzter History-Point, nicht mean)
+- **Chart Monthly**: line auf 44.8 ab dem ersten History-Eintrag (~21. Mai), davor 0 (kein lastKnown)
+- Sollte visuell **1:1 matchen** zum native HA History-Panel
+
+### Files Changed
+
+- `src/services/sensorStatistics.js`:
+  - `fetchHistoryData`: Stage 2 raus, Stage 1 mit korrekten Flags
+  - `getCurrentPeriodConsumption`: history-mean → last-point
+  - `bucketHistoryPoints`: empty-bucket = carry-forward, not 0
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1751 → 1.1.1752
+
+### Quellen
+
+- HA WS API spec: `homeassistant/components/history/websocket_api.py` (default `significant_changes_only=True`)
+- HA frontend reference: `src/data/history.ts` (`fetchDateWS`)
+- ADR-0014 compressed state format: github.com/home-assistant/architecture/blob/master/adr/0014-compressed-state-format.md
+
 ## Version 1.1.1751 - 2026-05-28
 
 **Title:** 🔧 Charts — fetchHistoryData mit 2-stage API-Fallback + Fix für ms-lag-Race bei current-state-Fallback
