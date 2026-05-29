@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.1745 - 2026-05-28
+
+**Title:** 📅 Universal-Charts — Zeilen-Swap (Controls oben, Value+KPIs drunter) + klickbares Date-Label öffnet native Date-Picker
+**Hero:** none
+**Tags:** UI, UniversalCharts, DatePicker
+
+### Why
+
+User-Wünsche:
+1. "Zeile 1 und Zeile 2 vertauschen — also Z1: D W M Y und Tue,May 26, Z2: 56,87% und Min, Max, AVG"
+2. "Tue,May 26 mit popup für genaue tagauswahl, wenn ich klicke"
+
+### What — Zeilen-Swap
+
+```
+Vorher (v1.1.1744):           Nachher (v1.1.1745):
+─────────────────────         ─────────────────────
+56.87 %  [Min][Max][Avg]      [D W M Y]    ← Tue May 26 →
+[D W M Y]    ← Tue May 26 →   56.87 %  [Min][Max][Avg]
+─── Chart ───────             ─── Chart ───────
+```
+
+Die Controls (D/W/M/Y + Period-Scrubber) wandern nach OBEN, der prominent Wert + KPI-Pills nach UNTEN. So sieht man auch direkt unter dem Wert was er bedeutet (Min/Max/Avg).
+
+### What — Native Date-Picker auf Klick
+
+`Tue, May 26` ist jetzt ein `<button>` — Klick öffnet einen versteckten `<input type="date">` via `showPicker()` (Chrome 99+/Safari 16+, fallback auf `click()`). User wählt ein Datum → `periodIndex` wird umgerechnet basierend auf aktuellem timeRange:
+
+- **Day-Modus**: `periodIndex = days-diff zwischen picked und today`
+- **Week-Modus**: `periodIndex = round((days-diff) / 7)`
+- **Month-Modus**: `periodIndex = (year-diff × 12) + month-diff`
+- **Year-Modus**: `periodIndex = year-diff`
+
+Plus `max={today}` auf dem input — User kann keine Zukunfts-Daten picken. Plus `Math.min(0, newIndex)` clamp als Sicherheits-Netz.
+
+Der versteckte input ist `position: absolute, opacity: 0, width: 1, height: 1, pointer-events: none` — visuell nicht da, aber der native Picker öffnet beim showPicker()-call genau unter der Position. `tabIndex={-1}` verhindert dass er per Tab fokussierbar ist.
+
+### Datums-Picker Bedienung
+
+- Klick auf "Tue, May 26" → Browser-eigener Kalender-Popup
+- Datum auswählen → Chart springt sofort dorthin (auch über mehrere Wochen/Monate hinweg)
+- Pfeiltasten ← → arbeiten weiter wie gewohnt für 1-Schritt-Navigation
+- Hover über Label zeigt "Klick zum Datum wählen" als Tooltip
+
+### Files Changed
+
+- `src/components/charts/SensorChartView.jsx`:
+  - `dateInputRef` + `pickedDateIso` (controlled date-string aus periodIndex)
+  - `openDatePicker()` + `handleDateChange()` helpers
+  - Row-Swap: Controls jetzt Row 1, Value+KPIs jetzt Row 2
+  - Date-Label als `<button>` mit onClick handler
+  - Versteckter `<input type="date">` mit `max={todayIso}`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1744 → 1.1.1745
+
 ## Version 1.1.1744 - 2026-05-28
 
 **Title:** 🎨 Chart-Color hardening — `safeRgbTriple()` validator + global Chart.js default override (kills "schwarzer Chart" for good)
