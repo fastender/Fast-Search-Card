@@ -1,5 +1,112 @@
 # Versionsverlauf
 
+## Version 1.1.1754 - 2026-05-28
+
+**Title:** 🎯 Charts history — ROOT CAUSE FIX: REST API statt WebSocket (Recherche via cataseven/Statistics-Graph-Chart-Card)
+**Tags:** Bugfix, RootCause, UniversalCharts, Architecture
+
+### Why
+
+User-Hint: "schau mal ein anderer user hat das problem so gelöst: https://github.com/cataseven/Statistics-Graph-Chart-Card"
+
+Reverse-Engineering der working card hat den echten Root Cause aufgedeckt:
+
+**cataseven's card nutzt für non-state_class sensors die REST API `/api/history/period/...` via `hass.callApi("GET", url)`. NICHT die WebSocket `history/history_during_period`.**
+
+Mein gesamter Ansatz seit v1.1.1749 war von Anfang an der falsche Pfad. Egal welche WS-Flags ich gesetzt habe (`significant_changes_only: false`, `minimal_response: true`, `no_attributes: true`, Stage-2-Fallback) — die WS-API gibt für viele Sensoren auf vielen HA-Versionen einfach leere Resultate zurück. Die REST API ist robust + universal.
+
+### Was cataseven macht (aus dem deobfuscated bundle)
+
+```js
+// statistics-graph-chart-card.js fetchHistory()
+const url = "history/period/" + startDate.toISOString()
+          + "?end_time=" + encodeURIComponent(endDate.toISOString())
+          + "&filter_entity_id=" + encodeURIComponent(ids.join(","))
+          + "&minimal_response&no_attributes";
+const arr = await hass.callApi("GET", url);  // REST, nicht WS!
+
+// Response: [ [state, state, ...] ] — array of arrays
+// Pro state: { entity_id, state, attributes, last_changed, last_updated }
+```
+
+Plus: gating ist explizit history-default, statistics nur opt-in:
+- Default-Pfad: REST history für ALLE sensors
+- Statistics-Pfad: nur wenn `statistic_id` explizit konfiguriert ODER langer Zeitraum + `_hasLTS()` confirms
+
+### What — Fix in `fetchHistoryData`
+
+```js
+// Vorher (v1.1.1753, broken):
+await hass.connection.sendMessagePromise({
+  type: 'history/history_during_period',
+  start_time, end_time, entity_ids: [sensorId],
+  include_start_time_state: true,
+  significant_changes_only: false,
+  minimal_response: true,
+  no_attributes: true,
+});
+// → response shape: {[entity_id]: [{s, lu, ...}, ...]}
+// → für viele Sensoren: leer {}
+
+// Nachher (v1.1.1754):
+const url = 'history/period/' + startTime.toISOString()
+  + '?end_time=' + encodeURIComponent(endTime.toISOString())
+  + '&filter_entity_id=' + encodeURIComponent(sensorId)
+  + '&minimal_response&no_attributes';
+const arr = await hass.callApi('GET', url);
+// → response shape: [ [state, state, ...] ]
+// → robust, funktioniert für alle Sensoren wie cataseven's bewiesener Pfad
+```
+
+Response-Parser umgeschrieben für full REST shape (`state`, `last_changed`, `last_updated` statt compact `s`/`lu`):
+
+```js
+const series = (Array.isArray(arr) && arr[0]) || [];
+for (const p of series) {
+  const stateStr = p?.state;
+  if (stateStr == null || stateStr === 'unavailable' || stateStr === 'unknown') continue;
+  const value = parseFloat(stateStr);
+  if (isNaN(value)) continue;
+  const tsStr = p?.last_changed || p?.last_updated;
+  if (!tsStr) continue;
+  const timestamp = new Date(tsStr);
+  if (isNaN(timestamp.getTime())) continue;
+  points.push({ timestamp, value });
+}
+```
+
+### Debug-Logging bleibt für Verifikation
+
+`console.log('[FSC charts] fetchHistoryData (REST) ...')` printet weiter request URL, raw response, parse-Erfolg. Empty-state in der UI zeigt `debug: rest:got=N,parsed=M,sensor-exists=true,current=44.8`.
+
+So kannst du verifizieren ob die Daten jetzt durchkommen.
+
+### Erwartetes Verhalten
+
+Für `sensor.obergeschoss_reinigungsbereich` (m², stable bei 44.8):
+- **Console log**: `series length for sensor.obergeschoss_reinigungsbereich: N` mit N > 0
+- **Headline**: 44.80 m² (last point) ODER current-state fallback
+- **Chart**: Line mit den echten History-Werten aus dem ganzen May
+- **Empty-state**: nur wenn HA TATSÄCHLICH keine Daten hat (retention abgelaufen)
+
+### Lessons Learned
+
+Hätte ich vorher schon nach Working Cards gesucht, hätte ich mir 5 Releases (v1.1.1749 bis v1.1.1753) erspart. WebSocket-API für one-shot history-fetches ist offenbar nicht der HA-canonical path — REST ist. cataseven nutzt WS nur für `recorder/statistics_during_period` (also state_class sensors, was bei uns auch funktioniert hat).
+
+### Files Changed
+
+- `src/services/sensorStatistics.js`:
+  - `fetchHistoryData`: komplett umgeschrieben auf REST API via `hass.callApi('GET', url)`
+  - Inline parsing für full REST shape (state/last_changed)
+  - Debug-Logging mit `[FSC charts] (REST)` Prefix
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1753 → 1.1.1754
+
+### Quellen
+
+- cataseven/Statistics-Graph-Chart-Card (reverse-engineered bundle)
+- HA REST API docs: `GET /api/history/period/<startISO>?end_time=<endISO>&filter_entity_id=<csv>`
+- `hass.callApi` ist Standard-Lovelace-API für REST calls aus dem frontend
+
 ## Version 1.1.1753 - 2026-05-28
 
 **Title:** 🔍 Charts history — voll-instrumentiertes Debug-Logging in UI + console (für root-cause-Diagnose)
