@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1748 - 2026-05-28
+
+**Title:** 📝 Charts-Picker description: clarify that ANY unit works (not only W/kWh), plus eligible-count
+**Tags:** UI, Polish, UniversalCharts
+
+### Why
+
+User-Frage: "werden nur watt sensoren ausschließlich gesucht?" — Aus den Texten ("Sensors with state_class — line/bar chart") war nicht klar, dass auch Temperatur (°C), Feuchtigkeit (%), Druck (hPa), etc. Charts werden können. Der Filter ist nur auf `domain === 'sensor'` + `state_class` (egal welcher Unit). Aber die UI-Texte haben den Eindruck erweckt, es ginge nur um Energie.
+
+### What
+
+**`Step2Customize.jsx`** CHARTS-Section subtitle:
+```
+Vorher: "Sensoren mit state_class — als Line/Bar-Chart (Tag/Woche/Monat/Jahr)"
+Nachher: "Jeder Sensor mit state_class (W, kWh, °C, %, etc.) — Tag/Woche/Monat/Jahr"
+```
+
+**`ChartsView.jsx`** Sub-View description:
+```
+Vorher: "Wähle Sensoren für Time-Series-Charts. Tap auf die Farbe ändert sie."
+Nachher: "Alle Sensoren mit state_class (jeder Unit: W, kWh, °C, %, hPa, ...). N verfügbar. Tap auf die Farbe ändert sie."
+```
+
+Plus `N verfügbar` dynamisch — der eligible-count macht klar wie viele Sensoren auf dem Gerät überhaupt time-series-fähig sind.
+
+### Files Changed
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1747 → 1.1.1748
+
 ## Version 1.1.1747 - 2026-05-28
 
 **Title:** 🎨 Charts-Filter-Bar — pro Tab eigene Farbe (auto-cycle aus palette), active-Tab solid + glow, inactive mit Color-Dot
