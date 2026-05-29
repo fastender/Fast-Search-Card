@@ -1,5 +1,82 @@
 # Versionsverlauf
 
+## Version 1.1.1751 - 2026-05-28
+
+**Title:** 🔧 Charts — fetchHistoryData mit 2-stage API-Fallback + Fix für ms-lag-Race bei current-state-Fallback
+**Tags:** Bugfix, UniversalCharts
+
+### Why
+
+User-Report: Native HA-History-Panel zeigt für `sensor.obergeschoss_reinigungsbereich` (m²-Unit) klare Daten für den ganzen Mai (Range 15-44.8 m², viele Datenpunkte). Fast Search Card history-tab zeigt für denselben Sensor "No history data for this period" und Headline 0.00 m² obwohl current state 44.8 m² ist.
+
+### Was war kaputt
+
+**Problem 1: Stale History-API-Call**
+`fetchHistoryData` rief `history/history_during_period` mit `minimal_response: true` + `no_attributes: true` Flags. Auf manchen HA-Versionen verändert das die Response-Form oder gibt unerwartete Resultate. Plus es gab keinen Fallback auf die ältere legacy `history/period` API für Pre-2022.11 HA-Versionen.
+
+**Problem 2: ms-lag race condition**
+Im current-state-Fallback (wenn rawPoints leer):
+```js
+const now = new Date();
+if (... && now >= start && now <= end) { ... }
+```
+
+Bei periodIndex=0 (current month/week/day) ist `end` "now-as-of-calculatePeriodDates". Nach `await fetchHistoryData(...)` (kann hunderte ms dauern) ist die echte `new Date()` JETZT etwas größer als `end` → `now > end` → Fallback failed → consumption: 0 returned obwohl Sensor 44.8 hat.
+
+### What — Fix #1: 2-stage API Fallback
+
+`fetchHistoryData` jetzt mit Stage-by-Stage Strategie:
+
+**Stage 1**: Modern API `history/history_during_period` (HA 2022.11+)
+```js
+{ type: 'history/history_during_period', start_time, end_time, entity_ids,
+  include_start_time_state: true }
+```
+(`minimal_response` + `no_attributes` rausgenommen — waren überflüssig und potentiell schädlich)
+
+**Stage 2**: Legacy API `history/period` (alle HA-Versionen)
+```js
+{ type: 'history/period', start_time, end_time, entity_ids,
+  include_start_time_state: true, minimal_response: false,
+  significant_changes_only: false }
+```
+Response-shape ist anders (`[ [state, state, ...] ]` array-of-arrays statt object-keyed-by-entity-id) — Parser handhabt jetzt beide Formate.
+
+**Stage 3**: Beide failed → `[]` zurück.
+
+Plus neuer Helper `parseHistoryStateEntry(p)` der tolerant beide HA-Response-Shapes parsed:
+- Modern: `{ s: "state", lu: unix_seconds }`
+- Legacy: `{ state: "state", last_changed: ISO_string }`
+
+### What — Fix #2: periodIndex-basierter Fallback-Check
+
+Vorher:
+```js
+const now = new Date();
+if (... && now >= start && now <= end) {  // race-prone
+```
+
+Nachher:
+```js
+if (periodIndex === 0 && ...) {  // semantic
+```
+
+`periodIndex === 0` heißt per Definition "current period" (current day/week/month/year) — die "enthält now". Kein Race mehr.
+
+### Result
+
+- Sensoren wo HA <2022.11 läuft (oder andere API-Quirks) → Daten kommen jetzt via legacy `history/period` durch
+- Current-state Fallback funktioniert zuverlässig für periodIndex=0, egal wie lange der Fetch dauert
+- User sollte jetzt sehen: Headline = 44.80 m², Chart = Bars/Line mit den Werten aus der HA history
+
+### Files Changed
+
+- `src/services/sensorStatistics.js`:
+  - `parseHistoryStateEntry()` — neuer helper für tolerant parsing beider HA-Shape-Variants
+  - `fetchHistoryData()` — 2-stage modern→legacy fallback strategy
+  - `getCurrentPeriodConsumption()` + `getChartData()` — fallback-eligibility-check ist jetzt `periodIndex === 0`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1750 → 1.1.1751
+
 ## Version 1.1.1750 - 2026-05-28
 
 **Title:** 🛠️ Charts — current-state fallback wenn keine History-Points + Empty-state message korrigiert
