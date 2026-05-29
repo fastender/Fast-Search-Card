@@ -1,5 +1,76 @@
 # Versionsverlauf
 
+## Version 1.1.1746 - 2026-05-28
+
+**Title:** 📊 Universal-Charts moved into the "History" detail-toolbar tab + Versionsverlauf-style container + filter-bar chips
+**Hero:** none
+**Tags:** Feature, Architecture, UniversalCharts, UI
+
+### Why
+
+User-Wunsch:
+1. "Inhalt von Charts soll direkt angezeigt werden im 'History' Tab (detail-tab) und nicht als control-button-wrapper"
+2. "im history tab soll ein tab-content-container wie bei versionsverlauf gebaut werden 1:1 und ausserdem auch ein tab 1:1 wie versionsverlauf-filter-bar"
+
+Charts saßen bisher als 5. PresetButton ("Charts") in der unteren Tab-Reihe — semantisch unsauber, weil PresetButtons normalerweise gerätesteuerung sind (controls/sensors/diagnostics/misc), nicht time-series visualizations. Die Detail-View Toolbar oben hat hingegen schon einen "History" / "Verlauf"-Slot (`actionButtons[].id === 'history'`) der bisher als `action: 'noop'` ungenutzt war. Perfect fit.
+
+### What — neue ChartsHistoryView Component
+
+`src/components/charts/ChartsHistoryView.jsx` (~165 LOC):
+- Wrapped in `.versionsverlauf-view-container` (1:1 reused CSS-Klasse aus VersionsverlaufView.css): dunkler 24-px-radius wrapper, max-height 555px, flex-column
+- Filter-bar 1:1 wie `.versionsverlauf-filter-bar`: horizontal-scrollende Chips, links/rechts Scroll-Pfeile mit fade-in/out
+- 1 Chip pro chart-sensor (entity friendly_name); Klick switcht zwischen Sensoren
+- Active-Chip nimmt die Sensor-Farbe an (`rgba(R,G,B, 0.95)` bg + matching border)
+- Darunter SensorChartView mit slide-Animation beim Sensor-Switch
+- Empty-State wenn keine Charts konfiguriert (großes 📊 + Hinweis-Text)
+
+CSS-Import: `import '.../versionsverlauf/styles/VersionsverlaufView.css'` — kein neuer CSS-Code, reine Wiederverwendung der `.versionsverlauf-filter-bar` + `.versionsverlauf-filter-chip` + `.versionsverlauf-view-container` Klassen.
+
+### What — Routing
+
+**`UniversalDeviceView.jsx`**:
+- Neues `historyMode` state (analog zu `editingMode`)
+- `handleHistory()` registered in useRegisterViewRef → setzt historyMode=true + activeButton='history'
+- `handleOverview()` + `handleBackNavigation()` resetten historyMode=false
+- Render-Branch: `if (historyMode) → <ChartsHistoryView entity={entity} hass={hass} lang={lang} />`
+
+**`TabNavigation.jsx`**:
+```js
+case 'history':
+  if (printer?.handleHistory) printer.handleHistory();
+  break;
+```
+
+**`UniversalDeviceEntity.js`**:
+- `actionButtons[].history` action: `'noop'` → `'history'` (war bisher ungenutzt)
+
+### What — Cleanup
+
+**`deviceConfigs.js`** `case 'universal_device'`:
+- Conditional 5. "Charts"-PresetButton entfernt (~20 LOC). Universal-Devices haben jetzt wieder genau 4 PresetButtons (controls/sensors/diagnostics/misc).
+
+**`PresetButtonsGroup.jsx`**:
+- Inline Charts-Dispatch entfernt (`group.id === 'charts'` branch ~12 LOC)
+- `UniversalChartsView` Import entfernt
+- `normalizeChartSensorEntry` Import entfernt (war nur für die inline-dispatch nötig)
+
+### Net Effect
+
+- Charts erreichen User jetzt durch Klick auf den "Verlauf"-Button in der oberen Detail-Toolbar (passt semantisch zu "History" für Time-Series-Daten)
+- Layout-Konsistenz mit anderen "History"-artigen Views (News, Versionsverlauf, etc) — gleiches dunkles 24px-Container-Pattern, gleicher Filter-Bar-Style
+- PresetButton-Reihe wieder cleaner (4 stabile Tabs statt conditional 5.)
+- `UniversalChartsView` (Pill-Tab-Switcher Component) bleibt im Repo aber wird nicht mehr importiert — könnte für andere Use-Cases recycled werden (oder in einem späteren Release entfernt werden)
+
+### Files Changed
+
+- `src/components/charts/ChartsHistoryView.jsx` — **new file** (~165 LOC, versionsverlauf-style wrapper + filter-bar + chart)
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx` — `historyMode` state + handleHistory + history-render branch
+- `src/components/DetailView/TabNavigation.jsx` — `case 'history'` → printer.handleHistory
+- `src/system-entities/entities/integration/device-entities/UniversalDeviceEntity.js` — history actionButton action 'noop' → 'history'
+- `src/utils/deviceConfigs.js` — 5. Charts-PresetButton conditional entfernt
+- `src/components/controls/PresetButtonsGroup.jsx` — inline Charts-dispatch + imports entfernt
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1745 → 1.1.1746
+
 ## Version 1.1.1745 - 2026-05-28
 
 **Title:** 📅 Universal-Charts — Zeilen-Swap (Controls oben, Value+KPIs drunter) + klickbares Date-Label öffnet native Date-Picker
