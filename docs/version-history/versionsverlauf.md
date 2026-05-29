@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.1753 - 2026-05-28
+
+**Title:** 🔍 Charts history — voll-instrumentiertes Debug-Logging in UI + console (für root-cause-Diagnose)
+**Tags:** Debug, UniversalCharts
+
+### Why
+
+Trotz v1.1.1751 + v1.1.1752 Fixes (Stage-2 entfernt, significant_changes_only:false, last-point statt mean, carry-forward) zeigt der User-Screenshot weiterhin leeren Chart + 0.00 m² für `sensor.obergeschoss_reinigungsbereich`. Wir können nicht mehr raten — wir müssen sehen WAS HA zurückgibt.
+
+### What — Debug-Instrumentierung
+
+**`fetchHistoryData` returnt jetzt `{points, debug}`** statt nur `points`. Console-Logs printen:
+- `[FSC charts] fetchHistoryData request` — sensorId, ob sensor in hass.states existiert, currentState, payload
+- `[FSC charts] fetchHistoryData response (raw)` — die echte WS-Response
+- `[FSC charts] rawArr length for {sensorId}` — Anzahl raw Einträge
+- `[FSC charts] First 3 raw entries` — Sample der Daten
+- `[FSC charts] Parsed N valid points from M raw entries` — Parser-Erfolgsrate
+
+**`debug`-Field** propagiert durch `getChartData → setChartMeta → SensorChartView empty-state` und wird direkt in der UI angezeigt (monospace, klein, unten in der Empty-State-Karte):
+
+```
+sensor: sensor.obergeschoss_reinigungsbereich
+stateClass: (undefined → history mode)
+periodIndex: 0
+debug: req=42-raw,42-parsed,sensor-exists=true,current=44.8
+```
+
+So sieht User direkt was passiert — kein DevTools nötig für die Diagnose.
+
+### Mögliche Debug-Output-Werte und ihre Bedeutung
+
+| `debug` | Bedeutung |
+|---|---|
+| `req=0-raw,0-parsed,sensor-exists=true,current=X` | HA gibt leere Response zurück. API-Quirk oder retention-issue. |
+| `req=N-raw,0-parsed,...` | HA gibt Daten zurück aber Parser dropt alle (Format-Mismatch). |
+| `req=N-raw,N-parsed,...` (mit empty-state-display) | Data ist da, aber chartData hat trotzdem length 0 — Bug im bucketHistoryPoints oder state-update. |
+| `sensor-exists=false,current=undefined` | Entity-id stimmt nicht — sensor existiert nicht in hass.states. |
+| `error:...` | WS-Call wirft Exception. |
+| `no-hass-connection` | hass.connection ist undefined. |
+
+### Was als nächstes
+
+Bitte einmal die Karte öffnen, einen Chart-Sensor auswählen wo's leer ist, und mir **screenshot vom empty-state mit dem Debug-Block** schicken. Plus optional die Browser-Console-Logs `[FSC charts]` filtern.
+
+Dann weiß ich genau wo es klemmt und kann gezielt fixen.
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — `fetchHistoryData` returnt `{points, debug}` mit console.log instrumentation; beide call-sites destructure entsprechend
+- `src/components/charts/SensorChartView.jsx` — `chartMeta.debug` field; empty-state zeigt debug-Block mit sensor-id + stateClass + periodIndex + debug-string
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1752 → 1.1.1753
+
 ## Version 1.1.1752 - 2026-05-28
 
 **Title:** 🔬 Charts history — 3-agent audit findings: significant_changes_only=false (HA-API quirk), last-value statt mean, carry-forward in buckets, dead Stage-2 entfernt
