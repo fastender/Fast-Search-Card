@@ -1,5 +1,76 @@
 # Versionsverlauf
 
+## Version 1.1.1747 - 2026-05-28
+
+**Title:** 🎨 Charts-Filter-Bar — pro Tab eigene Farbe (auto-cycle aus palette), active-Tab solid + glow, inactive mit Color-Dot
+**Hero:** none
+**Tags:** UI, UniversalCharts, Polish
+
+### Why
+
+User-Feedback nach v1.1.1746: "wenn ein tab aktiv ist soll es eine spezielle farbe haben, jeder tab hat eine eigene (zB tab1: grün). diese farbe soll auch für chart benutzt werden"
+
+### Was war kaputt
+
+Bei legacy storage `chart_sensors: ["sensor.a", "sensor.b", "sensor.c"]` (strings, vor v1.1.1739 saved) hat `ChartsHistoryView` jeden Sensor durch `normalizeChartSensorEntry(entry)` geschickt — die single-entry-Funktion benutzt `DEFAULT_CHART_COLOR` als Fallback. Resultat: ALLE Sensoren bekamen `'0, 145, 255'` (blau), alle Tabs sahen gleich aus, alle Charts blau.
+
+Es gab schon eine bulk-Function `normalizeChartSensorsArray(arr)` die durch `CHART_COLOR_PALETTE` cycelt basierend auf Array-Index — die hätte ich von Anfang an verwenden müssen.
+
+### What — Fixes
+
+**1. Color-Cycling für legacy storage**
+
+ChartsHistoryView + UniversalChartsView jetzt:
+```js
+// Vorher (broken):
+return raw.map(normalizeChartSensorEntry).filter(Boolean);
+// → alle string-entries bekommen DEFAULT_CHART_COLOR (blau)
+
+// Nachher (v1.1.1747):
+return normalizeChartSensorsArray(raw);
+// → Tab 0 → Blau, Tab 1 → Gelb, Tab 2 → Grün, Tab 3 → Lila, ...
+```
+
+Für object-storage `[{id, color}]` (v1.1.1739+) ändert sich nichts — User-konfigurierte Farben werden respektiert.
+
+**2. Active-Tab Visual: solid color + colored glow**
+
+Vorher: active-chip war weiß (versionsverlauf-default). Inline-style override hatte `rgba(${color}, 0.95)` aber visuell zu subtle.
+
+Jetzt:
+- `background: rgb(${sensor.color})` (solid, kein alpha)
+- `borderColor: rgb(${sensor.color})`
+- `boxShadow: 0 2px 12px rgba(${sensor.color}, 0.45)` ← farbiger Glow rund um active-tab
+- `fontWeight: 600`
+- White text (kontrast garantiert)
+
+**3. Inactive-Tab Visual: Color-Dot + subtle tint**
+
+Vorher: inactive-chips waren default (weiße semi-transparent bg). User konnte nicht erkennen welche Farbe ein Tab repräsentiert ohne ihn zu aktivieren.
+
+Jetzt: jeder Chip — active UND inactive — hat einen 8×8px Color-Dot links neben dem Sensor-Namen in der Sensor-Farbe. Plus inactive-bg ist subtle in der Sensor-Farbe getintet:
+- `background: rgba(${sensor.color}, 0.10)` (10% opacity tint)
+- `borderColor: rgba(${sensor.color}, 0.25)`
+
+Plus der Color-Dot hat einen `box-shadow: 0 0 0 2px rgba(255,255,255,0.6)` ring im active-state (kontrast gegen die solid color bg) und `0 0 0 1px rgba(${color}, 0.4)` ring im inactive-state.
+
+**4. Hover-Feedback**
+
+`whileHover={{ scale: 1.02 }}` auf den Chips für subtle hover-feedback.
+
+### Result
+
+- Jeder Sensor-Tab hat seine eigene Farbe — automatisch aus der Palette gepickt für legacy-storage, user-defined für new-storage
+- Active-Tab: kräftige solid color + glow → klar erkennbar dass aktiv
+- Inactive-Tab: subtle color-tint + color-dot → User sieht alle Farben auf einen Blick
+- Chart unter dem aktiven Tab: nutzt dieselbe Farbe (war schon korrekt; jetzt klar dass das absichtlich ist)
+
+### Files Changed
+
+- `src/components/charts/ChartsHistoryView.jsx` — `normalizeChartSensorsArray` import, neue active+inactive chip styles + color-dot
+- `src/components/charts/UniversalChartsView.jsx` — same import-fix (für Konsistenz; UniversalChartsView ist seit v1.1.1746 nicht mehr reachable, aber dotted-i)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1746 → 1.1.1747
+
 ## Version 1.1.1746 - 2026-05-28
 
 **Title:** 📊 Universal-Charts moved into the "History" detail-toolbar tab + Versionsverlauf-style container + filter-bar chips
