@@ -1,5 +1,64 @@
 # Versionsverlauf
 
+## Version 1.1.1749 - 2026-05-28
+
+**Title:** 📈 Charts — JEDER numerische Sensor jetzt eligible (state-history-Fallback für non-state-class) + 3-Modes-Badge
+**Tags:** Feature, UniversalCharts, Statistics
+
+### Why
+
+User-Wunsch: "können wir auch andere sensoren aufnehmen?" — bisher waren nur Sensoren mit `state_class` (`total_increasing` oder `measurement`) im Picker erlaubt. Aber viele HA-Sensoren ohne state_class haben trotzdem numerische states die plot-able wären — und HA speichert für JEDEN Sensor eine state-history (default 10 Tage retention). Die nutzen wir jetzt als Fallback.
+
+### What — 3 Modes statt 2
+
+| Mode | state_class | Datenquelle | Charts | Periode |
+|---|---|---|---|---|
+| **Kumulativ** (grün) | `total_increasing` | `recorder/statistics_during_period` (sum-delta) | D/W/M/Y | beliebig (long-term) |
+| **Momentan** (blau) | `measurement` | `recorder/statistics_during_period` (mean) | D/W/M/Y | beliebig (long-term) |
+| **History** (orange) | undefined | `history/history_during_period` (raw states) | D/W/M/Y | begrenzt auf HA-history-retention (default 10 Tage) |
+
+### What — Implementation
+
+**`services/sensorStatistics.js`** — neue Funktionen:
+- `fetchHistoryData({ hass, startTime, endTime, sensorId })` → ruft `history/history_during_period` WS, parsed numeric states zu `[{ timestamp, value }, ...]`. Handhabt beide HA-Response-Formate (neue API mit `lu` unix-seconds + alte API mit `last_updated`).
+- `bucketHistoryPoints(points, periodType, startTime, endTime, lang)` → buckets raw points in time slots (24 hourly für day, 7 daily für week, 28-31 daily für month, 12 monthly für year), berechnet mean pro bucket. Leere buckets → value: 0.
+- `isStatisticsMode(stateClass)` → `true` für `total_increasing` und `measurement`, sonst `false`.
+
+`getCurrentPeriodConsumption` + `getChartData`:
+- Wenn `isStatisticsMode(stateClass)` → existing statistics path (unverändert)
+- Sonst → neue history-fallback path (fetch raw + bucket)
+
+**`ChartsView.jsx`** — Picker:
+- `isChartEligible()` relaxed: jetzt `domain === 'sensor'` UND state ist parseFloat-able (numerisch). Vorher musste state_class gesetzt sein.
+- Neuer `getSensorMode(entity, hass)` Helper → returns `'statistics-cumulative'` | `'statistics-measurement'` | `'history'`.
+- Pro Row farbiges Mode-Badge: grün=Kumulativ / blau=Momentan / orange=History (sanfter Hinweis dass limited).
+- Description erweitert: erklärt die 3 modes klar.
+
+**`ChartsHistoryView.jsx`** + **`UniversalChartsView.jsx`**:
+- `stateClass` wird ohne `|| 'total_increasing'`-Fallback durchgereicht. Wenn HA für den Sensor kein state_class hat, kommt `undefined` beim Service an → der detected automatisch history-mode.
+
+### Result
+
+- Picker zeigt jetzt JEDEN numerischen Sensor des Devices (egal welcher Unit, egal welche state_class config)
+- Sensoren mit state_class → full statistics-charts (beliebig viele Perioden in die Vergangenheit)
+- Sensoren ohne state_class → history-charts (limited zur HA-retention, default 10 Tage; lässt sich in HA's `configuration.yaml` mit `recorder.purge_keep_days` erhöhen)
+- Badge zeigt dem User VOR der Auswahl welcher Mode für den Sensor angewandt wird
+
+### Edge Cases
+
+- **Leere history**: wenn raw-points 0 sind (Sensor brandneu) → empty-state "Keine Statistik-Daten" (war schon da)
+- **Sensor state unavailable/unknown**: filtered im picker via state-check
+- **Future-Periode picken via Date-Picker**: clamp auf `Math.min(0, ...)` ist weiterhin aktiv
+- **State_class verändert sich nach Picker-Auswahl** (sehr selten): wird beim Render neu detected, kein Setup-Storage-Mismatch
+
+### Files Changed
+
+- `src/services/sensorStatistics.js` — fetchHistoryData + bucketHistoryPoints + isStatisticsMode helpers; getCurrentPeriodConsumption + getChartData branch auf history-mode wenn !isStatisticsMode
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx` — relaxed filter, neuer getSensorMode + Mode-Badge mit 3 Farben
+- `src/components/charts/ChartsHistoryView.jsx` — stateClass ohne fallback durchreichen
+- `src/components/charts/UniversalChartsView.jsx` — same
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump 1.1.1748 → 1.1.1749
+
 ## Version 1.1.1748 - 2026-05-28
 
 **Title:** 📝 Charts-Picker description: clarify that ANY unit works (not only W/kWh), plus eligible-count
