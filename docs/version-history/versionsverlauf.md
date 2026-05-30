@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.1755 - 2026-05-30
+
+**Title:** 🎯 Charts — ROOT CAUSE FIX #2: unit-based path selection (mislabeled `total_increasing` sensors now use history)
+**Tags:** Bugfix, RootCause, UniversalCharts, Statistics
+
+### Why
+
+After v1.1.1754 fixed the *history* path (REST instead of WebSocket), one class of sensor was still empty: `sensor.tesli_charger_current` showed `0.00 A` in Fast Search Card while native HA showed `10,00 A` with a full Verlauf chart.
+
+The debug block was the smoking gun: `stateClass: total_increasing`, `debug: (no debug info)`. The sensor never reached the (now-working) history path — it took the STATISTICS path, because the old gate `isStatisticsMode(stateClass)` returned `true` for *any* `total_increasing` sensor.
+
+But Charger Current is an Amperage reading — instantaneous, not cumulative. It's simply **mislabeled** `total_increasing` by its integration. Running it through bucket-to-bucket sum-delta math produces garbage/zero, and that branch never set a `debug` field (hence "(no debug info)").
+
+### What
+
+Path selection is now **unit-based**, not just state_class-based. Replaced `isStatisticsMode(stateClass)` with `shouldUseStatistics(stateClass, unit)`:
+
+```js
+function isCumulativeUnit(unit) {
+  // Energy + volume meters where sum-delta = consumption is meaningful
+  return ['wh','kwh','mwh','gwh','varh','kvarh',
+          'm³','m3','ft³','ft3','cf','l','gal'].includes(unit.toLowerCase().trim());
+}
+
+function shouldUseStatistics(stateClass, unit) {
+  if (stateClass === 'measurement')       return true;                  // unchanged
+  if (stateClass === 'total_increasing')  return isCumulativeUnit(unit);// only real meters
+  return false;                                                         // undefined → history
+}
+```
+
+Routing matrix:
+- `measurement` → statistics (mean per bucket) — **unchanged**
+- `total_increasing` + cumulative unit (kWh/m³/L…) → statistics sum-delta — **Energy Dashboard safe**
+- `total_increasing` + instantaneous unit (A/W/°C/%…) → **HISTORY** — *the fix*
+- `undefined` / other → history — **unchanged**
+
+Plus a robustness net (cataseven pattern: history is always available): when the statistics fetch returns empty (`!arr?.length`), fall back to the REST history path instead of rendering an empty chart. Extracted the history-mode computation into `computeHistoryChartData()` so both the primary history branch and the empty-stats fallback share it.
+
+### Result
+
+`sensor.tesli_charger_current` now renders a line chart of its amperage history (flat until ~20:00, spiking to 10 A) and the KPI shows `10.00 A`, matching native HA. The year-comparison special-case is now also gated behind `useStatistics` so it can't hijack a mislabeled sensor.
+
+### Files
+
+- `src/services/sensorStatistics.js` — added `isCumulativeUnit` + `shouldUseStatistics` + `computeHistoryChartData`; rewired `getChartData` + `getCurrentPeriodConsumption` to unit-based gating; statistics-empty → history fallback; removed dead `isStatisticsMode`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1754 - 2026-05-28
 
 **Title:** 🎯 Charts history — ROOT CAUSE FIX: REST API statt WebSocket (Recherche via cataseven/Statistics-Graph-Chart-Card)
