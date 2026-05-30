@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1756 - 2026-05-30
+
+**Title:** 🧹 Charts cleanup — remove debug instrumentation, dead WS-era code, route logs through logger
+**Tags:** Cleanup, DeadCode, Charts
+
+### Why
+
+The v1.1.1749→1.1.1755 debugging saga left behind verbose diagnostics: a stack of `console.log` calls firing on every chart fetch, a user-visible monospace debug box in the empty-state ("sensor: …, stateClass: …, debug: …"), and dead helpers from the abandoned WebSocket approach. Now that charts work, this is noise.
+
+### What
+
+- **`sensorStatistics.js`**
+  - Removed verbose `console.log` instrumentation in `fetchHistoryData`; the few useful traces now go through `logger.debug` (gated, off in production) and errors/warnings through `logger.warn`/`logger.error`.
+  - Deleted dead `parseHistoryStateEntry()` — it parsed the old WS compact shape (`s`/`lu` keys); the REST path parses full keys inline.
+  - Deleted dead `isStatisticsMode()` — superseded by v1.1.1755's `shouldUseStatistics()`.
+  - Collapsed the two stacked WS-vs-REST journey comment blocks above `fetchHistoryData` into one concise current-state doc comment.
+- **`SensorChartView.jsx`**
+  - Removed the user-visible debug box + "open DevTools console" hint from the empty-state; it now shows just a clean "No history data for this period." message.
+  - Dropped the orphaned `debug` field from `chartMeta`.
+  - Routed the two `console.error` calls through `logger.error`.
+
+### Result
+
+No behavioral change — charts render exactly as in v1.1.1755. The console is quiet in production (debug traces only with `localStorage.fsc_debug = 'true'`), and the empty-state is clean for end users.
+
+### Files
+
+- `src/services/sensorStatistics.js`
+- `src/components/charts/SensorChartView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1755 - 2026-05-30
 
 **Title:** 🎯 Charts — ROOT CAUSE FIX #2: unit-based path selection (mislabeled `total_increasing` sensors now use history)
