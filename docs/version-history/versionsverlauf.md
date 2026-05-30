@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1757 - 2026-05-31
+
+**Title:** 🎨 Charts UI polish — filter-arrow centering, row swap, 2-decimal values, compact KPI pills
+**Tags:** UI, Charts, Polish
+
+### Why
+
+User feedback on the charts toolbar: (1) the filter-bar scroll arrows sit off-center vertically, (2) the toolbar row should lead with the date-picker then the D/W/M/Y tabs, (3) values should always show 2 decimals (MIN was showing `0` instead of `0.00`), and the MIN/MAX/AVG pills should be smaller.
+
+### What
+
+- **Filter-arrow centering (`ChartsHistoryView.jsx` + `VersionsverlaufView.css`):** The `.versionsverlauf-filter-arrow` CSS is *shared* with the real Versionsverlauf view, whose filter bar has two rows — `top: 50%` is correct there. The charts bar has a single chip row, so the arrows mis-center (the bar's `16px-top / 0-bottom` padding shifts the geometric center off the chip row). Rather than touch the shared rule, added a `--charts` modifier class on the charts filter-bar and scoped `top: 37%` to it. Versionsverlauf stays untouched.
+- **Row swap (`SensorChartView.jsx`):** Row 1 now uses `flex-direction: row-reverse` so the ← Date → picker sits on the **left** and the D/W/M/Y tabs on the **right** (DOM order unchanged, only visual order mirrored).
+- **2-decimal values (`SensorChartView.jsx`):** The headline already used `toFixed(2)`. The KPI pills used `parseFloat(x.toFixed(2))`, which dropped trailing zeros (MIN `0`). Now they keep the 2-decimal string (`0.00`, `3.16`, `1.12`).
+- **Compact KPI pills (`SensorChartView.jsx`):** padding `4px 12px → 3px 8px`, minWidth `56 → 42px`, value font `15 → 12px`, label font `9 → 8px`, radius `14 → 10px`.
+
+### Result
+
+Arrows align with the chip row in the charts context only; the date-picker leads the toolbar row; all values render with two decimals; the KPI pills are noticeably smaller.
+
+### Files
+
+- `src/components/charts/SensorChartView.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1756 - 2026-05-30
 
 **Title:** 🧹 Charts cleanup — remove debug instrumentation, dead WS-era code, route logs through logger
