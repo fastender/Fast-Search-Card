@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1768 - 2026-05-31
+
+**Title:** 📱 Mobile — asymmetric tab-content padding
+**Tags:** UI, Mobile
+
+### What
+
+Per request, changed the mobile (`max-width: 768px`) `#tab-content-container` padding from a uniform `15px` to `0px 20px 0px 15px` (top 0, right 20, bottom 0, left 15) — more right gutter, less top/bottom, slightly tighter left.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1767 - 2026-05-31
 
 **Title:** 📐 History header — switch far-left, date + D·W·M·Y grouped far-right (+ arrow nudge)
