@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1760 - 2026-05-31
+
+**Title:** 📋 Activities feature · Release B2 — HA logbook for control entities (combined feed)
+**Tags:** Feature, Charts, UniversalCharts, Activities, Logbook
+
+### Why
+
+Completes the "Combined" data-source plan from B1. Derived sensor events (Höchst-/Tiefstwert) cover the numeric sensors; this release adds the real HA **logbook** events for the device's **control entities** (switches, binary_sensors, lights, locks, climate, automations) and merges both into one chronological feed.
+
+### What
+
+- **New `logbookService.js` → `getDeviceLogbookEvents()`:** Fetches real events via WebSocket `logbook/get_events` (the multi-entity API the HA frontend itself uses) for a list of entity_ids over the shared period. Symmetric with `getDerivedSensorEvents` — takes `periodType`/`periodIndex`, resolves window via `calculatePeriodDates`, returns normalized events `{ entityId, name, message, state, timestamp, source: 'logbook' }`. Robust `when` parsing (float seconds or ISO).
+- **`ChartsHistoryView.jsx`:** Derives the device's control entities = all `ha_device_id` entities minus hidden minus the chart_sensors (those are covered by derived events). Assigns each a palette color continuing after the sensors. Passes them to the Activities view.
+- **`DeviceActivitiesView.jsx`:** Fetches derived (per sensor) + logbook (controls) in parallel, merges and sorts chronologically. Filter chips + grouping + focus highlight now cover both sources. `fmtMsg` renders logbook entries (`message`, or "wechselte zu {state}") vs derived (Höchst-/Tiefstwert).
+
+### Result
+
+The Activities feed now shows both the sensors' period extrema AND real control-entity events (e.g. "Schalter wechselte zu on", "Bewegung erkannt") in one timeline, filterable per entity, synced to the shared time-header. Devices with only numeric sensors still get the derived events (no empty feed); devices with controls get richer history.
+
+### Files
+
+- `src/services/logbookService.js` (new)
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1759 - 2026-05-31
 
 **Title:** 📋 Activities feature · Release B1 — collapsible Activities container (derived sensor events)
