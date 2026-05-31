@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1758 - 2026-05-31
+
+**Title:** 🏗️ Activities feature · Release A — shared time-header foundation (state hoist + ChartPeriodHeader extraction)
+**Tags:** Refactor, Charts, Foundation, UniversalCharts
+
+### Why
+
+Groundwork for the upcoming "Aktivitäten" (Activities) container (Mockup Variant 2: one shared time-header controlling both Charts and Activities). Before adding the second container, the time-control state (`timeRange` + `periodIndex`) had to be hoisted out of `SensorChartView` so a single header at the top of the History view can drive everything.
+
+### What
+
+- **New `ChartPeriodHeader.jsx`:** Extracted the Row-1 header (← Date → picker + D/W/M/Y tabs) from `SensorChartView` into a standalone, self-contained component. It computes its own period label via `calculatePeriodDates` (pure) — no chart-fetch data needed. Keeps the v1.1.1757 layout (date-picker left, D/W/M/Y right via `row-reverse`).
+- **`SensorChartView.jsx` — controlled/uncontrolled dual mode:** New optional props `timeRange` / `onTimeRangeChange` / `periodIndex` / `onPeriodIndexChange` / `hideHeader`. When `timeRange` is passed, the parent owns the time-state; otherwise the component manages it internally (standalone mode, backward-compatible). The internal period-reset-on-range-change only runs in uncontrolled mode. When `hideHeader`, the parent renders the header instead. Removed the now-duplicated date-picker logic + orphaned `TIMEFRAMES`/`timeframes`.
+- **`ChartsHistoryView.jsx`:** Now owns the shared `timeRange` + `periodIndex` state (resets periodIndex on range change) and renders ONE `ChartPeriodHeader` at the top of the container — its active D/W/M/Y color follows the focused sensor. The chart's `SensorChartView` is now `hideHeader` + controlled.
+
+### Result
+
+No feature change yet — the Charts view works exactly as before, but the time-header now sits at the top of the container (above the sensor chips) and is the single source of truth. This sets up Release B (the collapsible Activities container reacting to the same header).
+
+### Files
+
+- `src/components/charts/ChartPeriodHeader.jsx` (new)
+- `src/components/charts/SensorChartView.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1757 - 2026-05-31
 
 **Title:** 🎨 Charts UI polish — filter-arrow centering, row swap, 2-decimal values, compact KPI pills
