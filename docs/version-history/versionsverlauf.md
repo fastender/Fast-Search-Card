@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1759 - 2026-05-31
+
+**Title:** 📋 Activities feature · Release B1 — collapsible Activities container (derived sensor events)
+**Tags:** Feature, Charts, UniversalCharts, Activities
+
+### Why
+
+Mockup Variant 2: a second, collapsible "Aktivitäten" (Activities) container below the Charts, driven by the same shared time-header. Data source decision (user): **Combined** — but HA's logbook contains NO numeric sensor changes, so for solar/charger sensors a pure-logbook feed would be empty. B1 therefore starts with **derived events from the history we already fetch**, guaranteeing a populated feed for numeric devices. B2 will add the HA logbook for control entities.
+
+### What
+
+- **`sensorStatistics.js` → `getDerivedSensorEvents()`:** Derives notable events from a sensor's REST history over the shared period — currently the period **Höchstwert (max)** and **Tiefstwert (min)** with timestamps (only when max ≠ min). Reuses the working `fetchHistoryData` path, no new API risk.
+- **New `DeviceActivitiesView.jsx`:** Collapsible container (lazy-loads only when expanded). Multi-select filter chips (one per sensor that has events, default all included, distinct from the Charts radio chips via ✓/＋). The focused sensor (active chart sensor) is highlighted with a colored left-accent; the others are dimmed. A "Nur Fokus-Sensor" toggle narrows the feed to the focused sensor. Events grouped by calendar day, newest first, with localized time + value labels.
+- **`ChartsHistoryView.jsx`:** Body is now a scroll region — fixed-height chart block (340px) + the Activities container below, both reacting to the shared `timeRange`/`periodIndex`.
+
+### Result
+
+The History tab now shows Charts on top and a collapsible Activities feed below — populated for numeric sensors via Höchst-/Tiefstwert, synced to the same time-header, with multi-select filtering and focus highlighting. Empty/loading states are explicit (no silent blank).
+
+### Files
+
+- `src/services/sensorStatistics.js` — `getDerivedSensorEvents`
+- `src/components/charts/DeviceActivitiesView.jsx` (new)
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1758 - 2026-05-31
 
 **Title:** 🏗️ Activities feature · Release A — shared time-header foundation (state hoist + ChartPeriodHeader extraction)
