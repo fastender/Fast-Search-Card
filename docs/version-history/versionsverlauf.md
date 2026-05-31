@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1762 - 2026-05-31
+
+**Title:** 🐞 Activities polish — tighter header gap, scroll mask, CustomScrollbar, version-card rows
+**Tags:** Bugfix, UI, Charts, Activities
+
+### Why
+
+Three reported bugs on the new History/Activities view: (1) too much gap between the time-header bar and the sensor-filter bar + no scroll edge-fade, (2) native scrollbar instead of the app's CustomScrollbar, (3) the Activities header emoji + the clickable "mark in chart" rows needed the versionsverlauf version-card look (lighter grey background + lighter text).
+
+### What
+
+- **bug1 — gap + scroll mask (`ChartsHistoryView.jsx` + `VersionsverlaufView.css`):** Reduced the header strip's bottom padding (12→4px) and the charts filter-bar's top padding (16→4px). Added a top-fade `is-scrolling` mask to the scroll body (1:1 with `.versionsverlauf-feed` — `linear-gradient(transparent 0, black 40px)`), toggled on `scrollTop > 0`.
+- **bug2 — CustomScrollbar (`ChartsHistoryView.jsx`):** Native scrollbar hidden via `.charts-scroll-body` (scrollbar-width:none + ::-webkit-scrollbar display:none); mounted `<CustomScrollbar scrollContainerRef={bodyRef} isHovered>` inside the (position:relative) container, exactly like versionsverlauf/news.
+- **bug3 — Activities styling (`DeviceActivitiesView.jsx`):** Removed the 📋 emoji from the header. Clickable (sync-able) rows now use the version-card design — `rgba(255,255,255,0.10)` background (hover 0.15), brighter text (name #fff, message rgba 0.8), 6px row spacing. Non-clickable logbook rows stay subtle.
+
+### Result
+
+The two top bars sit closer together, content fades softly under them while scrolling, the iOS-style CustomScrollbar appears on hover/scroll, and the clickable activity events read as proper cards matching the versionsverlauf list.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1761 - 2026-05-31
 
 **Title:** 🎯 Activities feature · Release C — click-to-sync (activity → chart marker)
