@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1761 - 2026-05-31
+
+**Title:** 🎯 Activities feature · Release C — click-to-sync (activity → chart marker)
+**Tags:** Feature, Charts, UniversalCharts, Activities
+
+### Why
+
+The "wow" interaction from the mockup: clicking a derived sensor event in the Activities feed jumps the chart above to that sensor and marks the exact point — turning the two stacked containers into one connected tool instead of two islands.
+
+### What
+
+- **`SensorChartView.jsx`:** New `highlightTimestamp` prop. Computes the nearest chart-data index to that timestamp (`highlightIndex`) and post-processes the freshly-built Chart.js config (without touching the shared `buildLineBarConfig`): line charts enlarge the matching point (radius 6, white ring); bar charts brighten the matching bar and dim the rest. `highlightIndex` is in the render-effect deps so the marker updates live.
+- **`DeviceActivitiesView.jsx`:** New `onSync` callback. Only **derived** sensor events are clickable (logbook control-entity events have no chart series) — clickable rows get a pointer cursor, hover background, a "↗" affordance and "Im Chart markieren" tooltip.
+- **`ChartsHistoryView.jsx`:** Holds `syncEvent`. On click it switches the chart to the event's sensor (`activeIdx`), stores the event, and smooth-scrolls the body to the top so the chart is visible. The marker is only passed to the chart when `syncEvent.entityId` matches the active sensor; changing the time range/period clears it.
+
+### Result
+
+Clicking e.g. "Autarkiegrad · Höchstwert 100 % · 09:12" selects that sensor's chart and highlights the 09:12 point. The Activities feed and the Charts now cross-reference each other. Completes the Variant-2 Activities feature (foundation A → derived B1 → logbook B2 → sync C).
+
+### Files
+
+- `src/components/charts/SensorChartView.jsx`
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1760 - 2026-05-31
 
 **Title:** 📋 Activities feature · Release B2 — HA logbook for control entities (combined feed)
