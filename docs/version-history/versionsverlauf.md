@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1766 - 2026-05-31
+
+**Title:** 📐 Charts chip-bar — restore top spacing to match Versionsverlauf
+**Tags:** Bugfix, UI, Charts
+
+### Why
+
+The horizontal sensor chip-bar in Charts was clinging to the top edge of the card, while the Versionsverlauf filter-bar has comfortable 16px top breathing room. Cause: in v1.1.1762 the chip-bar top padding was reduced to 4px to tighten the gap to the *then-inside* time-header. Since v1.1.1763 the header floats outside the container, so the chips are now the first thing in the card and need the full top padding back.
+
+### What
+
+- **`VersionsverlaufView.css`:** `.versionsverlauf-filter-bar--charts` top padding `4px → 16px` (identical to the base `.versionsverlauf-filter-bar` used by Versionsverlauf; left stays 20px, also identical).
+- **Scroll-arrow re-center:** with one chip row and 16px-top/0-bottom padding, the geometric centre sits 8px above the chip-row centre. Replaced the `37%` approximation with `top: calc(50% + 8px)`, which centres exactly regardless of chip height.
+
+### Result
+
+The Charts chip-bar now has the same top + left spacing as the Versionsverlauf filter-bar, and the scroll arrow sits centred on the chip row.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1765 - 2026-05-31
 
 **Title:** 🔀 History — single container with 📊 Charts ⇄ 📋 Activities mode-switch
