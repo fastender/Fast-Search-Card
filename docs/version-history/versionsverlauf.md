@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1767 - 2026-05-31
+
+**Title:** 📐 History header — switch far-left, date + D·W·M·Y grouped far-right (+ arrow nudge)
+**Tags:** UI, Charts
+
+### What
+
+- **Header order (`ChartPeriodHeader.jsx`):** dropped `justify-content: space-between` (kept `row-reverse` + `flex-start`), so the date-picker and D·W·M·Y now pack together at the **right** edge instead of spreading across the row. With the 📊/📋 mode-switch already pinned far-left in `ChartsHistoryView`, the row reads: `[📊|📋] ............ [← Today →] [D W M Y]`.
+- **Scroll-arrow nudge (`VersionsverlaufView.css`):** charts chip-bar arrow `top: calc(50% + 8px) → calc(50% - 6px)` (visually confirmed).
+
+### Files
+
+- `src/components/charts/ChartPeriodHeader.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1766 - 2026-05-31
 
 **Title:** 📐 Charts chip-bar — restore top spacing to match Versionsverlauf
