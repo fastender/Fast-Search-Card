@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1769 - 2026-05-31
+
+**Title:** 🧱 Device Edit — fixed top navbar (Cancel / Save) like the calendar & task editors
+**Tags:** UI, UniversalSetup, Edit
+
+### Why
+
+The Universal device Edit screen had its Cancel/Save buttons at the **bottom** of the scrolling content, unlike the Calendar event editor and the Tasks editor which use a **fixed header on top** (Cancel left, Done/Save right) with the body scrolling beneath. User asked to rebuild Edit to match that pattern.
+
+### What
+
+- **`Step2Customize.jsx`:** Removed the bottom button-row (`navStyle` Back/Save) and its now-unused imports/props.
+- **`UniversalSetup.jsx` (`renderMainView`):** For step 2 (Customize/Edit) added a fixed `.ios-navbar` at the top of the view — `← Cancel/Back` (left) + `Save/Add` (right, disabled until a name is set) — exactly the markup the sub-views and the Calendar dialog already use (`NavbarBackIcon` + `.ios-navbar-action`). The header stays fixed while the `.ios-settings-view` scrolls; the big "Bearbeiten/Edit" title remains as the first scrolled element. Sub-views (Icon, Hero, Visibility, Quick-Stats, Charts) already had their own fixed navbars, so the whole Edit flow is now consistent.
+
+### Result
+
+Editing a device now opens with a fixed Cancel/Save header on top and a scrolling body underneath — same feel as the calendar event editor and the task editor.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1768 - 2026-05-31
 
 **Title:** 📱 Mobile — asymmetric tab-content padding
