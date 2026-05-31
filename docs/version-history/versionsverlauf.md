@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1764 - 2026-05-31
+
+**Title:** 📐 History alignment — content flush with the title/toolbar margins (+ outer-scrollbar fix)
+**Tags:** Bugfix, UI, Charts, Layout
+
+### Why
+
+The time-header (Today / D·W·M·Y), the Charts container and the Activities container were inset ~16–20px further than the "Active / Just Now" title and the icon toolbar above them. They should line up with the same left/right margins as that header row.
+
+### What
+
+The title/toolbar (`.desktop-tabs`) and the content area (`#tab-content-container`) both already sit at **20px** from the panel edge. The History content was adding extra insets on top, so they were stripped:
+- **`UniversalDeviceView.jsx`** (historyMode wrapper): horizontal padding `0 8px → 0`.
+- **`ChartsHistoryView.jsx`**: header padding `2px 12px 0 → 2px 0 0`; scroll-region padding `0 8px 8px → 0 0 8px`.
+
+Net: the header pills, the Charts card and the Activities card now align at the same 20px gutter as the title and toolbar.
+
+**Also fixed (latent from v1.1.1763):** the root was renamed `versionsverlauf-view-container → charts-history-root`, which stopped matching the `DetailView.css` `:has()` rules that suppress the *outer* DetailView scrollbar/overflow. Added `.charts-history-root` to both `:has()` lists so no second scrollbar appears beside the view's own CustomScrollbar.
+
+### Result
+
+Today / D·W·M·Y and both containers are flush with the Active/Just-Now title and the toolbar; only the view's own CustomScrollbar shows.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/UniversalDeviceView.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1763 - 2026-05-31
 
 **Title:** 🧱 History layout — floating time-header + two separate containers (Charts / Activities)
