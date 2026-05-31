@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1765 - 2026-05-31
+
+**Title:** 🔀 History — single container with 📊 Charts ⇄ 📋 Activities mode-switch
+**Tags:** Feature, UI, Charts, Activities
+
+### Why
+
+User preference: instead of two stacked containers, show ONE container at a time and toggle between Charts and Activities via a compact segment-switch on the header row. Saves vertical space, keeps focus.
+
+### What
+
+- **`ChartsHistoryView.jsx`:** New `mode` state (`'charts' | 'activities'`, default **Charts**). Added a 📊/📋 segment-switch at the left of the header row (then the date-picker, then D/W/M/Y on the right). Only the active mode's container renders (conditional, so the chart isn't kept alive hidden). Click-to-sync now auto-switches back to Charts so the marked point is visible.
+- **`DeviceActivitiesView.jsx`:** New `embedded` prop. In embedded (switch) mode it's always expanded — no collapse chevron, not clickable — and fetches on mount; the header keeps the "Aktivitäten · N" count. Non-embedded use keeps the collapsible behavior.
+
+### Result
+
+The History tab is now a single container with a 📊⇄📋 toggle in the header: Charts by default, one tap to the Activities feed, both driven by the same date / D·W·M·Y header. Clicking an activity jumps back to Charts and marks the point.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1764 - 2026-05-31
 
 **Title:** 📐 History alignment — content flush with the title/toolbar margins (+ outer-scrollbar fix)
