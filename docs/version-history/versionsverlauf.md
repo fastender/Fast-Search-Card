@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1763 - 2026-05-31
+
+**Title:** 🧱 History layout — floating time-header + two separate containers (Charts / Activities)
+**Tags:** UI, Charts, Activities, Layout
+
+### Why
+
+User feedback: the "Today" date-picker and "D/W/M/Y" tabs should not sit inside the dark container, and Charts vs Activities should be two distinct containers — matching the original Mockup Variant 2 (slim floating header + two stacked cards).
+
+### What
+
+- **`ChartsHistoryView.jsx` restructured:** The single `.versionsverlauf-view-container` is replaced by a flex-column root (`charts-history-root`, position:relative) with:
+  1. The shared `ChartPeriodHeader` floating at the top — no dark background.
+  2. A scroll region (`charts-scroll-body`, with the is-scrolling top-fade + hidden native scrollbar) containing **two separate dark containers**: Charts (filter chips + chart) and Activities, with a 12px gap.
+  - `CustomScrollbar` now tracks the scroll region against the position:relative root.
+- **New `.charts-glass-container` CSS:** dark rounded (rgba(0,0,0,0.2), radius 24) box for the Charts card.
+- **`DeviceActivitiesView.jsx`:** outer container aligned to match — dropped the edge margin (the scroll region provides padding/gap), radius 16→24, bg matched to the Charts container.
+
+### Result
+
+The time-header sits cleanly above on the wallpaper (its pills carry their own light background), and Charts and Activities are two visually distinct cards beneath it, both driven by the one header. Matches the agreed Mockup Variant 2.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1762 - 2026-05-31
 
 **Title:** 🐞 Activities polish — tighter header gap, scroll mask, CustomScrollbar, version-card rows
