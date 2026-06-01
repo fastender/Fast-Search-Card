@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1770 - 2026-06-02
+
+**Title:** 📐 History view — fixed-height container, content scrolls inside
+**Tags:** UI, Charts, Activities, Layout
+
+### Why
+
+The dark container (Charts / Activities) grew with its content and the whole page scrolled. User wants the container to have a fixed height with the content scrolling *inside* it.
+
+### What
+
+- **`ChartsHistoryView.jsx`:** The body no longer scrolls the page — it's `overflow: hidden`, fills the available height, and the active container (Charts or Activities) is `flex: 1` so it has a fixed height. Removed the outer scroll state/mask and the page-level CustomScrollbar. Charts container is now a flex column: chip-bar fixed (`flex-shrink: 0`), chart block fills the rest (`flex: 1`, was a fixed 340px).
+- **`DeviceActivitiesView.jsx`:** In embedded mode the card fills the height (`flex: 1`, position-relative, flex column); the title bar stays fixed; the filter chips + toggle + timeline live in an internal scroll area (`flex: 1; overflow-y: auto`, native bar hidden via `.charts-scroll-body`) with its own `CustomScrollbar` mounted inside the card.
+
+### Result
+
+Charts and Activities now sit in a fixed-height card; the chart fills it, and the activities list scrolls within the card (own CustomScrollbar) instead of scrolling the whole view.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1769 - 2026-05-31
 
 **Title:** 🧱 Device Edit — fixed top navbar (Cancel / Save) like the calendar & task editors
