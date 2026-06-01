@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1777 - 2026-06-02
+
+**Title:** 🗓️ Date popover — highlight the period as a connected range (week/month/year)
+**Tags:** UI, Charts, DatePicker
+
+### Why
+
+In the calendar the user wants to see/select the **span** (e.g. the whole week in W mode), drawn as a connected range with rounded ends — like a date-range picker. In the chart context the span = the active period (D/W/M/Y).
+
+### What
+
+- **`ChartDatePopover.jsx`:** New `timeRange` prop. Computes the highlighted range from the selected date + mode — day = 1 day, week = Mon–Sun, month = whole month, year = whole year. Renders it as a connected blue range: column-gap set to 0 so in-range cells touch; each cell gets rounded outer corners only at the range start/end **or** at a row edge (Mon/Sun), giving the wrap-across-rows pill look from the mockup. Clicking any day still selects the period containing it.
+- **`ChartsHistoryView.jsx`:** passes `timeRange` to the popover.
+
+### Result
+
+Opening the calendar in W mode shows the whole selected week as one rounded pill (M = the month, Y = the year); picking a day jumps to that period.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1776 - 2026-06-02
 
 **Title:** 📏 History header — active D·W·M·Y fills full height + iOS chevrons on date-picker
