@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1774 - 2026-06-02
+
+**Title:** 🗓️ Date popover — fix full-detail backdrop in Shadow DOM (closest portal target)
+**Tags:** Bugfix, UI, Charts, DatePicker, ShadowDOM
+
+### Why
+
+In v1.1.1773 the backdrop still only dimmed the History area, not the whole detail view. Cause: the card renders inside a **Shadow DOM**, so `document.querySelector('.detail-panel.visible')` (light-DOM only) returned null → the popover fell back to inline rendering inside `charts-history-root`.
+
+### What
+
+- **`ChartsHistoryView.jsx`:** Added a ref on the root and, when opening the calendar, resolved the portal target via `rootRef.current.closest('.detail-panel')` — `closest()` stays within the same Shadow tree, so it actually finds the panel. Passed it down as `portalTarget`.
+- **`ChartDatePopover.jsx`:** New `portalTarget` prop used as the `createPortal` target (with `document.querySelector` light-DOM + inline as fallbacks).
+
+### Result
+
+The backdrop now portals into the real `.detail-panel` even inside the Shadow DOM, so the entire detail view (title, toolbar, content) is dimmed/blurred behind the centered calendar.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/ChartDatePopover.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1773 - 2026-06-02
 
 **Title:** 🗓️ Date popover — truly centered + full detail-view backdrop (portal)
