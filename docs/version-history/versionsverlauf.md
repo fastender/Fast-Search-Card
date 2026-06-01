@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1771 - 2026-06-02
+
+**Title:** 🗓️ History — SVG mode icons + custom iOS-style date popover (i18n)
+**Tags:** UI, Charts, Activities, DatePicker
+
+### Why
+
+Two requests: (1) replace the 📊/📋 emoji in the mode-switch with proper line-icon SVGs; (2) the date popover was the **native** browser picker — which we can't style and which ignores our `lang` (so it always showed German). Needed a custom iOS-26-style calendar that respects English.
+
+### What
+
+- **Mode-switch icons (`ChartsHistoryView.jsx`):** 📊 → bar-chart SVG, 📋 → database/stack SVG (iconoir style, `stroke="currentColor"`, 18px). Active = full white, inactive = dimmed.
+- **New `ChartDatePopover.jsx`:** custom calendar popover — dark translucent blurred card, rounded, `Month Year` header with ‹ › month nav, Mon-first weekday row + day grid (all localized via `lang`), selected day = blue fill, today = ring, future days disabled (respects `max`), and a localized **Today/Heute** shortcut. Closes on backdrop click.
+- **`ChartPeriodHeader.jsx`:** dropped the hidden native `<input type="date">` + `showPicker()`; the date button now toggles `ChartDatePopover` (right-aligned below it). The picked `YYYY-MM-DD` is converted to the relative `periodIndex` as before.
+
+### Result
+
+The mode-switch shows clean line icons, and tapping the date opens a styled iOS-look calendar that follows the card's language (English now works) instead of the unstyled, German-only browser picker.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx` (new)
+- `src/components/charts/ChartPeriodHeader.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1770 - 2026-06-02
 
 **Title:** 📐 History view — fixed-height container, content scrolls inside
