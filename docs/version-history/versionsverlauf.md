@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1778 - 2026-06-02
+
+**Title:** 🗓️ Charts — custom date-range selection (tap start → tap end), chart shows the span
+**Tags:** Feature, Charts, Activities, DatePicker
+
+### Why
+
+User wants to pick an arbitrary span like a hotel/flight booking (tap 22, tap 25 → the 22–25 range), and have the chart show exactly that range — not just a fixed D/W/M/Y period.
+
+### What
+
+- **`ChartDatePopover.jsx`:** Now a 2-tap range picker. First tap sets the start, second tap finalizes the span (auto-sorted), emitting `{start, end}`. The in-progress selection highlights as a connected range; a footer hint guides ("Tap start + end" → "Pick end date…"). "Today" emits a 1-day range.
+- **`sensorStatistics.js`:** New `getCustomRangeChartData` + `getCustomRangeValue` (history-based) with a span-adaptive bucketer (`≤2 days → hourly`, `≤92 → daily`, else monthly). `getDerivedSensorEvents` also accepts `customStart/customEnd`.
+- **`logbookService.js`:** `getDeviceLogbookEvents` accepts `customStart/customEnd`.
+- **`SensorChartView.jsx`:** new `customStart/customEnd` props; when set, the chart + headline fetch the custom range instead of the period.
+- **`ChartsHistoryView.jsx`:** holds `customRange`. Selecting a range overrides D/W/M/Y; the header date label shows the range ("22. – 25. May"), D/W/M/Y loses its active highlight and the ← → scrubber is disabled. Tapping a D/W/M/Y button clears the custom range. Both Charts and Activities react to the custom range.
+
+### Result
+
+Open the calendar, tap a start day then an end day → the chart (and activities) show that exact span, bucketed sensibly; pick a D/W/M/Y button to return to standard periods.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx`, `ChartPeriodHeader.jsx`, `ChartsHistoryView.jsx`, `SensorChartView.jsx`, `DeviceActivitiesView.jsx`
+- `src/services/sensorStatistics.js`, `src/services/logbookService.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1777 - 2026-06-02
 
 **Title:** 🗓️ Date popover — highlight the period as a connected range (week/month/year)
