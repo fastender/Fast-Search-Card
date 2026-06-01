@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1772 - 2026-06-02
+
+**Title:** 🗓️ Date popover — centered modal with dimmed backdrop + month/year picker
+**Tags:** UI, Charts, DatePicker
+
+### Why
+
+Follow-ups on the custom date popover: (1) it was anchored to the date button and clipped/awkward — it should appear centered in the detail view with a dimmed/blurred backdrop; (2) tapping "June 2026" did nothing — the user wants to pick month/year too, iOS-26 style.
+
+### What
+
+- **Centered modal:** The popover is now rendered at `charts-history-root` (which is `position: relative`) instead of anchored to the date button, so it centers in the History/right-detail area. Added a dimmed + blurred backdrop (`rgba(0,0,0,0.5)` + `blur(6px)`) behind it; backdrop click closes. z-index raised above the activities scrollbar.
+- **Month/year picker:** Tapping the `Month Year` title (now with a ▾) switches the popover into a month-selection mode — a year stepper (‹ year ›, clamped to `max`) + a 3×4 grid of localized month names; picking a month returns to the day grid. Future months/years are disabled.
+- **State lifted:** `ChartsHistoryView` now owns the calendar open-state + the date↔periodIndex mapping (it already owns `timeRange`/`periodIndex`); `ChartPeriodHeader` just calls `onOpenCalendar`.
+
+### Result
+
+Tapping the date opens a centered iOS-style calendar over a dimmed backdrop; the month/year header is tappable to jump months/years; everything follows `lang`.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx`
+- `src/components/charts/ChartPeriodHeader.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1771 - 2026-06-02
 
 **Title:** 🗓️ History — SVG mode icons + custom iOS-style date popover (i18n)
