@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1773 - 2026-06-02
+
+**Title:** 🗓️ Date popover — truly centered + full detail-view backdrop (portal)
+**Tags:** Bugfix, UI, Charts, DatePicker
+
+### Why
+
+Two follow-ups from v1.1.1772: the modal landed bottom-right instead of centered, and only the History content was dimmed (not the whole detail view).
+
+### What
+
+- **Centering fix:** The modal was centered via `transform: translate(-50%, -50%)`, but framer-motion's `scale` animation overwrites `transform`, killing the offset → it sat bottom-right. Replaced transform-centering with a flex centering layer (`position: absolute; inset: 0; display: flex; align/justify center`); the modal only animates opacity/scale.
+- **Full detail-view backdrop:** The popover now portals (`createPortal`) into `.detail-panel.visible` (which is `position: relative`) and covers it with `position: absolute; inset: 0` + dim + `blur(8px)`. So the entire detail view — title, toolbar, content — is darkened/blurred behind the centered calendar. z-index raised to 9998/9999. Click outside the modal closes.
+
+### Result
+
+The calendar opens dead-centered over a fully dimmed/blurred detail view, with the month/year picker intact.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1772 - 2026-06-02
 
 **Title:** 🗓️ Date popover — centered modal with dimmed backdrop + month/year picker
