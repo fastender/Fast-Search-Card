@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1775 - 2026-06-02
+
+**Title:** 📏 History header — equalize control heights (date-picker + D·W·M·Y match the mode-switch)
+**Tags:** UI, Charts
+
+### Why
+
+The date-picker pill ("Week 21 2026 ← →") and the D·W·M·Y segment were shorter than the 📊/📋 mode-switch, so the header row looked uneven.
+
+### What
+
+Gave all three header control groups the same fixed height (`36px` + `box-sizing: border-box`, vertically centered): the mode-switch (`ChartsHistoryView`) and the date-picker + D·W·M·Y groups (`ChartPeriodHeader`).
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/ChartPeriodHeader.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1774 - 2026-06-02
 
 **Title:** 🗓️ Date popover — fix full-detail backdrop in Shadow DOM (closest portal target)
