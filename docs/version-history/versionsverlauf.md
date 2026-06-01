@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1776 - 2026-06-02
+
+**Title:** 📏 History header — active D·W·M·Y fills full height + iOS chevrons on date-picker
+**Tags:** UI, Charts
+
+### Why
+
+Two refinements: the active D·W·M·Y button was shorter than the active 📊/📋 switch button (containers were equal height, but the inner buttons filled different amounts), and the date-picker's ← → text arrows didn't feel iOS-26.
+
+### What
+
+- **Equal active-button height:** the mode-switch and D·W·M·Y containers now use `align-items: stretch` so their inner buttons fill the full 36px container height — the active highlights match. D·W·M·Y buttons center their label via flex (vertical padding dropped, height comes from stretch).
+- **iOS chevrons:** replaced the `←` / `→` glyphs in the date-picker with thin chevron SVGs (`stroke="currentColor"`, rounded caps), matching the calendar popover's nav.
+
+### Files
+
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/charts/ChartPeriodHeader.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1775 - 2026-06-02
 
 **Title:** 📏 History header — equalize control heights (date-picker + D·W·M·Y match the mode-switch)
