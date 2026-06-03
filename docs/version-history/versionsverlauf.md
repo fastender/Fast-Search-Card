@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1780 - 2026-06-02
+
+**Title:** 🐞 Chart tooltip — fix "May 29:00-NaN:00" on custom date ranges
+**Tags:** Bugfix, Charts
+
+### Why
+
+On a custom date range the chart tooltip title showed e.g. "May 29:00-NaN:00". The tooltip formatter assumed the X-label is an hour ("HH:MM") for `day` mode (or a day number for `month`), but custom ranges use date labels like "May 29".
+
+### What
+
+Made the tooltip title in `buildLineBarConfig` defensive: the `day` branch only formats as an hour range when the label actually contains `:` and parses to a valid number; the `month` branch only formats as DD.MM.YYYY when the label is purely numeric (no letters). Otherwise it returns the raw label. The chart's line/bar styling is unchanged (still keyed off the real `timeRange`).
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/energyChartConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1779 - 2026-06-02
 
 **Title:** 🗓️ Date range — keep selection visible (no instant close) + pre-mark active range
