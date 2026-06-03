@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.1781 - 2026-06-02
+
+**Title:** 📋 Activities — scroll top-fade mask + brighter text
+**Tags:** UI, Activities
+
+### What
+
+- **is-scrolling mask:** the Activities internal scroll area now toggles the `.charts-scroll-body.is-scrolling` top-fade (transparent → black over 40px) once `scrollTop > 0`, matching versionsverlauf/news.
+- **Brighter text:** event name `rgba(255,255,255,0.9 → 0.96)`, message `0.6/0.8 → 0.78`, time `0.5 → 0.6`; and non-focus (dimmed) rows are less aggressively dimmed (`opacity 0.45 → 0.65`) so the whole feed reads brighter.
+
+### Files
+
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1780 - 2026-06-02
 
 **Title:** 🐞 Chart tooltip — fix "May 29:00-NaN:00" on custom date ranges
