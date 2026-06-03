@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1783 - 2026-06-02
+
+**Title:** 🐞 Settings rows — long-text fade, hover icon darkening, Edit scroll mask
+**Tags:** Bugfix, UI, UniversalSetup
+
+### What
+
+Four reported issues across the device Edit / picker sub-views (all `.ios-item`-based):
+
+- **bug1 + bug2 — long subtitle overflow/fade:** long entity-id subtitles (e.g. `sensor.energy_grid_solarnet_leistung_netzbezug_…`) overflowed and overlapped the toggle/value. `.ios-item-subtitle` is now single-line with `overflow: hidden` + a right-edge fade mask, and `.ios-item-content` clips. Short subtitles never reach the fade zone, so they don't fade — only long text fades out before the right control.
+- **bug3 — icon stays light on hover:** the Edit "Icon → Power" preview lives in `.ios-item-right`, which the existing hover-darken rule (left-only) missed. Added a `.device-icon-preview` class + hover rule so the icon turns dark on the white hover background.
+- **bug4 — no scroll mask on Edit:** the Universal device Edit main view (`.ios-settings-view`) now toggles `.is-scrolling` on `scrollTop > 0` for the top-fade mask (same as versionsverlauf).
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1782 - 2026-06-02
 
 **Title:** 📋 Activities — drop row dimming (feed stays bright); focus via accent only
