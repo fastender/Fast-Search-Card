@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1779 - 2026-06-02
+
+**Title:** 🗓️ Date range — keep selection visible (no instant close) + pre-mark active range
+**Tags:** Bugfix, UI, Charts, DatePicker
+
+### Why
+
+The colored range marking wasn't visible: the popover closed the instant you tapped the end date, and reopening showed the period (not your custom range). User: "mir fehlt dieses markieren".
+
+### What
+
+- **No auto-close on 2nd tap (`ChartsHistoryView.jsx` + `ChartDatePopover.jsx`):** the second tap now applies the range but keeps the popover open, so the connected colored span stays on screen. A **Fertig/Done** button (next to Today) closes it (backdrop click also closes).
+- **Pre-marked on open:** the popover receives the active custom range as `initialStart/initialEnd` and pre-selects it, so reopening shows your span highlighted instead of the period.
+
+### Result
+
+Tapping start → end paints the connected colored range and leaves it visible; "Fertig" applies/closes; reopening shows the current range marked.
+
+### Files
+
+- `src/components/charts/ChartDatePopover.jsx`
+- `src/components/charts/ChartsHistoryView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1778 - 2026-06-02
 
 **Title:** 🗓️ Charts — custom date-range selection (tap start → tap end), chart shows the span
