@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1782 - 2026-06-02
+
+**Title:** 📋 Activities — drop row dimming (feed stays bright); focus via accent only
+**Tags:** UI, Activities
+
+### Why
+
+The Activities feed still looked dark: non-focus rows (everything except the active chart sensor) were dimmed via `opacity`, which faded the whole row — background + text — to grey. Brightening text alone didn't help because the opacity was the cause.
+
+### What
+
+Removed the opacity dimming entirely. All event rows now render at full brightness with a subtle card background (`rgba(255,255,255,0.07)`); the focus sensor is distinguished only by its colored left-accent bar + a slightly brighter background (`0.14`). Hover lifts to `0.2`.
+
+### Result
+
+The Activities feed is bright and readable; the focused sensor still stands out via its accent, without darkening everything else.
+
+### Files
+
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1781 - 2026-06-02
 
 **Title:** 📋 Activities — scroll top-fade mask + brighter text
