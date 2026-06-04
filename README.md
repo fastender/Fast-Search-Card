@@ -33,7 +33,7 @@ A modern dashboard for Home Assistant.<br>
 <br>
 <br>
 
-[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Security](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
+[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Security](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) · [Performance](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
 
 </div>
 
@@ -132,6 +132,18 @@ No telemetry. No tracking. No external API calls. No authentication material sto
 Audited on every release. Single-file bundle you can grep yourself.
 
 See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) for the complete audit and the full list of what's stored locally.
+
+<br>
+
+## Performance
+
+Boots in under a second. Stays under 400 KB gzipped. 60 fps scrolling with thousands of entities.
+
+rAF-batched updates. virtua-virtualized lists. Instant repeat searches via LRU cache. No main-thread starvation.
+
+Measured on every release. Single-file bundle you can profile yourself.
+
+See [PERFORMANCE.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) for the full audit and the numbers we measure on every release.
 
 <br>
 
