@@ -27,6 +27,7 @@
 | `mobile` | General | Mobile |
 | `sidebar` | General | Sidebar |
 | `homeScreen` | General | Startseite / Home Screen |
+| `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets (ⓘ statt gelber Hinweis-Karte) |
 | `tts` | General | Text-to-Speech |
 | `suggestions` | General | Vorschläge / Suggestions |
 | `toasts` | General | Toasts |
@@ -156,6 +157,32 @@
 > - **Configure widgets** – choose which tiles appear and in what order.
 >
 > *Why it matters:* the home screen is the first thing you see.
+
+## homeScreenSlots
+
+> Ersetzt die frühere gelbe Hinweis-Karte in der Bento-Slot-Auswahl (Start Screen Detail).
+
+**DE**
+> ## Startseiten-Widgets
+>
+> Lege fest, welche System-Entity in jedem der vier Bento-Slots auf der Startseite erscheint.
+>
+> - **W1** groß, **W2** oben rechts, **W3 / W4** unten geteilt.
+> - Tippe einen Slot an, um die Entity auszuwählen.
+> - Tippe auf ein Bento-Widget auf der Startseite, um direkt dessen Detail-Ansicht zu öffnen.
+>
+> *Warum wichtig:* So baust du dir deine Startseite aus genau den Infos zusammen, die du sofort sehen willst.
+
+**EN**
+> ## Home Screen Widgets
+>
+> Choose which system entity renders in each of the four bento slots on the home screen.
+>
+> - **W1** large, **W2** top-right, **W3 / W4** split at the bottom.
+> - Tap a slot to pick its entity.
+> - Tap a bento widget on the home screen to open that entity's detail view directly.
+>
+> *Why it matters:* this is how you compose your home screen from exactly the info you want at a glance.
 
 ## tts
 

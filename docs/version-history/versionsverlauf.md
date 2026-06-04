@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1800 - 2026-06-04
+
+**Title:** 🧹 Scroll-fade mask across ALL settings sub-views + yellow hint cards folded into ⓘ popups
+**Tags:** Settings, UI, Cleanup, i18n
+
+### What
+
+**Scroll mask sweep** — added the `is-scrolling` top-fade mask to every settings tab that lacked it: General, StatsBar, Privacy/Filter, Toast, About (single-view → empty-dep effect), StartScreen (keyed on `activeSlot`). General + StatsBar key on `currentView`; Appearance + Sidebar Items already had it. Every settings scroll container now fades content in at the top when scrolled.
+
+**Yellow hint cards → ⓘ popups** — removed all three amber `rgb(255,204,0)` hint cards and folded their content into the section's info popup:
+- **Sidebar Items** ("Available items") — activation-order hint → `settingsInfo.sidebarItems`.
+- **TTS sub-view** — the "Auto cycles through engines / language follows app" hint → `settingsInfo.tts`; added a section header with ⓘ in the sub-view.
+- **Start Screen / Bento slots** — the slot-picker hint → new `settingsInfo.homeScreenSlots`; replaced the card with a "Bento widgets" section header + ⓘ.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/{General,StatsBar,Privacy,Toast,About,StartScreen}SettingsTab.jsx` — is-scrolling effects (+ useEffect imports where missing)
+- `src/components/tabs/SettingsTab/components/{SidebarItems,StartScreen,General}SettingsTab.jsx` — yellow cards removed, section-header ⓘ added
+- `src/utils/translations/languages/de.js`, `.../en.js` — enriched `sidebarItems`/`tts`, new `homeScreenSlots`
+- `docs/settings-info/settings-info-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1799 - 2026-06-04
 
 **Title:** ℹ️ Scroll-fade mask added to the Sidebar Items sub-view
