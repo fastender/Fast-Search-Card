@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.1813 - 2026-06-04
+
+**Title:** ℹ️ StatsBar "About" text folded into the section info popup
+**Tags:** Settings, StatsBar, Cleanup
+
+### What
+
+Removed the always-visible "About StatsBar" description section (the "Show status bar with widgets" text + the Features list) and folded that content into the SETTINGS section's existing ⓘ popup (`settingsInfo.statsBar`, now including the Features list: live updates, Energy Dashboard integration, customizable widgets). One less text block on screen; the info is one tap away on the same screen.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx` — removed About section
+- `src/utils/translations/languages/de.js`, `.../en.js` — enriched `statsBar`
+- `docs/info-popups/info-popups-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1812 - 2026-06-04
 
 **Title:** 🎨 Charts reorder badge now matches Hero (blue filled)

@@ -433,23 +433,29 @@
 
 ## statsBar
 
+> v1.1.1813: enthält jetzt auch die „About StatsBar"-Features (Inline-Sektion entfernt).
+
 **DE**
 > ## Status-Leiste
 >
-> Konfiguration der Widget-Leiste oben.
+> Eine Widget-Leiste oben in der Karte mit Live-Werten.
 >
 > - **Status-Leiste aktivieren** – schaltet die ganze Leiste ein/aus.
 > - **Erkennungs-Modus** – Automatisch sucht Sensoren selbst, Manuell weist du gezielt zu.
+>
+> **Features:** Live-Updates · Energy-Dashboard-Integration · anpassbare Widgets
 >
 > *Warum wichtig:* Automatik = schnell startklar; Manuell = volle Kontrolle.
 
 **EN**
 > ## Status Bar
 >
-> Configuration of the widget bar at the top.
+> A widget bar at the top of the card with live values.
 >
 > - **Enable status bar** – turns the whole bar on or off.
 > - **Detection mode** – Automatic finds sensors itself, Manual lets you assign each source.
+>
+> **Features:** live updates · Energy Dashboard integration · customizable widgets
 >
 > *Why it matters:* automatic = fast; manual = full control.
 
