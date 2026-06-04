@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1808 - 2026-06-04
+
+**Title:** 📐 Device-edit picker search fields now span the full content width
+**Tags:** UI, Polish, Device-Edit
+
+### What
+
+The search field in the device-edit pickers (Visible Entities, Hero, Charts, Quick-Stats) sat in a wrapper with an extra `0 12px` horizontal padding, making it narrower than the section headers and item cards (which only use the view's 20px inset). Removed the extra horizontal padding (`0 12px 12px` → `0 0 12px`) so the search bar lines up flush with the headers/cards above and below.
+
+### Files
+
+- `.../UniversalSetup/VisibilityView.jsx`, `HeroPickerView.jsx`, `ChartsView.jsx`, `QuickStatsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1807 - 2026-06-04
 
 **Title:** ℹ️ Quick-Stats / Icon / Visibility device-edit pickers get info popups too
