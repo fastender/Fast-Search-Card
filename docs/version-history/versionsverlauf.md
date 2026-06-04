@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1812 - 2026-06-04
+
+**Title:** 🎨 Charts reorder badge now matches Hero (blue filled)
+**Tags:** UI, Consistency, Device-Edit
+
+### What
+
+The order badge on selected chart sensors used a neutral white-on-translucent style, unlike the Hero picker's blue filled badge. Matched it to Hero (`rgb(0,122,255)` background, white text, 22×22) so the reorder numbering looks consistent across both pickers.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1811 - 2026-06-04
 
 **Title:** ✓ News settings selection lists use the filled-circle checkmark
