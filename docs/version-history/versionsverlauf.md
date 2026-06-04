@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1791 - 2026-06-04
+
+**Title:** ℹ️ Info popups on settings section headers — detailed bilingual explanations of every setting
+**Tags:** Feature, Settings, Help, i18n
+
+### Why
+
+The settings give little context about what each option does or why it matters. Added a tappable **ⓘ** button to each section header across all settings tabs that opens a popup with a detailed, bilingual (de/en) markdown explanation.
+
+### What
+
+- New reusable `SettingsSectionHeader` (`SettingsSectionInfo.jsx`): renders the section title + an ⓘ button; clicking opens a centered, glass-style popup that **portals into `.detail-panel`** (mirrors ChartDatePopover) with a dimmed/blurred backdrop, scrollable body, and a "Got it" button. Content is rendered through the existing `miniMarkdown` (`renderMarkdown`) parser, so headings/bold/bullet lists are supported. Falls back to a `translateUI`-built `t` for tabs that don't receive a `t` prop (Sidebar items).
+- Wired **17 section headers** across 6 tabs: General (General, Status & Greetings, Mobile, Sidebar, Home Screen, Text-to-Speech, Suggestions, Toasts), Appearance (Design, Home Assistant, Animations), StatsBar (Settings, Available Widgets), Privacy (System settings, Excluded patterns), Toasts (When toasts appear), Sidebar items (Available items).
+- Info text lives in the translation files (`ui.settings.settingsInfo.<key>`, de + en) — runtime source of truth.
+- New CSS in `iOSSettingsView.css`: `.ios-section-header--info` flex layout, `.ios-info-btn` (hover-darkens), and `.settings-info-md` markdown styling.
+- **Maintainable catalog/"database":** `docs/settings-info/settings-info-catalog.md` mirrors all texts (de + en) with a key→tab→section table, so the content can be planned/maintained in one place (must be kept in sync with the two translation files).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx` — new
+- `src/components/tabs/SettingsTab/components/{General,Appearance,Privacy,StatsBar,Toast}SettingsTab.jsx`, `SidebarItemsSettingsTab.jsx` — header wiring
+- `src/utils/translations/languages/de.js`, `.../en.js` — `settingsInfo` block (17 keys)
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — info button + markdown styles
+- `docs/settings-info/settings-info-catalog.md` — new content catalog
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1790 - 2026-06-04
 
 **Title:** 🧹 Splashscreen removed (Default + Apple Hello) — boot goes straight to the wallpaper reveal
