@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1786 - 2026-06-02
+
+**Title:** 🧱 Edit — title in navbar + Hero slideshow reordering (↑/↓ + order badges)
+**Tags:** UI, UniversalSetup, Hero
+
+### Why
+
+Two requests: (1) the device Edit screen's "Edit" title should sit centered in the navbar (between Cancel/Save) like the sub-views, not as a big body heading; (2) the Hero multi-select should let you set the slideshow order.
+
+### What
+
+- **Edit title in navbar:** added a centered `.ios-navbar-title` ("Bearbeiten/Edit") to the step-2 navbar in edit mode; `StepHeader` now renders just a small spacer in edit mode (the big body heading is gone). Add-mode keeps its step indicator + heading.
+- **Hero reordering:** the Hero picker now shows each selected entity's **slide-order badge** (1…5) instead of a checkmark, plus **↑/↓ buttons** to move it earlier/later in the slideshow (disabled at the ends, only shown with ≥2 heroes). New `moveHero(entityId, dir)` swaps neighbours in the `hero` array, which is the order the card's hero slideshow cycles through.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/shared.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1785 - 2026-06-02
 
 **Title:** 📋 Universal device — scroll mask + CustomScrollbar in entity sub-views too
