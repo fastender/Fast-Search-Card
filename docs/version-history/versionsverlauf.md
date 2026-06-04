@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1784 - 2026-06-02
+
+**Title:** 🐞 Setup — scroll mask on all sub-views + navbar title fades only when long
+**Tags:** Bugfix, UI, UniversalSetup
+
+### What
+
+- **Scroll mask on every sub-view:** instead of toggling `.is-scrolling` only on the Edit main view, `UniversalSetup` now attaches one scroll listener to the active `.ios-settings-view` node (all views register it via `scrollRef`) and toggles the `.is-scrolling` top-fade on the DOM node directly. So Icon, Hero, Display, Quick-Stats and Charts sub-views all get the top-fade while scrolling.
+- **Navbar title fade only when long:** `.ios-navbar-title` previously shrank to its content width, so the 40px right-fade zone covered short titles like "Hero" entirely (always faded). Now it has a fixed width (`calc(100% - 160px)`) + centered text + a symmetric both-edges fade. Short titles sit centered with empty margins → no visible fade; only long titles fill the box and fade at the edges.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1783 - 2026-06-02
 
 **Title:** 🐞 Settings rows — long-text fade, hover icon darkening, Edit scroll mask
