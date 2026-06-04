@@ -33,6 +33,7 @@
 | `design` | Appearance | Darstellung / Design |
 | `homeAssistant` | Appearance | Home Assistant |
 | `animations` | Appearance | Animationen / Animations |
+| `videoFiles` | Appearance | Video Files (im Animations-Detail) |
 | `statsBar` | StatsBar (Detail) | EINSTELLUNGEN / SETTINGS |
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
 | `limits` | Filter | Limits (früher „System Settings") |
@@ -289,6 +290,32 @@
 > - **Video folder & filenames** – where the videos live and how they must be named.
 >
 > *Why it matters:* videos cost performance/data – that's why desktop and mobile are separate.
+
+## videoFiles
+
+**DE**
+> ## Video-Dateien
+>
+> Damit Hintergrund-Videos automatisch zugeordnet werden, müssen die Dateinamen einem Schema folgen.
+>
+> - **Schema:** `{domain}_{state}.mp4` – z. B. `light_on.mp4`, `cover_closed.mp4`.
+> - Beim Öffnen eines Geräts sucht die Karte nach der passenden Datei im Video-Ordner.
+> - Als Platzhalter funktionieren `default_1.mp4` … `default_10.mp4` (zufällige Auswahl).
+> - Fehlt eine Datei, wird einfach kein Video gezeigt – kein Fehler.
+>
+> *Warum wichtig:* Nur exakt benannte Dateien werden gefunden – ein Tippfehler im Namen = kein Video.
+
+**EN**
+> ## Video Files
+>
+> For background videos to be matched automatically, the filenames must follow a scheme.
+>
+> - **Scheme:** `{domain}_{state}.mp4` – e.g. `light_on.mp4`, `cover_closed.mp4`.
+> - When a device opens, the card looks for the matching file in the video folder.
+> - Placeholders `default_1.mp4` … `default_10.mp4` work too (random selection).
+> - If a file is missing, no video is shown – no error.
+>
+> *Why it matters:* only exactly-named files are found – a typo in the name = no video.
 
 ## statsBar
 

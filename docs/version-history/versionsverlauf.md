@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1798 - 2026-06-04
+
+**Title:** 🎚️ Custom SVG number stepper + scroll mask in Appearance sub-views + Video Files info + `note` translation
+**Tags:** Settings, UI, Bugfix, i18n
+
+### What
+
+**bug1 — "Maximum Number of Entities" field:**
+- The value text turned **black on hover** (the global `.ios-item:hover .ios-number-input { color:#000 }` rule still fired even though the row's white-hover is disabled via `.ios-item--static`). Added a higher-specificity override keeping it white.
+- Replaced the ugly native number-input spinners with a **custom iOS-style stepper**: hidden native spinners, a bordered field (`focus-within` blue ring), and two stacked SVG chevron buttons (up/down, step 50, clamped 0–1000, disabled at the ends). New `commitMaxEntities()` helper centralizes clamp + persist + broadcast.
+
+**bug2 — Detail-View-Videos sub-view:**
+- Added the **`is-scrolling` top-fade mask** to AppearanceSettingsTab (one effect keyed on `currentView`, toggling the class on the shared scroll container — covers all main + sub-views, which had none).
+- Added an **ⓘ info popup** to the "Video Files" section explaining the `{domain}_{state}.mp4` naming scheme, placeholders, and matching behaviour.
+- Fixed the missing **`note`** translation (the "Note:" label rendered as raw `ui.settings.note`) — added `note` = "Hinweis" / "Note".
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — stepper styles + static-row white-text override
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — custom stepper + `commitMaxEntities`
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — is-scrolling effect + Video Files ⓘ
+- `src/utils/translations/languages/de.js`, `.../en.js` — `note` key + `settingsInfo.videoFiles`
+- `docs/settings-info/settings-info-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1797 - 2026-06-04
 
 **Title:** 🏷️ "Privacy" tab renamed to "Filter", "System Settings" section renamed to "Limits"
