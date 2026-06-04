@@ -87,6 +87,8 @@
 |---|---|---|
 | `newsFeeds` | **News-Entity** → Settings | FEEDS |
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
+| `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |
+| `chartSensors` | **Universal-Gerät bearbeiten** → Charts | SENSOREN / SENSORS |
 
 ---
 
@@ -677,3 +679,55 @@
 > - **Default filter** – what the list starts with (All / Unread / Favorites).
 >
 > *Why it matters:* controls how tidy and how heavy your news stream is.
+
+## heroEntities
+
+> Universal-Gerät bearbeiten → Hero. Ersetzt den grauen Beschreibungstext unter „ENTITIES".
+
+**DE**
+> ## Hero-Anzeige
+>
+> Wähle bis zu 5 Werte für die große Hero-Anzeige (der Kreis oben in der Detail-Ansicht).
+>
+> - Mehrere Heroes **rotieren als Slideshow**.
+> - Entitäten mit **„Bild"- oder „Kamera"-Badge** werden als Foto dargestellt statt als Wert.
+> - Über die Pfeile (↑/↓) an einer ausgewählten Zeile bestimmst du die Reihenfolge der Slideshow.
+>
+> *Warum wichtig:* Der Hero ist das Erste, was du beim Öffnen des Geräts siehst.
+
+**EN**
+> ## Hero Display
+>
+> Pick up to 5 values for the large hero display (the circle at the top of the detail view).
+>
+> - Multiple heroes **rotate as a slideshow**.
+> - Entities with an **"Image" or "Camera" badge** render as a picture instead of a value.
+> - Use the arrows (↑/↓) on a selected row to set the slideshow order.
+>
+> *Why it matters:* the hero is the first thing you see when opening the device.
+
+## chartSensors
+
+> Universal-Gerät bearbeiten → Charts. Ersetzt den grauen Beschreibungstext unter „SENSORS" (die Live-Anzahl bleibt im Header).
+
+**DE**
+> ## Charts-Sensoren
+>
+> Wähle, welche Sensoren als Zeitreihen-Chart erscheinen (Tag/Woche/Monat/Jahr).
+>
+> - **Kumulativ / Momentan** – Sensoren mit `state_class` liefern volle Statistik (D/W/M/Y) direkt aus Home Assistant.
+> - **History** – Sensoren ohne `state_class` fallen auf die State-History zurück (begrenzt auf die HA-Aufbewahrungsdauer).
+> - Das farbige Badge pro Sensor zeigt den Modus: Kumulativ (grün), Momentan (blau), History (orange).
+>
+> *Warum wichtig:* Statistik-Sensoren liefern langfristige, lückenlose Charts; History-Sensoren nur so weit zurück wie HA die Daten aufbewahrt.
+
+**EN**
+> ## Chart Sensors
+>
+> Choose which sensors appear as a time-series chart (day/week/month/year).
+>
+> - **Cumulative / Measurement** – sensors with a `state_class` provide full statistics (D/W/M/Y) straight from Home Assistant.
+> - **History** – sensors without a `state_class` fall back to state-history (limited to HA's retention period).
+> - The colored badge per sensor shows the mode: Cumulative (green), Measurement (blue), History (orange).
+>
+> *Why it matters:* statistics sensors give long, gap-free charts; history sensors only go back as far as HA keeps the data.

@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1806 - 2026-06-04
+
+**Title:** ℹ️ Hero + Charts device-edit pickers: description text moved into ⓘ popups
+**Tags:** UI, Cleanup, Device-Edit, i18n
+
+### What
+
+The Universal device-edit pickers showed long gray description paragraphs under their section headers. Folded them into ⓘ info popups and removed the inline text:
+- **Hero picker** ("ENTITIES") — the "pick up to 5 / slideshow / Image+Camera badge" text → `settingsInfo.heroEntities`. The `n / 5` count stays in the header.
+- **Charts picker** ("SENSORS") — the "Cumulative/Measurement = full statistics, History = fallback" text → `settingsInfo.chartSensors`. The live sensor count stays in the header.
+
+Both headers now show `TITLE ⓘ … count`. Uses the card-wide `SettingsInfoButton` (translateUI fallback, no `t` prop needed).
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx`
+- `src/utils/translations/languages/de.js`, `.../en.js` — `heroEntities` + `chartSensors`
+- `docs/info-popups/info-popups-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1805 - 2026-06-04
 
 **Title:** ✓ Unified selection checkmark in device-edit pickers (filled-circle, like system settings)
