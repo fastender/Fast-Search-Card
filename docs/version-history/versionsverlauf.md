@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1788 - 2026-06-02
+
+**Title:** 🐞 Brighter search placeholder + brighter Activities feed + Hero value no longer squeezes its label
+**Tags:** Bugfix, UI, Activities, Hero
+
+### What
+
+- **bug1 — search placeholder:** the picker search placeholders were barely readable (browser default ~0.3 on the translucent bg). Added `.ios-settings-view input::placeholder { color: rgba(255,255,255,0.5) }`.
+- **bug2 — Activities still dark:** the event-row card backgrounds were too faint (0.07/0.14 white on the dark container). Bumped substantially — non-focus `0.16`, focus `0.24`, hover `0.3`; group-day label `0.4 → 0.6`, message text `0.78 → 0.85`, name to full white. (No opacity dimming remains since v1.1.1782.)
+- **bug3 — Hero value squeezing the label:** a long single-hero name ("Reolink Video Doorbell PoE Standardauflösung") filled `.ios-item-right` (flex-shrink:0) and crushed "Hero Entity" into a 1-char column. Capped the hero value span (`max-width: 190px` + ellipsis) and let the right side shrink.
+
+Also removed the obsolete `docs/mockups/` dev mockups (charts + activities ideas).
+
+### Files
+
+- `src/components/charts/DeviceActivitiesView.jsx`
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step2Customize.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1787 - 2026-06-02
 
 **Title:** 🐞 Hero reorder buttons — visible on hover (white-on-white fix)
