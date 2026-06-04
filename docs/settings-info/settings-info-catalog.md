@@ -35,9 +35,9 @@
 | `animations` | Appearance | Animationen / Animations |
 | `statsBar` | StatsBar (Detail) | EINSTELLUNGEN / SETTINGS |
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
-| `privacy` | Privacy | System-Einstellungen |
-| `excludedPatterns` | Privacy | Ausgeschlossene Muster |
-| `quickAdd` | Privacy | Schnellauswahl / Quick add (in der Excluded-Patterns-Sektion) |
+| `limits` | Filter | Limits (früher „System Settings") |
+| `excludedPatterns` | Filter | Ausgeschlossene Muster |
+| `quickAdd` | Filter | Schnellauswahl / Quick add (in der Excluded-Patterns-Sektion) |
 | `privacySecure` | About | „Your data is secure"-Karte (ⓘ an der 🔒-Karte) |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
@@ -334,25 +334,30 @@
 >
 > *Why it matters:* each widget needs a valid sensor source.
 
-## privacy
+## limits
+
+> Tab „Privacy" wurde zu **„Filter"** umbenannt; die Sektion „System Settings"
+> zu **„Limits"** (es geht um Entity-Lade-Begrenzung, nicht um Datenschutz).
 
 **DE**
-> ## System-Einstellungen
+> ## Limits
 >
-> Daten und Datenschutz-Verhalten der Karte.
+> Steuert, **wie viele** und **welche** Entitäten die Karte überhaupt lädt – wichtig für die Performance bei großen Setups.
 >
-> - Steuert systemnahe Optionen sowie das Löschen von Cache und gespeicherten Daten.
+> - **Maximale Anzahl Entities** – begrenzt, wie viele Entitäten geladen werden. `0` = unbegrenzt. Ein Limit beschleunigt den Start bei sehr vielen Geräten.
+> - **Nur Entities mit Area laden** – blendet Entitäten ohne zugewiesenen Bereich (Raum) dauerhaft aus.
 >
-> *Warum wichtig:* Alle Einstellungen bleiben lokal in deinem Browser.
+> *Warum wichtig:* Weniger geladene Entitäten = schnellere Karte und weniger Rauschen in der Suche.
 
 **EN**
-> ## System Settings
+> ## Limits
 >
-> Data and privacy behaviour of the card.
+> Controls **how many** and **which** entities the card loads at all – important for performance on large setups.
 >
-> - Controls system-level options and clearing cache and stored data.
+> - **Maximum Number of Entities** – caps how many entities are loaded. `0` = unlimited. A limit speeds up startup with very many devices.
+> - **Load only entities with area** – permanently hides entities without an assigned area (room).
 >
-> *Why it matters:* all settings stay local in your browser.
+> *Why it matters:* fewer loaded entities = a faster card and less noise in search.
 
 ## excludedPatterns
 

@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1797 - 2026-06-04
+
+**Title:** 🏷️ "Privacy" tab renamed to "Filter", "System Settings" section renamed to "Limits"
+**Tags:** Settings, Naming, UX, i18n
+
+### Why
+
+The third settings tab was labelled "Privacy" but actually holds entity-load limits, the area-only filter, and excluded patterns — nothing about data privacy (the real privacy statement lives in the About tab). The "System Settings" section header was equally misleading for what is just entity-load limits.
+
+### What
+
+- **Tab "Privacy" → "Filter"** (de + en): the detail-view header title (hardcoded `tabNames` array in `DetailView.jsx`) and the `ui.settings.privacy` label.
+- **Section "System Settings" → "Limits"** (`ui.settings.systemSettings`, de + en).
+- The section's ⓘ info popup was rewritten: it used to describe "privacy / cache" (wrong); now it accurately explains **Maximum Number of Entities** + **Load only entities with area** as performance/loading limits. Translation key renamed `settingsInfo.privacy` → `settingsInfo.limits`; `infoKey` updated in `PrivacySettingsTab`.
+- (Internal file/component name `PrivacySettingsTab` kept to avoid a churny rename; only user-visible strings changed.)
+
+### Files
+
+- `src/components/DetailView.jsx` — header `tabNames` 3rd entry → "Filter"
+- `src/utils/translations/languages/de.js`, `.../en.js` — `privacy` label, `systemSettings` header, `settingsInfo.privacy`→`limits`
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — `infoKey="limits"`
+- `docs/settings-info/settings-info-catalog.md` — updated catalog
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1796 - 2026-06-04
 
 **Title:** 🐞 "Maximum Number of Entities" row no longer turns into a white box on hover
