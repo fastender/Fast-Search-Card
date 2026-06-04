@@ -1,7 +1,14 @@
-# Settings-Info Catalog (Datenbank)
+# Info-Popup Catalog (kartenweit / card-wide)
 
-> **Zweck:** Gepflegte Übersicht aller Info-Popup-Texte, die in den Settings-Tabs
-> hinter dem **ⓘ**-Button jedes Sektions-Headers erscheinen.
+> **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
+> Text, der hinter einem **ⓘ**-Button erscheint.
+>
+> **Kartenweit, nicht nur Settings:** Das ⓘ-Info-Popup ist ein **allgemeines
+> Karten-Primitiv**, kein reines Settings-Feature. Es funktioniert überall, wo es
+> einen `.detail-panel`-Vorfahren und `lang` gibt. Heute sitzen die Popups in den
+> Settings-Tabs **und** in der News-Entity-Settings-View — weitere Bereiche
+> (andere System-Entities, Geräte-Detail-Views, Setup-Flows …) können dasselbe
+> Muster jederzeit nutzen.
 >
 > **Wichtig — Single Source of Truth:** Die App rendert diese Texte **nicht** aus
 > dieser Datei (ein kompiliertes JS-Bundle kann zur Laufzeit keine externe `.md`
@@ -10,42 +17,76 @@
 > - `src/utils/translations/languages/de.js` → `ui.settings.settingsInfo.<key>`
 > - `src/utils/translations/languages/en.js` → `ui.settings.settingsInfo.<key>`
 >
+> ⚠️ Der Bucket-Name `settingsInfo` ist **historisch** — er hält alle
+> kartenweiten Info-Texte, nicht nur Settings. (Umbenennen wäre ein großer
+> Key-Refactor; bewusst belassen.)
+>
 > Diese Datei ist die **menschenlesbare Datenbank**: hier planen/pflegen, dann in
 > beide Translation-Dateien spiegeln. Beim Ändern eines Textes **immer beides**
 > aktualisieren (diese MD + de.js + en.js).
 >
-> Komponente: `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx`
-> (`<SettingsSectionHeader title infoKey t lang />`). Markdown wird über
-> `src/utils/miniMarkdown.js` (`renderMarkdown`) gerendert.
+> **Komponente:** `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx`
+> — exportiert `SettingsInfoButton` (reines ⓘ + Popup, frei platzierbar) und
+> `SettingsSectionHeader` (Sektions-Titel + ⓘ). Props: `infoKey`, `lang`, optional
+> `t`; ohne `t` Fallback auf `translateUI('settings.settingsInfo.<key>')`.
+> Markdown wird über `src/utils/miniMarkdown.js` (`renderMarkdown`) gerendert
+> (Links automatisch `target="_blank"`).
+>
+> **Neuen Eintrag hinzufügen:** (1) Key + Text in de.js **und** en.js unter
+> `settingsInfo` ergänzen; (2) `<SettingsSectionHeader … infoKey="<key>" />` bzw.
+> `<SettingsInfoButton infoKey="<key>" />` an der gewünschten Stelle einbauen;
+> (3) Zeile in die Tabelle unten + einen Inhalts-Abschnitt hier ergänzen.
 
-## Wo welcher Key hängt
+## Wo welcher Key hängt (nach Bereich)
 
-| infoKey | Tab | Sektion (Header) |
+### Settings → General
+
+| infoKey | Sektion (Header) |
+|---|---|
+| `general` | ALLGEMEIN / GENERAL |
+| `statusGreetings` | STATUS & GREETINGS |
+| `mobile` | Mobile |
+| `sidebar` | Sidebar |
+| `homeScreen` | Startseite / Home Screen |
+| `tts` | Text-to-Speech |
+| `suggestions` | Vorschläge / Suggestions |
+| `toasts` | Toasts |
+
+### Settings → Appearance
+
+| infoKey | Sektion (Header) |
+|---|---|
+| `design` | Darstellung / Design |
+| `homeAssistant` | Home Assistant |
+| `animations` | Animationen / Animations |
+| `videoFolder` | Video Folder (Animations-Detail) |
+| `videoFiles` | Video Files (ⓘ statt Inline-Anmerkung) |
+
+### Settings → Filter (früher „Privacy")
+
+| infoKey | Sektion (Header) |
+|---|---|
+| `limits` | Limits (früher „System Settings") |
+| `excludedPatterns` | Ausgeschlossene Muster |
+| `quickAdd` | Schnellauswahl / Quick add |
+
+### Settings → weitere Detail-/Sub-Views
+
+| infoKey | Ort | Sektion |
 |---|---|---|
-| `general` | General | ALLGEMEIN / GENERAL |
-| `statusGreetings` | General | STATUS & GREETINGS |
-| `mobile` | General | Mobile |
-| `sidebar` | General | Sidebar |
-| `homeScreen` | General | Startseite / Home Screen |
-| `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets (ⓘ statt gelber Hinweis-Karte) |
-| `tts` | General | Text-to-Speech |
-| `suggestions` | General | Vorschläge / Suggestions |
-| `toasts` | General | Toasts |
-| `design` | Appearance | Darstellung / Design |
-| `homeAssistant` | Appearance | Home Assistant |
-| `animations` | Appearance | Animationen / Animations |
-| `videoFolder` | Appearance | Video Folder (im Animations-Detail) |
-| `videoFiles` | Appearance | Video Files (ⓘ statt Inline-Anmerkung) |
 | `statsBar` | StatsBar (Detail) | EINSTELLUNGEN / SETTINGS |
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
-| `limits` | Filter | Limits (früher „System Settings") |
-| `excludedPatterns` | Filter | Ausgeschlossene Muster |
-| `quickAdd` | Filter | Schnellauswahl / Quick add (in der Excluded-Patterns-Sektion) |
-| `privacySecure` | About | „Your data is secure"-Karte (ⓘ an der 🔒-Karte) |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
+| `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
-| `newsFeeds` | News (Settings) | FEEDS |
-| `newsDisplay` | News (Settings) | ANZEIGE / DISPLAY |
+| `privacySecure` | About | „Your data is secure"-Karte |
+
+### Außerhalb des Settings-Systems (kartenweit)
+
+| infoKey | Bereich | Sektion |
+|---|---|---|
+| `newsFeeds` | **News-Entity** → Settings | FEEDS |
+| `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 
 ---
 
