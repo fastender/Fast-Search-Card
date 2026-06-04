@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1802 - 2026-06-04
+
+**Title:** ℹ️ "Quick add" info icon now sits next to the label (not at the far edge)
+**Tags:** Settings, UI, Polish
+
+### What
+
+The ⓘ next to the "Quick add / Schnellauswahl" label was pushed to the far right by `justifyContent: space-between`. Switched that row to `flex-start` with a small `gap`, so the icon sits directly beside the label — matching the section-header style.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1801 - 2026-06-04
 
 **Title:** ℹ️ Detail-View-Videos: naming scheme / examples / note moved into ⓘ popups
