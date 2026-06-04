@@ -37,6 +37,7 @@
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
 | `privacy` | Privacy | System-Einstellungen |
 | `excludedPatterns` | Privacy | Ausgeschlossene Muster |
+| `quickAdd` | Privacy | Schnellauswahl / Quick add (in der Excluded-Patterns-Sektion) |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
 
@@ -357,22 +358,60 @@
 **DE**
 > ## Ausgeschlossene Muster
 >
-> Entitäten, die NICHT in Suche und Karte erscheinen sollen.
+> Lege Muster fest, um bestimmte Entitäten aus der Suche und der Karte auszublenden. Mit **Platzhaltern**:
 >
-> - Lege Text-Muster fest (z. B. `*_battery`, `sensor.test*`), um irrelevante Entitäten auszublenden.
-> - Beim ersten Start sind Standard-Muster vorbelegt.
+> - `*` = beliebig viele Zeichen (z. B. `sensor.*` für alle Sensoren)
+> - `?` = genau ein Zeichen
 >
-> *Warum wichtig:* Weniger Rauschen = schnelleres Finden.
+> **Beispiele:**
+>
+> - `sensor.temp_*` – alle Temperatur-Sensoren mit diesem Präfix
+> - `binary_sensor.motion_*` – alle Bewegungsmelder
+> - `*_unavailable` – alles was auf „_unavailable" endet
+>
+> Beim ersten Start sind Standard-Muster vorbelegt – jederzeit änder- oder löschbar.
+>
+> *Warum wichtig:* Weniger Rauschen = schnelleres Finden. Versehentlich zu viel ausgeschlossen? Einfach das Muster wieder entfernen.
 
 **EN**
 > ## Excluded Patterns
 >
-> Entities that should NOT appear in search and the card.
+> Define patterns to hide specific entities from search and the card. Using **wildcards**:
 >
-> - Define text patterns (e.g. `*_battery`, `sensor.test*`) to hide irrelevant entities.
-> - Sensible defaults are pre-filled on first launch.
+> - `*` = any number of characters (e.g. `sensor.*` for all sensors)
+> - `?` = exactly one character
 >
-> *Why it matters:* less noise = faster finding.
+> **Examples:**
+>
+> - `sensor.temp_*` – all temperature sensors with this prefix
+> - `binary_sensor.motion_*` – all motion sensors
+> - `*_unavailable` – anything ending in "_unavailable"
+>
+> Sensible default patterns are pre-filled on first launch – change or delete them anytime.
+>
+> *Why it matters:* less noise = faster finding. Accidentally excluded too much? Just remove the pattern again.
+
+## quickAdd
+
+**DE**
+> ## Schnellauswahl
+>
+> Vordefinierte Muster-Pakete, die du mit einem Tipp hinzufügst – statt jedes Muster einzeln einzutippen.
+>
+> - Tippe einen Vorschlag an, um sein komplettes Muster-Set zu den ausgeschlossenen Mustern hinzuzufügen.
+> - Ein **✓** zeigt, dass das Set bereits aktiv ist.
+>
+> *Warum wichtig:* Deckt typische Aufräum-Fälle (z. B. nicht verfügbare oder diagnostische Entitäten) mit einem Klick ab.
+
+**EN**
+> ## Quick Add
+>
+> Predefined pattern bundles you add with a single tap – instead of typing each pattern by hand.
+>
+> - Tap a suggestion to add its whole pattern set to the excluded patterns.
+> - A **✓** shows the set is already active.
+>
+> *Why it matters:* covers typical clean-up cases (e.g. unavailable or diagnostic entities) in one click.
 
 ## sidebarItems
 

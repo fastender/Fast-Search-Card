@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1792 - 2026-06-04
+
+**Title:** ℹ️ Excluded-patterns help folded into the ⓘ popup + standalone info button on "Quick add"
+**Tags:** Settings, Help, Cleanup, i18n
+
+### What
+
+- **Excluded Patterns:** removed the always-visible blue description card ("Define patterns to exclude … wildcards … examples") and folded its full content — `*`/`?` wildcard explanation **and** the `sensor.temp_*` / `binary_sensor.motion_*` / `*_unavailable` examples — into the section's ⓘ info popup (de + en). The settings list is now cleaner; the help is one tap away.
+- **Quick add:** added a standalone ⓘ info button next to the "Schnellauswahl / Quick add" label explaining that the chips add predefined pattern bundles in one tap (with the ✓ = already-active hint).
+- Refactored `SettingsSectionInfo.jsx`: extracted a reusable **`SettingsInfoButton`** (just the ⓘ + popup, no header text) so info can attach to any label, not only section headers. `SettingsSectionHeader` now composes it.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx` — new `SettingsInfoButton` export
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — removed description card, info button on Quick add
+- `src/utils/translations/languages/de.js`, `.../en.js` — enriched `excludedPatterns`, new `quickAdd`
+- `docs/settings-info/settings-info-catalog.md` — updated catalog
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1791 - 2026-06-04
 
 **Title:** ℹ️ Info popups on settings section headers — detailed bilingual explanations of every setting
