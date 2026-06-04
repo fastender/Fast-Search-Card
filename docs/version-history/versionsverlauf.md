@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1815 - 2026-06-04
+
+**Title:** 🎨 Todo list-icon: on hover, dark tile + white icon
+**Tags:** Todos, UI, Hover
+
+### What
+
+Adjusted the hover state of the todo list-icon tile: on hover the tile is dark and the SVG icon is now **white** (was tinted in the list color / appeared dark). Default state unchanged — white tile, icon in the list color. Set the SVG `color` to `#fff` on hover so stroke + fill follow.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1814 - 2026-06-04
 
 **Title:** 🎨 Todo list-icon tile: white (dark on hover), icon keeps the list color + scroll mask added
