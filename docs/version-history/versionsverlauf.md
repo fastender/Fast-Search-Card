@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1793 - 2026-06-04
+
+**Title:** ℹ️ "Your data is secure" card gets an info popup linking to the GitHub security policy
+**Tags:** Settings, Help, Privacy, i18n
+
+### What
+
+- Added a standalone ⓘ button to the **"Your data is secure"** card in the About tab. The popup expands the privacy story (local-only, no cloud/tracking, local storage, open source) and links to the **GitHub security policy** (`?tab=security-ov-file`).
+- `renderMarkdown` already emits `target="_blank" rel="noopener noreferrer"` for `[text](https://…)` links with a protocol allowlist, so the link opens in a new tab without navigating the dashboard away — no extra handling needed.
+- `AboutSettingsTab` now receives `lang` (was only `t`) so the popup's button labels follow the UI language.
+
+### Files
+
+- `src/components/tabs/SettingsTab.jsx` — pass `lang` to AboutSettingsTab
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — ⓘ on privacy card + version bump
+- `src/utils/translations/languages/de.js`, `.../en.js` — new `privacySecure` info text (with GitHub link)
+- `docs/settings-info/settings-info-catalog.md` — updated catalog
+
 ## Version 1.1.1792 - 2026-06-04
 
 **Title:** ℹ️ Excluded-patterns help folded into the ⓘ popup + standalone info button on "Quick add"

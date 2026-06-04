@@ -38,6 +38,7 @@
 | `privacy` | Privacy | System-Einstellungen |
 | `excludedPatterns` | Privacy | Ausgeschlossene Muster |
 | `quickAdd` | Privacy | Schnellauswahl / Quick add (in der Excluded-Patterns-Sektion) |
+| `privacySecure` | About | „Your data is secure"-Karte (ⓘ an der 🔒-Karte) |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
 
@@ -412,6 +413,33 @@
 > - A **✓** shows the set is already active.
 >
 > *Why it matters:* covers typical clean-up cases (e.g. unavailable or diagnostic entities) in one click.
+
+## privacySecure
+
+> Hinweis: enthält einen Link auf die GitHub-Security-Policy — `renderMarkdown`
+> rendert `[text](https://…)` automatisch mit `target="_blank" rel="noopener"`.
+
+**DE**
+> ## Deine Daten sind sicher
+>
+> Fast Search Card läuft vollständig **lokal** in deinem Browser.
+>
+> - **Keine Cloud, kein Tracking** – alle Berechnungen (Vorschläge, Suche, Statistiken) passieren auf deinem Gerät. Es werden keine Daten an Dritte gesendet.
+> - **Lokale Speicherung** – Einstellungen und gelernte Muster liegen in deinem Browser (localStorage), nicht auf einem Server.
+> - **Open Source** – der gesamte Code ist öffentlich einsehbar und prüfbar.
+>
+> [🔒 Sicherheits-Policy auf GitHub](https://github.com/fastender/Fast-Search-Card?tab=security-ov-file)
+
+**EN**
+> ## Your data is secure
+>
+> Fast Search Card runs entirely **locally** in your browser.
+>
+> - **No cloud, no tracking** – all calculations (suggestions, search, statistics) happen on your device. No data is sent to third parties.
+> - **Local storage** – settings and learned patterns live in your browser (localStorage), not on a server.
+> - **Open source** – the entire code is public and auditable.
+>
+> [🔒 Security policy on GitHub](https://github.com/fastender/Fast-Search-Card?tab=security-ov-file)
 
 ## sidebarItems
 
