@@ -44,6 +44,8 @@
 | `privacySecure` | About | „Your data is secure"-Karte (ⓘ an der 🔒-Karte) |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
+| `newsFeeds` | News (Settings) | FEEDS |
+| `newsDisplay` | News (Settings) | ANZEIGE / DISPLAY |
 
 ---
 
@@ -582,3 +584,55 @@
 > - **Duration** – how long it stays.
 >
 > *Why it matters:* so you get feedback the way that disturbs you least.
+
+## newsFeeds
+
+**DE**
+> ## Feeds
+>
+> Welche RSS-Feeds in der News-Ansicht erscheinen.
+>
+> - Pro Feed ein Schalter – an = der Feed wird geladen und seine Artikel angezeigt.
+> - Die Artikelzahl unter jedem Feed zeigt, wie viele neue Beiträge gerade vorliegen.
+> - Die Feeds stammen aus der HACS-Integration **Fast News Reader** (feedparser-Sensoren).
+>
+> *Warum wichtig:* Deaktivierte Feeds werden komplett ausgeblendet – so hältst du deinen News-Stream fokussiert.
+
+**EN**
+> ## Feeds
+>
+> Which RSS feeds appear in the news view.
+>
+> - One toggle per feed – on = the feed is loaded and its articles shown.
+> - The article count under each feed shows how many new items are currently available.
+> - The feeds come from the **Fast News Reader** HACS integration (feedparser sensors).
+>
+> *Why it matters:* disabled feeds are hidden entirely – keeps your news stream focused.
+
+## newsDisplay
+
+**DE**
+> ## Anzeige
+>
+> Wie Artikel dargestellt und gefiltert werden.
+>
+> - **Bilder anzeigen** – Vorschaubilder in der Artikelliste ein-/ausblenden.
+> - **Beim Öffnen als gelesen markieren** – Artikel automatisch als gelesen markieren.
+> - **Artikelalter** – wie alt Artikel maximal sein dürfen, um noch zu erscheinen.
+> - **Maximale Artikel** – Obergrenze der geladenen Artikel (Performance).
+> - **Standard-Filter** – womit die Liste startet (Alle / Ungelesen / Favoriten).
+>
+> *Warum wichtig:* Steuert Übersichtlichkeit und Lademenge deines News-Streams.
+
+**EN**
+> ## Display
+>
+> How articles are shown and filtered.
+>
+> - **Show images** – toggle preview images in the article list.
+> - **Mark as read when opening** – automatically mark articles read once you open them.
+> - **Article age** – the maximum age articles may have to still appear.
+> - **Maximum articles** – upper limit of loaded articles (performance).
+> - **Default filter** – what the list starts with (All / Unread / Favorites).
+>
+> *Why it matters:* controls how tidy and how heavy your news stream is.

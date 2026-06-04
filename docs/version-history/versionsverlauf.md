@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1803 - 2026-06-04
+
+**Title:** ℹ️ News settings: scroll-fade mask + info popups on FEEDS / DISPLAY
+**Tags:** Settings, News, UI, i18n
+
+### What
+
+The News entity's own settings view (`iOSSettingsView.jsx`) had neither the `is-scrolling` mask nor info popups.
+- Added the `is-scrolling` top-fade mask (effect keyed on `currentView`, covers the main view + the Article-Age/Max-Articles/Default-Filter sub-views) — toggled on the shared `scrollRef` via classList.
+- Added ⓘ info popups to the **FEEDS** and **ANZEIGE/DISPLAY** section headers via the reusable `SettingsSectionHeader` (it falls back to `translateUI('settings.settingsInfo.<key>')` since the news view has no `t` prop — only `lang`). New keys `settingsInfo.newsFeeds` + `settingsInfo.newsDisplay` (de + en).
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx`
+- `src/utils/translations/languages/de.js`, `.../en.js` — `newsFeeds` + `newsDisplay`
+- `docs/settings-info/settings-info-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1802 - 2026-06-04
 
 **Title:** ℹ️ "Quick add" info icon now sits next to the label (not at the far edge)
