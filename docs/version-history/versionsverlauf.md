@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1789 - 2026-06-04
+
+**Title:** 🐞 Detail tab-slider always lands on the active icon + the "Activities" title is now actually bright
+**Tags:** Bugfix, DetailView, TabBar, Activities
+
+### What
+
+- **bug1 — first tab icon sometimes not active:** the detail-view tab slider (the white pill behind the active icon) was driven by `useState({x:0,width:0,height:0})` that only got its real position in a post-mount `useEffect`. That effect had early-returns (`tabCount===0`, `activeTab>=tabCount`); when `filteredTabIcons` wasn't stable on the first pass the pill stayed at size 0, so the active icon (e.g. "General" in Settings) looked inactive — intermittently. Rewrote `sliderPosition` as a synchronous `useMemo` of `(activeTab, isMobile, tabCount)`, so it's correct on the very first render — no race. Removed the old effect + its resize listener (resize is covered by the shared `isMobile` store re-render). Added `initial={false}` to the tab-slider so it snaps to the correct spot instead of growing in from zero.
+- **bug2 — "Activities" title still looked dark:** the header title had **no explicit `color`** and inherited a dimmed value from the container, so it read as grey. Set it to full white (`#ffffff`); also brightened the count badge.
+
+### Files
+
+- `src/components/DetailView.jsx` — `sliderPosition` state+effect → `useMemo`
+- `src/components/DetailView/TabNavigation.jsx` — `initial={false}` on tab-slider
+- `src/components/charts/DeviceActivitiesView.jsx` — bright title + badge
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1788 - 2026-06-02
 
 **Title:** 🐞 Brighter search placeholder + brighter Activities feed + Hero value no longer squeezes its label
