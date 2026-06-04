@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1814 - 2026-06-04
+
+**Title:** 🎨 Todo list-icon tile: white (dark on hover), icon keeps the list color + scroll mask added
+**Tags:** Todos, UI, Scroll
+
+### What
+
+- **Icon tile:** the list-icon container in the Tasks settings rows used a fixed orange background. It's now a **white** tile by default, **dark** on hover (inverting against the white row-hover), and the SVG icon keeps the **user-chosen list color**. New `.ios-feed-icon--list` modifier overrides the orange default and the generic "SVG turns black on hover" rule so the icon stays in its list color (handling both stroke-only paths and the filled cart wheels).
+- **Scroll mask:** added the missing `is-scrolling` top-fade mask to `TodosSettingsView` (effect keyed on `currentView`, covers the main view + all sub-views).
+
+### Files
+
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — is-scrolling effect + `--list` class
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — white/hover-dark tile + keep-color-on-hover
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1813 - 2026-06-04
 
 **Title:** ℹ️ StatsBar "About" text folded into the section info popup
