@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1796 - 2026-06-04
+
+**Title:** 🐞 "Maximum Number of Entities" row no longer turns into a white box on hover
+**Tags:** Bugfix, Settings, Hover
+
+### What
+
+The global `.ios-item:hover` rule paints a near-white background (a "pressable row" affordance) — but on the System-settings "Maximum Number of Entities" row that white fill swallowed the number-input box (white-on-white), so the box appeared to vanish on hover.
+
+Added an opt-out modifier `.ios-item--static` (scoped `.ios-card .ios-item--static:hover` so it beats the base rule) that cancels the white background / scale / shadow and keeps the label + subtitle their normal light color. Applied it to the entities-limit row. Other (navigation/toggle) rows keep the standard hover.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.ios-item--static` hover opt-out
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — class on the entities-limit row
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1795 - 2026-06-04
 
 **Title:** ℹ️ Section-header info icon now sits right next to the title (not at the far edge)
