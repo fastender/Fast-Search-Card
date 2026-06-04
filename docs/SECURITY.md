@@ -15,35 +15,40 @@ These are the categories of behaviour that are explicitly absent. They have been
 | Category | Status |
 |---|---|
 | Analytics / telemetry (Google Analytics, Sentry, PostHog, Mixpanel, Segment, Amplitude, etc.) | None — verified by grep |
-| External API calls with your data | None — the only outbound fetches are to GitHub-hosted markdown files (`versionsverlauf.md`, `lessons.de.md`, `lessons.en.md`) and they send no body or auth header |
-| Third-party CDN imports at runtime | None — all dependencies are bundled at build time via Vite |
+| External API calls with your data | None — the only outbound fetches are three plain `GET`s to GitHub-hosted markdown files (`versionsverlauf.md`, `lessons.de.md`, `lessons.en.md`) and `HEAD` probes to your local HA media folder. No body, no auth header, no cookies |
+| Third-party CDN imports at runtime | None — all dependencies are bundled at build time via Vite and inlined into the single shipped file |
 | Hardcoded secrets, API keys, tokens | None — verified against patterns for JWT, Bearer, Stripe, Google, GitHub, Slack tokens |
 | Authentication material in localStorage / sessionStorage / IndexedDB | None — verified |
 | `eval()` or `new Function()` code-injection vectors | None |
-| Source maps in the shipped bundle | None — `dist/` contains only the minified file |
+| Source maps in the shipped bundle | None — `sourceMappingURL` absent |
 | Cookie writes via JavaScript | None |
 | Service workers caching your data | None |
 
-If you want to confirm any of this yourself, the audit method is straightforward: download the release file and grep it. The shipped bundle is a single self-contained JavaScript file at `https://github.com/fastender/Fast-Search-Card/releases/latest`.
+If you want to confirm any of this yourself, the audit method is straightforward: download the release file and grep it. The shipped bundle is a single self-contained JavaScript file at `https://github.com/fastender/Fast-Search-Card/releases/latest`. HACS serves only `fast-search-card.js`; the minified Vite output is inlined into it.
 
 ---
 
 ## What the card stores locally
 
-The card persists configuration, UI state, and performance caches in your browser. **Nothing is uploaded anywhere.** This is the complete list as of v1.1.1616:
+The card persists configuration, UI state, and performance caches in your browser. **Nothing is uploaded anywhere.** This is the complete list as of v1.1.1807:
 
 ### localStorage
 
 | Key | Contents | Why it's there |
 |---|---|---|
-| `fsc_entities_snapshot_v1` | Top-120 entity IDs + states (compact) | First-render performance — without this the card boots blank for ~500ms |
+| `fsc_entities_snapshot_v1` | Top entity IDs + states (compact) | First-render performance — without this the card boots blank for ~500ms |
 | `fsc_favorites_snapshot_v1` | Array of entity IDs you marked as favourite | Restored across page reloads |
-| `fsc_suggestions_snapshot_v1` | Top-60 suggested entities | Snappy suggestion list on cold start |
+| `fsc_suggestions_snapshot_v1` | Top suggested entities | Snappy suggestion list on cold start |
 | `excludedPatterns` | Wildcard patterns you defined in Settings | Your exclusion rules |
 | `systemSettings` | UI theme, language, toast preferences, grid columns, news/todos filters | Your settings |
-| `darkMode`, `userLanguage` | Theme + language strings | Convenience cache |
+| `darkMode`, `userLanguage`, `userCurrency` | Theme, language, currency strings | Convenience cache |
 | `newsSettings`, `todosSettings` | Per-feed and per-list preferences | Your settings |
-| `videoDefaultsCache` | URLs of available default video files + timestamp | Avoids redundant HEAD requests |
+| `animations`, `soundEffects`, `notificationsEnabled`, `statsBarEnabled`, `predictiveSuggestions`, `aiModeEnabled` | Feature toggles | Your settings |
+| `confidenceThreshold`, `suggestionTimeWindow`, `maxSuggestions`, `maxEntitiesLimit`, `learningRate` | Suggestion-engine tuning parameters | Your settings |
+| `todos_profiles`, `todos_description_templates` | Reusable todo profiles and description snippets you created | Your data |
+| `news_articles_cache`, `news_event_cache`, `todosCache`, `versionsverlauf_cache`, `videoDefaultsCache` | Time-stamped JSON caches | Avoids re-fetching GitHub markdown, RSS feeds, and HA todo lists on every tab switch |
+| `searchCache`, `suggestionCache` | Result caches keyed by query | Snappy repeat searches; cleared from the About settings panel |
+| `fastSearchCardInitialized`, `fastSearchCardVersion` | First-run flag + last-seen card version | Drives the one-time onboarding hint and version-jump migration paths |
 
 ### sessionStorage
 
@@ -132,6 +137,7 @@ The following protections are in place. Each links back to the release that intr
 | [v1.1.1614](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1614) | 2026-05-22 | Five-vector OWASP-style code audit: secrets, XSS, external calls, sensitive data exposure, input validation | 5 findings, all fixed |
 | [v1.1.1615](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1615) | 2026-05-22 | npm dependency audit (`npm audit`) | 11 CVEs, all patched. 1 runtime-relevant (Preact), 10 dev-tooling |
 | [v1.1.1616](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1616) | 2026-05-22 | Browser-storage audit, `setConfig` validation, postMessage / cross-frame review, prototype-pollution review | 3 findings + 2 bonus issues, all fixed |
+| [v1.1.1807](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1807) | 2026-06-04 | Re-verification audit against shipped bundle: telemetry-vendor grep, credential-pattern grep, outbound URL inventory, eval / Function / document.write / cookie / service-worker grep, source-map check, storage-key drift check | No findings — all prior claims hold. Storage inventory expanded to reflect keys added since v1.1.1616 (currency, news/todos caches, suggestion-engine tuning, onboarding flags). Bundle: 1,743,014 bytes raw / 446,382 bytes gzip |
 
 Each release commit message and Versionsverlauf entry describes the specific code changes if you want to read the diff.
 
