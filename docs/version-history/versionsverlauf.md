@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1790 - 2026-06-04
+
+**Title:** 🧹 Splashscreen removed (Default + Apple Hello) — boot goes straight to the wallpaper reveal
+**Tags:** Cleanup, Boot, Settings, Removal
+
+### Why
+
+The boot splash screen was no longer wanted. Both variants — "Default" (progress bar) and "Apple Hello" (handwritten animation) — plus the General-settings picker that switched between Off/Default/Apple Hello are gone.
+
+### What
+
+- Deleted the two splash components: `LoadingScreen.jsx` and `AppleHelloSplash.jsx`.
+- `index.jsx`: removed all splash state (`splashscreenStyle`, `splashDrawingDone`, `splashEnabled`), the conditional splash rendering, the 120 ms Safari flash-protect delay, and the unused `loadingProgress` state. The card reveal now hangs purely on `isLoadingComplete`.
+- **Kept** the `WallpaperBootOverlay` — the wallpaper zoom + smooth card fade-in stays as the sole boot effect (its `revealReady` is now just `isLoadingComplete`).
+- Removed the splash picker from `GeneralSettingsTab.jsx` (UI row + cycle handler + state) and the `loadSplashscreenSettings`/`saveSplashscreenSettings` helpers from `settingsStorage.js`.
+- Removed the 5 splash translation keys per language (`splashscreenLabel/Description/Off/Progress/Hello`) in `de.js` + `en.js`.
+
+### Files
+
+- `src/components/LoadingScreen.jsx` — deleted
+- `src/components/AppleHelloSplash.jsx` — deleted
+- `src/index.jsx`
+- `src/components/WallpaperBootOverlay.jsx` — comment update
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/general/settingsStorage.js`
+- `src/utils/translations/languages/de.js`, `.../en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1789 - 2026-06-04
 
 **Title:** 🐞 Detail tab-slider always lands on the active icon + the "Activities" title is now actually bright
