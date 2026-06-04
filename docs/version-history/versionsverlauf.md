@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1785 - 2026-06-02
+
+**Title:** 📋 Universal device — scroll mask + CustomScrollbar in entity sub-views too
+**Tags:** UI, UniversalDevice
+
+### Why
+
+In the live Universal device view, the Controls/Sensors/Diagnostics/Misc lists already had the top-fade mask + CustomScrollbar, but the entity **sub-views** (e.g. "Tesli Lock", select/time pickers reached by drilling in) didn't.
+
+### What
+
+`UniversalEntityList` now, while a sub-view (`pickerView`) is open, locates that sub-view's own `.ios-settings-view` scroll node (queried from the wrapper, with a short rAF retry), toggles the `.is-scrolling` top-fade on it during scroll, and mounts a `CustomScrollbar` pointed at it. The main-list scrollbar/mask are unchanged; the sub-view scrollbar only appears when its content actually scrolls.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1784 - 2026-06-02
 
 **Title:** 🐞 Setup — scroll mask on all sub-views + navbar title fades only when long
