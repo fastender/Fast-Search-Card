@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1794 - 2026-06-04
+
+**Title:** ℹ️ Settings info popup: scroll-fade mask + custom scrollbar
+**Tags:** Settings, UI, Scroll
+
+### What
+
+- The scrollable markdown body of the settings info popup now gets the `is-scrolling` **top-fade mask** (content fades in at the top once scrolled, matching `charts-scroll-body`) and a **CustomScrollbar** instead of the native one.
+- Wrapped the body in a `position: relative` flex container so the CustomScrollbar sits only over the body (not over the header/footer). Native scrollbar hidden via `scrollbar-width: none` + `::-webkit-scrollbar { display:none }`. Scroll state resets each time the popup opens.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx` — scroll state, body wrapper, CustomScrollbar
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.settings-info-md` hide-native + `.is-scrolling` mask
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1793 - 2026-06-04
 
 **Title:** ℹ️ "Your data is secure" card gets an info popup linking to the GitHub security policy
