@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1805 - 2026-06-04
+
+**Title:** ✓ Unified selection checkmark in device-edit pickers (filled-circle, like system settings)
+**Tags:** UI, Consistency, Polish
+
+### What
+
+The system-settings pickers (General, Appearance, Start Screen, News, …) use the iOS-style `.ios-checkmark` (white filled circle + black check). The Universal device-edit pickers instead used a plain blue `✓` text character. Replaced that `✓` with the same `.ios-checkmark` SVG in all three device-edit pickers so the selection mark looks identical everywhere:
+- `SelectPickerView` (generic single-select list)
+- `HeroPickerView` ("No hero" row)
+- `IconPickerView` ("Default Icon" row)
+
+(`EnergyDashboardSetup`'s "✓ Konfiguriert" is a status label, not a selection mark — left as is. The icon grid tiles use a blue-background selection, also unchanged.)
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/SelectPickerView.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/IconPickerView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1804 - 2026-06-04
 
 **Title:** ✨ Settings list items keep the brighter "scrolled" look from the start
