@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1811 - 2026-06-04
+
+**Title:** ✓ News settings selection lists use the filled-circle checkmark
+**Tags:** UI, Consistency, News
+
+### What
+
+The News settings selection sub-views (Article Age, Maximum Articles, Default Filter) marked the chosen option with a plain bare check line. Replaced it with the standard filled-circle `.ios-checkmark` (white circle + black check) — same mark used everywhere else after v1.1.1805.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx` (3 occurrences)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1810 - 2026-06-04
 
 **Title:** 🎨 Todo list icons: SVG line icons (iconoir) instead of emojis, tinted in the list color
