@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1810 - 2026-06-04
+
+**Title:** 🎨 Todo list icons: SVG line icons (iconoir) instead of emojis, tinted in the list color
+**Tags:** Feature, Todos, Icons, UI
+
+### What
+
+Replaced the emoji-based todo-list icons with crisp SVG line icons (iconoir, MIT-licensed). The icon picker is now a 21-icon SVG grid (list, check, calendar, notes, cart, gift, home, suitcase, bulb, bell, star, sparks, heart, trophy, music, gamepad, laptop, running, coffee, bin, …), and each icon is **tinted in the list's chosen color**.
+
+- New `components/settings/listIcons.jsx`: iconoir path data + `ListIcon` component + `getListIconKey()` with a **legacy emoji → key migration map**, so existing lists keep a sensible icon automatically. Default icon is now `list`.
+- Rewired all render sites: settings list rows, the list-detail Icon row, the icon picker grid, the todo cards (`todo-list-icon`), and the list filter buttons.
+
+### Files
+
+- `src/system-entities/entities/todos/components/settings/listIcons.jsx` — new (iconoir SVG set, MIT)
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — picker + render sites + default
+- `src/system-entities/entities/todos/TodosView.jsx` — card + filter render sites + default
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1809 - 2026-06-04
 
 **Title:** ↕️ Reorder chart sensors in the device-edit Charts picker (like Hero)
