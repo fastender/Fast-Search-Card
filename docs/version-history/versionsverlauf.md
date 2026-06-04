@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1799 - 2026-06-04
+
+**Title:** ℹ️ Scroll-fade mask added to the Sidebar Items sub-view
+**Tags:** Settings, UI, Scroll
+
+### What
+
+The "Sidebar Items" sub-view had no `is-scrolling` top-fade mask. Added the same effect used elsewhere (toggle the class on the scroll container via classList on scroll), so content fades in at the top once scrolled.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1798 - 2026-06-04
 
 **Title:** 🎚️ Custom SVG number stepper + scroll mask in Appearance sub-views + Video Files info + `note` translation
