@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1795 - 2026-06-04
+
+**Title:** ℹ️ Section-header info icon now sits right next to the title (not at the far edge)
+**Tags:** Settings, UI, Polish
+
+### What
+
+The ⓘ button on settings section headers was pushed to the far right edge by `justify-content: space-between`. Changed `.ios-section-header--info` to `justify-content: flex-start` with a small `gap`, so the icon sits directly next to the section title (e.g. "DESIGN ⓘ").
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1794 - 2026-06-04
 
 **Title:** ℹ️ Settings info popup: scroll-fade mask + custom scrollbar
