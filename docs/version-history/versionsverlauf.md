@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1801 - 2026-06-04
+
+**Title:** ℹ️ Detail-View-Videos: naming scheme / examples / note moved into ⓘ popups
+**Tags:** Settings, UI, Cleanup
+
+### What
+
+The "Detail View Videos" sub-view still had long inline explanatory text. Folded it into info popups and removed the inline blocks:
+- **Video Files** — the whole Naming Scheme + Examples + Note block is now in the section's ⓘ popup (`settingsInfo.videoFiles`, expanded to include the full examples list + the note). The inline card is gone; the section is just the header + ⓘ.
+- **Video Folder** — the footer note ("Place videos in … config/www/fast-search-videos/") moved into a new ⓘ on the Video Folder header (`settingsInfo.videoFolder`); footer removed. The Path row stays.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/utils/translations/languages/de.js`, `.../en.js` — expanded `videoFiles`, new `videoFolder`
+- `docs/settings-info/settings-info-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1800 - 2026-06-04
 
 **Title:** 🧹 Scroll-fade mask across ALL settings sub-views + yellow hint cards folded into ⓘ popups

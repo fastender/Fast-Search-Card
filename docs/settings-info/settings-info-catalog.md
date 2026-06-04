@@ -34,7 +34,8 @@
 | `design` | Appearance | Darstellung / Design |
 | `homeAssistant` | Appearance | Home Assistant |
 | `animations` | Appearance | Animationen / Animations |
-| `videoFiles` | Appearance | Video Files (im Animations-Detail) |
+| `videoFolder` | Appearance | Video Folder (im Animations-Detail) |
+| `videoFiles` | Appearance | Video Files (ⓘ statt Inline-Anmerkung) |
 | `statsBar` | StatsBar (Detail) | EINSTELLUNGEN / SETTINGS |
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
 | `limits` | Filter | Limits (früher „System Settings") |
@@ -318,17 +319,50 @@
 >
 > *Why it matters:* videos cost performance/data – that's why desktop and mobile are separate.
 
+## videoFolder
+
+> Ersetzt die frühere Footer-Anmerkung ("Place videos in … config/www/fast-search-videos/").
+
+**DE**
+> ## Video-Ordner
+>
+> Wo die Karte nach den Video-Dateien sucht.
+>
+> - **Pfad:** `/local/fast-search-videos`
+> - Lege die Videos in den Home-Assistant-www-Ordner: `config/www/fast-search-videos/`.
+> - `/local/…` ist die HA-Verknüpfung zu `config/www/…`.
+>
+> *Warum wichtig:* Liegen die Videos woanders, werden sie nicht gefunden.
+
+**EN**
+> ## Video Folder
+>
+> Where the card looks for the video files.
+>
+> - **Path:** `/local/fast-search-videos`
+> - Place the videos in the Home Assistant www folder: `config/www/fast-search-videos/`.
+> - `/local/…` is HA's alias for `config/www/…`.
+>
+> *Why it matters:* if the videos are elsewhere, they won't be found.
+
 ## videoFiles
+
+> Ersetzt die komplette Inline-Anmerkung (Namensschema + Beispiele + Hinweis) im Animations-Detail.
 
 **DE**
 > ## Video-Dateien
 >
 > Damit Hintergrund-Videos automatisch zugeordnet werden, müssen die Dateinamen einem Schema folgen.
 >
-> - **Schema:** `{domain}_{state}.mp4` – z. B. `light_on.mp4`, `cover_closed.mp4`.
-> - Beim Öffnen eines Geräts sucht die Karte nach der passenden Datei im Video-Ordner.
-> - Als Platzhalter funktionieren `default_1.mp4` … `default_10.mp4` (zufällige Auswahl).
-> - Fehlt eine Datei, wird einfach kein Video gezeigt – kein Fehler.
+> **Namensschema:** `{domain}_{state}.mp4`
+>
+> **Beispiele:**
+> - `light_on.mp4` / `light_off.mp4`
+> - `switch_on.mp4` / `switch_off.mp4`
+> - `cover_open.mp4` / `cover_closed.mp4`
+> - `fan_on.mp4` / `fan_off.mp4`
+>
+> **Hinweis:** Videos werden einmalig abgespielt wenn die Detail-Ansicht geöffnet wird; das letzte Frame bleibt sichtbar. Platzhalter `default_1.mp4` … `default_10.mp4` (zufällige Auswahl).
 >
 > *Warum wichtig:* Nur exakt benannte Dateien werden gefunden – ein Tippfehler im Namen = kein Video.
 
@@ -337,10 +371,15 @@
 >
 > For background videos to be matched automatically, the filenames must follow a scheme.
 >
-> - **Scheme:** `{domain}_{state}.mp4` – e.g. `light_on.mp4`, `cover_closed.mp4`.
-> - When a device opens, the card looks for the matching file in the video folder.
-> - Placeholders `default_1.mp4` … `default_10.mp4` work too (random selection).
-> - If a file is missing, no video is shown – no error.
+> **Naming scheme:** `{domain}_{state}.mp4`
+>
+> **Examples:**
+> - `light_on.mp4` / `light_off.mp4`
+> - `switch_on.mp4` / `switch_off.mp4`
+> - `cover_open.mp4` / `cover_closed.mp4`
+> - `fan_on.mp4` / `fan_off.mp4`
+>
+> **Note:** videos are played once when the detail view opens; the last frame stays visible. Placeholders `default_1.mp4` … `default_10.mp4` (random selection).
 >
 > *Why it matters:* only exactly-named files are found – a typo in the name = no video.
 
