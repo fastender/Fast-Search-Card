@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1809 - 2026-06-04
+
+**Title:** ↕️ Reorder chart sensors in the device-edit Charts picker (like Hero)
+**Tags:** Feature, Device-Edit, Charts
+
+### What
+
+Added ↑/↓ reorder controls + an order badge to selected sensors in the Charts picker, mirroring the Hero entity reordering. The order of the `chart_sensors` array is the chart display order, so this lets you control which chart comes first. Buttons appear only when ≥2 sensors are selected; ends are disabled. New `moveChartSensor(id, dir)` in `UniversalSetup` swaps adjacent entries (analogous to `moveHero`) and persists on save.
+
+(The "14 sensors available …" description text was already moved into the section's ⓘ popup in v1.1.1806 — visible after updating.)
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` — `moveChartSensor` + prop wiring
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/ChartsView.jsx` — reorder UI
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1808 - 2026-06-04
 
 **Title:** 📐 Device-edit picker search fields now span the full content width
