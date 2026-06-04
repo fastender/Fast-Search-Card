@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1787 - 2026-06-02
+
+**Title:** 🐞 Hero reorder buttons — visible on hover (white-on-white fix)
+**Tags:** Bugfix, UI, Hero
+
+### Why
+
+The Hero ↑/↓ reorder buttons (added in v1.1.1786) disappeared on hover — white chevrons on the white hover background (the recurring `.ios-item-right` hover-contrast issue).
+
+### What
+
+Gave the reorder buttons a `.ios-reorder-btn` class and a hover rule so on the white hover row they get a dark button background + dark chevron (matching the `.device-icon-preview` fix).
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/HeroPickerView.jsx`
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1786 - 2026-06-02
 
 **Title:** 🧱 Edit — title in navbar + Hero slideshow reordering (↑/↓ + order badges)
