@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1807 - 2026-06-04
+
+**Title:** ℹ️ Quick-Stats / Icon / Visibility device-edit pickers get info popups too
+**Tags:** UI, Cleanup, Device-Edit, i18n
+
+### What
+
+Continued folding device-edit picker descriptions into ⓘ popups:
+- **Quick-Stats ("METRICS")** — moved the "pill chips in the card overview" description into `settingsInfo.quickStatsMetrics`; inline gray text removed.
+- **Icon picker ("DEFAULT")** — added an ⓘ explaining Default vs. category icons (`settingsInfo.iconPicker`; there was no gray text to remove).
+- **Visible Entities** — this view has no section header (navbar title + search + dynamic groups), so the ⓘ sits on the **right of the navbar** (`settingsInfo.visibility`) explaining the per-entity toggles and grouping.
+
+### Files
+
+- `.../UniversalSetup/QuickStatsView.jsx`, `IconPickerView.jsx`, `VisibilityView.jsx`
+- `src/utils/translations/languages/de.js`, `.../en.js` — `quickStatsMetrics` + `iconPicker` + `visibility`
+- `docs/info-popups/info-popups-catalog.md`, `AboutSettingsTab.jsx` (version)
+
 ## Version 1.1.1806 - 2026-06-04
 
 **Title:** ℹ️ Hero + Charts device-edit pickers: description text moved into ⓘ popups

@@ -89,6 +89,9 @@
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 | `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |
 | `chartSensors` | **Universal-Gerät bearbeiten** → Charts | SENSOREN / SENSORS |
+| `quickStatsMetrics` | **Universal-Gerät bearbeiten** → Quick-Stats | METRIKEN / METRICS |
+| `iconPicker` | **Universal-Gerät bearbeiten** → Icon | STANDARD / DEFAULT |
+| `visibility` | **Universal-Gerät bearbeiten** → Sichtbare Entitäten | Navbar-ⓘ (rechts) |
 
 ---
 
@@ -731,3 +734,77 @@
 > - The colored badge per sensor shows the mode: Cumulative (green), Measurement (blue), History (orange).
 >
 > *Why it matters:* statistics sensors give long, gap-free charts; history sensors only go back as far as HA keeps the data.
+
+## quickStatsMetrics
+
+> Universal-Gerät bearbeiten → Quick-Stats. Ersetzt den grauen Beschreibungstext unter „METRICS".
+
+**DE**
+> ## Quick-Stats / Metriken
+>
+> Wähle Sensoren, die als kompakte **Pill-Chips** oben in der Geräte-Detail-Ansicht erscheinen.
+>
+> - Jeder gewählte Sensor wird als kleiner Wert-Chip angezeigt.
+> - Ideal für die wichtigsten Live-Werte auf einen Blick.
+>
+> *Warum wichtig:* So siehst du Kernwerte sofort, ohne die einzelnen Entitäten zu öffnen.
+
+**EN**
+> ## Quick Stats / Metrics
+>
+> Pick sensors to show as compact **pill chips** at the top of the device detail view.
+>
+> - Each selected sensor appears as a small value chip.
+> - Great for your most important live values at a glance.
+>
+> *Why it matters:* you see key values immediately without opening individual entities.
+
+## iconPicker
+
+> Universal-Gerät bearbeiten → Icon. ⓘ am „DEFAULT"-Header (kein grauer Text vorher).
+
+**DE**
+> ## Icon
+>
+> Wähle das Symbol, das die Geräte-Karte repräsentiert.
+>
+> - **Standard** nutzt das automatische Icon des Geräte-Typs.
+> - Oder wähle ein Icon aus den Kategorien darunter.
+>
+> *Warum wichtig:* Ein passendes Icon macht das Gerät auf einen Blick erkennbar.
+
+**EN**
+> ## Icon
+>
+> Choose the symbol that represents the device card.
+>
+> - **Default** uses the automatic icon for the device type.
+> - Or pick an icon from the categories below.
+>
+> *Why it matters:* a fitting icon makes the device recognizable at a glance.
+
+## visibility
+
+> Universal-Gerät bearbeiten → Sichtbare Entitäten. ⓘ rechts in der Navbar (keine Sektion zum Anhängen).
+
+**DE**
+> ## Sichtbare Entitäten
+>
+> Lege fest, welche Entitäten des Geräts in der Detail-Ansicht angezeigt werden.
+>
+> - Pro Entität ein Schalter – aus = in der Karte ausgeblendet (bleibt aber in Home Assistant erhalten).
+> - Gruppiert nach **Steuerung, Sensoren, Diagnose, Sonstiges**.
+> - Über die Suche findest du Entitäten bei großen Geräten schnell.
+>
+> *Warum wichtig:* Blende Rauschen aus und zeig nur, was dich an diesem Gerät interessiert.
+
+**EN**
+> ## Visible Entities
+>
+> Decide which of the device's entities appear in the detail view.
+>
+> - One toggle per entity – off = hidden in the card (still present in Home Assistant).
+> - Grouped by **Controls, Sensors, Diagnostics, Misc**.
+> - Use search to find entities quickly on large devices.
+>
+> *Why it matters:* hide the noise and show only what matters for this device.
