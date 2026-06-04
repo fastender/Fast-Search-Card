@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1804 - 2026-06-04
+
+**Title:** ✨ Settings list items keep the brighter "scrolled" look from the start
+**Tags:** Settings, UI, Polish
+
+### Why
+
+Items in the settings lists looked darker when unscrolled and brighter once scrolled. The cause: the `is-scrolling` class adds a `mask-image` to `.ios-settings-view`, and a set mask changes the compositing behind the translucent `.ios-item` backgrounds — making them render brighter. The brighter look was preferred, so it should apply from the start.
+
+### What
+
+Gave `.ios-settings-view` an **always-on solid mask** (`linear-gradient(black, black)` — no visible fade when unscrolled), so the same compositing (and brighter items) is present immediately. The `.ios-settings-view.is-scrolling` rule still overrides with the top-fade when scrolled. Applies to every settings list card-wide.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1803 - 2026-06-04
 
 **Title:** ℹ️ News settings: scroll-fade mask + info popups on FEEDS / DISPLAY
