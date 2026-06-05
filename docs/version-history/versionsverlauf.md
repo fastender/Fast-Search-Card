@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1817 - 2026-06-04
+
+**Title:** 🌫️ Lighter, glassier toast background
+**Tags:** UI, Toast, Polish
+
+### What
+
+The default toast background was near-opaque black (`rgba(0,0,0,0.85)`, dark-mode `0.9`) which felt too dark. Lightened it to a glassy translucent gray (`rgba(44,44,46,0.7)`) with a stronger `blur(30px) saturate(160%)`, closer to the settings-container look. Typed toasts (success/error/warning/info) already use light color tints and are unchanged.
+
+### Files
+
+- `src/styles/toast.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1816 - 2026-06-04
 
 **Title:** ✏️ iOS-style edit/delete icon buttons + cleaner color-picker check (Todos settings)
