@@ -87,6 +87,7 @@
 |---|---|---|
 | `integrationTypes` | **Integration „Geräte hinzufügen"** | VERFÜGBARE TYPEN / AVAILABLE TYPES |
 | `universalPickDevice` | **Universal-Setup → Schritt 1** | Gerät wählen / Pick a Device (Titel-ⓘ) |
+| `energySetup` | **Energie-Dashboard hinzufügen** | ENERGIE-QUELLEN / ENERGY SOURCES |
 | `newsFeeds` | **News-Entity** → Settings | FEEDS |
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 | `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |

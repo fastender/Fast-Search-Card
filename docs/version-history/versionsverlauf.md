@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1834 - 2026-06-06
+
+**Title:** ⚡ Energy Dashboard setup: inline description → ⓘ info popup
+**Tags:** Integration, Energy, UI, Info-Popup
+
+### Why
+
+The "Add Energy Dashboard" setup had a long inline description paragraph at the bottom, which the
+user wanted folded into an info popup instead.
+
+### What
+
+- Removed the bottom `ios-section-footer` description text.
+- The "ENERGIE-QUELLEN / ENERGY SOURCES" section header now has a ⓘ info popup (new
+  `settingsInfo.energySetup`, de+en) explaining what the dashboard shows, the configured/not-
+  configured states, and that sources are read from HA's energy settings. Header is now also
+  language-aware (was hardcoded German).
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/EnergyDashboardSetup.jsx`
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.energySetup`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1833 - 2026-06-06
 
 **Title:** 📌 Universal setup "Pick a Device": fixed header + search, only the list scrolls, + ⓘ info popup
