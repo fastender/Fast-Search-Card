@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1831 - 2026-06-06
+
+**Title:** 🔌 Integration "Add Devices": light Manage icon, tip → info popup, back-to-overview, Settings stub
+**Tags:** Integration, UI, Navigation, Info-Popup
+
+### Why
+
+Several issues on the integration "Add Devices" view: (1) the "Manage devices" icon was accent-
+blue while all other type icons are light; (2) an inline tip at the bottom instead of an info
+popup; (3) the detail-view back button closed the whole detail view instead of returning to the
+overview (integration was missing from the back dispatch chain); (4) the top action button was
+"Verwalten/Manage", which didn't fit.
+
+### What
+
+- Manage-devices icon: dropped the `integration-item-icon-accent` (blue) modifier → light like
+  the other type icons.
+- Removed the inline footer tip; the "Available types" section header now has an ⓘ info popup
+  (new `settingsInfo.integrationTypes`, de+en) explaining the types incl. the Universal-Device tip.
+- Back button: `integration` added to TabNavigation's `back` (and `settings`) dispatch chains, so
+  `handleBackNavigation` runs — from setup/management/settings it returns to the overview, and only
+  from the overview does it close the detail view.
+- Top action button "Verwalten" → "Einstellungen" (Settings), opening a dummy settings stub (like
+  the Schedules entity). Device management stays reachable via the "Manage devices" overview item.
+
+### Files
+
+- `src/system-entities/entities/integration/components/CategorySelectionView.jsx`
+- `src/system-entities/entities/integration/IntegrationView.jsx`
+- `src/system-entities/entities/integration/index.js`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.integrationTypes`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1830 - 2026-06-06
 
 **Title:** 🎯 Version history: centered the filter scroll-arrows + cards now flush with the filter bar
