@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1823 - 2026-06-04
+
+**Title:** 🌫️ Calendar event-edit dialog gets a glassy backdrop (consistent brightness)
+**Tags:** Calendar, UI, Consistency
+
+### Why
+
+The calendar event edit/create dialog uses the standard `.ios-settings-container` (0.15) + `.ios-settings-view` + `.ios-card`/`.ios-item`, so structurally it matches the settings — but it's `position: absolute; inset: 0` and didn't inherit the detail panel's wallpaper blur cleanly, so the wallpaper behind read sharper/darker than in the settings.
+
+### What
+
+Added `backdrop-filter: blur(40px) saturate(150%)` to `.calendar-event-dialog.ios-settings-container` so the dialog renders as a clean, light glass panel — consistent with the settings sub-views.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1822 - 2026-06-04
 
 **Title:** 🎚️ Universal device number slider now flush (no side gap)
