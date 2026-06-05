@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1833 - 2026-06-06
+
+**Title:** 📌 Universal setup "Pick a Device": fixed header + search, only the list scrolls, + ⓘ info popup
+**Tags:** Integration, UI, Navigation, Info-Popup
+
+### Why
+
+On the Universal-Device setup step 1 the whole page scrolled — the progress bar, "Pick a Device"
+title and search field scrolled away with the device list. The header + search should stay fixed
+while only the list scrolls, and the title needed an info popup.
+
+### What
+
+- Split step 1 layout: progress bar + title + search field now live in a fixed (non-scrolling)
+  header; only the integration-grouped device list scrolls below it in its own `.ios-settings-view`
+  (with the is-scrolling top-fade mask via the existing scrollRef callback).
+- Extracted the search input into `DeviceSearchField` (Step1DevicePicker) and render it in the
+  fixed header; the picker body is now list-only.
+- Added a ⓘ next to the "Pick a Device" title (new `settingsInfo.universalPickDevice`, de+en):
+  explains search, integration grouping, +-to-add, dimmed already-added devices.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/Step1DevicePicker.jsx`
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/shared.jsx`
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.universalPickDevice`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1832 - 2026-06-06
 
 **Title:** 🎯 Version history + Tips: refined filter-arrow position + cards flush with the filter bar
