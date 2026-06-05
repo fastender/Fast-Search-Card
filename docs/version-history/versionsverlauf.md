@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1827 - 2026-06-05
+
+**Title:** 📰 News settings: is-scrolling mask on all sub-views + clip-proof info popup
+**Tags:** News, UI, Bugfix, Info-Popup
+
+### Why
+
+In the News-widget settings the `is-scrolling` top-fade mask was missing: the effect hung on a
+single shared `scrollRef` with `[currentView]` deps, but `AnimatePresence mode="wait"` mounts
+the new sub-view only AFTER the old one exits, so the listener attached to the stale/old node.
+Separately, the FEEDS info popup could be clipped on the right when no `.detail-panel` ancestor
+was found (it fell back to rendering inline-absolute anchored to a small/offset ancestor).
+
+### What
+
+- is-scrolling: replaced the effect with a callback-ref (`attachScrollMask`) wired onto every
+  `.ios-settings-view` (all 4 sub-views). Fires exactly when each node mounts and keeps
+  `scrollRef.current` updated for the CustomScrollbar.
+- Info popup: when no `.detail-panel` is found, the overlay now uses `position: fixed` (full
+  viewport, centered) instead of `absolute` — never clipped, and stays inline so Shadow-DOM
+  styles still apply. With a panel found, behavior is unchanged (absolute, portaled in).
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.jsx`
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1826 - 2026-06-05
 
 **Title:** 🎨 Calendar event-edit dialog: 4 polish fixes (wheel surface, textarea frame, "Every" number, custom-row arrow)
