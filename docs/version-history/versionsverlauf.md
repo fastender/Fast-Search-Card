@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1828 - 2026-06-05
+
+**Title:** ⓘ Settings section info-button no longer clipped at the top of the scroll area
+**Tags:** Settings, UI, Bugfix, Info-Popup
+
+### Why
+
+The ⓘ info-button in a section header was slightly cut off at the top when its section was the
+first element of `.ios-settings-view`. The button uses `margin: -4px 0` (so the 22px button
+doesn't inflate the compact header), which makes it overhang its header box by 4px — and at the
+very top of the scroll area `overflow-y: auto` clipped that 4px overhang.
+
+### What
+
+- `.ios-settings-view` padding-top `0 → 6px`, which absorbs the button's 4px overhang. Views
+  that set their own inline padding (e.g. About) override this and are unaffected.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1827 - 2026-06-05
 
 **Title:** 📰 News settings: is-scrolling mask on all sub-views + clip-proof info popup
