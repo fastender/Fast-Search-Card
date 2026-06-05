@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1821 - 2026-06-04
+
+**Title:** 🌫️ Fix double-darkened settings sub-views (nested containers)
+**Tags:** Settings, UI, Consistency, Bugfix
+
+### Why
+
+General renders StatsBar / Toast / Sidebar-Items / Start-Screen as nested sub-components **inside its own `.ios-settings-container`**, and each of those adds **its own** `.ios-settings-container` — so they got the 0.15 darkening **twice** (≈0.28), appearing noticeably darker than General's direct sub-views (Time format, Language, …) which get a single layer.
+
+### What
+
+Added `.ios-settings-container .ios-settings-container { background: transparent }` — a container nested inside another container contributes no extra darkening. Now every settings sub-view has exactly one 0.15 layer → consistent. Pure CSS, no per-component structural changes.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1820 - 2026-06-04
 
 **Title:** 🌫️ Settings container: moderate, consistent darkening (incl. StatsBar)
