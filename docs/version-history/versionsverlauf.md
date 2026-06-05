@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1832 - 2026-06-06
+
+**Title:** 🎯 Version history + Tips: refined filter-arrow position + cards flush with the filter bar
+**Tags:** Versionsverlauf, Tipps, UI, Consistency
+
+### Why
+
+Follow-up to v1.1.1830: the version-history filter arrows read best at `-6px` (the `+8px` from
+1830 sat a touch low). The Tips view has the exact same mirrored layout and needed both fixes too:
+arrow vertical position and the cards being inset 4px more than the chip bar above.
+
+### What
+
+- `.versionsverlauf-filter-arrow` `top` `calc(50% + 8px)` → `calc(50% - 6px)`.
+- `.tipps-filter-arrow` `top: 50%` → `calc(50% - 6px)`.
+- `.tipps-list` padding `0 4px` → `0`, so the tip cards line up flush with the filter chips.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/system-entities/entities/tipps/styles/TippsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1831 - 2026-06-06
 
 **Title:** 🔌 Integration "Add Devices": light Manage icon, tip → info popup, back-to-overview, Settings stub
