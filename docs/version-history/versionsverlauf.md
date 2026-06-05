@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1819 - 2026-06-04
+
+**Title:** 🌫️ Consistent (lighter) settings-container background across all sub-views
+**Tags:** Settings, UI, Consistency
+
+### Why
+
+The StatsBar sub-view looked lighter than the Toast (and Privacy/About/News) sub-views. Root cause: most settings sub-views wrap in `.ios-settings-container`, which added `background: #00000040` (25% black) as an extra darkening layer on top of the detail panel. StatsBar doesn't use that wrapper, so it had no extra tint → it looked lighter.
+
+### What
+
+Set `.ios-settings-container { background: transparent }` so every wrapped settings sub-view shows the same (lighter) detail-panel background as StatsBar — consistent across Toast, Privacy, About, News, etc.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1818 - 2026-06-04
 
 **Title:** ✓ Toast settings selection check now matches StatsBar/TTS (filled-circle)
