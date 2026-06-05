@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1830 - 2026-06-06
+
+**Title:** 🎯 Version history: centered the filter scroll-arrows + cards now flush with the filter bar
+**Tags:** Versionsverlauf, UI, Consistency, Bugfix
+
+### Why
+
+Two alignment issues in the version-history view: (1) the left/right filter scroll-arrows sat
+~8px too high — the filter bar has asymmetric padding (top 16px, bottom 0) and a single chip
+row, so `top: 50%` landed above the chip-row center. (2) The version cards were inset 4px more
+than the chip bar above (feed padding 20px + list padding 4px = 24px vs chips at 20px).
+
+### What
+
+- `.versionsverlauf-filter-arrow` `top: 50%` → `calc(50% + 8px)` (= half the top padding) so the
+  arrows sit exactly on the chip row. Charts-context override unchanged.
+- `.versionsverlauf-list` padding `0 4px` → `0`, so the cards line up flush with the filter chips
+  (both at 20px).
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/styles/VersionsverlaufView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1829 - 2026-06-06
 
 **Title:** ✅ Todo task icon now sits in a white circular badge (always visible)
