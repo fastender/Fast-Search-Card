@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1825 - 2026-06-05
+
+**Title:** ✅ Calendar event-edit dialog: standard selection checkmark + is-scrolling mask on every sub-view
+**Tags:** Calendar, UI, Consistency, Bugfix
+
+### Why
+
+In the calendar event-edit dialog the checkmarks did not match the System-Settings pickers
+(the "All day" row used the old `todo-detail-checkbox` mark, and every selection sub-view —
+Calendar, Repeat, Custom recurrence — used a thin stroke check `M5 12l5 5L20 7`). The scroll
+top-fade (`is-scrolling`) mask was also missing on the main view AND all sub-views.
+
+### What
+
+- Unified checkmark: new local `IOSCheck` (white circle r=11 + black check `M7 12L10.5 15.5L17 9`,
+  1:1 with `SelectPickerView`/Hero/Icon). Replaces the All-day checkbox and all 5 sub-view
+  selection checks (Calendar list, Repeat presets, Custom recurrence row, Custom frequency,
+  Custom end-mode). The All-day row still toggles on click.
+- `is-scrolling` mask: a callback-ref (`attachScrollMask`) wired onto every `.ios-settings-view`
+  (main + 9 sub-views) — callback-ref because AnimatePresence mounts/unmounts the views, so a
+  single effect-ref would miss the active one. Listener is GC'd with the node.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1824 - 2026-06-04
 
 **Title:** 🌫️ Calendar event-edit dialog: removed the extra 0.2 layer behind it (now 1:1 with settings)
