@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1824 - 2026-06-04
+
+**Title:** 🌫️ Calendar event-edit dialog: removed the extra 0.2 layer behind it (now 1:1 with settings)
+**Tags:** Calendar, UI, Consistency, Bugfix
+
+### Why
+
+The real reason the calendar event-edit dialog looked darker: `.calendar-view-container` has its own `background: rgba(0,0,0,0.2)`, and the dialog (`.ios-settings-container`, 0.15, `position:absolute; inset:0`) sits **on top** of it → ≈0.3 effective, darker than the settings (0.15 only). The v1.1.1823 backdrop-blur experiment was reverted (no extra treatment).
+
+### What
+
+When the dialog is open, the container gets a `has-dialog` class and `.calendar-view-container.has-dialog { background: transparent }` removes the 0.2 layer — so the dialog is exactly 0.15, identical to the other settings sub-views. The normal month view keeps its 0.2.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx` — `has-dialog` class when dialog open
+- `src/system-entities/entities/calendar/styles/CalendarView.css` — transparent container while dialog open (+ reverted v1823 blur)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1823 - 2026-06-04
 
 **Title:** 🌫️ Calendar event-edit dialog gets a glassy backdrop (consistent brightness)
