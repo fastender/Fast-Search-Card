@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1826 - 2026-06-05
+
+**Title:** 🎨 Calendar event-edit dialog: 4 polish fixes (wheel surface, textarea frame, "Every" number, custom-row arrow)
+**Tags:** Calendar, UI, Consistency, Bugfix
+
+### Why
+
+Four small inconsistencies in the calendar event-edit dialog's sub-views: (1) the date/time
+wheel sat on a near-black glass surface that clashed with the lighter dialog; (2) the
+Description/Location textarea had `all: unset` → no visible frame; (3) the "Every N" interval
+number rendered dark instead of light; (4) the Custom-recurrence row's arrow was a raw `›`
+text char that turned invisible on the white hover background.
+
+### What
+
+- Wheel surface (scoped to `.calendar-event-dialog`): transparent fill, no dark drop-shadow,
+  softened neutral top/bottom fades. Center selection pill unchanged (matches `.ios-item`).
+  Todos dialog wheels are untouched.
+- Textarea frame: re-added `background: rgba(255,255,255,0.08)` + `border-radius: 10px` (same
+  translucent surface as `.ios-item`).
+- "Every" interval number: explicit `color: rgba(255,255,255,0.95)`.
+- Custom-recurrence arrow: raw `›` → standard `.ios-chevron` SVG, so the existing hover rule
+  inverts it to dark on the white hover background.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1825 - 2026-06-05
 
 **Title:** ✅ Calendar event-edit dialog: standard selection checkmark + is-scrolling mask on every sub-view
