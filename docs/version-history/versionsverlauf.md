@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1818 - 2026-06-04
+
+**Title:** ✓ Toast settings selection check now matches StatsBar/TTS (filled-circle)
+**Tags:** Settings, Toast, Consistency
+
+### What
+
+The Toast settings sub-view already used the standard section/card/item layout, but its Position and Duration option lists marked the selected entry with a plain blue `✓` text — unlike the StatsBar/TTS sub-views which use the filled-circle `.ios-checkmark` (white circle + black check). Replaced both with the same `.ios-checkmark` so the Toast sub-view matches 1:1.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/ToastSettingsTab.jsx` (Position + Duration)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1817 - 2026-06-04
 
 **Title:** 🌫️ Lighter, glassier toast background
