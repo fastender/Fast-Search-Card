@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1829 - 2026-06-06
+
+**Title:** ✅ Todo task icon now sits in a white circular badge (always visible)
+**Tags:** Todos, UI, Bugfix
+
+### Why
+
+Each task showed its list icon tinted in the list color — but the card background IS the list
+color (or red when overdue), so the icon was effectively invisible. The user asked for the task
+icon to sit in a white button-circle.
+
+### What
+
+- `.todo-list-icon` is now a 32px white circle (matching the right-side completion circle) with
+  a subtle shadow; the icon inside keeps the list color → always legible on any card background.
+- Removed `.todo-list-icon` from the overdue white-force rule (it now keeps the list color on
+  the white circle, indicating the list even on red overdue cards).
+
+### Files
+
+- `src/system-entities/entities/todos/styles/TodosView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1828 - 2026-06-05
 
 **Title:** ⓘ Settings section info-button no longer clipped at the top of the scroll area
