@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.1822 - 2026-06-04
+
+**Title:** 🎚️ Universal device number slider now flush (no side gap)
+**Tags:** Universal, UI, Slider
+
+### What
+
+The Universal device number-entity slider (`NumberSliderControl`, e.g. "Lautstärke") had `padding: 0 15px` (added in v1.1.1686), so the blue track was inset left/right. Removed it so the track is flush with the card edges — matching the slider in the Suggestions settings that the user likes. The thumb's slight overhang at min/max sits in the card's inner padding, same as the Suggestions slider.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/components/UniversalEntityList/NumberSliderControl.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1821 - 2026-06-04
 
 **Title:** 🌫️ Fix double-darkened settings sub-views (nested containers)
