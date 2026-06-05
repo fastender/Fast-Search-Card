@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.1820 - 2026-06-04
+
+**Title:** 🌫️ Settings container: moderate, consistent darkening (incl. StatsBar)
+**Tags:** Settings, UI, Consistency
+
+### What
+
+v1.1.1819 made the settings container fully transparent, which felt too flat (no darkening). Restored a **moderate** darkening on `.ios-settings-container` (`rgba(0,0,0,0.15)` — between the old too-dark `0.25` and transparent). StatsBar was the only settings tab not using `.ios-settings-container` (hence lighter); added the class to its root so all settings sub-views now share the same moderate container background.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.ios-settings-container` background
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx` — added `ios-settings-container` to root
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1819 - 2026-06-04
 
 **Title:** 🌫️ Consistent (lighter) settings-container background across all sub-views
