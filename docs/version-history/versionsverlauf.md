@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1816 - 2026-06-04
+
+**Title:** ✏️ iOS-style edit/delete icon buttons + cleaner color-picker check (Todos settings)
+**Tags:** Todos, UI, Polish
+
+### What
+
+- **Edit / delete buttons** (Description Templates, Profiles) were unstyled native buttons. Gave `.ios-icon-button` a proper iOS look: 34×34 rounded, subtle translucent background, brighter on hover. The template/profile rows are now `ios-item--static` so they no longer flip to a white hover background (which would have hidden the buttons).
+- **Color-picker checkmark** (Edit Profile → COLOR): replaced the plain `✓` text glyph with a clean white SVG check, and fixed its centering — it used `transform: translate(-50%,-50%)` which framer-motion's scale animation overwrote, so it sat off-center. Now the swatch flex-centers the check.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css` — `.ios-icon-button` styles
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — `ios-item--static` rows + removed inline padding
+- `src/system-entities/entities/todos/components/settings/sections.jsx` — SVG check + flex centering
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1815 - 2026-06-04
 
 **Title:** 🎨 Todo list-icon: on hover, dark tile + white icon
