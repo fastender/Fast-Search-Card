@@ -216,7 +216,7 @@ Sort by area. Sort by category. Sort by what you use most. The card learns and r
 
 Five tabs per device. Controls. Context. History. Schedule. Settings. Circular sliders, scene execution, Chart.js graphs, built-in scheduler. Made for one-tap actions.
 
-Video backgrounds when you have them — drop `video/{domain}/{state}.mp4` and the detail view plays it behind the controls. Looped. Muted. Automatic.
+Video backgrounds when you have them — drop `{domain}_{state}.mp4` into `/local/fast-search-videos/` (or your own path) and the detail view plays it behind the controls. Looped. Muted. Automatic. See [media/](https://github.com/fastender/Fast-Search-Card/blob/main/media/README.md) for the naming convention and a starter list.
 
 </details>
 
