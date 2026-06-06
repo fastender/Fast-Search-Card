@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1841 - 2026-06-06
+
+**Title:** 📜 Calendar event list: scrollbar back in its own right gutter (not overlapping items)
+**Tags:** Calendar, UI
+
+### Why
+
+v1.1.1839 removed `.calendar-list` right padding, which made the CustomScrollbar overlay the
+cards. The user wants the scrollbar on the right in its own track — not on the items, but still
+inside the container.
+
+### What
+
+- `.calendar-list` `padding-right` `0` → `16px` — just enough to clear the scrollbar's 14px
+  footprint (11px wide at `right: 3px`), so cards end ~2px before the scrollbar track.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1840 - 2026-06-06
 
 **Title:** 🩹 Calendar event-edit: hover row no longer clipped (overflow fix after the padding change)
