@@ -28,6 +28,12 @@ A modern dashboard for Home Assistant.<br>
 
 <br>
 
+<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/climate.gif" width="240"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/music.gif" width="240"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/light.gif" width="240">
+
+<sub>Detail View with video backgrounds — climate, music, light.</sub>
+
+<br>
+
 <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-1.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-2.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-3.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-4.png" width="180">
 
 <br>
