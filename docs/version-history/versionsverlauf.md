@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1837 - 2026-06-06
+
+**Title:** ↔️ Calendar event-edit main view: removed doubled side padding (now flush with sub-views)
+**Tags:** Calendar, UI, Consistency
+
+### Why
+
+The calendar event-edit main view had doubled horizontal padding — `.ios-settings-view` (20px) +
+`.todo-detail-edit-content` (20px) = 40px each side, noticeably more than the dialog's own
+sub-views (Calendar, Repeat) at 20px.
+
+### What
+
+- Scoped to `.calendar-event-dialog`: `.todo-detail-edit-content` left/right padding set to 0, so
+  the main view's cards sit at 20px — flush with the sub-views. Only the main view uses
+  `.todo-detail-edit-content`, so the sub-views are unaffected.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1836 - 2026-06-06
 
 **Title:** 🎚️ Calendar date/time wheel: no background at all (removed top/bottom fade)
