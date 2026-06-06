@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1867 - 2026-06-06
+
+**Title:** 🧹 Removed dead code from the old HistoryTab chain
+**Tags:** Cleanup, History, Dead-Code
+
+### What
+
+Follow-up to v1.1.1866 (Universal history view replaced HistoryTab). Removed the now fully-dead old
+history chain — everything that only `HistoryTab` referenced:
+
+- Deleted files: `components/tabs/HistoryTab.jsx`, `components/tabs/HistoryTab.css`,
+  `utils/historyUtils.js` (`fetchEntityHistory`/`transformToHistoryObject`), `utils/historyConstants.js`
+  (`TIMEFRAMES`/`getHoursFromTimeframe`/…).
+- `utils/timeFormatters.js`: removed `formatTime` + `formatDuration` (only HistoryTab used them) + the
+  now-dead `getHoursFromTimeframe` import. `formatRelativeTime` stays (live in NotificationsPanel + bento).
+- `utils/homeAssistantService.js`: removed `loadEntityHistory()` (only the deleted
+  DetailView `handleDataRequest` used it).
+
+Verified: no remaining live references; build resolves all imports. (`StatsBar` has its own unrelated
+local `formatTime` clock helper — untouched.)
+
+### Files
+
+- deleted: HistoryTab.jsx/.css, historyUtils.js, historyConstants.js
+- `src/utils/timeFormatters.js`, `src/utils/homeAssistantService.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1866 - 2026-06-06
 
 **Title:** 📈 Normal entities now use the Universal history view (charts + activities) instead of the old HistoryTab
