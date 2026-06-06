@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1864 - 2026-06-06
+
+**Title:** ⚡ Energy Values: fix ⓘ hover (no more black dot) + iOS26-style auto-resolved banner
+**Tags:** Energy, Info-Popup, UI
+
+### What
+
+- The per-sensor ⓘ button sits inside `.ios-item-left`, so the row-hover invert rule
+  (`svg circle { fill:#000 }`) filled the ⓘ circle into a solid black dot on the white hovered row.
+  Added a higher-specificity override that keeps `.ios-info-btn` svgs as an outline (just darkened via
+  `color`) — now consistent with every other ⓘ.
+- Redesigned the "X of Y slots auto-resolved from HA Energy-Dashboard" banner to iOS26 style: a
+  green-tinted circular icon badge (link glyph, matching the green AUTO pills) + bold title + muted
+  subtitle, replacing the flat emoji + single-line text.
+
+### Files
+
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorsConfigView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1863 - 2026-06-06
 
 **Title:** 🧹 Energy Dashboard: removed the dead info-overlay state from the device view
