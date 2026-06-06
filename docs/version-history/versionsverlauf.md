@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1865 - 2026-06-06
+
+**Title:** ⚡ Energy Dashboard settings: is-scrolling top-fade mask on the scroll views
+**Tags:** Energy, UI, Scroll-Mask
+
+### What
+
+The Energy Dashboard settings scroll containers (`.ios-settings-view`) never got the `is-scrolling`
+class toggled, so the top-fade mask never appeared while scrolling. Added an `onScroll` handler that
+toggles `is-scrolling` (scrollTop > 0) on all four settings scroll views: Values (sensor config),
+Home, Circular overview, and Sensor selection.
+
+### Files
+
+- `…/views/EnergyDashboardSensorsConfigView.jsx`, `EnergyDashboardSettingsHomeView.jsx`,
+  `EnergyDashboardCircularOverviewView.jsx`, `EnergyDashboardSensorSelectionView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1864 - 2026-06-06
 
 **Title:** ⚡ Energy Values: fix ⓘ hover (no more black dot) + iOS26-style auto-resolved banner
