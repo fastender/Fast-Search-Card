@@ -88,6 +88,12 @@
 | `integrationTypes` | **Integration „Geräte hinzufügen"** | VERFÜGBARE TYPEN / AVAILABLE TYPES |
 | `universalPickDevice` | **Universal-Setup → Schritt 1** | Gerät wählen / Pick a Device (Titel-ⓘ) |
 | `energySetup` | **Energie-Dashboard hinzufügen** | ENERGIE-QUELLEN / ENERGY SOURCES |
+| `calCalendars` | **Kalender → Einstellungen** | KALENDER / CALENDARS |
+| `calDisplay` | **Kalender → Einstellungen** | ANZEIGE / DISPLAY |
+| `calVisibleViews` | **Kalender → Einstellungen** | SICHTBARE ANSICHTEN / VISIBLE VIEWS |
+| `calNewEvents` | **Kalender → Einstellungen** | NEUE TERMINE / NEW EVENTS |
+| `calTitleTemplates` | **Kalender → Einstellungen** | TITEL-VORLAGEN / TITLE TEMPLATES |
+| `calDescTemplates` | **Kalender → Einstellungen** | BESCHREIBUNGS-VORLAGEN / DESCRIPTION TEMPLATES |
 | `newsFeeds` | **News-Entity** → Settings | FEEDS |
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 | `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |

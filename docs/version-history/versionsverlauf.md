@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1849 - 2026-06-06
+
+**Title:** ⓘ Calendar settings: info popups on all six sections
+**Tags:** Calendar, Settings, Info-Popup
+
+### What
+
+- Added a ⓘ info popup to every calendar-settings section header via `SettingsSectionHeader`:
+  `calCalendars`, `calDisplay`, `calVisibleViews`, `calNewEvents`, `calTitleTemplates`,
+  `calDescTemplates` (de+en). Each explains what the section's options do.
+- Catalog updated with the six new keys.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx`
+- `src/utils/translations/languages/{de,en}.js` — six `settingsInfo.cal*` keys
+- `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1848 - 2026-06-06
 
 **Title:** ✏️ Calendar settings: edit button next to the trash for title/description templates
