@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1848 - 2026-06-06
+
+**Title:** ✏️ Calendar settings: edit button next to the trash for title/description templates
+**Tags:** Calendar, Settings, Feature
+
+### Why
+
+Templates could only be deleted + re-added; the user wanted to edit an existing template in place.
+
+### What
+
+- Each title/description template row now has a pencil (edit) button next to the trash. Tapping it
+  opens the same template editor pre-filled with the text; saving replaces it at that index (the
+  add sub-views now handle both add and edit via `editTitleIdx`/`editDescIdx`). The editor's title
+  switches to "Vorlage bearbeiten"/"Edit Template" in edit mode. Duplicate-elsewhere is ignored.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1847 - 2026-06-06
 
 **Title:** 🔍 Calendar: search (and +) now work from inside the open event dialog
