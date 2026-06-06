@@ -36,7 +36,9 @@ A modern dashboard for Home Assistant.<br>
 
 <br>
 
-<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-1.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-2.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-3.png" width="180"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/dfes-4.png" width="180">
+<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/images/fsc-1.png" width="380"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/images/fsc-2.png" width="380">
+
+<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/images/fsc-3.png" width="380"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/images/fsc-4.png" width="380">
 
 <br>
 <br>
