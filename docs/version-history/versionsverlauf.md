@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1863 - 2026-06-06
+
+**Title:** 🧹 Energy Dashboard: removed the dead info-overlay state from the device view
+**Tags:** Energy, Cleanup
+
+### What
+
+Follow-up to v1.1.1862: removed the now-unused `showInfoOverlay` / `infoSensorType` state (and the
+four props passed down to the settings view) from `EnergyDashboardDeviceView.jsx`. The old overlay was
+already deleted; this just clears the leftover plumbing. No behavior change.
+
+### Files
+
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardDeviceView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1862 - 2026-06-06
 
 **Title:** ⚡ Energy Dashboard settings: section headings + ⓘ, per-sensor info popups on the standard design
