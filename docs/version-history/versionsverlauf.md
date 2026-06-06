@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.1857 - 2026-06-06
+
+**Title:** 🧭 Schedule editor: fixed Cancel/Save header, "General" section heading, unified inline accordions
+**Tags:** Schedules, UI, Navigation, Info-Popup
+
+### Why
+
+Follow-up consistency pass on the schedule inline-editor: Cancel/Save were at the bottom; the first
+section had no heading; and the device-settings rows opened a slide-sub-view while the timing rows
+expand inline — inconsistent.
+
+### What
+
+- **Fixed header** (inline-edit): Cancel (left) + Save (right) now pinned in a top `.ios-navbar`;
+  the picker scrolls below in an `.ios-settings-view` with the is-scrolling top-fade mask + a
+  `CustomScrollbar`. `.all-schedules-edit-wrapper` made a bounded flex column so the inner view is
+  the scroller. Bottom `ScheduleActionButtons` dropped in inline-edit (kept for non-inline).
+- **First-section heading**: "ALLGEMEIN / GENERAL" `SettingsSectionHeader` with a ⓘ
+  (`scheduleGeneralSettings`, de+en, catalog updated) — matching the "Device Settings" header.
+- **Unified accordions**: `DomainSettingsPicker` in `mode='schedule'` now expands its picker/slider
+  INLINE below the row (same `accordionVariants` + dark body look as the timing rows) instead of
+  sliding to a sub-view. Live mode unchanged (still slides).
+
+### Files
+
+- `src/components/tabs/ScheduleTab.jsx` + `ScheduleTab/styles/ScheduleTab.css`
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx`
+- `src/components/common/DomainSettingsPicker.jsx` + `.css`
+- `src/system-entities/entities/all-schedules/styles/AllSchedulesView.css`
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.scheduleGeneralSettings`
+- `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1856 - 2026-06-06
 
 **Title:** 🎛️ Schedule editor: unified accordion background, aligned device-settings + sub-heading
