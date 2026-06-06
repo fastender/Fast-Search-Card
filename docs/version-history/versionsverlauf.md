@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1835 - 2026-06-06
+
+**Title:** 🔢 Custom recurrence "Every" row: number + steppers stay visible on hover
+**Tags:** Calendar, UI, Bugfix
+
+### Why
+
+On the Custom-recurrence "Every N months" row, hover applied the white `.ios-item:hover`
+background, but the interval number, the −/+ stepper buttons and the "months" label are custom
+inline-styled (light) elements that the hover-invert rules don't cover → white-on-white, invisible.
+
+### What
+
+- The "Every" row is a stepper, not a navigation row, so it now uses `ios-item--static` — it opts
+  out of the white hover background (gets the subtle translucent hover instead), keeping all its
+  light children legible.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1834 - 2026-06-06
 
 **Title:** ⚡ Energy Dashboard setup: inline description → ⓘ info popup
