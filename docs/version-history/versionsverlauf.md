@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1844 - 2026-06-06
+
+**Title:** 🗓️ Calendar settings +4: week start, time format, new-event defaults, description templates, week numbers
+**Tags:** Calendar, Feature, Settings
+
+### Why
+
+Follow-up to the calendar settings view — added more high-value options.
+
+### What
+
+- **Week start** Mon/Sun (`display.weekStart`) — was hardcoded Monday; now `startOfWeek`/`endOfWeek`/
+  `rangeForView` + Month/Week grids take a `weekStartsOn`, and the weekday header reorders for Sunday-start.
+- **Time format** 24h/12h (`display.timeFormat`) — `fmtTime` now passes explicit `hour12`, so the event
+  list/grid times honor the setting regardless of locale.
+- **New-event defaults** (`newEvent`): default calendar, default duration (15/30/60/90 min), default
+  "all day" — applied in the add-event dialog (edit mode untouched).
+- **Description templates** (`descriptionTemplates`) — editable quick-chips in the event dialog's
+  description sub-view, mirroring the title templates.
+- **Week numbers** (`display.showWeekNumbers`) — optional ISO week-number column in the month grid
+  (separate flex column; default layout unchanged when off).
+
+New settings sections/rows in `CalendarSettingsView` (Display rows + a "New events" section + a
+"Description templates" section). Defaults preserve current behavior exactly.
+
+### Files
+
+- `src/system-entities/entities/calendar/utils/calendarSettingsStorage.js`
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx`
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1843 - 2026-06-06
 
 **Title:** 🔘 Calendar settings: per-calendar visibility toggle is now clickable
