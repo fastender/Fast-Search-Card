@@ -6,8 +6,10 @@ This folder collects example media for Fast Search Card — primarily background
 media/
 ├── README.md      ← you are here
 ├── videos/        ← MP4 background videos (ready to use)
-└── gifs/          ← animated previews used in the project README
+└── gifs/          ← animated previews + logo used in the project README
 ```
+
+The `gifs/` folder contains the animated logo (`logo.gif`) and three Detail-View previews (`climate.gif`, `light.gif`, `music.gif`).
 
 The videos in `media/videos/` are committed to the repo and ready to drop into `/config/www/fast-search-videos/` on your Home Assistant. Six clips are included:
 

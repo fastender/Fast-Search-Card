@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/logo.gif" width="200" alt="Fast Search Card logo">
+
 # Fast Search Card
 
 ### Search anything. Run anything.
