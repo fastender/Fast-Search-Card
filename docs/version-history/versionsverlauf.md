@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1861 - 2026-06-06
+
+**Title:** 🧭 Weather + Integration get the overview icon; refresh removed from schedules/news/weather
+**Tags:** Weather, Integration, Schedules, News, Navigation, UI
+
+### What
+
+- Weather + Integration first toolbar button `back` → `overview` (spoked-wheel icon, like the
+  others). IntegrationView got a `handleOverview` (reset to the device-selection screen) + is in the
+  overview dispatch chain. Weather has no internal list, so the overview action falls back to closing
+  the view (new `else onBack?.()` fallback in TabNavigation's overview case — mirrors the back case).
+- Removed the `refresh` action button from Schedules, News, and Weather.
+
+### Files
+
+- `src/system-entities/entities/integration/index.js` + `IntegrationView.jsx`
+- `src/system-entities/entities/integration/device-entities/WeatherDeviceEntity.js`
+- `src/system-entities/entities/all-schedules/index.js`
+- `src/system-entities/entities/news/index.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1860 - 2026-06-06
 
 **Title:** 🧭 Changelog + Tips: first toolbar button is now "Overview" (like News/Scheduler), not Back
