@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1853 - 2026-06-06
+
+**Title:** ◀▶ Schedules: left/right scroll arrows on the filter bar (like News)
+**Tags:** Schedules, UI
+
+### Why
+
+The Schedules-overview filter bar scrolled horizontally but had no scroll-indicator arrows; the
+News entity already has them.
+
+### What
+
+- Added the News-style left/right scroll indicators to `AllSchedulesView`'s `.news-filter-bar`
+  via `useScrollIndicators` + a `filterScrollRef` + `scrollFilter()`. Reuses the existing
+  `.news-scroll-indicator` styling (already imported). Arrows only appear in the filter branch
+  (not over the search bar).
+
+### Files
+
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1852 - 2026-06-06
 
 **Title:** 🧩 Tasks: toolbar order (overview/search/+/settings) + info popups on all settings sections
