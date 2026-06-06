@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1843 - 2026-06-06
+
+**Title:** 🔘 Calendar settings: per-calendar visibility toggle is now clickable
+**Tags:** Calendar, Settings, Bugfix
+
+### Why
+
+In the new Calendar settings, the per-calendar show/hide switch couldn't be toggled — tapping it
+opened the color sub-view instead. `LiquidGlassSwitch`'s `stopPropagation` prop only stops the
+change event; the click event still bubbled to the row's `onClick` (which opens the color view).
+
+### What
+
+- Wrapped the switch in a `<span onClick={e => e.stopPropagation()}>` click-guard, so tapping the
+  switch only toggles visibility. The chevron/rest of the row still opens the color sub-view.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1842 - 2026-06-06
 
 **Title:** ⚙️ Calendar gets a real settings view (ported from Todos): calendars, display, visible views, title templates
