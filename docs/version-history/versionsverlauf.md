@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1846 - 2026-06-06
+
+**Title:** 🧭 Calendar: template chips no longer clipped on hover + removed refresh tab + settings active-state & cross-navigation
+**Tags:** Calendar, UI, Navigation, Bugfix
+
+### Why
+
+Three issues: (1) the title/description template quick-chips were clipped on hover (the chips
+`scale(1.04)`, but the row's `overflow-x: auto` clips vertically too); (2) the top-right toolbar had
+a "refresh" button the user didn't need; (3) the calendar action buttons never showed an active
+state (calendar was missing from TabNavigation's active-button poll), and switching between buttons
+(search→settings, add→overview) didn't work (no `handleOverview`, settings didn't close search/dialog).
+
+### What
+
+- `.calendar-event-title-chips`: added `padding: 4px 2px` (margin 10→6 to keep the gap) so the hover
+  scale isn't clipped. Covers both title and description chips (shared class).
+- Removed the `refresh` action button from the calendar entity.
+- TabNavigation active-button poll now includes `vr.calendar` → the active circle shows for the
+  active calendar button (overview/search/add/settings).
+- Calendar `handleOpenSettings` and new `handleOverview` now close any open dialog/search first, so
+  they work from any state. `getActiveButton` returns 'add' while the add dialog is open, 'settings'
+  in settings, else the current button.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/system-entities/entities/calendar/index.jsx`
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1845 - 2026-06-06
 
 **Title:** 🧊 Calendar settings: removed the doubled container (outer view-container neutralized)
