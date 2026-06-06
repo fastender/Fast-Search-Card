@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1836 - 2026-06-06
+
+**Title:** 🎚️ Calendar date/time wheel: no background at all (removed top/bottom fade)
+**Tags:** Calendar, UI
+
+### Why
+
+After v1.1.1826 the wheel surface was transparent but its `::after` top/bottom fade gradient still
+painted a dark vignette — the user wants no background at all on the wheel.
+
+### What
+
+- Scoped to `.calendar-event-dialog`: the date/time wheel `::after` fade is now `display: none`.
+  Surface stays transparent; only the center selection pill (`::before`) remains as the selection
+  indicator. (Todos dialog wheels keep their original glass surface.)
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1835 - 2026-06-06
 
 **Title:** 🔢 Custom recurrence "Every" row: number + steppers stay visible on hover
