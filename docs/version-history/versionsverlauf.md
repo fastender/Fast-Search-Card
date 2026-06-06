@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1839 - 2026-06-06
+
+**Title:** 📅 Calendar view: search padding, 3-column year grid <1024px, full-width event list
+**Tags:** Calendar, UI, Responsive
+
+### What
+
+- `.calendar-search` padding `8px 12px` → `10px 12px` (slightly taller search field).
+- `.calendar-year` under 1024px now uses 3 columns × 4 rows (was 4 × 3 — too cramped in the
+  narrow layout); ≥1024px keeps 4 columns.
+- `.calendar-list` removed the reserved `padding-right: 20px` — the event cards now span full
+  width; the CustomScrollbar overlays the (empty) right card edge instead of reserving a gutter.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1838 - 2026-06-06
 
 **Title:** 🗑️ Calendar event-edit: iOS-26 Delete button + CustomScrollbar on the main view
