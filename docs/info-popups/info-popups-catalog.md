@@ -99,6 +99,7 @@
 | `todoVisibleTabs` | **Tasks → Einstellungen** | SICHTBARE TABS / VISIBLE TABS |
 | `todoDescTemplates` | **Tasks → Einstellungen** | BESCHREIBUNGS-VORLAGEN / DESCRIPTION TEMPLATES |
 | `todoProfiles` | **Tasks → Einstellungen** | PROFILE / PROFILES |
+| `scheduleDomainSettings` | **Schedule-Editor** (DomainSettingsPicker) | GERÄTE-EINSTELLUNGEN / DEVICE SETTINGS |
 | `newsFeeds` | **News-Entity** → Settings | FEEDS |
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 | `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |

@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1856 - 2026-06-06
+
+**Title:** 🎛️ Schedule editor: unified accordion background, aligned device-settings + sub-heading
+**Tags:** Schedules, UI, Consistency, Info-Popup
+
+### Why
+
+Follow-up to the iOS-card refactor: (1) the wheel accordions (Action/Scheduler/Repeat/time) had a
+near-black background while the Days accordion (chips) was lighter; (2) the device-settings rows
+were inset more than the timing rows (double `.ios-section` nesting); (3) the device settings had no
+heading.
+
+### What
+
+- Wheels in the schedule accordion now render transparent (no own dark glass/fades) → all accordion
+  bodies look 1:1 like "Days" (uniform `.schedule-picker-body-inner` surface). Center selection pill kept.
+- `DomainSettingsPicker` moved out of the timing card into its own top-level section → same 12px side
+  inset as the timing rows (no more extra indent).
+- Added an optional `headerTitle`/`headerInfoKey` to `DomainSettingsPicker`; the schedule editor now
+  shows a "GERÄTE-EINSTELLUNGEN / DEVICE SETTINGS" sub-heading with a ⓘ (`scheduleDomainSettings`,
+  de+en, catalog updated).
+
+### Files
+
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` + `.css`
+- `src/components/common/DomainSettingsPicker.jsx`
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.scheduleDomainSettings`
+- `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1855 - 2026-06-06
 
 **Title:** 🪄 Schedule editor: picker rebuilt as iOS-cards (unified with the domain-settings rows)
