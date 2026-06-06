@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1854 - 2026-06-06
+
+**Title:** 🌐 Schedule editor: domain-setting labels translated (no more raw ui.climate.* keys)
+**Tags:** Schedules, i18n, Bugfix
+
+### Why
+
+In the schedule editor the climate (and other domain) setting rows showed raw keys like
+`ui.climate.hvacMode`. `DomainSettingsPicker` did `translateUI(labelKey) || labelFallback`, but
+`translateUI` returns the prefixed key (a truthy string) when a key is missing, so the fallback
+never fired — and the `ui.climate.*` schedule keys didn't exist.
+
+### What
+
+- `DomainSettingsPicker`: new `resolveSettingLabel()` — treats a `ui.`-prefixed return as
+  "not found" and falls back to `labelFallback` (then `key`). Applied to all 4 label sites. Now no
+  domain setting can ever show a raw key.
+- Added the missing `climate.*` labels bilingually (`hvacMode`, `temperature`, `fanMode`,
+  `swingMode`, `presetMode`, `humidity`, `auxHeat`) to de.js + en.js (en.js had no `ui.climate`
+  block at all).
+
+### Files
+
+- `src/components/common/DomainSettingsPicker.jsx`
+- `src/utils/translations/languages/{de,en}.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1853 - 2026-06-06
 
 **Title:** ◀▶ Schedules: left/right scroll arrows on the filter bar (like News)
