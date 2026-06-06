@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1860 - 2026-06-06
+
+**Title:** 🧭 Changelog + Tips: first toolbar button is now "Overview" (like News/Scheduler), not Back
+**Tags:** Versionsverlauf, Tipps, Navigation, UI
+
+### Why
+
+Changelog (Versionsverlauf) and Tips used a `back` action (plain back-arrow icon) as their first
+toolbar button, while News/Scheduler use `overview` (the compass/overview icon). The user wanted the
+overview icon + behavior here too.
+
+### What
+
+- Versionsverlauf + Tips first action button `back` → `overview` (so it shows the overview icon).
+- Registered `handleOverview` in both views (resets to the list, closes detail/settings/search);
+  added both to TabNavigation's `overview` dispatch chain; default `activeButton` and the
+  search-toggle/back fallbacks now use `'overview'`. `handleBackNavigation` kept as a safety net.
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js` + `VersionsverlaufView.jsx`
+- `src/system-entities/entities/tipps/index.js` + `TippsView.jsx`
+- `src/components/DetailView/TabNavigation.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1859 - 2026-06-06
 
 **Title:** 🔎 Changelog + Tips: removed refresh, search field now matches News/Scheduler
