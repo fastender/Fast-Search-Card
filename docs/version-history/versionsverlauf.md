@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1858 - 2026-06-06
+
+**Title:** ◀ Filter scroll arrows: left arrow reappears after toggling search (schedules/news/todos)
+**Tags:** Schedules, News, Todos, UI, Bugfix
+
+### Why
+
+Toggling search on/off unmounts+remounts the filter bar, so `filterScrollRef` points at a new node.
+`useScrollIndicators`' effect didn't re-run (search wasn't in its deps), so its scroll listeners
+stayed on the old detached node — after search off, the left arrow never reappeared on scroll.
+
+### What
+
+- Added `searchOpen` to the `useScrollIndicators` deps in AllSchedulesView (reported), and
+  proactively in NewsView + TodosView (same pattern). On search toggle the hook re-attaches to the
+  fresh filter-bar node and re-measures.
+
+### Files
+
+- `src/system-entities/entities/all-schedules/AllSchedulesView.jsx`
+- `src/system-entities/entities/news/NewsView.jsx`
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1857 - 2026-06-06
 
 **Title:** 🧭 Schedule editor: fixed Cancel/Save header, "General" section heading, unified inline accordions
