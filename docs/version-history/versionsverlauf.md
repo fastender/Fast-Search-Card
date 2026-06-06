@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1847 - 2026-06-06
+
+**Title:** 🔍 Calendar: search (and +) now work from inside the open event dialog
+**Tags:** Calendar, Navigation, Bugfix
+
+### Why
+
+With the add/edit event dialog open, clicking "search" did nothing — `handleToggleSearch` toggled
+state but `dialogState` stayed set, and the dialog has render priority, so it kept covering the view.
+
+### What
+
+- `handleToggleSearch` now closes the open dialog first (`setDialogState(null)`), so search opens
+  from any state (including the add dialog).
+- `handleAdd` now also closes search + resets the active button to overview, so "+" works from
+  search/settings and closing the add dialog lands on the overview.
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1846 - 2026-06-06
 
 **Title:** 🧭 Calendar: template chips no longer clipped on hover + removed refresh tab + settings active-state & cross-navigation
