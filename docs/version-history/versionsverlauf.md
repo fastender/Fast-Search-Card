@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1845 - 2026-06-06
+
+**Title:** 🧊 Calendar settings: removed the doubled container (outer view-container neutralized)
+**Tags:** Calendar, Settings, UI, Bugfix
+
+### Why
+
+The calendar settings view showed two nested rounded containers: the outer `.calendar-view-container`
+(bg 0.2 + radius + 16/18px padding) plus the settings panel's own `.ios-settings-container`. The
+event dialog avoids this via `has-dialog`, but it's `position:absolute` so the padding doesn't show;
+the settings view is in-flow, so it needs transparent **and** padding 0.
+
+### What
+
+- New `.calendar-view-container.has-settings { background: transparent; padding: 0 }`, applied when
+  `activeButton === 'settings'`, so the settings card is the single visible container (edge-to-edge).
+
+### Files
+
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1844 - 2026-06-06
 
 **Title:** 🗓️ Calendar settings +4: week start, time format, new-event defaults, description templates, week numbers
