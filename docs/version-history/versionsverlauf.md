@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1855 - 2026-06-06
+
+**Title:** 🪄 Schedule editor: picker rebuilt as iOS-cards (unified with the domain-settings rows)
+**Tags:** Schedules, UI, Refactor
+
+### Why
+
+The schedule editor's main fields (Action/Scheduler/Days/Repeat/time/End time) were an HTML
+`<table>` with a vanilla-JS DOM accordion (`querySelector('#picker-container-line-N')` + Web
+Animations), looking completely different from the iOS-card `DomainSettingsPicker` rows below them.
+
+### What
+
+- `SchedulePickerTable` rewritten as `.ios-section > .ios-card > .ios-item` rows matching
+  `DomainSettingsPicker`, with a clean Preact state accordion (`openLine` + framer-motion
+  `accordionVariants`) replacing the DOM-toggle — only one row open at a time, picker expands inline.
+- All behavior preserved: Action, Cover position (cover only), Scheduler, Days (schedule-only,
+  `DaysChipRow` round-trip), Repeat, Start time, End time (schedule-only), the `DomainSettingsPicker`
+  block (now in the same card → one unified list). The wheel pickers are unchanged.
+- Removed the dead DOM accordion (`onRowClick`/`animatePicker`) from `ScheduleTab.jsx` and the dead
+  table-accordion CSS; kept all wheel-internal CSS.
+
+### Files
+
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.jsx` (rewritten)
+- `src/components/tabs/ScheduleTab/components/SchedulePickerTable.css` (new)
+- `src/components/tabs/ScheduleTab.jsx`
+- `src/components/tabs/ScheduleTab/styles/ScheduleTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1854 - 2026-06-06
 
 **Title:** 🌐 Schedule editor: domain-setting labels translated (no more raw ui.climate.* keys)
