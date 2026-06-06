@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1850 - 2026-06-06
+
+**Title:** ✅ Tasks: dialog side padding, removed refresh, cross-navigation, search-bar margin (calendar parity)
+**Tags:** Todos, UI, Navigation, Bugfix
+
+### Why
+
+Bringing the Tasks entity to parity with the calendar fixes.
+
+### What
+
+- bug1 — Todo add/edit dialog had doubled side padding (`.ios-settings-view` 20px +
+  `.todo-detail-edit-content` 20px). Scoped `.todo-detail-container .todo-detail-edit-content` to
+  L/R padding 0 + `overflow: visible` (so 20px total, and hover scale/shadow isn't clipped).
+- bug2 — Removed the `refresh` action button from the Tasks toolbar.
+- bug3 — Cross-navigation now works from any state: `handleToggleSearch`/`handleOpenSettings`/
+  `handleAdd` close the other open views (settings/add/detail/search) first and keep `activeButton`
+  in sync — search/settings/+/overview switch cleanly like the calendar.
+- bug4 — `.todos-search-bar` `margin-bottom` removed.
+
+### Files
+
+- `src/system-entities/entities/todos/styles/TodoDetailView.css`
+- `src/system-entities/entities/todos/styles/TodosView.css`
+- `src/system-entities/entities/todos/index.jsx`
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1849 - 2026-06-06
 
 **Title:** ⓘ Calendar settings: info popups on all six sections
