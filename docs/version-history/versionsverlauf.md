@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1859 - 2026-06-06
+
+**Title:** 🔎 Changelog + Tips: removed refresh, search field now matches News/Scheduler
+**Tags:** Versionsverlauf, Tipps, UI, Consistency
+
+### What
+
+- Removed the `refresh` action button from the Versionsverlauf (Changelog) and Tips toolbars.
+- Restyled the Versionsverlauf + Tips search field to match News/Scheduler 1:1: rounded 18px,
+  subtle border, `:focus-within` brighten transition (the "animation"), and a circular clear
+  button. (Markup was already identical; only the `.X-search*` CSS differed.)
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/index.js` + `styles/VersionsverlaufView.css`
+- `src/system-entities/entities/tipps/index.js` + `styles/TippsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1858 - 2026-06-06
 
 **Title:** ◀ Filter scroll arrows: left arrow reappears after toggling search (schedules/news/todos)
