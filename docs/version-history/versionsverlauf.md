@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1838 - 2026-06-06
+
+**Title:** 🗑️ Calendar event-edit: iOS-26 Delete button + CustomScrollbar on the main view
+**Tags:** Calendar, UI
+
+### Why
+
+The "Delete event" button used a hard red bordered box, and the scrollable main view had no
+CustomScrollbar.
+
+### What
+
+- Delete button restyled to iOS-26 look: frosted glass pill (subtle red `rgba(255,59,48,0.12)`
+  + `backdrop-filter: blur`), no border, red text — instead of the bordered red box.
+- Added `CustomScrollbar` to the main view: a combined callback ref keeps the scroll node in
+  `mainScrollRef` (still wiring the is-scrolling mask), plus a hover state on the view wrapper.
+
+### Files
+
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1837 - 2026-06-06
 
 **Title:** ↔️ Calendar event-edit main view: removed doubled side padding (now flush with sub-views)
