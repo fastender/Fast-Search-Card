@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1852 - 2026-06-06
+
+**Title:** 🧩 Tasks: toolbar order (overview/search/+/settings) + info popups on all settings sections
+**Tags:** Todos, Settings, Info-Popup, UI
+
+### What
+
+- Reordered the Tasks toolbar action buttons to overview · search · **add · settings** (was
+  overview · search · settings · add).
+- Added a ⓘ info popup to every Tasks-settings section header via `SettingsSectionHeader`:
+  `todoLists`, `todoDisplay`, `todoVisibleTabs`, `todoDescTemplates`, `todoProfiles` (de+en).
+- Catalog updated with the five new keys.
+
+### Files
+
+- `src/system-entities/entities/todos/index.jsx` — action-button order
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — section headers + ⓘ
+- `src/utils/translations/languages/{de,en}.js` — five `settingsInfo.todo*` keys
+- `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1851 - 2026-06-06
 
 **Title:** 🔎 Tasks: filter scroll-arrows no longer overlap the open search field

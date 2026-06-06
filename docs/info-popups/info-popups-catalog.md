@@ -94,6 +94,11 @@
 | `calNewEvents` | **Kalender → Einstellungen** | NEUE TERMINE / NEW EVENTS |
 | `calTitleTemplates` | **Kalender → Einstellungen** | TITEL-VORLAGEN / TITLE TEMPLATES |
 | `calDescTemplates` | **Kalender → Einstellungen** | BESCHREIBUNGS-VORLAGEN / DESCRIPTION TEMPLATES |
+| `todoLists` | **Tasks → Einstellungen** | LISTEN / LISTS |
+| `todoDisplay` | **Tasks → Einstellungen** | ANZEIGE / DISPLAY |
+| `todoVisibleTabs` | **Tasks → Einstellungen** | SICHTBARE TABS / VISIBLE TABS |
+| `todoDescTemplates` | **Tasks → Einstellungen** | BESCHREIBUNGS-VORLAGEN / DESCRIPTION TEMPLATES |
+| `todoProfiles` | **Tasks → Einstellungen** | PROFILE / PROFILES |
 | `newsFeeds` | **News-Entity** → Settings | FEEDS |
 | `newsDisplay` | **News-Entity** → Settings | ANZEIGE / DISPLAY |
 | `heroEntities` | **Universal-Gerät bearbeiten** → Hero | ENTITÄTEN / ENTITIES |
