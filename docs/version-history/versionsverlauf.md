@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1840 - 2026-06-06
+
+**Title:** 🩹 Calendar event-edit: hover row no longer clipped (overflow fix after the padding change)
+**Tags:** Calendar, UI, Bugfix
+
+### Why
+
+Regression from v1.1.1837: after zeroing `.todo-detail-edit-content`'s left/right padding, the
+cards sit at its content-box edge. Its (redundant) `overflow-y: auto` forces horizontal clipping,
+so the row's hover `scale(1.02)` + box-shadow got cut off on the right/bottom.
+
+### What
+
+- Scoped to `.calendar-event-dialog`: `.todo-detail-edit-content` `overflow: visible`. The real
+  scroller is `.ios-settings-view` (flex:1 in the flex-column wrapper), so the edit-content never
+  scrolled anyway — visible is safe and lets the hover overhang spill into the settings-view's
+  20px padding instead of being clipped.
+
+### Files
+
+- `src/system-entities/entities/calendar/styles/CalendarView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1839 - 2026-06-06
 
 **Title:** 📅 Calendar view: search padding, 3-column year grid <1024px, full-width event list
