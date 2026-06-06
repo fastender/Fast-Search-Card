@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1842 - 2026-06-06
+
+**Title:** ⚙️ Calendar gets a real settings view (ported from Todos): calendars, display, visible views, title templates
+**Tags:** Calendar, Feature, Settings
+
+### Why
+
+The calendar's "Einstellungen" action button was a stub (no view). Ported the relevant Todos
+settings sections to a real calendar settings view + a localStorage store, and wired them so they
+actually change the calendar.
+
+### What
+
+New store `calendar/utils/calendarSettingsStorage.js` (`fsc-calendar-settings-v1`, deep-merged
+defaults, prototype-pollution guarded) and view `calendar/components/CalendarSettingsView.jsx`
+(iOS-style, mirrors TodosSettingsView). Shared color module `calendar/utils/calendarColors.js`
+(extracted `CAL_COLORS` + `colorForCalendar`). Four sections:
+
+- **Calendars** — per-calendar show/hide toggle + custom color (overrides the auto-hashed color;
+  "Default" resets). Events are filtered + colored accordingly.
+- **Display** — "show past events" toggle, default range (Day/Week/Month/Year), sort order (asc/desc).
+- **Visible views** — toggle which of the 4 mode-tabs appear (keeps ≥1; auto-falls-back if the
+  active mode gets hidden).
+- **Title templates** — editable quick-chips for the event dialog's title (empty → built-in defaults).
+
+Wired into `CalendarView` (settings render branch, back-nav, event filter/sort/color, viewMode seed
+from default range) and `CalendarEventDialog` (new `titleTemplates` prop).
+
+### Files
+
+- `src/system-entities/entities/calendar/utils/calendarSettingsStorage.js` (new)
+- `src/system-entities/entities/calendar/utils/calendarColors.js` (new)
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx` (new)
+- `src/system-entities/entities/calendar/CalendarView.jsx`
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1841 - 2026-06-06
 
 **Title:** 📜 Calendar event list: scrollbar back in its own right gutter (not overlapping items)
