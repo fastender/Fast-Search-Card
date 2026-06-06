@@ -24,15 +24,12 @@
 !scripts/
 !scripts/**
 
-# Except media folder structure + README (but not the heavy MP4/MOV files themselves —
-# those stay out of git; this folder documents the convention only)
+# Except media folder — committed demo videos plus README.
+# Keep individual clips small (target <2 MB, hard ceiling 5 MB) so
+# the repo stays HACS-friendly. Large or personal libraries should
+# live in a companion repo, not here.
 !media/
 !media/**
-media/**/*.mp4
-media/**/*.mov
-media/**/*.webm
-media/**/*.mkv
-media/**/*.m4v
 
 # Ignore node_modules even in dist
 dist/node_modules/

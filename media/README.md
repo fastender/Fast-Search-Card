@@ -5,8 +5,16 @@ This folder collects example media for Fast Search Card — primarily background
 ```
 media/
 ├── README.md      ← you are here
-└── videos/        ← MP4 background videos
+└── videos/        ← MP4 background videos (ready to use)
 ```
+
+The videos in `media/videos/` are committed to the repo and ready to drop into `/config/www/fast-search-videos/` on your Home Assistant. Six clips are included:
+
+- `light_on.mp4` / `light_off.mp4`
+- `climate_on.mp4` / `climate_off.mp4`
+- `media_player_on.mp4` / `media_player_off.mp4`
+
+Roughly 2 MB each. Plug-and-play.
 
 ---
 
@@ -68,6 +76,6 @@ If no video matches, the Detail View falls back to the animated icon.
 
 ## Why this folder exists in the repo
 
-This folder is a **placeholder and reference** — the videos themselves stay out of git (MP4s are too heavy and too personal). The folder + this README ensure the convention is documented in one obvious place.
+A small starter pack lives here so the Detail View has something to play out of the box. Six clips at ~2 MB each — light enough to ship with the project, useful enough to demo the feature instantly.
 
-If you want to share your own video pack with the community, fork the repo, put your MP4s in `media/videos/`, and open a discussion in Issues. The companion package model (like `fast-news-reader`) is also an option for larger collections.
+If you want to contribute more clips, keep individual files small (target under 2 MB, hard ceiling 5 MB) and open a PR. For larger personal libraries, a companion repo (the `fast-news-reader` model) is the better home.
