@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1851 - 2026-06-06
+
+**Title:** 🔎 Tasks: filter scroll-arrows no longer overlap the open search field
+**Tags:** Todos, UI, Bugfix
+
+### Why
+
+The filter-bar scroll indicators (left/right arrows) were rendered outside the search/filter
+ternary, so when the search field was open the (stale) right arrow still showed on top of it.
+
+### What
+
+- Both scroll indicators are now gated on `!searchOpen` — they only appear with the filter bar,
+  not over the search field.
+
+### Files
+
+- `src/system-entities/entities/todos/TodosView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1850 - 2026-06-06
 
 **Title:** ✅ Tasks: dialog side padding, removed refresh, cross-navigation, search-bar margin (calendar parity)
