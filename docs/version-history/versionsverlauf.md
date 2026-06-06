@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.1866 - 2026-06-06
+
+**Title:** 📈 Normal entities now use the Universal history view (charts + activities) instead of the old HistoryTab
+**Tags:** History, Charts, Activities, Entities, Refactor
+
+### Why
+
+Normal entities (sensors, climate, lights, switches…) still used the dated `HistoryTab` (flat Usage
+Chart + Recent Events + stat tiles, 24h/7d/30d). The Universal-device history (`ChartsHistoryView`:
+charts + activities, mode-switch, D/W/M/Y + custom date range, KPI pills, click-to-sync) is much
+nicer — so it's now used everywhere.
+
+### What — "Smart per domain" mapping
+
+- New `buildEntityChartConfig(item, hass, lang)` (`src/utils/entityChartConfig.js`) maps each entity to
+  chart sensors per domain: numeric sensor → its own value; climate / water_heater → current + target
+  temperature; light → brightness; fan → speed; cover → position; humidifier → humidity; on/off
+  entities (switch, lock, binary_sensor…) → no chart, activities-only. The entity itself is always the
+  control entity for the logbook/activities feed.
+- New `EntityHistoryView` wrapper renders `ChartsHistoryView` with these overrides.
+- **Attribute-history support** (additive, default-off) threaded through `sensorStatistics.js`
+  (`fetchHistoryData` + 5 exports) and `SensorChartView` — so climate temperature etc. (which live in
+  attributes, not the state) can be charted. When no `attribute` is passed, behavior is byte-for-byte
+  unchanged → Energy Dashboard + Universal charts untouched.
+- `ChartsHistoryView` gained additive `chartSensorsOverride` / `controlEntitiesOverride` / `initialMode`
+  props + per-sensor `attribute`/`label`/`stateClass`; activities-only entities hide the 📊 button.
+- `DetailView` now renders `EntityHistoryView` in both History slots (sensor + general). Old
+  `HistoryTab` unwired (files kept) + dead `handleDataRequest` removed.
+
+### Files
+
+- `src/utils/entityChartConfig.js` (new), `src/components/charts/EntityHistoryView.jsx` (new)
+- `src/services/sensorStatistics.js`, `src/components/charts/SensorChartView.jsx`,
+  `ChartsHistoryView.jsx`, `DeviceActivitiesView.jsx`
+- `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1865 - 2026-06-06
 
 **Title:** ⚡ Energy Dashboard settings: is-scrolling top-fade mask on the scroll views
