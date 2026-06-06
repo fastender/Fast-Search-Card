@@ -88,6 +88,8 @@
 | `integrationTypes` | **Integration „Geräte hinzufügen"** | VERFÜGBARE TYPEN / AVAILABLE TYPES |
 | `universalPickDevice` | **Universal-Setup → Schritt 1** | Gerät wählen / Pick a Device (Titel-ⓘ) |
 | `energySetup` | **Energie-Dashboard hinzufügen** | ENERGIE-QUELLEN / ENERGY SOURCES |
+| `energyValues` | **Energy-Dashboard → Einstellungen** | WERTE / VALUES |
+| `energyCircular` | **Energy-Dashboard → Einstellungen** | CIRCULAR |
 | `calCalendars` | **Kalender → Einstellungen** | KALENDER / CALENDARS |
 | `calDisplay` | **Kalender → Einstellungen** | ANZEIGE / DISPLAY |
 | `calVisibleViews` | **Kalender → Einstellungen** | SICHTBARE ANSICHTEN / VISIBLE VIEWS |
@@ -108,6 +110,14 @@
 | `quickStatsMetrics` | **Universal-Gerät bearbeiten** → Quick-Stats | METRIKEN / METRICS |
 | `iconPicker` | **Universal-Gerät bearbeiten** → Icon | STANDARD / DEFAULT |
 | `visibility` | **Universal-Gerät bearbeiten** → Sichtbare Entitäten | Navbar-ⓘ (rechts) |
+
+> **Ausnahme — dynamische Popups ohne settingsInfo-Key:** Die **per-Sensor-Info-Popups**
+> im **Energy-Dashboard → Einstellungen → Werte** (das ⓘ neben jedem einzelnen
+> Sensor-Wert wie „Netzbezug", „PV Leistung" …) sind **keine** `settingsInfo`-Keys.
+> Sie nutzen den dynamischen `content`-Prop von `SettingsInfoButton`: der Markdown
+> (`## Name` + Beschreibung) wird zur Laufzeit aus `sensorNames`/`sensorInfos` in
+> `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js`
+> gebaut. Zum Ändern dieser Texte → dort editieren, **nicht** in de.js/en.js.
 
 ---
 
@@ -830,3 +840,59 @@
 > - Use search to find entities quickly on large devices.
 >
 > *Why it matters:* hide the noise and show only what matters for this device.
+
+## energyValues
+
+> Energy-Dashboard → Einstellungen. ⓘ am „WERTE / VALUES"-Header (Settings-Home).
+> Hinweis: die per-Sensor-ⓘ-Popups *innerhalb* der Werte-Liste sind dynamisch
+> (`content`-Prop, aus `EnergyDashboardSensorUtils`), kein settingsInfo-Key.
+
+**DE**
+> ## Werte
+>
+> Hier ordnest du jedem Wert des Energie-Dashboards den passenden **Home-Assistant-Sensor** zu.
+>
+> - Die Werte sind nach Typ gruppiert: **Leistung (W/kW)**, **Energie (Wh/kWh)**, **Batterie**, **Tarife** und **Gas / Wasser**.
+> - Tippe eine Zeile an, um ihr einen Sensor zuzuweisen (z.B. Netzbezug, PV-Leistung, Bezugstarif).
+> - Eine **„Auto"**-Pille zeigt, dass der Sensor automatisch aus den Home-Assistant-Energie-Einstellungen übernommen wurde; **„Manuell"** = von dir selbst gewählt.
+> - Mit dem ⓘ neben einem Wert erklärt jede Zeile, was genau gemessen wird.
+>
+> *Warum wichtig:* Nur korrekt zugeordnete Sensoren liefern stimmige Live-Werte, Charts und Kosten im Energie-Dashboard.
+
+**EN**
+> ## Values
+>
+> Here you assign the matching **Home Assistant sensor** to each value of the energy dashboard.
+>
+> - Values are grouped by type: **Power (W/kW)**, **Energy (Wh/kWh)**, **Battery**, **Tariffs** and **Gas / Water**.
+> - Tap a row to assign a sensor to it (e.g. grid import, PV power, purchase tariff).
+> - An **"Auto"** pill shows the sensor was picked up automatically from Home Assistant's energy settings; **"Manual"** = chosen by you.
+> - The ⓘ next to a value explains exactly what each one measures.
+>
+> *Why it matters:* only correctly mapped sensors produce accurate live values, charts and costs in the energy dashboard.
+
+## energyCircular
+
+> Energy-Dashboard → Einstellungen. ⓘ am „CIRCULAR"-Header (Settings-Home).
+
+**DE**
+> ## Circular
+>
+> Steuert die **runden Anzeigen** (Circular-Gauges) des Energie-Dashboards, die als Slideshow rotieren.
+>
+> - Wähle, welche Kennzahlen als Ring-Anzeige erscheinen (z.B. Netzbezug, Solar, Autarkie, Eigenverbrauch).
+> - Die Zahl unter „Circular" zeigt, **wie viele** Gauges gerade aktiv sind.
+> - Mehrere aktive Gauges wechseln sich automatisch als Slideshow ab.
+>
+> *Warum wichtig:* So hebst du genau die Energie-Kennzahlen hervor, die dir am wichtigsten sind.
+
+**EN**
+> ## Circular
+>
+> Controls the **circular gauges** of the energy dashboard that rotate as a slideshow.
+>
+> - Choose which metrics appear as a ring gauge (e.g. grid import, solar, self-sufficiency, self-consumption).
+> - The number under "Circular" shows **how many** gauges are currently active.
+> - Several active gauges cycle automatically as a slideshow.
+>
+> *Why it matters:* this is how you highlight exactly the energy metrics that matter most to you.

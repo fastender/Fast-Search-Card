@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1862 - 2026-06-06
+
+**Title:** ⚡ Energy Dashboard settings: section headings + ⓘ, per-sensor info popups on the standard design
+**Tags:** Energy, Integration, Settings, Info-Popup
+
+### Why
+
+The Energy Dashboard settings had no section headings/ⓘ on the home, and the per-sensor info popups
+used an old bespoke `.info-overlay` (different from the card's standard info popup).
+
+### What
+
+- `SettingsInfoButton` gained an optional `content` prop (raw markdown) — used for dynamic infos that
+  aren't static `settingsInfo` keys. The `infoKey` path is unchanged.
+- Home view: "WERTE/VALUES" + "CIRCULAR" section headers with ⓘ (`energyValues`, `energyCircular`,
+  de+en).
+- Sensor-config: per-sensor ⓘ now uses the standard `SettingsInfoButton` (content built from
+  `sensorNames`/`sensorInfos` → `## Name` + description), with a stopPropagation guard so the ⓘ
+  doesn't trigger the row's sensor-selection nav. Group sub-headers were already present.
+- Removed the old `.info-overlay` block + its prop plumbing from the settings view.
+- Catalog updated (energyValues/energyCircular + a note that the per-sensor popups use the dynamic
+  `content` prop from EnergyDashboardSensorUtils).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx`
+- `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSettingsHomeView.jsx`
+- `…/EnergyDashboardSensorsConfigView.jsx`, `…/EnergyDashboardSettingsView.jsx`
+- `src/utils/translations/languages/{de,en}.js`, `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1861 - 2026-06-06
 
 **Title:** 🧭 Weather + Integration get the overview icon; refresh removed from schedules/news/weather
