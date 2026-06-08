@@ -6,6 +6,8 @@ This folder collects example media for Fast Search Card — background videos fo
 media/
 ├── README.md      ← you are here
 ├── videos/        ← MP4 background videos (ready to use)
+│   ├── weather/           ← weather state backgrounds (sunny, rainy, …)
+│   ├── sensors/           ← sensor-themed backgrounds
 │   └── system-entities/   ← showcase clips for system entities
 ├── gifs/          ← animated previews + logo used in the project README
 └── images/        ← static hero screenshots used in the project README
@@ -80,11 +82,46 @@ If no video matches, the Detail View falls back to the animated icon.
 
 ---
 
+## Weather backgrounds
+
+`media/videos/weather/` holds Detail-View backgrounds for `weather.*` entities. Unlike the on/off domains, weather keeps its descriptive state verbatim in the filename — so the card looks for `weather_sunny.mp4`, `weather_rainy.mp4`, etc.
+
+Nine clips, roughly 2-3 MB each:
+
+| File | Plays when the weather state is |
+|---|---|
+| `weather_sunny.mp4` | `sunny` |
+| `weather_cloudy.mp4` | `cloudy` |
+| `weather_partlycloudy.mp4` | `partlycloudy` |
+| `weather_rainy.mp4` | `rainy` |
+| `weather_pouring.mp4` | `pouring` |
+| `weather_snowy.mp4` | `snowy` |
+| `weather_fog.mp4` | `fog` |
+| `weather_windy.mp4` | `windy` |
+| `weather_lightning.mp4` | `lightning` |
+
+Drop the whole folder into `/config/www/fast-search-videos/` (flat — the card doesn't need the subfolder, it's only organised that way here in the repo).
+
+---
+
+## Sensor-themed backgrounds
+
+`media/videos/sensors/` holds four atmospheric clips for sensor-style entities. These don't follow the strict `{domain}_{state}.mp4` rule — they're meant to be referenced by hand, used in Bento widgets, or wired in as themed backgrounds for future card features.
+
+| File | Suggested use |
+|---|---|
+| `motion.mp4` | motion sensors (binary_sensor with `device_class: motion`) |
+| `doors_windows.mp4` | door / window sensors |
+| `security.mp4` | alarm panels, lock groups, security sensors |
+| `humidity.mp4` | humidity sensors |
+
+---
+
 ## System-entity showcase videos
 
 `media/videos/system-entities/` collects short demo clips of the system-entity apps in motion. These are **not** Detail-View backgrounds — they show the apps themselves (Calendar, Todos, News, Energy Dashboard, etc.) and are intended for the project README, social posts, and the changelog tile.
 
-Eight clips, roughly 2-3 MB each:
+Nine clips, roughly 2-3 MB each:
 
 | File | Shows |
 |---|---|
@@ -96,6 +133,7 @@ Eight clips, roughly 2-3 MB each:
 | `schedules.mp4` | All-Schedules overview |
 | `settings.mp4` | In-card settings hub |
 | `tasks.mp4` | Todos app aggregating every `todo.*` backend |
+| `tips.mp4` | Tips system entity — rotating tips with markdown detail |
 
 ---
 
