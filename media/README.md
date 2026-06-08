@@ -7,7 +7,6 @@ media/
 ├── README.md      ← you are here
 ├── videos/        ← MP4 background videos (ready to use)
 │   ├── weather/           ← weather state backgrounds (sunny, rainy, …)
-│   ├── sensors/           ← sensor-themed backgrounds
 │   └── system-entities/   ← showcase clips for system entities
 ├── gifs/          ← animated previews + logo used in the project README
 └── images/        ← static hero screenshots used in the project README
@@ -33,9 +32,18 @@ The path is configurable in **Settings → Appearance → Detail-View videos pat
 
 ### Naming convention
 
+The card walks a six-step fallback hierarchy when it looks for a video. Most specific wins; if nothing matches, it falls back to the entity icon.
+
 ```
-{domain}_{state}.mp4
+1. {domain}_{device_class}_{state}.mp4   ← e.g. binary_sensor_motion_on.mp4
+2. {domain}_{state}.mp4                  ← e.g. light_on.mp4
+3. {domain}_{device_class}.mp4           ← e.g. binary_sensor_motion.mp4
+4. {domain}.mp4                          ← e.g. light.mp4
+5. default_1.mp4 … default_10.mp4        ← random pick from a pool
+6. icon background
 ```
+
+Most users only need step 2 or step 3.
 
 The card normalises every Home Assistant state to one of four buckets — `on`, `off`, `open`, `closed` — before looking for a matching file. That means a single pair of clips per domain is usually enough.
 
@@ -104,16 +112,21 @@ Drop the whole folder into `/config/www/fast-search-videos/` (flat — the card 
 
 ---
 
-## Sensor-themed backgrounds
+## Device-class backgrounds
 
-`media/videos/sensors/` holds four atmospheric clips for sensor-style entities. These don't follow the strict `{domain}_{state}.mp4` rule — they're meant to be referenced by hand, used in Bento widgets, or wired in as themed backgrounds for future card features.
+Five clips that ride on the new device-class layer in the fallback hierarchy. One MP4 per device class covers every entity in that class — no matter how many motion sensors or window contacts you have, they all use the same video.
 
-| File | Suggested use |
+| File | Plays when device_class is |
 |---|---|
-| `motion.mp4` | motion sensors (binary_sensor with `device_class: motion`) |
-| `doors_windows.mp4` | door / window sensors |
-| `security.mp4` | alarm panels, lock groups, security sensors |
-| `humidity.mp4` | humidity sensors |
+| `binary_sensor_motion.mp4` | `motion` (motion sensors) |
+| `binary_sensor_door.mp4` | `door` (door contacts) |
+| `binary_sensor_window.mp4` | `window` (window contacts) |
+| `binary_sensor_safety.mp4` | `safety` (smoke, gas, leak, tamper, etc.) |
+| `sensor_humidity.mp4` | `humidity` (humidity sensors) |
+
+Same flat folder as the on/off domain backgrounds — drop them straight into `/config/www/fast-search-videos/`.
+
+Want another device class? Copy any of these files and rename it. The pattern is `{domain}_{device_class}.mp4` — full list of `device_class` values at [developers.home-assistant.io](https://developers.home-assistant.io/docs/core/entity/binary-sensor/#available-device-classes).
 
 ---
 
