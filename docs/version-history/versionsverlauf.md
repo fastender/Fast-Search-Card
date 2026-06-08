@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.1868 - 2026-06-08
+
+**Title:** 🎬 Background videos — weather domain + device_class fallback layer
+**Tags:** Background-Videos, Detail-View, Fallback-Hierarchy
+
+### Why
+
+The shipped video pack in `media/videos/` grew to 30+ clips and now covers more than the original on/off domains. Two of those new categories couldn't actually be discovered by the card with the prior matching logic:
+
+1. **Weather backgrounds** (`weather_sunny.mp4`, `weather_rainy.mp4`, etc.) — the state normaliser collapsed every weather state to `off` because `sunny`/`cloudy`/`pouring` are not in the `onStates` list. Every weather entity would have resolved to `weather_off.mp4`, regardless of the actual condition.
+2. **Sensor backgrounds** (`binary_sensor_motion.mp4`, `sensor_humidity.mp4`, etc.) — a single MP4 per device class should cover every entity in that class, but the prior hierarchy only knew `{domain}_{state}` and `{domain}`. There was no way to express "every motion sensor in the house uses this video."
+
+### What changed
+
+`src/utils/videoHelpers.js`:
+
+- **Weather domain bypasses state normalisation.** New early-return inside `normalizeState`:
+  ```js
+  if (domain === 'weather') {
+    return stateLower;
+  }
+  ```
+  Inserted right after the cover/door/window block. Every weather state now reaches the filename verbatim — `weather_pouring.mp4`, `weather_partlycloudy.mp4`, `weather_lightning.mp4`, all the way to the nine clips that ship in the repo.
+
+- **`getEntityVideoUrl` fallback hierarchy expanded from four to six steps.** New layers in **bold**:
+  1. **`{domain}_{device_class}_{state}.mp4`** — most specific
+  2. `{domain}_{state}.mp4` — unchanged
+  3. **`{domain}_{device_class}.mp4`** — new device-class fallback
+  4. `{domain}.mp4` — unchanged
+  5. `default_1.mp4` … `default_10.mp4` — unchanged
+  6. Icon background — unchanged
+
+  Steps 1 and 3 read `item.attributes.device_class`. Skipped silently when no device_class is present, so lights/climates/covers/etc. walk exactly the same path they did before — no regression.
+
+### Repo / media
+
+`media/videos/` now ships:
+
+- Existing on/off domain backgrounds (light, climate, switch, fan, lock, cover, vacuum, media_player) — 16 clips, no change.
+- `media/videos/weather/` — 9 weather state backgrounds, ready to drop flat into `/config/www/fast-search-videos/`.
+- New device-class backgrounds at the videos root: `binary_sensor_motion.mp4`, `binary_sensor_door.mp4`, `binary_sensor_window.mp4`, `binary_sensor_safety.mp4`, `sensor_humidity.mp4` — five clips covering the most common sensor classes.
+- `media/videos/system-entities/` — 9 showcase clips (calendar, news, todos, energy, integration, schedules, settings, changelog, tips), not for Detail-View backgrounds.
+
+### What it unlocks
+
+One MP4 per device class is now enough for the whole house. Add `binary_sensor_motion.mp4` once and every motion sensor — regardless of name, area, or which integration provides it — picks it up automatically via attribute lookup. Same pattern for `binary_sensor_door`, `binary_sensor_window`, `binary_sensor_safety`, `sensor_humidity`, and any other class users add.
+
+### Files
+
+- `src/utils/videoHelpers.js` — `normalizeState` weather bypass, `getEntityVideoUrl` six-step hierarchy.
+- `media/videos/binary_sensor_*.mp4`, `media/videos/sensor_humidity.mp4` — new device-class clips.
+- `media/videos/weather/*.mp4` — nine weather state clips (shipped two days ago, now actually discoverable).
+- `media/README.md` — naming convention rewritten to show the full six-step hierarchy; new "Device-class backgrounds" section.
+
+---
+
 ## Version 1.1.1867 - 2026-06-06
 
 **Title:** 🧹 Removed dead code from the old HistoryTab chain
