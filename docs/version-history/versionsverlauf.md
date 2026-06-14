@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1888 - 2026-06-14
+
+**Title:** 📰 Fix: read state never persisted in Safari ("Read" always empty) — cache only id+read+favorite
+**Tags:** Bugfix, News, Safari, localStorage
+
+### Why
+
+In Safari, the News "Read" filter/tab was always empty — articles never stayed marked as read. Devtools
+showed `news_articles_cache` (the read-state store) was **empty** in Safari, while the raw feed cache
+held 500 articles. Chrome was fine.
+
+### Root cause
+
+`_cacheArticles` stored the **full** article objects (title, content, thumbnails, …) as the read-state
+cache, even though the load-time merge only reads `id` + `read` + `favorite`. Safari has a stricter
+localStorage quota (~5MB); combined with the large `news_event_cache` (up to 500 articles), the
+`setItem('news_articles_cache', …)` write threw QuotaExceeded — swallowed by the `try/catch` — so the
+read-state cache stayed empty, the read/favorite merge was skipped on every load, and articles reverted
+to unread. Chrome's higher quota hid it.
+
+### Fix
+
+`_cacheArticles` now persists only the minimal state `{ id, read, favorite }` per article (tiny), so the
+write fits well within Safari's quota and read/favorite state persists across reloads. The merge is
+unchanged (it only needs those three fields).
+
+### Files
+
+- `src/system-entities/entities/news/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1887 - 2026-06-14
 
 **Title:** 📰 Fix: News widget "Unread" empty in Safari despite correct data (render-time tab selection)
