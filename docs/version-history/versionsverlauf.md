@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1896 - 2026-06-14
+
+**Title:** 🖼️ Wallpaper persists across HA re-renders — MutationObserver holds `--view-background`
+**Tags:** Fix, Appearance, Wallpaper
+
+### What
+
+The full-screen wallpaper could get lost when HA re-set its `--view-background` (on view navigation or a
+re-render), so it sometimes only showed after a second refresh. Now it stays.
+
+### How
+
+`viewWallpaper.js` attaches a `MutationObserver` to `hui-view-background`'s `style` attribute. When HA
+overwrites `--view-background`, the observer re-applies our value (`viewBg.__fscWanted`). Loop guard: it
+only re-sets when the current value differs from the wanted one, so our own `setProperty` doesn't trigger
+an endless cycle. The observer is created when the wallpaper is enabled (`ensureWallpaperObserver`, idempotent
+per element) and disconnected when disabled/unmounted (`stopWallpaperObserver`, which also restores HA's
+saved original). Also fixes the "only visible after the 2nd refresh" symptom.
+
+### Files
+
+- `src/utils/viewWallpaper.js` — observer + `__fscWanted` wanted-value tracking
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1895 - 2026-06-14
 
 **Title:** 🧭 Move "Wallpaper" from the Animations section into Appearance/Design
