@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1885 - 2026-06-14
+
+**Title:** 🖥️ Appearance: added a 6-columns option (grid columns selector)
+**Tags:** UI, Settings, Layout, Desktop
+
+### What
+
+The Appearance → Grid Columns selector offered 4 or 5; added **6 columns** (user request). New
+`sixColumns` / `sixColumnsDescription` strings (de+en), a third `SettingsCheckOption`, and the settings
+default aligned to 5 (`loadGridColumnsSetting` → `|| 5`) to match the v1.1.1884 desktop default. 6
+columns is opt-in and `repeat(6, 1fr)` always fills the container — no overflow.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/utils/translations/languages/{de,en}.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1884 - 2026-06-14
 
 **Title:** 🖥️ Desktop ⑧ step 2: default grid 4 → 5 columns (smaller tiles)
