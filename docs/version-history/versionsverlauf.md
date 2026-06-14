@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1898 - 2026-06-14
+
+**Title:** 🧭 Detail-view full-cover fix for Safari — flex fill instead of height:100%
+**Tags:** Fix, DetailView, Layout, Safari
+
+### What
+
+v1897 made the detail view fully cover the card in Chrome, but in Safari the device grid still peeked at
+the bottom. Fixed.
+
+### How
+
+Safari (WebKit) doesn't reliably resolve `height: 100%` of an element whose parent is an absolutely
+positioned box sized via `top/bottom` (rather than an explicit height) — so `.detail-panel` fell back to
+its `min-height: 672px` and left the ~60px gap. Switched to **flexbox stretch**, which Safari handles
+reliably: `.detail-panel-wrapper` is now `display:flex; flex-direction:column`, and `.detail-panel` uses
+`flex: 1 1 auto` (instead of `height:100%`) to fill it. The panel's internal layout already used flex, so
+no percentage-height dependency remains. `min-height:672px` stays as a floor. Chrome behaviour unchanged.
+
+### Files
+
+- `src/components/SearchField/SearchField.css` — `.detail-panel-wrapper` → flex column
+- `src/components/DetailView.css` — `.detail-panel` height:100% → flex:1 1 auto
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1897 - 2026-06-14
 
 **Title:** 🩹 Detail view now fully covers the card — no more device-grid peeking at the bottom
