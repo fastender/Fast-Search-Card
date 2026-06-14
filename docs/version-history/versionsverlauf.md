@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1895 - 2026-06-14
+
+**Title:** 🧭 Move "Wallpaper" from the Animations section into Appearance/Design
+**Tags:** Polish, Appearance, Settings
+
+### What
+
+The "Wallpaper" row sat under the **Animations** section header (next to "Detail View Videos"), which
+didn't fit — a wallpaper isn't an animation. Moved it into the **Appearance / Design** section, right
+after the "Background" item (both are about the card background). Animations now contains only "Detail
+View Videos".
+
+### How
+
+Pure reorder in `AppearanceSettingsTab.jsx` — the wallpaper list row (`setCurrentView('wallpaper')`) was
+cut from the Animations `ios-card` and inserted after the Background row in the Design `ios-card`. No
+new strings, no behaviour change.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1894 - 2026-06-14
 
 **Title:** 🖼️ Wallpaper fixes — no more double image + no old-wallpaper flash during Safari boot zoom
