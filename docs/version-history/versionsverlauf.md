@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1873 - 2026-06-14
+
+**Title:** 🦊📉 Fix: Firefox transparent overlays + mobile sensor chart cut off (Reddit/GitHub feedback)
+**Tags:** Bugfix, Firefox, Mobile, Charts, CSS
+
+### What
+
+Two cross-platform display fixes from user feedback:
+
+- **Firefox transparent settings overlay** — the glass overlays relied solely on `backdrop-filter` for
+  their visible background; in Firefox with `backdrop-filter` unsupported/disabled they looked
+  "completely transparent" and content was hard to read. Added `@supports not (backdrop-filter)`
+  fallbacks giving `.detail-panel`, `.ios-settings-container` and `.ios-item` near-solid backgrounds —
+  **only** where backdrop-filter is missing. Browsers that support it (Chrome / Android / current
+  Firefox) are unchanged.
+- **Mobile sensor history chart cut off at the bottom / nav overlap** — `SensorChartView` had a fixed
+  `minHeight: 320px` floor; on the narrower mobile detail container the chart overflowed its
+  `flex/overflow:hidden` parent and got clipped (the bottom nav appeared to cover it). The floor is now
+  `200px` on mobile (`useIsMobile`), so the chart fits. Desktop unchanged (320px).
+
+### Files
+
+- `src/components/DetailView.css`, `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/charts/SensorChartView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1872 - 2026-06-14
 
 **Title:** 💾 Fix: grid/list view mode is now persisted (Reddit/GitHub feedback)
