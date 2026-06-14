@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1893 - 2026-06-14
+
+**Title:** 🖼️ Full-screen wallpaper fix — override HA's own `--view-background` (v1892 layer collapsed to 0×0)
+**Tags:** Fix, Appearance, Wallpaper
+
+### What
+
+v1892's full-screen wallpaper didn't work: the old HA wallpaper stayed visible and the image didn't
+cover the screen. Live-DOM diagnostics revealed the cause. This fixes it so the custom image genuinely
+fills the whole view.
+
+### How
+
+DevTools showed `hui-view-background` is the right element (fixed, full-viewport 949×757, z-index −1) but
+HA renders its wallpaper via a **CSS custom property** `--view-background: center / cover no-repeat
+url(...)` — not an `<img>` or pseudo-element. v1892's injected cover `<div>` existed but **collapsed to
+0×0** (its `width/height:100%` didn't resolve inside HA's `display:flex`/fixed element), so it was
+invisible and HA's own background showed through. No ancestor has `transform`/`filter`. Fix:
+`applyFullscreenWallpaper()` now **overrides HA's `--view-background` variable directly** with our image
+— HA's own render pipeline then does the cover/full-screen correctly (no sizing issue). HA's original
+value is saved once (`__fscOrigViewBg`) and restored 1:1 on disable/unmount; any stale v1892 layer is
+removed. The card glass `backdrop-filter` (incl. the appearance sliders) blurs it automatically; around
+the card it's sharp = true full-screen.
+
+### Files
+
+- `src/index.jsx` — `applyFullscreenWallpaper` rewritten (CSS-var override instead of injected layer)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1892 - 2026-06-14
 
 **Title:** 🖼️ Custom wallpaper now full-screen — fills the whole view, not just the card
