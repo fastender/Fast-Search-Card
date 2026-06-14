@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1871 - 2026-06-14
+
+**Title:** ⚡ Fix: Energy Dashboard setup now scrolls + has a CustomScrollbar (Add button was clipped)
+**Tags:** Bugfix, Energy, Integration, Setup, Scroll
+
+### Why
+
+User feedback: "Energy Dashboard not possible to add — save button missing." The "Add Energy Dashboard"
+button is rendered, but the setup flow didn't scroll and the button at the bottom was clipped by the
+outer container's `max-height: 555px; overflow: hidden`.
+
+### Root cause
+
+`EnergyDashboardSetup`'s root was a nested `.ios-settings-container` with no `display:flex` / `height`,
+so the inner `.ios-settings-view { flex:1; overflow-y:auto }` had no constrained height to scroll within
+— content just overflowed and got clipped. No CustomScrollbar either.
+
+### Fix
+
+Made the root a flex column (`height:100%`, `position:relative`) with a fixed top navbar, turned
+`.ios-settings-view` into a real scroll container (scrollRef + `is-scrolling` top-fade toggle), and
+mounted a `CustomScrollbar` — mirroring the working UniversalSetup flow. The whole flow now scrolls and
+the Add button is reachable.
+
+### Files
+
+- `src/system-entities/entities/integration/components/setup-flows/EnergyDashboardSetup.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1870 - 2026-06-14
 
 **Title:** 🌐 Fix: UI stays German on first open despite English default (Reddit/GitHub feedback)
