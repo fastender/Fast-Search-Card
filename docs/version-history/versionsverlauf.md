@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1883 - 2026-06-14
+
+**Title:** 🖥️ Desktop ⑧ step 1: card max-width 1000px → 1200px (fixed value, no vw)
+**Tags:** UI, Layout, Desktop
+
+### What
+
+Careful, single-variable redo of the desktop layout after the v1.1.1882 revert. Step 1: only the fixed
+`.main-container max-width` from 1000px → 1200px. No `vw`/`calc`, no grid change, no overflow hacks — a
+plain fixed cap can never exceed the viewport, so it can't cause horizontal scroll. Verify before any
+further step.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1882 - 2026-06-14
 
 **Title:** ⏪ Revert: full rollback of the desktop layout changes (⑧) — back to the stable pre-⑧ state
