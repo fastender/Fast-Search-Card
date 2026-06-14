@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1899 - 2026-06-14
+
+**Title:** 🧭 Safari detail-view gap — the real cause: Bento override hardcoded a 60px header height
+**Tags:** Fix, DetailView, Layout, Safari, Bento
+
+### What
+
+The Safari detail-view bottom gap persisted because the actual override was a **Bento-mode** rule, not
+the base rule v1897/1898 touched. Now fixed for real (measured in Safari).
+
+### How
+
+Safari DOM measurement showed `.detail-panel-wrapper` still at `top:60px; height:672px` — values that come
+only from `.main-container--bento .detail-panel-wrapper` (BentoStartView.css), which overrides the base
+rule by specificity. That rule **hardcoded `height: 672px`**, assuming the search-row header is exactly
+60px. It is in Chrome (main-container 732px), but Safari renders the header at **72px** (main-container
+744px, search panel 152→824), so the fixed-height overlay (140→812) fell 12px short of the grid (→824) =
+the gap. Fix: replaced the fixed `height: 672px; bottom: auto` with **`bottom: 0; height: auto`**, so the
+overlay always stretches to the container bottom regardless of header height (Chrome 732−60=672 unchanged;
+Safari 744−60=684 → reaches 824). The panel fills it via `flex:1` (v1898). `top:60` kept so the detail
+still starts below the header like the search panel.
+
+### Files
+
+- `src/components/BentoStartView.css` — `.main-container--bento .detail-panel-wrapper` fixed height → bottom:0
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1898 - 2026-06-14
 
 **Title:** 🧭 Detail-view full-cover fix for Safari — flex fill instead of height:100%
