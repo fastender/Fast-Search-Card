@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1894 - 2026-06-14
+
+**Title:** 🖼️ Wallpaper fixes — no more double image + no old-wallpaper flash during Safari boot zoom
+**Tags:** Fix, Appearance, Wallpaper, Safari
+
+### What
+
+Two follow-up fixes for the full-screen custom wallpaper:
+1. **Double image** — the picture appeared twice (once card-cropped, once viewport-cropped). The card
+   still set its own root background (v1890) *on top of* the new `--view-background` override, with two
+   different cover-crops → a visible seam/doubling.
+2. **Safari boot flash** — on refresh, the boot zoom-reveal briefly showed the **old** HA wallpaper
+   before the override kicked in.
+
+### How
+
+Extracted the wallpaper logic into `src/utils/viewWallpaper.js` (`applyWallpaperFromSettings`,
+`applyFullscreenWallpaper`, `isSafeWallpaperUrl`). (1) `applyCustomWallpaper` no longer sets the card-root
+background at all — the wallpaper runs **exclusively** through HA's `--view-background` (one image, one
+crop, full-screen; the card glass blurs the part behind it). (2) `WallpaperBootOverlay` now calls
+`applyWallpaperFromSettings()` the moment it grabs `hui-view-background` (before starting the zoom), so
+the reveal animates the **new** image from the first frame — killing the Safari flash. Shared util avoids
+a circular import between `index.jsx` and the boot overlay.
+
+### Files
+
+- `src/utils/viewWallpaper.js` (new — extracted + shared)
+- `src/index.jsx` (slim `applyCustomWallpaper`, imports from util, drops card-root background)
+- `src/components/WallpaperBootOverlay.jsx` (apply wallpaper early, before zoom)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1893 - 2026-06-14
 
 **Title:** 🖼️ Full-screen wallpaper fix — override HA's own `--view-background` (v1892 layer collapsed to 0×0)
