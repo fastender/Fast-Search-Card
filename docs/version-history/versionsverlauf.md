@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1876 - 2026-06-14
+
+**Title:** 🖥️ Desktop: denser device grid (auto-fill tiles) + wider card cap — feedback ⑧
+**Tags:** UI, Layout, Desktop, Density
+
+### Why
+
+User feedback: "The entity buttons are way too big on desktop and the card only uses a small space in
+the middle." The card was capped at 1000px and the desktop grid used a fixed 4-column count, so 4 big
+tiles looked sparse in the middle.
+
+### What (Apple/visionOS approach: density, not edge-to-edge)
+
+Not "fill the screen" — instead a denser, comfortable grid in a wider-but-still-capped, centered card:
+- **Width cap** raised responsively: `.main-container max-width: 1000px → min(1440px, 94vw)` — breathes
+  on big monitors, stays a centered floating card.
+- **Desktop grid → auto-fill** (App-Library pattern): fixed comfortable tile size, columns fill
+  automatically, so a wider card shows *more, smaller* tiles instead of fewer huge ones
+  (`repeat(auto-fill, minmax(--fsc-tile-min, 150px), 1fr)`). The `gridColumns` setting becomes an
+  optional override (`index.jsx` only sets `--device-grid-columns` when the user explicitly chose a
+  fixed count). `.results-grid` aligned to the same tile size. Mobile/tablet breakpoints unchanged.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`, `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1875 - 2026-06-14
 
 **Title:** ⏻ List view: switches/lights toggle directly from the row (no detail view) — feedback ⑪
