@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1889 - 2026-06-14
+
+**Title:** 📰 News: "auto-mark read on open" now defaults to ON
+**Tags:** News, UX, Defaults
+
+### Why
+
+The Safari "Read is always empty" report turned out to be the per-browser `autoMarkRead` setting being
+off (its default), so opening an article didn't mark it read. Making it the default avoids that
+confusion for everyone (matches how typical news apps behave).
+
+### What
+
+`autoMarkRead` default `false → true` in both default sources (`news/utils/settingsStorage.js` and the
+entity's display defaults in `news/index.jsx`). Users who explicitly turned it off keep their choice;
+only those on the default get the new behavior. (The unused `auto_mark_read` entity attribute was left
+as-is.)
+
+### Files
+
+- `src/system-entities/entities/news/utils/settingsStorage.js`, `src/system-entities/entities/news/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1888 - 2026-06-14
 
 **Title:** 📰 Fix: read state never persisted in Safari ("Read" always empty) — cache only id+read+favorite
