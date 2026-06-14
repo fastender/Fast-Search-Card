@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1881 - 2026-06-14
+
+**Title:** 🚫↔️ Fix (3, definitive): clip horizontal overflow at the custom-element `:host`
+**Tags:** Bugfix, Layout, Overflow, Shadow-DOM
+
+### Why
+
+The `overflow-x: clip` on the inner card root (v1.1.1879) didn't stop the horizontal page scroll —
+because the root has a fixed `height: 672px` (so `hidden` would add a vertical scrollbar, and `clip`
+apparently wasn't honored), and/or the overflowing element sat between the `:host` and the root.
+
+### Fix
+
+Added `overflow-x: hidden !important; max-width: 100% !important;` to the custom element's `:host`
+(in `build.sh`, which generates the wrapper). `:host` is the real boundary between the card and the HA
+page, and because it's `display:block` (auto height) `overflow-x: hidden` adds **no** vertical
+scrollbar (the host always equals its content height) and is universally supported. Whatever inside the
+card extends past its edge can no longer make the HA page scroll sideways.
+
+### Files
+
+- `build.sh` (custom-element `:host` style, both occurrences)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1880 - 2026-06-14
 
 **Title:** 🚫↔️ Fix (2): reverted the vw-based width that caused horizontal page scroll → fixed 1280px cap
