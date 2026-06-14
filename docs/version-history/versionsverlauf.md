@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1875 - 2026-06-14
+
+**Title:** ⏻ List view: switches/lights toggle directly from the row (no detail view) — feedback ⑪
+**Tags:** Feature, List, Controls, WAF
+
+### Why
+
+User feedback (Reddit): "Is it possible to switch dedicated switches etc. directly without the detail
+view?" The list view already had a quick-action power button, but it was a dead no-op.
+
+### What
+
+Wired the list-view quick-action button to the entity's primary action (Apple principle — the most
+common action is the most direct: one tap):
+- `light` / `switch` / `fan` / `input_boolean` → toggle on/off
+- `cover` → toggle open/close
+- `media_player` → play/pause
+- domains without a clear primary action (e.g. `climate`) get no quick-toggle — the row tap still opens
+  the detail view.
+
+The toggle goes through the existing `callService` → pendingTracker → `state_changed` cycle, so the row
+already shows pending feedback and the button turns blue once the entity is on. Foundation for the
+favorites home (⑫). Grid view keeps tap → detail (browse vs control split).
+
+### Files
+
+- `src/components/DeviceCard.jsx`, `src/components/DeviceCard/DeviceCardListView.jsx`,
+  `src/components/DeviceCard/DeviceCardList.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1874 - 2026-06-14
 
 **Title:** 💡 Fix: brightness slider snapping back to the previous value (Reddit/GitHub feedback)
