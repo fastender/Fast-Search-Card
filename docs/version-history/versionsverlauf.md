@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1874 - 2026-06-14
+
+**Title:** 💡 Fix: brightness slider snapping back to the previous value (Reddit/GitHub feedback)
+**Tags:** Bugfix, Lights, Optimistic-Update
+
+### Why
+
+User feedback: "If I change brightness and leave the card, the brightness goes back to the previous
+state."
+
+### Root cause
+
+The service call DOES fire and persist to HA, but `useEntityStateSync`'s sync effect runs on every HA
+tick and re-derived `lastBrightness` from `hass.states[...].attributes.brightness` — which still held
+the OLD value until HA finished processing `light.turn_on`. So the slider's optimistic value was
+overwritten with the stale value within a tick → it snapped back.
+
+### Fix
+
+Added a pending-lock: setting brightness now records the optimistic value + a timestamp; the sync
+effect keeps showing it and ignores `hass.brightness` until HA confirms the new value (±1%) or a 4s
+timeout elapses. Also fixed a latent operator-precedence bug in `sliderHandlers` (the off→on guard fired
+even at value 0 because `&&` bound tighter than `||`).
+
+Runtime-only fix (needs a real light + the slider) — not reproducible in a static preview.
+
+### Files
+
+- `src/hooks/useEntityStateSync.js`, `src/utils/sliderHandlers.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1873 - 2026-06-14
 
 **Title:** 🦊📉 Fix: Firefox transparent overlays + mobile sensor chart cut off (Reddit/GitHub feedback)
