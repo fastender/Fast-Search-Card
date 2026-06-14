@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.1878 - 2026-06-14
+
+**Title:** ↔️ Desktop: more side margin (~200px each side) per feedback
+**Tags:** UI, Layout, Desktop
+
+### What
+
+Follow-up to v1.1.1877 — 100px per side felt too tight. The desktop side margin is now ~200px each:
+`max-width: min(1440px, max(900px, calc(100vw - 400px)))` (with a 900px floor so the card doesn't get
+too narrow on smaller desktops, and the 1440px cap unchanged).
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1877 - 2026-06-14
 
 **Title:** ↔️ Desktop: guaranteed side margins so the optional left sidebar isn't cramped
