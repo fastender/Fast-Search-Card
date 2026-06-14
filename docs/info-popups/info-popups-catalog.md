@@ -62,6 +62,7 @@
 | `videoFolder` | Video Folder (Animations-Detail) |
 | `videoFiles` | Video Files (ⓘ statt Inline-Anmerkung) |
 | `wallpaperUrl` | Hintergrundbild → Bild-URL (Image URL) |
+| `wallpaperFolder` | Hintergrundbild → Galerie (media_dirs / media_source Setup) |
 
 ### Settings → Filter (früher „Privacy")
 

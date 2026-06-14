@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1891 - 2026-06-14
+
+**Title:** 🖼️ Wallpaper gallery — pick a background from a media folder by thumbnail
+**Tags:** Feature, Appearance, Wallpaper, Media
+
+### What
+
+Extended the custom-wallpaper sub-view (v1890) with a **thumbnail gallery**. Appearance → Wallpaper now
+has a "Gallery / Galerie" section: a folder field (default `/local/wallpaper`) plus a 3-column grid of
+the images in that folder. Tapping a thumbnail sets it as the card wallpaper (and enables the wallpaper
+so the choice is visible immediately). The manual image-URL field stays for external/jsDelivr URLs.
+
+### How
+
+A Lovelace card can't list the `www` folder (no directory index), so the gallery uses Home Assistant's
+**only client-side listing API**: the `media_source/browse_media` WebSocket call (new
+`src/services/mediaSourceService.js`, `browseImageFolder({hass, label})`). It derives the media-source
+label from the folder's last path segment (`/local/wallpaper` → `wallpaper`), lists the image children,
+and builds the **permanent** `/local/wallpaper/<file>` URL per image itself. The folder must be a media
+source — either the built-in `config/media/` or, recommended for `www`, one `homeassistant: media_dirs:`
+line (auto-list + permanent URLs). `hass` comes from `getHass()` (sync hassStore). Selection reuses the
+v1890 apply path (sets `customWallpaperUrl` → live broadcast); no `index.jsx` change. New ⓘ
+(`wallpaperFolder`) explains the media_dirs setup + native Media-UI upload. Loading/empty/error states.
+
+### Files
+
+- `src/services/mediaSourceService.js` (new — media_source folder listing)
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` (`WallpaperGallery` + folder setting + section)
+- `src/utils/translations/languages/{de,en}.js` (gallery labels + `wallpaperFolder` ⓘ), `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1890 - 2026-06-14
 
 **Title:** 🖼️ New: optional custom card wallpaper (Appearance) — set your own background image
