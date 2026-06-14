@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1884 - 2026-06-14
+
+**Title:** 🖥️ Desktop ⑧ step 2: default grid 4 → 5 columns (smaller tiles)
+**Tags:** UI, Layout, Desktop
+
+### What
+
+Step 2 of the careful desktop redo. Single change: the desktop default column count 4 → 5
+(`appearance.gridColumns || 5` + the CSS fallback). With `repeat(5, 1fr)` the grid always fills the
+container exactly — no `vw`, no overflow. Tiles get smaller (≈225px instead of ≈290px at the 1200px
+width). A user-configured column count still overrides. (Icon size auto-drops to 48px at 5 columns via
+the existing iconSizeStore rule.)
+
+### Files
+
+- `src/index.jsx`, `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1883 - 2026-06-14
 
 **Title:** 🖥️ Desktop ⑧ step 1: card max-width 1000px → 1200px (fixed value, no vw)
