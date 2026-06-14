@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1892 - 2026-06-14
+
+**Title:** 🖼️ Custom wallpaper now full-screen — fills the whole view, not just the card
+**Tags:** Feature, Appearance, Wallpaper
+
+### What
+
+The custom wallpaper now covers the **entire screen** instead of only the floating card. Previously the
+image sat on the card root, so the HA dashboard wallpaper still showed around the card's edges. Now the
+same image fills the whole Lovelace view, with the glass card floating on top of it.
+
+### How
+
+Added `applyFullscreenWallpaper()` in `index.jsx`: it locates HA's real wallpaper element
+**`hui-view-background`** (deep in the shadow DOM, via a local `findInShadowDOM` BFS — same element the
+boot overlay uses) and injects a `position:absolute; inset:0` cover layer (`#fsc-fullscreen-wallpaper`)
+with the image. The layer sits **behind the card**, so the card glass's existing `backdrop-filter`
+(incl. the brightness/blur/contrast/saturation/grayscale sliders) blurs it automatically, while the area
+around the card shows it sharp = true full-screen. Fully reversible: disabling/unmounting removes the
+layer and HA's wallpaper reappears untouched. The card-root background (v1890) is kept as a fallback for
+setups where `hui-view-background` isn't found (degrades to card-only). Retries a few times if the view
+element isn't rendered yet. Known caveat: on HA view-navigation the layer re-applies on next card mount /
+settings change (no live MutationObserver yet).
+
+### Files
+
+- `src/index.jsx` — `findInShadowDOM` + `applyFullscreenWallpaper` + wired into `applyCustomWallpaper` + unmount cleanup
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1891 - 2026-06-14
 
 **Title:** 🖼️ Wallpaper gallery — pick a background from a media folder by thumbnail
