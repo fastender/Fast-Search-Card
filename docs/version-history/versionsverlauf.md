@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1887 - 2026-06-14
+
+**Title:** 📰 Fix: News widget "Unread" empty in Safari despite correct data (render-time tab selection)
+**Tags:** Bugfix, Bento, News, Safari
+
+### Why
+
+In Safari the News bento widget showed the "Unread" tab empty even though the data was correct. Devtools
+confirmed the registry entity the widget reads was perfectly fine: `total: 10, unread: 10, read: 0`, all
+`read: false` booleans, ISO dates — so it was NOT a data/date/parsing issue (those were ruled out step
+by step). It was a render-timing bug.
+
+### Root cause
+
+The active tab fell back to a non-empty tab inside a `useEffect` (deps `[hasUnread, hasRead]`). Effects
+are timing/dependency dependent, and in Safari the widget could get stuck showing an empty tab even
+though the other tab had articles.
+
+### Fix
+
+Derive the active tab at **render time** instead of in an effect:
+- `userTab === null` → AUTO: show the non-empty tab (unread if any unread, else read) — can never get
+  stuck on an empty tab regardless of render timing.
+- `userTab` set → respect the explicit click (even an empty tab — keeps the v1.1.1886 fix).
+
+### Files
+
+- `src/components/bento/widgets/BentoRichNews.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1886 - 2026-06-14
 
 **Title:** 📰 Fix: News bento widget "Read" tab was un-clickable when there were no read articles
