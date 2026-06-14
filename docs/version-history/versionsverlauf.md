@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1879 - 2026-06-14
+
+**Title:** 🚫↔️ Fix: no more horizontal page scroll (clip the card root's x-overflow)
+**Tags:** Bugfix, Layout, Overflow
+
+### Why
+
+After widening the card on desktop (v1.1.1876–1878), the whole HA page became horizontally scrollable to
+the right — the user (rightly) doesn't want that.
+
+### Fix
+
+Set `overflow-x: clip` on the card root (`#fast-search-card-root`). If any child (the wider card, the
+left-floating sidebar, a stray element) extends past the card edge, it no longer makes the page
+scrollable sideways. `clip` only constrains the x-axis and leaves the y-axis visible (unlike `hidden`,
+which would force `overflow-y: auto` and risk an unwanted vertical scrollbar). The left sidebar sits
+well inside the root, so it isn't clipped.
+
+### Files
+
+- `src/index.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1878 - 2026-06-14
 
 **Title:** ↔️ Desktop: more side margin (~200px each side) per feedback
