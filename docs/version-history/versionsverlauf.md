@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1872 - 2026-06-14
+
+**Title:** 💾 Fix: grid/list view mode is now persisted (Reddit/GitHub feedback)
+**Tags:** Bugfix, Persistence, UI
+
+### Why
+
+User feedback: "Change from grid view to list view is also not saved." The view mode reset to grid on
+every reload.
+
+### Root cause
+
+`activeFilter` ('grid' | 'list') in `useSearchFieldState` was a plain in-memory `useState('grid')` — no
+localStorage read on init, no write on change.
+
+### Fix
+
+Lazy-init `activeFilter` from `localStorage.deviceViewMode`, and wrap `setActiveFilter` to persist the
+value (mirrors the `timeFormatPreference` pattern). Single-point fix in the hook → all 3 call sites
+benefit.
+
+### Files
+
+- `src/components/SearchField/hooks/useSearchFieldState.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1871 - 2026-06-14
 
 **Title:** ⚡ Fix: Energy Dashboard setup now scrolls + has a CustomScrollbar (Add button was clipped)
