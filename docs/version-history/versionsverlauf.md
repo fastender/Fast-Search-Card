@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1897 - 2026-06-14
+
+**Title:** 🩹 Detail view now fully covers the card — no more device-grid peeking at the bottom
+**Tags:** Fix, DetailView, Layout
+
+### What
+
+A long-standing bug: opening an entity's detail view left the panel a bit offset, so the device grid
+behind it peeked out at the bottom (the detail overlay didn't cover the whole card).
+
+### How
+
+Live-DOM measurement (in the buggy state) showed the card frame is 80→752 (672px) but `.main-container`
+is 732px (80→812) — and the `.detail-panel-wrapper` carried an inline `top: <statsBarHeight>` offset plus
+a `y` centering transform, putting the panel at 140→812 instead of covering the container. Fix: the detail
+overlay now covers the **whole** `.main-container` 1:1 — removed the inline `top` offset (uses the CSS
+`top:0`) and the `y` transform (only opacity animates now), and `.detail-panel` fills its wrapper
+(`height:100%` instead of fixed `672px`, `min-height:672px` kept as a floor). The overlay now spans the
+full content area, so nothing shows behind it.
+
+### Files
+
+- `src/components/SearchField/components/DetailViewWrapper.jsx` — drop top/y offsets, opacity-only fade
+- `src/components/DetailView.css` — `.detail-panel` height 672px → 100%
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1896 - 2026-06-14
 
 **Title:** 🖼️ Wallpaper persists across HA re-renders — MutationObserver holds `--view-background`
