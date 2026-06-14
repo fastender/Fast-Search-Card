@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1882 - 2026-06-14
+
+**Title:** ⏪ Revert: full rollback of the desktop layout changes (⑧) — back to the stable pre-⑧ state
+**Tags:** Revert, Layout, Hotfix
+
+### Why
+
+The desktop "denser/wider" layout work (v1.1.1876–1881) caused escalating problems: horizontal page
+scroll, and then v1.1.1881's `:host { overflow-x: hidden }` added an unwanted vertical scrollbar. Rolled
+everything back to the known-good layout from before ⑧.
+
+### What (all reverted to original)
+
+- `.main-container` → `max-width: 1000px` (was the vw/calc/1280px experiments).
+- Desktop device grid → `repeat(var(--device-grid-columns, 4), 1fr)` (was auto-fill).
+- `.results-grid` → `minmax(130px, 1fr)`; `index.jsx` `gridColumns` → `|| 4` always set.
+- Removed the card-root `overflow-x: clip` and the custom-element `:host` `overflow-x: hidden`
+  (the vertical-scrollbar culprit) from `build.sh`.
+
+Net: the card layout is exactly as it was before the ⑧ work — no horizontal page scroll, no vertical
+scrollbar.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`, `src/index.jsx`, `build.sh`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1881 - 2026-06-14
 
 **Title:** 🚫↔️ Fix (3, definitive): clip horizontal overflow at the custom-element `:host`
