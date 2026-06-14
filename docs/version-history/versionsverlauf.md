@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1877 - 2026-06-14
+
+**Title:** ↔️ Desktop: guaranteed side margins so the optional left sidebar isn't cramped
+**Tags:** UI, Layout, Desktop, Sidebar
+
+### Why
+
+After widening the card (v1.1.1876, `94vw`), the optional left sidebar (`.vision-pro-menu`,
+`position:absolute; right:100%` — it floats ~72px to the LEFT of the card) was cramped against the
+screen edge, because the `vw`-based side margin was too small on medium-wide screens.
+
+### Fix
+
+On desktop (≥1024px) the card now reserves a **fixed** side margin instead of a thin `vw`:
+`max-width: min(1440px, calc(100vw - 200px))` → ~100px each side, enough to seat the left sidebar and
+leave symmetric breathing room on the right. Base/mobile keeps a small 16px safety margin
+(`calc(100vw - 32px)`) — the sidebar only floats left on desktop, so mobile width is unaffected.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1876 - 2026-06-14
 
 **Title:** 🖥️ Desktop: denser device grid (auto-fill tiles) + wider card cap — feedback ⑧
