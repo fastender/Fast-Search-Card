@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1870 - 2026-06-14
+
+**Title:** 🌐 Fix: UI stays German on first open despite English default (Reddit/GitHub feedback)
+**Tags:** Bugfix, Boot, i18n, Language
+
+### Why
+
+Users reported (esp. HA Android app): "Still German on first open even with English selected by
+default; setting it to German and back to English fixes it."
+
+### Root cause
+
+Split-brain over the saved language: the language selector persists `localStorage.userLanguage` (+ a
+`languageChanged` broadcast), but `langStore.readInitialLang()` read `systemSettings.appearance.language`
+— which is **never written** → `getLang()` always returned the `'de'` fallback at cold start. On top of
+that, SearchField (which drives the whole tree's `lang`) initialised once and never synced the stored
+language on mount or when the async-loaded `settings` arrived.
+
+### Fix
+
+- `langStore.readInitialLang()` now reads `localStorage.userLanguage` first (then `appearance.language`,
+  then `'de'`) → `getLang()`/`useLang()` consumers are correct at boot.
+- SearchField now syncs `currentLanguage` from `getLang()` immediately on mount, and when the
+  async-loaded `settings.language` arrives it adopts it and re-broadcasts `languageChanged` so the
+  langStore + every consumer follow (loop-safe via the store's guards). This also covers the Android
+  case where localStorage may be volatile but the IndexedDB setting persists.
+
+Runtime-only fix (boot/persistence) — not reproducible in a static preview.
+
+### Files
+
+- `src/utils/langStore.js`, `src/components/SearchField.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1869 - 2026-06-14
 
 **Title:** 🩹 Fix: empty entity grid on first open (Reddit/GitHub feedback)
