@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1886 - 2026-06-14
+
+**Title:** 📰 Fix: News bento widget "Read" tab was un-clickable when there were no read articles
+**Tags:** Bugfix, Bento, News
+
+### Why
+
+In the News bento widget, clicking the "Read" tab did nothing (it snapped back to "Unread").
+
+### Root cause
+
+The fallback effect that leaves an emptied active tab had `activeTab` in its dependency array, so it ran
+on the user's click too: clicking "Read" while there were no read articles immediately matched
+`activeTab === 'read' && !hasRead && hasUnread` and reset it to "Unread".
+
+### Fix
+
+Removed `activeTab` from the effect's deps. The fallback now only fires on real **data** changes
+(`hasUnread`/`hasRead` — e.g. "mark all as read"), not on tab selection. Clicking the (still empty)
+"Read" tab now stays there and shows the empty state.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichNews.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1885 - 2026-06-14
 
 **Title:** 🖥️ Appearance: added a 6-columns option (grid columns selector)
