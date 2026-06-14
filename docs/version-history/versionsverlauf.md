@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1880 - 2026-06-14
+
+**Title:** 🚫↔️ Fix (2): reverted the vw-based width that caused horizontal page scroll → fixed 1280px cap
+**Tags:** Bugfix, Layout, Overflow
+
+### Why
+
+The `overflow-x: clip` on the card root (v1.1.1879) didn't stop the horizontal page scroll, so the
+overflow source was the `100vw`-based width itself (v1.1.1876–1878). `100vw` ignores the scrollbar and
+HA's own sidebar, so the card could end up wider than its actual container.
+
+### Fix
+
+Dropped all `100vw`/`calc`/`vw` width math. `.main-container` now uses a plain fixed cap
+`max-width: 1280px` (centered via `margin: 0 auto`) — it can never be wider than the viewport, so the
+side margins come out automatically and there is no horizontal overflow. Still a bit wider than the
+original 1000px (keeps the ⑧ "more space" intent). The root `overflow-x: clip` (v1.1.1879) stays as a
+belt-and-suspenders guard.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1879 - 2026-06-14
 
 **Title:** 🚫↔️ Fix: no more horizontal page scroll (clip the card root's x-overflow)
