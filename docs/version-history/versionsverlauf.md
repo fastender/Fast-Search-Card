@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1869 - 2026-06-14
+
+**Title:** 🩹 Fix: empty entity grid on first open (Reddit/GitHub feedback)
+**Tags:** Bugfix, Boot, DataProvider
+
+### Why
+
+Multiple users (Reddit/GitHub) reported: "When I first open the dashboard, it shows no entity tiles —
+I have to switch to another menu and back for them to appear." Worst on the HA Android app.
+
+### Root cause
+
+`DataProvider`'s one-shot initial entity load fired as soon as `hass.connection` existed. On the HA
+Android app (and some browser reloads) the connection is present *before* `hass.states` has finished
+streaming in, so the load ran over a near-empty `states`, burned its one-shot guard, and never did a
+full load again. Switching tabs only "worked" because enough late state updates had accumulated by then.
+
+### Fix
+
+The initial-load effect now gates on **populated** `hass.states` (`Object.keys(hass.states).length > 0`),
+not just `connection`. Plus a sparse-first-load safety net: if `states` grows substantially after the
+first load, it re-runs the full load once (guarded by thresholds to avoid churn). Verification is
+runtime-only (HA first-open) — not reproducible in a static preview.
+
+### Files
+
+- `src/providers/DataProvider.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1868 - 2026-06-08
 
 **Title:** 🎬 Background videos — weather domain + device_class fallback layer
