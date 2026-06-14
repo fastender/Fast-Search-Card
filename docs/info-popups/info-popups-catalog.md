@@ -61,6 +61,7 @@
 | `animations` | Animationen / Animations |
 | `videoFolder` | Video Folder (Animations-Detail) |
 | `videoFiles` | Video Files (ⓘ statt Inline-Anmerkung) |
+| `wallpaperUrl` | Hintergrundbild → Bild-URL (Image URL) |
 
 ### Settings → Filter (früher „Privacy")
 
@@ -456,6 +457,38 @@
 > **Note:** videos are played once when the detail view opens; the last frame stays visible. Placeholders `default_1.mp4` … `default_10.mp4` (random selection).
 >
 > *Why it matters:* only exactly-named files are found – a typo in the name = no video.
+
+## wallpaperUrl
+
+> Bereich: **Settings → Appearance → Hintergrundbild** (Custom Wallpaper). ⓘ am „Bild-URL / Image URL"-Header. Erklärt, dass die Karte normalerweise die HA-Dashboard-Wallpaper durchscheinen lässt und ein eigenes Bild diese überschreibt.
+
+**DE**
+> ## Bild-URL
+>
+> Normalerweise zeigt die Karte die **Dashboard-Wallpaper von Home Assistant** durch die Glas-Panels hindurch. Aktivierst du ein eigenes Hintergrundbild, wird diese durch dein Bild ersetzt.
+>
+> - **Bild ablegen:** in den Home-Assistant-www-Ordner: `config/www/`.
+> - **Referenzieren als:** `/local/<datei>` – z.B. `/local/my-wallpaper.jpg`.
+>   - `/local/…` ist die HA-Verknüpfung zu `config/www/…`.
+> - Auch eine `http(s)://…`- oder `data:image/…`-URL ist erlaubt.
+>
+> **Hinweis:** Die bestehenden Darstellungs-Regler (Helligkeit, Unschärfe, Kontrast, Sättigung, Graustufen) wirken weiterhin auf dieses Bild.
+>
+> *Warum wichtig:* So bekommst du einen festen Karten-Hintergrund, unabhängig von der HA-Wallpaper.
+
+**EN**
+> ## Image URL
+>
+> Normally the card shows the **Home Assistant dashboard wallpaper** through its glass panels. Enabling a custom wallpaper overrides it with your own image.
+>
+> - **Place the image:** in the Home Assistant www folder: `config/www/`.
+> - **Reference it as:** `/local/<file>` – e.g. `/local/my-wallpaper.jpg`.
+>   - `/local/…` is HA's alias for `config/www/…`.
+> - An `http(s)://…` or `data:image/…` URL is allowed too.
+>
+> **Note:** the existing appearance sliders (brightness, blur, contrast, saturation, grayscale) still apply to this image.
+>
+> *Why it matters:* gives you a fixed card background, independent of the HA wallpaper.
 
 ## statsBar
 

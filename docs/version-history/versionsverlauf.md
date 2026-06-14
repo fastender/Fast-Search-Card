@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1890 - 2026-06-14
+
+**Title:** 🖼️ New: optional custom card wallpaper (Appearance) — set your own background image
+**Tags:** Feature, Appearance, Wallpaper
+
+### What
+
+Added an optional **custom wallpaper** for the card, mirroring the "Detail View Videos" feature.
+Appearance → "Wallpaper / Hintergrundbild" sub-view: enable toggle, "on mobile devices" toggle, and an
+image URL field (`/local/<file>`, or http(s)/data URL) with an ⓘ. By default the card still inherits the
+HA dashboard wallpaper (shown through the glass); enabling a custom image overrides it.
+
+### How
+
+The image is set as the **card root's `background-image`**, so the glass panels' existing `backdrop-filter`
+blur it automatically — no new layer, no z-index work — and the existing blur/brightness/contrast/
+saturation/grayscale sliders still apply. Settings persist in `appearance.customWallpaper*`; a
+`customWallpaperChanged` broadcast re-applies it live (no reload). The URL is strictly sanitized (only
+`/`, `./`, http(s)://, `data:image/`; rejects quotes/parens/whitespace/`url(`) to prevent CSS injection.
+Covers the ⑩ "how do I set a background" feedback. Catalog updated with the `wallpaperUrl` ⓘ.
+
+### Files
+
+- `src/index.jsx` (apply + sanitize + live listener), `…/AppearanceSettingsTab.jsx` (settings sub-view)
+- `src/utils/translations/languages/{de,en}.js`, `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1889 - 2026-06-14
 
 **Title:** 📰 News: "auto-mark read on open" now defaults to ON
