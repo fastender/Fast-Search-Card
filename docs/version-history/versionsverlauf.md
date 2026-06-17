@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.1900 - 2026-06-14
+
+**Title:** 🙈 Hide entities hidden/disabled/diagnostic in HA — optional visibility filters (Settings → Filter)
+**Tags:** Feature, Filter, Settings
+
+### What
+
+User feedback: entities hidden in Home Assistant (entity → visibility off) still appeared on the card.
+FSC built its list from `hass.states` and never looked at the entity registry's `hidden_by`. Now FSC
+mirrors HA's auto-dashboard behaviour — and it's **toggleable** in Settings → Filter:
+- **Hide hidden entities** (`hidden_by`) — default on.
+- **Hide diagnostic & disabled entities** (`disabled_by` / `entity_category` config|diagnostic) — default on.
+
+### How
+
+`enrichAllEntitiesWithAreas` now also attaches `hidden_by`, `disabled_by`, `entity_category` from the
+entity registry (already loaded for area enrichment) onto each entity. `filterExcludedEntities` reads two
+new localStorage flags (`filterHiddenEntities`, `filterDiagnosticEntities`, default on — only `'false'`
+disables) and drops matching non-system entities. Two `LiquidGlassSwitch` toggles were added to the Filter
+tab (PrivacySettingsTab); toggling writes the flag + broadcasts `excludedPatternsChanged`, which re-runs
+the existing DataProvider load → re-filter. Enrichment (line 574) runs before the filter (615), so the
+flags are present. System entities are never filtered.
+
+### Files
+
+- `src/utils/homeAssistantService.js` — enrich with `hidden_by`/`disabled_by`/`entity_category`
+- `src/utils/patternMatching.js` — `filterExcludedEntities` honours the two new flags
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — two visibility toggles
+- `src/utils/translations/languages/{de,en}.js` — `visibilityFilter` + toggle labels
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1899 - 2026-06-14
 
 **Title:** 🧭 Safari detail-view gap — the real cause: Bento override hardcoded a 60px header height
