@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1902 - 2026-06-14
+
+**Title:** 🖼️ Wallpaper gallery now works from the `media` folder — resolve_media instead of /local guess
+**Tags:** Fix, Appearance, Wallpaper, Media
+
+### What
+
+Uploaded wallpapers showed as black/broken thumbnails. Root cause (measured): the user's images live in
+the **`media` folder** (`media-source://media_source/media/wallpaper` → `/config/media/wallpaper`), which
+is **not** served under `/local/`. The gallery built `/local/wallpaper/<file>` → 404. Now the gallery
+works with the media folder (zero-config, the native upload path) by resolving real media URLs.
+
+### How
+
+`mediaSourceService.js`: `browseImageFolder` now returns each file's `media_content_id`, and a new
+`resolveMediaUrl()` calls `media_source/resolve_media`. The gallery resolves every file to a (signed) URL
+for its thumbnail. Selecting a thumbnail stores the **`media_content_id`** (`customWallpaperMediaId`), not
+a URL. `viewWallpaper.js` `applyWallpaperFromSettings()` is now async: a gallery selection is **re-resolved
+via resolve_media on every apply** (mount/boot/observer), so the time-limited signature never goes stale —
+exactly how HA serves its own dashboard wallpaper. A manual URL (`customWallpaperUrl`) still works for
+external/permanent links and takes the sync path; the two are mutually exclusive. Works for `media`
+(signed) and, via the optional `media_dirs`+www route, `/local` (permanent). ⓘ updated to lead with the
+zero-config Media-folder path.
+
+### Files
+
+- `src/services/mediaSourceService.js` — `resolveMediaUrl` + `media_content_id` in listing
+- `src/utils/viewWallpaper.js` — async apply, resolve `mediaId` fresh each time
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — gallery resolves thumbnails, stores `mediaId`
+- `src/utils/translations/languages/{de,en}.js` — `wallpaperFolder` ⓘ rewritten
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1901 - 2026-06-14
 
 **Title:** ⓘ Add the missing info popup to the new "Visibility" filter section
