@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1901 - 2026-06-14
+
+**Title:** ⓘ Add the missing info popup to the new "Visibility" filter section
+**Tags:** Polish, Filter, Settings, InfoPopup
+
+### What
+
+The new "Visibility" section (v1900) in Settings → Filter had no ⓘ info button, unlike the neighbouring
+"Limits" and "Excluded Patterns" sections. Added it for consistency.
+
+### How
+
+Replaced the plain `ios-section-header` with `SettingsSectionHeader infoKey="visibility"`, and added the
+`visibility` popup content (de + en) under `settingsInfo` — explaining the two toggles (`hidden_by` and
+`disabled_by`/`entity_category`), that system entities are never affected, and that both default on.
+Catalog updated per the info-popup rule.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — header → SettingsSectionHeader
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.visibility`
+- `docs/info-popups/info-popups-catalog.md` — `visibility` entry
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1900 - 2026-06-14
 
 **Title:** 🙈 Hide entities hidden/disabled/diagnostic in HA — optional visibility filters (Settings → Filter)

@@ -69,6 +69,7 @@
 | infoKey | Sektion (Header) |
 |---|---|
 | `limits` | Limits (früher „System Settings") |
+| `visibility` | Sichtbarkeit (hidden_by / disabled_by / entity_category Filter) |
 | `excludedPatterns` | Ausgeschlossene Muster |
 | `quickAdd` | Schnellauswahl / Quick add |
 
