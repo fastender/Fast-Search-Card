@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.1907 - 2026-06-19
+
+**Title:** 🎯 Quick Control — slightly larger hover ring diameter
+
+### What
+
+The amber Quick Control hover ring now has a bit more diameter (more breathing room around the icon).
+
+### How
+
+`QuickControlIcon.css`: ring inset `-7px` → `-10px` (`width/height: calc(100% + 14px)` → `+ 20px`). The
+SVG scales, so no dasharray change needed.
+
+### Files
+
+- `src/components/QuickControlIcon.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1906 - 2026-06-19
 
 **Title:** ⚙️ Quick Control — per-domain mode (Off / Tap / Hold) + more domains (climate, vacuum, …)
