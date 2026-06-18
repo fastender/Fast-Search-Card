@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1906 - 2026-06-19
+
+**Title:** ⚙️ Quick Control — per-domain mode (Off / Tap / Hold) + more domains (climate, vacuum, …)
+**Tags:** Feature, DeviceCard, Controls, Settings
+
+### What
+
+Quick Control per-domain config is now a **3-way mode** instead of on/off: for each device type you choose
+**Aus / Tippen / Halten** (Off / Tap / Hold) via a segmented control in the sub-view. The domain list was
+expanded and `input_boolean` removed: now **lights, switches, fans, climate, media players, covers, locks,
+vacuums, humidifiers, valves, sirens, scenes, scripts, automations**. Smart defaults (covers/locks/valves/
+sirens = Hold, the rest = Tap); every domain freely overridable.
+
+### How
+
+`quickControl.js` switched to a mode model: `QC_DEFAULT_MODE` (per-domain default 'tap'/'hold'),
+`QC_DOMAIN_LABELS` (list + bilingual labels), and `getQuickControlAction(device, rawState, mode)` →
+`needsHold = mode === 'hold'` (asymmetric auto-logic dropped — the user picks the mode). Most domains use
+`<domain>.toggle`; lock and vacuum resolve direction from the raw state. `quickControlStore.js` now stores
+a per-domain **mode** map (`quickControlModes` in localStorage) via `getQuickControlMode`/
+`setQuickControlDomainMode` (override > default > 'off'). `QuickControlIcon` reads the mode.
+`AppearanceSettingsTab` sub-view renders a segmented `Off / Tap / Hold` control per domain (disabled when
+the global toggle is off). Cards update live.
+
+### Files
+
+- `src/utils/quickControl.js` (mode model + domain/service tables), `src/utils/quickControlStore.js` (mode map)
+- `src/components/QuickControlIcon.jsx` (reads mode), `…/AppearanceSettingsTab.jsx` (segmented control)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1905 - 2026-06-14
 
 **Title:** ⚙️ Quick Control — per-domain selection in a sub-view (which device types get it)
