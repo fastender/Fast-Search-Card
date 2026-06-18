@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1905 - 2026-06-14
+
+**Title:** ⚙️ Quick Control — per-domain selection in a sub-view (which device types get it)
+**Tags:** Feature, DeviceCard, Controls, Settings
+
+### What
+
+Quick Control is now configurable per device type. Settings → Appearance → "Schnellsteuerung" is now a
+**row showing Active/Inactive** that opens a **sub-view** (like Wallpaper): a global on/off plus a list of
+device types (lights, switches, fans, input boolean, media players, covers, locks) each with its own
+toggle. Covers/locks are marked "hold to confirm". Turn off a type → tapping that icon opens the detail
+view again instead of switching.
+
+### How
+
+`quickControlStore.js` gained a per-domain map (`quickControlDomains` in localStorage) +
+`isQuickControlDomainEnabled(domain)` (default on) and `setQuickControlDomain`; `useQuickControlEnabled`
+now re-renders on any change (global or per-domain). `QuickControlIcon` gates on
+`isQuickControlDomainEnabled(device.domain)`. `AppearanceSettingsTab` replaces the inline toggle with a
+nav row → a new `quickControl` sub-view (global toggle + per-domain switches, bilingual labels inline; ⓘ
+`quickControl` on the sub-view). Cards update live (store subscription). No new translation keys.
+
+### Files
+
+- `src/utils/quickControlStore.js` — per-domain map + getters/setters
+- `src/components/QuickControlIcon.jsx` — per-domain gate
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — nav row + sub-view + `QC_DOMAINS`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1904 - 2026-06-14
 
 **Title:** 🎯 Quick Control hover ring off-center in Safari — explicit size instead of inset stretch
