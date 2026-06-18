@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1904 - 2026-06-14
+
+**Title:** 🎯 Quick Control hover ring off-center in Safari — explicit size instead of inset stretch
+**Tags:** Fix, DeviceCard, Controls, Safari
+
+### What
+
+The amber Quick Control ring sat ~7px up-left of the device icon in Safari (Chrome was fine).
+
+### How
+
+DOM measurement: the `.qc-icon` wrapper and icon were both 56×56 and perfectly aligned, but `.qc-ring`
+rendered 56×56 (not 70×70) at offset −7/−7 → its centre was 7px up-left. Cause: the ring is an `<svg>`, a
+**replaced element** — Safari does not stretch it across `right/bottom` from the `inset: -7px` shorthand
+(it keeps its intrinsic size and only honours top/left), while Chrome stretches it. Fix: give the ring an
+**explicit size** — `top/left: -7px` + `width/height: calc(100% + 14px)` — so it's 70×70 and centred in
+both browsers.
+
+### Files
+
+- `src/components/QuickControlIcon.css` — ring `inset:-7px` → explicit top/left + width/height
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1903 - 2026-06-14
 
 **Title:** ⚡ Quick Control (Schnellsteuerung) — the device icon is the switch (tap, or hold to confirm)
