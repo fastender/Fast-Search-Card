@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.1903 - 2026-06-14
+
+**Title:** ⚡ Quick Control (Schnellsteuerung) — the device icon is the switch (tap, or hold to confirm)
+**Tags:** Feature, DeviceCard, Controls
+
+### What
+
+New opt-in feature from issue #10: on grid cards, the **device icon itself becomes the control** — no
+need to open the detail view. Tapping the card (next to the icon) still opens the detail view. Off by
+default; enable under Settings → Appearance → "Schnellsteuerung / Quick Control".
+
+- **Safe devices** (light, switch, fan, input_boolean, media_player) → **tap the icon** = switch instantly.
+- **Risky devices** (cover, lock) → **press and hold (~1 s)** the icon in the opening/unlocking direction;
+  an amber ring fills to confirm. The safe direction (close/lock) stays a simple tap (asymmetric).
+- Amber ring appears on hover (desktop) / press (touch); haptic feedback via `navigator.vibrate`.
+
+### How
+
+New `utils/quickControl.js` (`getQuickControlAction` — classifies domain → service + risky/needsHold using
+the raw HA state), `utils/quickControlStore.js` (module-level enabled flag + `useQuickControlEnabled`,
+mirrors iconSizeStore), and `components/QuickControlIcon.jsx` (+ css) which wraps the grid icon: tap fires
+for safe/safe-direction, hold-to-confirm (ring fill + timer) for the risky direction, `stopPropagation` so
+the card-tap detail doesn't fire. `DeviceCard` subscribes via `useQuickControlEnabled` and passes the flag
++ `callService` to `DeviceCardGridView`, which wraps `renderSensorValue()`. Non-controllable domains
+(sensors, climate, system entities) render the plain icon untouched. Settings toggle in the Appearance tab
++ ⓘ (`quickControl`). List view keeps its existing quick-toggle button (unchanged for now).
+
+### Files
+
+- `src/utils/quickControl.js`, `src/utils/quickControlStore.js` (new)
+- `src/components/QuickControlIcon.jsx` + `.css` (new)
+- `src/components/DeviceCard.jsx`, `src/components/DeviceCard/DeviceCardGridView.jsx` (wiring)
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` (toggle + ⓘ)
+- `src/utils/translations/languages/{de,en}.js`, `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1902 - 2026-06-14
 
 **Title:** 🖼️ Wallpaper gallery now works from the `media` folder — resolve_media instead of /local guess

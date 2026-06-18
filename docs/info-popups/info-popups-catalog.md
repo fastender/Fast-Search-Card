@@ -57,6 +57,7 @@
 | infoKey | Sektion (Header) |
 |---|---|
 | `design` | Darstellung / Design |
+| `quickControl` | Schnellsteuerung / Quick Control (Icon = Schalter) |
 | `homeAssistant` | Home Assistant |
 | `animations` | Animationen / Animations |
 | `videoFolder` | Video Folder (Animations-Detail) |
