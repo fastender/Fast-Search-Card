@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1920 - 2026-06-20
+
+**Title:** ✨ Bento list view: bottom fade mask + custom scrollbar + header padding
+
+### What
+
+Polish for the Bento favorites/suggestions list view: the bottom of the scroll area was hard-cut, the
+custom scrollbar was missing, and the header toggle sat too close to the edge.
+
+### How
+
+- `.bento-carousel-list`: bottom fade mask now always on; `is-scrolling` adds the top fade too (top + bottom).
+- Wrapped the list in a `position: relative` `.bento-carousel-list-wrap` and added `<CustomScrollbar>`
+  (same component as News/Todos) bound to the list ref, visible on hover/scroll.
+- `.bento-carousel-header`: `padding: 5px`.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — list ref + hover state, relative wrap, `<CustomScrollbar>`
+- `src/components/BentoStartView.css` — top+bottom mask, `.bento-carousel-list-wrap`, header padding
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1919 - 2026-06-20
 
 **Title:** 🩹 Bento list-view cards clipped on hover
