@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1909 - 2026-06-19
+
+**Title:** 🩹 Fix duplicate `visibility` info-popup key — Filter ⓘ showed the wrong text
+
+### What
+
+The "Visibility" ⓘ in Settings → Filter (v1901) reused the `settingsInfo` key `visibility`, which already
+existed for the Universal-device "Visible entities" navbar ⓘ. Duplicate key in one object → the later one
+won, so the Filter ⓘ showed the wrong content.
+
+### How
+
+Renamed the Filter one to `visibilityFilter` (de+en `settingsInfo`), pointed PrivacySettingsTab's
+`SettingsSectionHeader infoKey` to `visibilityFilter`, and updated the catalog. The Universal-device ⓘ
+keeps `visibility`. Both now resolve to their own text.
+
+### Files
+
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.visibility` (Filter) → `visibilityFilter`
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — `infoKey="visibilityFilter"`
+- `docs/info-popups/info-popups-catalog.md`, `…/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1908 - 2026-06-19
 
 **Title:** 🌐 i18n fixes — 7 hardcoded German strings now translate (feedback ⑨)
