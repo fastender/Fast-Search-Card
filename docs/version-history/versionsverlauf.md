@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1922 - 2026-06-20
+
+**Title:** 🎛️ Live device settings (Fan/Swing/Oscillation) expand inline instead of a sub-view
+
+### What
+
+In the detail view's device settings (climate Fan Mode / Swing Mode / Oscillation, fan presets, …), tapping
+a row slid into a separate "< Back" sub-view with the picker wheel. Now the row expands the picker **inline**
+(accordion) right in the list — exactly like the Schedule time picker in the Schedules Overview.
+
+### How
+
+`DomainSettingsPicker` already had the inline accordion, but it was gated to `mode === 'schedule'`; the
+`live` mode used a slide sub-view. Removed the gating so both modes expand inline (one row open at a time,
+chevron rotates, tap again to close), made the inline slider use the live optimistic value, and deleted the
+now-dead sub-view code (`renderPickerSubView`/`renderSliderSubView`, the `view`/`setView` slide machinery,
+`NavbarBackIcon`, `createSlideVariants`).
+
+### Files
+
+- `src/components/common/DomainSettingsPicker.jsx` — inline accordion for both modes; removed sub-view path
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1921 - 2026-06-20
 
 **Title:** 🩹 Bento list scrollbar no longer overlaps the device rows
