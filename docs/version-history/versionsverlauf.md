@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1919 - 2026-06-20
+
+**Title:** 🩹 Bento list-view cards clipped on hover
+
+### What
+
+In the new Bento favorites/suggestions list view, hovering a row scaled the card (1.02) and its right edge
+got clipped by the scroll container.
+
+### How
+
+The vertical scroll container (`overflow-y: auto`) forces `overflow-x` to non-visible, so the hover-scaled
+card hit the clip edge. Added `padding: 6px 8px` to `.bento-carousel-list` so the cards sit inset and the
+scale growth has room before the clip boundary.
+
+### Files
+
+- `src/components/BentoStartView.css` — `.bento-carousel-list` inner padding
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1918 - 2026-06-20
 
 **Title:** 🧱 Bento favorites/suggestions widget: grid ↔ list view toggle
