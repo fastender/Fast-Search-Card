@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1915 - 2026-06-20
+
+**Title:** 🎨 List-View quick-actions: dark tray instead of per-button overrides (keeps detail colors)
+
+### What
+
+The active-row contrast hacks from v1.1.1912–1914 (gray fill + border, forced dark icons) flattened the
+controls — e.g. the brightness presets lost their differentiated colors (10% dark → 100% amber) and gained
+an unwanted border. The user wants the buttons to look exactly like the detail view.
+
+### How
+
+Dropped all per-button active-row overrides and instead gave the inline `⋯` panel a **dark rounded tray**
+background (like the detail view's dark surface). On that tray every reused control renders in its original
+colors — the brightness gradient, the blue expanded button, white control icons, the colored selected
+preset — with no border and no `!important` color forcing. The tray is slightly stronger on active (white)
+rows so it stays well separated.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — `.device-list-actions-panel` dark tray; removed the
+  v1912–1914 active-row button/icon/border overrides
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1914 - 2026-06-19
 
 **Title:** 🩹 List-View Position preset buttons invisible on active (white) rows
