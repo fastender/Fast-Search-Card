@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1912 - 2026-06-19
+
+**Title:** 🩹 List-View `⋯` button invisible on active (white) rows
+
+### What
+
+When a cover/light is active, its list row has a white background — but the new universal `⋯` actions
+button (v1.1.1911) kept its white-on-white styling (white fill, white border, white dots) and disappeared.
+
+### How
+
+Added an active-row override in `DeviceCardList.css`: `.device-list-item.active .device-list-actions` flips
+to a dark scheme (black 6% fill, black 12% border, black 55% dots); the open state goes solid dark
+(`#1c1c1e` fill, white dots) so it stays visible and distinct on the white card.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — active-row `.device-list-actions` contrast override
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1911 - 2026-06-19
 
 **Title:** 🎛️ List-View Quick Control — Steps 2+3: icon-as-switch + universal `⋯` inline actions
