@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1913 - 2026-06-19
+
+**Title:** 🩹 List-View quick-action icons invisible on active (white) rows
+
+### What
+
+Follow-up to v1.1.1912: with the `⋯` panel open on an active (white) cover/light row, the reused control
+buttons (Open/Stop/Close/Position) had white icons on a light background — barely visible.
+
+### How
+
+The detail-view control SVGs are hard-set to `stroke/fill: white !important`. Added a higher-specificity
+active-row override in `DeviceCardList.css` forcing those icons to `#1c1c1e` inside
+`.device-list-actions-panel` (preserving `fill="none"` outline icons), excluding the expanded (blue) button
+which keeps its white icon. Also gave the buttons a faint dark border for definition on white.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — active-row SVG color override for panel controls
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1912 - 2026-06-19
 
 **Title:** 🩹 List-View `⋯` button invisible on active (white) rows
