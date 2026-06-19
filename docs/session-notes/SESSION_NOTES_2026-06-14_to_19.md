@@ -61,7 +61,21 @@ UniversalControlsTab 2 hero-image error texts (used `getLang()` — no `lang` pr
 ScheduleList "Lade Scheduler…" → `t('loadingScheduler')` (new key), IntegrationView "Setup … nicht
 implementiert" → bilingual. All ①–⑫ Reddit/GitHub feedback points now done.
 
-## Open / next
-- Quick Control: unify LIST view's quick-toggle (v1875) with hold-to-confirm; `alarm_control_panel`;
-  decide default-ON; **post the issue #10 reply**.
-- Wallpaper: optional (works). Companion-integration idea still parked ([[project_wallpaper_gallery_plan]]).
+## v1909 — fix duplicate `visibility` info-popup key
+`settingsInfo.visibility` was defined twice (Filter tab v1901 + pre-existing Universal "Sichtbare
+Entitäten") → JS duplicate key, later wins, Filter ⓘ showed wrong text. Renamed the Filter one to
+`visibilityFilter` (de/en + PrivacySettingsTab infoKey + catalog). Found while the user asked "is the
+catalog up to date" — it was, but this collision surfaced.
+
+## NEXT SESSION — List-View Quick Control (design approved, build NOT started)
+Mockup-approved design + the no-double-code architecture are in **[[project_quick_control]]** (read it).
+TL;DR: left icon = control (drop the right power button), right `⋯` = universal action button →
+**inline-expand (Variant A)** the **detail-view controls reused 1:1** (Open/Stop/Close/Position →
+% presets). Controls are already config-driven (`getControlConfig` → primary/expandable, rendered via
+`ControlButton`+`PresetButtonsGroup` in `UniversalControlsTab.jsx` ~677–718). **User said GO on Step 1 =
+extract `<DomainControls>` from that block into a shared component (detail view renders it unchanged), then
+list reuses it.** Circular dial stays detail-only. Also still open: `alarm_control_panel`, decide default-ON,
+**post the GitHub issue #10 reply** (text drafted).
+
+## Open / next (other)
+- Wallpaper: works. Companion-integration idea parked ([[project_wallpaper_gallery_plan]]).
