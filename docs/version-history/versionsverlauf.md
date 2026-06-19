@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.1911 - 2026-06-19
+
+**Title:** 🎛️ List-View Quick Control — Steps 2+3: icon-as-switch + universal `⋯` inline actions
+
+### What
+
+The list view now gets the same Quick Control treatment as the grid (issue #10), with the per-domain
+controls reused **1:1** from the detail view — no duplicated logic. Only active when the global Quick
+Control toggle is on; with it off, the list behaves exactly as before (the v1.1.1875 power button stays).
+
+### How
+
+`DeviceCardListView` was restructured into a flex-column: the main row (`.device-list-row`) plus an
+inline expand panel below it.
+
+- **Left icon = the switch.** When Quick Control is on, the device icon is wrapped in `<QuickControlIcon>`
+  — tap fires instantly for safe domains; risky directions (open cover / unlock) need a ~1s hold with the
+  amber ring + haptics. Domains without a quick-control action just render the plain icon. This replaces
+  the domain-agnostic power button (a power glyph never fit a lock).
+- **Right = a universal `⋯` button** that inline-expands the per-domain quick actions. It only appears when
+  `getControlConfig` actually yields controls for the domain (sensors/weather/news → no empty panel).
+- **The expand renders `<DomainControls>`** (v1.1.1910) — the exact detail-view `<ControlButton>` primaries
+  + `<PresetButtonsGroup>` klappfunktion (e.g. cover Open/Stop/Close + Position → 0/25/50/75/100%), driven
+  by the same `getControlConfig` + a `formatServiceData → callService` bridge. The circular dial stays
+  detail-view-only.
+- Active list rows have a white background, so the reused controls get a dark-on-light contrast override
+  inside the panel (avoids white-on-white).
+
+With Quick Control off, the legacy v1.1.1875 direct-toggle power button is shown instead — never both, so
+there's no double control.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx` — flex-column row, `<QuickControlIcon>` left icon,
+  universal `⋯` button + inline `<DomainControls>` panel, `onServiceCall` bridge
+- `src/components/DeviceCard/DeviceCardList.css` — `.device-list-row`, `.device-list-actions(.open)`,
+  `.device-list-actions-panel` + active-row contrast overrides
+- `src/components/DeviceCard.jsx` — pass `quickControlEnabled` + `callService` to the list view
+- `src/utils/translations/languages/{de,en}.js` — `general.actions` label for the `⋯` button
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1910 - 2026-06-19
 
 **Title:** 🧩 List-View Quick Control — Step 1: shared `<DomainControls>` component (foundation)
