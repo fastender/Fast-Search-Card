@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1910 - 2026-06-19
+
+**Title:** 🧩 List-View Quick Control — Step 1: shared `<DomainControls>` component (foundation)
+
+### What
+
+Foundation for bringing the detail-view's device controls into the list view's quick actions, with **no
+duplicated logic**. Internal only — not wired anywhere yet, no visible change.
+
+### How
+
+New `src/components/controls/DomainControls.jsx`: a layout-free composition of the existing building blocks
+— `getControlConfig(item, lang)` → `primary` rendered via `<ControlButton>` + `expandable` (the Position →
+% preset klappfunktion etc.) via `<PresetButtonsGroup>`, with its own local `expandedControl`/`activePreset`
+state and `onServiceCall` passthrough. The detail view keeps its own layout/chrome (circular dial, hero,
+movedUp animation) untouched; this component supplies just the bare buttons + expandable presets so the
+list's `⋯` quick-actions can reuse the exact same controls + services. Next steps: list left-icon =
+Quick Control toggle + `⋯` button (Step 2), then render `<DomainControls>` in the `⋯` expand (Step 3).
+
+### Files
+
+- `src/components/controls/DomainControls.jsx` (new)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1909 - 2026-06-19
 
 **Title:** 🩹 Fix duplicate `visibility` info-popup key — Filter ⓘ showed the wrong text
