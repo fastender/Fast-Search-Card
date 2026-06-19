@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1924 - 2026-06-20
+
+**Title:** 🧭 Detail overlay top no longer 12px too high in Safari (Bento)
+
+### What
+
+Companion to the v1899 bottom-coverage fix. In Bento mode the detail overlay started at a hardcoded
+`top: 60px` (the Chrome header height). Safari's header renders 72px, so the overlay sat ~12px too high
+(raised) — it didn't line up with the search panel.
+
+### How
+
+Instead of the hardcoded top, `DetailViewWrapper` now measures where `.search-row` actually begins relative
+to `.main-container--bento` (the real header height, browser-independent) and sets the wrapper's `top` inline,
+kept current via a ResizeObserver + window resize. Outside Bento the CSS full-cover (`top: 0`) is left
+untouched. Same "measure, don't guess" approach as the `bottom: 0` fix.
+
+### Files
+
+- `src/components/SearchField/components/DetailViewWrapper.jsx` — measure header height, set overlay top
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1923 - 2026-06-20
 
 **Title:** 🎯 Bento list scrollbar moved into the widget padding (cards full-width again)
