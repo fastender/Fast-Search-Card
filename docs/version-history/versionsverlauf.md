@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1916 - 2026-06-20
+
+**Title:** 🎨 Darker active-row quick-actions tray + fix climate `ui.controls.heatCool` raw key
+
+### What
+
+Two fixes on the list quick-actions tray:
+1. On active (white) rows the dark tray was too light — bumped it for clearer contrast.
+2. The climate Heat/Cool mode button showed the raw key `ui.controls.heatCool` instead of a label.
+
+### How
+
+- `DeviceCardList.css`: `.device-list-item.active .device-list-actions-panel` background `0.30 → 0.55`.
+- The `heatCool` key was missing from the `controls` translation block (only `auto` existed). Since `t()`
+  returns the key path when missing (a truthy string), the code's `|| 'Heiz./Kühl.'` fallback never fired.
+  Added `heatCool` to both `de.js` ('Heiz./Kühl.') and `en.js` ('Heat/Cool'). This also fixes the same raw
+  label in the detail view's climate controls.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — darker active-row tray
+- `src/utils/translations/languages/{de,en}.js` — add `controls.heatCool`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1915 - 2026-06-20
 
 **Title:** 🎨 List-View quick-actions: dark tray instead of per-button overrides (keeps detail colors)
