@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1923 - 2026-06-20
+
+**Title:** 🎯 Bento list scrollbar moved into the widget padding (cards full-width again)
+
+### What
+
+The v1.1.1921 scrollbar gutter shrank the list cards on the right. Removed that and moved the scrollbar
+into the widget's own right padding instead, so the cards stay full-width.
+
+### How
+
+Dropped the `padding-right` gutter on `.bento-carousel-list-wrap` and overrode the (inline `right: 3px`)
+`.custom-scrollbar-container` to `right: -20px !important`. The widget's `overflow: hidden` only clips at
+its outer edge, so the 28px right padding zone is free — the scrollbar sits there, beside the cards, not on
+them.
+
+### Files
+
+- `src/components/BentoStartView.css` — remove card gutter, push scrollbar into widget padding
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1922 - 2026-06-20
 
 **Title:** 🎛️ Live device settings (Fan/Swing/Oscillation) expand inline instead of a sub-view
