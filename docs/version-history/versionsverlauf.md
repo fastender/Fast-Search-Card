@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1914 - 2026-06-19
+
+**Title:** 🩹 List-View Position preset buttons invisible on active (white) rows
+
+### What
+
+Follow-up to v1.1.1913: the cover Position klappfunktion's percent preset buttons (0/25/50/75/100%) stayed
+white-on-white on an active (white) row — only the labels were visible, the button circles were not.
+
+### How
+
+The control buttons were already fixed, but the preset buttons get an **inline** `backgroundColor`
+(white 10%) from their framer-motion variant — an inline style beats a plain CSS class. Switched the
+active-row override to `!important` (background + a real 1px border for definition), scoped to
+`.control-button:not(.expanded)` and `.preset-button:not(.active)` so the expanded blue button and the
+selected (blue-tinted) preset keep their accent color. `box-sizing: border-box` keeps the 72px size.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — active-row preset/control button bg+border `!important`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1913 - 2026-06-19
 
 **Title:** 🩹 List-View quick-action icons invisible on active (white) rows
