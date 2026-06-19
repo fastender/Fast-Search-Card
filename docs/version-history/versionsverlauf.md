@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1921 - 2026-06-20
+
+**Title:** 🩹 Bento list scrollbar no longer overlaps the device rows
+
+### What
+
+The custom scrollbar (v1.1.1920) sat directly on top of the list device cards.
+
+### How
+
+Gave `.bento-carousel-list-wrap` a `padding-right: 10px` gutter. Since the list is a flex child it shrinks
+to leave that gutter, while the absolutely-positioned scrollbar (right: 3px) stays in it — so the cards end
+to the left of the scrollbar instead of underneath it.
+
+### Files
+
+- `src/components/BentoStartView.css` — `.bento-carousel-list-wrap` right gutter for the scrollbar
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1920 - 2026-06-20
 
 **Title:** ✨ Bento list view: bottom fade mask + custom scrollbar + header padding
