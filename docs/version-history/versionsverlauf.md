@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.1917 - 2026-06-20
+
+**Title:** 🎨 Remove border from the list `⋯` actions button
+
+### What
+
+The universal `⋯` actions button still had a faint border while the panel controls no longer do — looked
+inconsistent.
+
+### How
+
+`DeviceCardList.css`: `.device-list-actions` `border: 0.5px solid …` → `border: none`, and dropped the
+now-dead `border-color` overrides on the active/open states.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css` — borderless `⋯` button
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1916 - 2026-06-20
 
 **Title:** 🎨 Darker active-row quick-actions tray + fix climate `ui.controls.heatCool` raw key
