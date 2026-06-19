@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1908 - 2026-06-19
+
+**Title:** 🌐 i18n fixes — 7 hardcoded German strings now translate (feedback ⑨)
+
+### What
+
+Closes the deferred i18n audit (Reddit/GitHub feedback ⑨): several user-facing strings were hardcoded in
+German and stayed German even with the card set to English. A full `src/` scan found 7; all fixed.
+
+### How
+
+- `StatsBarSettingsTab.jsx` — 3 energy-config input placeholders (`z.B. sensor.…`) → `lang === 'de' ? 'z.B. …' : 'e.g. …'`.
+- `UniversalControlsTab.jsx` — hero-image error texts "Kein Bild verfügbar" / "Bild konnte nicht geladen
+  werden" → bilingual; `UniversalHeroImage` has no `lang` prop, so it now reads `getLang()` from langStore.
+- `ScheduleList.jsx` — "Lade Scheduler..." → `t('loadingScheduler')` (new key, de/en).
+- `IntegrationView.jsx` — "Setup für … nicht implementiert." → bilingual via the existing `lang`.
+
+Scan confirmed these were the only hardcoded user-facing German strings (comments, logs, and existing
+`lang === 'de' ? …` ternaries excluded).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/StatsBarSettingsTab.jsx`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/ScheduleTab/components/ScheduleList.jsx`
+- `src/system-entities/entities/integration/IntegrationView.jsx`
+- `src/utils/translations/languages/{de,en}.js` — `loadingScheduler`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1907 - 2026-06-19
 
 **Title:** 🎯 Quick Control — slightly larger hover ring diameter
