@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1918 - 2026-06-20
+
+**Title:** 🧱 Bento favorites/suggestions widget: grid ↔ list view toggle
+
+### What
+
+The Bento favorites widget (and the suggestions widget) only ever showed its devices as a paginated grid.
+Added a grid/list toggle so the same devices can be browsed as a vertical list instead.
+
+### How
+
+In `BentoWidget.jsx` the carousel header now carries a two-button segmented toggle (raster / list icons).
+The choice persists per widget id in `localStorage` (`bentoCarouselView:<id>`), default grid (unchanged
+behaviour). In **grid** mode the existing swipeable paginated carousel + dots render as before. In **list**
+mode all items render stacked as `<DeviceCard viewMode="list">` in a vertical, hidden-scrollbar scroll
+container (with the is-scrolling top fade), row click opens the device. Pagination dots are hidden in list
+mode. Reuses the existing list card — no new rendering path.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — view-toggle state + persistence, header toggle, grid/list branch
+- `src/components/BentoStartView.css` — `.bento-carousel-viewtoggle(-btn)` + `.bento-carousel-list(-row)`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1917 - 2026-06-20
 
 **Title:** 🎨 Remove border from the list `⋯` actions button
