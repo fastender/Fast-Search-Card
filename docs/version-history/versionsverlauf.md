@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1931 - 2026-06-20
+
+**Title:** 🔄 Entity-state reconciliation safety-net + "Clear cache" now refreshes states
+
+### What
+
+A Reddit user reported the entity list reflecting cached states, not the actual current ones. The live path
+is correct (state_changed → setEntities → context), but there was no safety-net for missed events (WS
+reconnect gaps, mobile app-resume) or a stale boot snapshot — so unchanged entities could stay frozen at the
+cached value with no re-sync.
+
+### How
+
+- **Reconciliation safety-net** (`DataProvider`): every 5s, diff `entities` against the authoritative
+  `hass.states` and pull only drifted entities forward (compare `state` + `last_updated`). System entities
+  (not in `hass.states`) are skipped; if nothing drifted, `setEntities` returns `prev` unchanged → no
+  re-render. Catches lost `state_changed` events and stale boot snapshots automatically.
+- **"Clear cache" now clears the entity cache too**: the Settings → About "Clear cache" button broadcasts
+  `cacheCleared`; `DataProvider` now listens, clears the entity boot snapshot (`clearEntitiesSnapshot()`) and
+  triggers a fresh `loadEntitiesFromHA()`. Previously it only cleared the search/suggestion caches.
+
+### Files
+
+- `src/providers/DataProvider.jsx` — 5s reconciliation interval + `cacheCleared` listener
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1930 - 2026-06-20
 
 **Title:** 🎬 Detail background video now switches live on toggle (light_on ↔ light_off)
