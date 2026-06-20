@@ -364,7 +364,7 @@ No mystery. No pretending.
 
 <br>
 
-- [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Ten ideas, prioritized
+- [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Twenty ideas, prioritized (Sketchpad widget recommended next)
 - [Performance roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
 - [Custom component roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
 
