@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1930 - 2026-06-20
+
+**Title:** 🎬 Detail background video now switches live on toggle (light_on ↔ light_off)
+
+### What
+
+Toggling a device (e.g. a light) in the detail view didn't swap its background video — `light_on.mp4` stayed
+even after switching off.
+
+### How
+
+The video-loading effect used the prop `item` (the snapshot captured when the detail opened, whose `state`
+never changes) and depended on `item.state`, so it never re-ran on a toggle. Switched it to `liveItem`
+(the live entity from the entities array) for both `getEntityVideoUrl(liveItem)` and the dependency array
+`[liveItem.entity_id, liveItem.state]`, so a real state change reloads the matching video.
+
+### Files
+
+- `src/components/DetailView.jsx` — video effect uses `liveItem` + state dependency
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1929 - 2026-06-20
 
 **Title:** 🔌 List quick-actions: energy/universal stats now load (resolve system-entity actions)
