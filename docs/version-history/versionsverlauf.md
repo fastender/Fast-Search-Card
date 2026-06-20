@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1927 - 2026-06-20
+
+**Title:** 🎞️ Detail videos: support the `weather/` and `system-entities/` subfolders
+
+### What
+
+The repo's `media/videos/` organizes clips into `weather/` and `system-entities/` subfolders, but the card
+only looked flat — so those videos were never found when copied with their folders, and the system-entity
+file names (`tasks.mp4`, `tips.mp4`, `energy.mp4`, `schedules.mp4`, `changelog.mp4`) don't match the
+internal domains. The card now reads both subfolders.
+
+### How
+
+`getEntityVideoUrl` gained two new top-priority lookups:
+- **Weather** (`weather` / `weather_device`): `weather/weather_{condition}.mp4`, using `attributes.condition`
+  (falls back to `current_condition` / state), e.g. `weather/weather_sunny.mp4`.
+- **System entities**: a `SYSTEM_ENTITY_VIDEOS` map (domain → file name) resolves `system-entities/{name}.mp4`
+  — `todos→tasks`, `tipps→tips`, `energy_dashboard_device→energy`, `all_schedules→schedules`,
+  `versionsverlauf→changelog`, plus calendar/news/settings/integration as-is.
+
+The existing flat fallbacks (`{domain}_{state}.mp4`, device-class, default pool) are unchanged, so flattened
+installs still work. `media/README.md` updated to document both install layouts.
+
+### Files
+
+- `src/utils/videoHelpers.js` — `weather/` + `system-entities/` subfolder lookups + domain map
+- `media/README.md` — document subfolder support + domain↔filename mapping
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1926 - 2026-06-20
 
 **Title:** 🎬 "Enable video backgrounds" hint under the detail icon → jumps to Appearance

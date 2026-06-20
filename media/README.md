@@ -108,7 +108,10 @@ Nine clips, roughly 2-3 MB each:
 | `weather_windy.mp4` | `windy` |
 | `weather_lightning.mp4` | `lightning` |
 
-Drop the whole folder into `/config/www/fast-search-videos/` (flat — the card doesn't need the subfolder, it's only organised that way here in the repo).
+Two ways to install them (both work as of v1.1.1927):
+
+- **Keep the subfolder:** copy `weather/` into `/config/www/fast-search-videos/weather/`. The card looks there directly.
+- **Or flatten:** drop the `weather_*.mp4` files straight into `/config/www/fast-search-videos/`.
 
 ---
 
@@ -130,23 +133,25 @@ Want another device class? Copy any of these files and rename it. The pattern is
 
 ---
 
-## System-entity showcase videos
+## System-entity backgrounds
 
-`media/videos/system-entities/` collects short demo clips of the system-entity apps in motion. These are **not** Detail-View backgrounds — they show the apps themselves (Calendar, Todos, News, Energy Dashboard, etc.) and are intended for the project README, social posts, and the changelog tile.
+`media/videos/system-entities/` holds short clips for the system-entity apps (Calendar, Todos, News, Energy Dashboard, …). They double as project-README/social footage **and**, since v1.1.1927, as Detail-View backgrounds: the card looks in the `system-entities/` subfolder and maps each app's internal domain to its file name (the file names differ from the domains).
 
-Nine clips, roughly 2-3 MB each:
+Copy `system-entities/` into `/config/www/fast-search-videos/system-entities/` to use them as backgrounds.
 
-| File | Shows |
-|---|---|
-| `calendar.mp4` | Calendar app — day/week/month/year views |
-| `changelog.mp4` | Version-history viewer |
-| `energy.mp4` | Energy dashboard with real-time charts |
-| `integration.mp4` | Device Builder (custom views without YAML) |
-| `news.mp4` | News reader (companion to `fast-news-reader`) |
-| `schedules.mp4` | All-Schedules overview |
-| `settings.mp4` | In-card settings hub |
-| `tasks.mp4` | Todos app aggregating every `todo.*` backend |
-| `tips.mp4` | Tips system entity — rotating tips with markdown detail |
+Nine clips, roughly 2-3 MB each — file ← internal domain it plays for:
+
+| File | Internal domain | Shows |
+|---|---|---|
+| `calendar.mp4` | `calendar` | Calendar app — day/week/month/year views |
+| `changelog.mp4` | `versionsverlauf` | Version-history viewer |
+| `energy.mp4` | `energy_dashboard_device` | Energy dashboard with real-time charts |
+| `integration.mp4` | `integration` | Device Builder (custom views without YAML) |
+| `news.mp4` | `news` | News reader (companion to `fast-news-reader`) |
+| `schedules.mp4` | `all_schedules` | All-Schedules overview |
+| `settings.mp4` | `settings` | In-card settings hub |
+| `tasks.mp4` | `todos` | Todos app aggregating every `todo.*` backend |
+| `tips.mp4` | `tipps` | Tips system entity — rotating tips with markdown detail |
 
 ---
 
