@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1926 - 2026-06-20
+
+**Title:** 🎬 "Enable video backgrounds" hint under the detail icon → jumps to Appearance
+
+### What
+
+When detail-view videos are turned off, the entity detail just shows the icon with no indication that
+animated backgrounds are even an option. Added an Apple-style hint pill under the icon that links straight
+to Settings → Appearance.
+
+### How
+
+`EntityIconDisplay` now shows a `.video-hint-pill` ("Video backgrounds available · Enable in Appearance ›")
+when the icon is shown, videos are globally disabled (`areDetailVideosEnabled()` — new export in
+`videoHelpers.js`), and the domain actually supports videos (light/switch/fan/climate/media_player/lock/
+cover/vacuum/binary_sensor/sensor — not system entities). Tapping it dispatches a `fsc-open-appearance`
+event; `SearchField` catches it, opens the settings entity, and pre-selects the Appearance tab via
+`window.__pendingSettingsTab` (read once on mount by `SettingsTab`, which syncs back to the detail header
+through `onTabChange`).
+
+### Files
+
+- `src/utils/videoHelpers.js` — `areDetailVideosEnabled()`
+- `src/components/DetailView/EntityIconDisplay.jsx` — hint pill + gating
+- `src/components/DetailView.css` — `.video-hint-pill` Apple-style
+- `src/components/tabs/SettingsTab.jsx` — `window.__pendingSettingsTab` deep-link
+- `src/components/SearchField.jsx` — `fsc-open-appearance` listener
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1925 - 2026-06-20
 
 **Title:** ⏱️ Real "since X" state duration (was a hardcoded placeholder) + HACS My-link in README
