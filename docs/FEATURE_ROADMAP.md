@@ -436,6 +436,50 @@ A second batch shaped by what shipped in the last four weeks (Quick Control patt
 
 ---
 
+## Part three — parallel track: localization
+
+### 21. Localization expansion
+
+**Pitch:** Translate the card from two languages to ten. Start with Dutch (community request, second-largest HA market after Germany).
+
+**Status quo:** Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; the wiring (`translateUI('key.path')` with German fallback) already covers every language-aware surface that recent passes touched (sidebar, action buttons, history timeframes, visibility filter info popups, climate Heat/Cool, the seven hardcoded DE strings closed in v1.1.1908).
+
+The recurring gap is **content**, not infrastructure — the Tipps system entity ships DE-only content, the HistoryTab sub-strings have a few stragglers, and adding a third language means walking every key-path and writing a translation file.
+
+**What ships (priority order):**
+
+| Order | Language | Why this priority |
+|---|---|---|
+| 1 | **Dutch (`nl.js`)** | Community request from a Reddit comment. HA's second-largest country market after Germany. ~600 km of "they basically already use German anyway" jokes incoming. |
+| 2 | **French (`fr.js`)** | Largest non-German European HA community. High demand, low effort once Dutch is done. |
+| 3 | **Italian (`it.js`)** | Strong HA presence, very active forum community. |
+| 4 | **Spanish (`es.js`)** | Large EU + LATAM reach with one file. |
+| 5 | **Polish (`pl.js`)** | Surprisingly active HA community, often overlooked. Asked for repeatedly in DMs. |
+| 6 | **Portuguese (`pt.js`)** | Covers both Portugal and Brazilian-Portuguese users. |
+| 7 | **Czech (`cs.js`)** | Smaller but tight-knit community, lots of HA tinkerers. |
+| 8 | **Swedish (`sv.js`)** | Together with Norwegian and Danish, opens up the Scandinavian market. |
+
+Eight languages on top of EN+DE = ten total. Roadmap target, not a fixed list — community PRs decide what actually lands.
+
+**How:**
+
+- Translation files are plain JavaScript modules in `src/utils/translations/languages/`. Each is a one-level-deep nested object, ~1,150 lines for DE/EN.
+- Onboarding doc for translators: `docs/i18n-contributing.md` (to be written). Lists every key-path, marks "must-have" vs "nice-to-have" sections, includes a tiny checker script that fails CI on missing keys.
+- Community PRs welcome. No Crowdin/Weblate yet — start with PRs; if volume picks up, evaluate a translation platform later.
+- Each new language enables itself once it covers a threshold (say 80% of keys) so partial translations don't ship as broken language switches.
+
+**Effort:** Medium per language (4–8 h for someone fluent + familiar with HA). Tooling/scripting work is one-evening upfront. Roadmap target = first three languages (NL, FR, IT) within 6 weeks; rest is community-paced.
+
+**Files (estimate):**
+- `src/utils/translations/languages/nl.js` (first, ~1150 lines)
+- `src/utils/translations/languages/{fr,it,es,pl,pt,cs,sv}.js` (subsequent)
+- `docs/i18n-contributing.md` (new — translator onboarding)
+- `scripts/check-translation-keys.py` (new — CI guard against missing keys)
+
+**Why it's a parallel track:** Localisation doesn't compete with new features for design and architecture time. A new translation lands in a single file plus one settings entry. Different skill profile too — fluent native speakers don't need to know Preact. The Sketchpad widget (#11) and a Dutch translation can ship in the same release without stepping on each other.
+
+---
+
 ## Quick-priority matrix (both batches)
 
 | Bucket | Ideas | Why |
@@ -473,4 +517,4 @@ Ideas that came up but didn't make either batch:
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The two batches together = 20 ideas. The original ten represent "what was clearly missing in May 2026". The new ten reflect "what users keep asking about, and where Quick Control changed what's possible".
+- The roadmap covers **20 feature ideas + 1 parallel localization track** = 21 entries total. Original ten reflect "what was clearly missing in May 2026"; the new ten reflect "what users keep asking about post-Quick Control"; #21 keeps the localisation expansion visible without burying it as an afterthought.

@@ -715,7 +715,7 @@ Thirty search queries. Frequent lookups.
 
 ## Internationalization
 
-> English and German today. More on the way.
+> English and German today. **Dutch up next.** More on the way.
 
 <details>
 <summary><b>Translations across the card.</b></summary>
@@ -727,6 +727,26 @@ Thirty search queries. Frequent lookups.
 Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; additional languages are planned.
 
 Recent passes (June 2026) closed seven hardcoded German strings flagged by community feedback (item ⑨ in the Reddit/GitHub feedback list). Tipps content is still DE-only. If you spot another string that falls back to German, screenshot + path opens the next fix.
+
+</details>
+
+<details>
+<summary><b>Planned language order.</b></summary>
+
+<br>
+
+Listed in priority order. Community pull requests welcome — see [FEATURE_ROADMAP.md #21](FEATURE_ROADMAP.md) for the translator onboarding plan.
+
+1. **Dutch (`nl`)** — Reddit community request; HA's second-largest country market after Germany.
+2. **French (`fr`)** — largest non-German European HA community.
+3. **Italian (`it`)** — very active forum presence.
+4. **Spanish (`es`)** — covers EU + LATAM with one file.
+5. **Polish (`pl`)** — surprisingly active community, asked for repeatedly in DMs.
+6. **Portuguese (`pt`)** — Portugal + Brazilian Portuguese.
+7. **Czech (`cs`)** — smaller, but tight-knit community.
+8. **Swedish (`sv`)** — Nordic anchor.
+
+Eight on top of EN+DE = ten total. Roadmap target, not a fixed list; what ships depends on which PRs land.
 
 </details>
 
