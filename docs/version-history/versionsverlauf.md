@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1929 - 2026-06-20
+
+**Title:** 🔌 List quick-actions: energy/universal stats now load (resolve system-entity actions)
+
+### What
+
+In the Bento list view, expanding the `⋯` quick-actions on the Energy Dashboard (and Universal devices)
+showed the charts/KPIs as all `0.00`, while the detail view had real values.
+
+### How
+
+The inline `<DomainControls>` reused the detail components (`EnergyChartsView`, `UniversalEntityList`), which
+bail out early on `if (!item.actions) return`. The plain entity object the list passes comes from
+`SystemEntity.toEntity()`, which only exposes `attributes.actions` as **names**, not the callable functions —
+those live on the registry instance. Added `withSystemActions(device)` in `DeviceCardListView`: for system
+entities it resolves the registry instance (`systemRegistry.entities.get(id)`, stripping the `system.`/
+`plugin.` prefix) and merges its `actions` into the live device before handing it to `<DomainControls>`. The
+detail view was unaffected because it already uses the instance.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx` — `withSystemActions()` resolver for the `⋯` panel item
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1928 - 2026-06-20
 
 **Title:** ⏱️ "Since X" state duration now updates live (was frozen after toggling)
