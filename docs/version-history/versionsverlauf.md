@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1925 - 2026-06-20
+
+**Title:** ⏱️ Real "since X" state duration (was a hardcoded placeholder) + HACS My-link in README
+
+### What
+
+A Reddit user asked what the "Since X" line under a device's state means. It was a hardcoded mock — every
+"on" entity always showed "since 2 hours", "off" → "since 30 minutes", regardless of reality. Now it shows
+the actual time since the entity's last state change. Also added a one-click HACS install link to the README.
+
+### How
+
+- `getStateDuration` (`stateHelpers.js`) now computes the duration from the entity's real `last_changed`
+  (from the live `entities` snapshot, fallback to `window._hass.states[id].last_changed`): just now / since N
+  minutes / hours / days, correctly pluralized in de + en. The old `mockDurations` table is gone.
+- `README.md`: added the HACS "My" repository link (`my.home-assistant.io/redirect/hacs_repository`) so users
+  can add the repo with one click instead of pasting the URL; moved the manual three-step into a `<details>`.
+
+### Files
+
+- `src/utils/stateHelpers.js` — real `last_changed`-based duration
+- `README.md` — HACS My-link one-click install
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1924 - 2026-06-20
 
 **Title:** 🧭 Detail overlay top no longer 12px too high in Safari (Bento)
