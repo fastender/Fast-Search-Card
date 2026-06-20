@@ -53,11 +53,22 @@ A modern dashboard for Home Assistant.<br>
 
 ## Install
 
-Through HACS, in three steps:
+**One click** — open it straight in your Home Assistant (HACS opens with the repository pre-filled, just hit **Download**):
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=fastender&repository=Fast-Search-Card&category=plugin)
+
+<sub>Requires [HACS](https://hacs.xyz) + the [My Home Assistant](https://www.home-assistant.io/integrations/my/) integration (built in). The link is a [My link](https://www.hacs.xyz/docs/use/my/) — no need to copy the repo URL by hand.</sub>
+
+<details>
+<summary><b>Or add it manually</b> (three steps)</summary>
+
+<br>
 
 1. **Add this repo** as a Custom Repository in HACS — Type `Lovelace`, URL `https://github.com/fastender/Fast-Search-Card`.
 2. **Install** Fast Search Card from HACS.
 3. **Register the resource** in your dashboard — URL `/hacsfiles/fast-search-card/fast-search-card.js`, Type `JavaScript Module`.
+
+</details>
 
 Then drop one line into your dashboard:
 
