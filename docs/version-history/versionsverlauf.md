@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1928 - 2026-06-20
+
+**Title:** ⏱️ "Since X" state duration now updates live (was frozen after toggling)
+
+### What
+
+After v1.1.1925 made the detail header's "Since X" line real, it could stay stale: toggling a device (e.g.
+a light on/off) updated the state line but left "Since 30 Minutes" frozen — it didn't reset or tick.
+
+### How
+
+Two fixes:
+- **Fresh source:** `getStateDuration` now reads `last_changed` from `window._hass.states[id]` first — the
+  authoritative HA snapshot (re-set on every hass tick) — before the item/`liveItem` copy, which can briefly
+  carry a stale timestamp after a toggle (state updated, `last_changed` lagged).
+- **Live tick:** the detail view re-renders every 15s (lightweight tick state), so the duration counts up
+  on its own (just now → 1 minute → …) and re-reads the fresh `last_changed` even when the entity array
+  didn't re-render.
+
+### Files
+
+- `src/utils/stateHelpers.js` — `getStateDuration` reads `window._hass` first
+- `src/components/DetailView.jsx` — 15s duration re-render tick
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1927 - 2026-06-20
 
 **Title:** 🎞️ Detail videos: support the `weather/` and `system-entities/` subfolders
