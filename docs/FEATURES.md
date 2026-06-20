@@ -4,7 +4,7 @@
 
 ### Everything Fast Search Card does.
 
-<sub>Current as of v1.1.1610 · [Version history](version-history/versionsverlauf.md) · [Roadmap](FEATURE_ROADMAP.md)</sub>
+<sub>Current as of v1.1.1924 · [Version history](version-history/versionsverlauf.md) · [Roadmap](FEATURE_ROADMAP.md)</sub>
 
 </div>
 
@@ -19,8 +19,10 @@ A Lovelace card. Four UI modes. Eight built-in apps. Designed to be the primary 
 <br>
 
 ```
-Bento Start  →  Search  →  Detail View  →  System Entities
+Bento Start  →  Search & Browse  →  Detail View  →  System Entities
 ```
+
+Tap the icon to control. Tap the card to expand. Browse by category, area, or "what I use most". Add background videos and a wallpaper to make it yours.
 
 <br>
 
@@ -79,6 +81,60 @@ All items mounted permanently. No AnimatePresence remount loss. Branded gradient
 <br>
 
 Vertical stack. Each widget 50vh. Bottom safe-area (110px) so the dock never overlaps. CustomScrollbar permanently visible on touch — detected via `(hover: hover)` matchMedia.
+
+</details>
+
+<details>
+<summary><b>List view toggle.</b></summary>
+
+<br>
+
+Favourites and Suggestions widget toggles between grid and list. Top-fade scroll mask, custom scrollbar, header padding tuned for both layouts. Live device states either way.
+
+</details>
+
+<br>
+
+---
+
+## Quick Control
+
+> The device icon is the switch.
+
+<details>
+<summary><b>Tap-or-hold control on the card itself.</b></summary>
+
+<br>
+
+The device icon in both grid and list view becomes the control. No detail view needed for a quick toggle.
+
+- **Safe devices** — light, switch, fan, input_boolean, media_player — **tap** the icon, it flips instantly.
+- **Risky devices** — cover, lock — **press and hold** for about a second. An amber ring fills as you press; brief haptic on commit. The safe direction stays a single tap (locking, closing). Asymmetric on purpose.
+- Tapping anywhere else on the card still opens the detail view.
+
+Issue #10. Shipped in v1.1.1903.
+
+</details>
+
+<details>
+<summary><b>Per-domain configuration.</b></summary>
+
+<br>
+
+Settings → Appearance → Schnellsteuerung / Quick Control. Global on/off plus a per-device-type list. Lights, switches, fans, input booleans, media players, climates, vacuums, covers, locks — each can be **Off / Tap / Hold**. Locks and covers are pre-set to Hold.
+
+Off by default for the whole feature. Opt in globally, then tune per type.
+
+</details>
+
+<details>
+<summary><b>List-view universal "⋯" actions.</b></summary>
+
+<br>
+
+In list view, the "⋯" button on each row expands an inline panel underneath — same controls the detail view shows for that device (brightness presets, cover position, climate mode, etc.). One source of truth, no duplicated UI.
+
+Dark tray for contrast; the embedded buttons keep their original detail-view colours (no flattening). Translation-aware throughout.
 
 </details>
 
@@ -160,6 +216,28 @@ Bedroom                                  🌡 21.5°C   💧 48%
 
 </details>
 
+<details>
+<summary><b>Browse — two views, four categories, your order.</b></summary>
+
+<br>
+
+Grid or list — switch any time, persists across reloads.
+
+Four categories: **Devices · Sensors · Actions · Custom.** Each with its own filters.
+
+Sort by area. Sort by category. Sort by what you use most. The card learns and reorders itself.
+
+</details>
+
+<details>
+<summary><b>Visibility filters.</b></summary>
+
+<br>
+
+Settings → Filter. Three toggles: include hidden entities, include disabled entities, include diagnostic entities. By default the card respects whatever HA decided to hide — nothing leaks through. Flip a toggle when you actually want to see those entities.
+
+</details>
+
 <br>
 
 ---
@@ -206,6 +284,8 @@ Related scenes, scripts, and automations for this device. Smart relevance sortin
 
 Chart.js graphs. 24-hour, 7-day, 30-day timeframes. Time-of-day analysis. State-duration bars. Statistics — change count, average duration, active time.
 
+Universal across every entity type, not just Universal devices — sensors, switches, climates, covers all use the same view (rolled out in v1.1.1866). Per-domain chart presets pick the right scale automatically.
+
 </details>
 
 <details>
@@ -213,7 +293,7 @@ Chart.js graphs. 24-hour, 7-day, 30-day timeframes. Time-of-day analysis. State-
 
 <br>
 
-Built-in scheduler with `nielsfaber/scheduler-component` integration. Smooth wheel pickers for date and time. Day-of-week chips. Inline editing — no submenu.
+Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pickers rebuilt as iOS-style stacked cards. Day-of-week chips. Inline editing — no submenu. Accordion backgrounds unified with the rest of the device settings.
 
 </details>
 
@@ -231,7 +311,20 @@ Per-device configuration. Bambu Lab printer setup. Energy dashboard sensor wizar
 
 <br>
 
-Drop a video at `video/{domain}/{state}.mp4` and the detail view picks it up automatically.
+Drop an MP4 into `/local/fast-search-videos/` and the detail view plays it behind the controls. Looped, muted, auto-discovered. Path is configurable in Settings → Appearance → Detail-View videos path.
+
+The card walks a six-step fallback hierarchy to find the right clip:
+
+1. `{domain}_{device_class}_{state}.mp4` — most specific
+2. `{domain}_{state}.mp4` — e.g. `light_on.mp4`
+3. `{domain}_{device_class}.mp4` — one clip per device class (e.g. `binary_sensor_motion.mp4` covers every motion sensor)
+4. `{domain}.mp4` — domain default
+5. `default_1.mp4` … `default_10.mp4` — random pick from a pool
+6. Icon background
+
+State normalisation collapses HA states into four buckets (`on / off / open / closed`); the weather domain bypasses the collapse and keeps its descriptive state verbatim (`weather_sunny.mp4`, `weather_pouring.mp4`, …).
+
+Starter packs in [`media/videos/`](../media/) — 16 on/off device clips, 9 weather states, 5 device-class clips, plus showcase clips for the system entities.
 
 </details>
 
@@ -306,10 +399,10 @@ Cross-device overview. Filter by timer or schedule. Domain badges. Click navigat
 
 <br>
 
-- **General.** Language, view mode, Bento toggle, suggestion learning rate.
-- **Appearance.** Background filters, squircle cards, grid columns, splashscreen style.
-- **StatsBar.** Nine widget toggles. Greetings customization.
-- **Excluded patterns.** Wildcard editor with live preview.
+- **General.** Language, view mode (persisted), Bento toggle, suggestion learning rate.
+- **Appearance.** Background filters, squircle cards, grid columns (4/5/6), splashscreen style, Quick Control, wallpaper picker.
+- **StatsBar.** Nine widget toggles. Greetings customisation.
+- **Filter.** Excluded patterns plus visibility toggles for HA's hidden / disabled / diagnostic entities.
 - **About.** Version, build info, links.
 
 </details>
@@ -351,6 +444,34 @@ Multi-shape response handling — works across MA versions.
 <br>
 
 Multi-engine fallback. Language picker. Speak in any voice your HA install supports.
+
+</details>
+
+<br>
+
+---
+
+## Wallpapers
+
+> Make it yours.
+
+<details>
+<summary><b>Custom card wallpaper.</b></summary>
+
+<br>
+
+Settings → Appearance → Wallpaper. Drop in any image — the card uses it as a full-screen background, replacing HA's own `--view-background` so it covers the whole view, not just the card. Survives HA re-renders via a MutationObserver that re-applies on every paint.
+
+</details>
+
+<details>
+<summary><b>Wallpaper gallery.</b></summary>
+
+<br>
+
+Browse images from your HA media folder by thumbnail. Resolved via `media-source/resolve_media` — works for `/config/media/` setups as well as `/config/www/`. Tap a thumbnail to set it.
+
+Safari boot polish: no double image, no flash of the old wallpaper during the boot zoom.
 
 </details>
 
@@ -601,11 +722,11 @@ Thirty search queries. Frequent lookups.
 
 <br>
 
-`translateUI('key.path')` with German fallback. Sidebar labels. System-entity names. History tab timeframes. Action button tooltips. All language-aware.
+`translateUI('key.path')` with German fallback. Sidebar labels. System-entity names. History tab timeframes. Action button tooltips. Visibility filter info popups. Climate Heat/Cool button. All language-aware.
 
 Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; additional languages are planned.
 
-Known gaps: Tipps content (DE-only), some HistoryTab sub-strings. See the roadmap.
+Recent passes (June 2026) closed seven hardcoded German strings flagged by community feedback (item ⑨ in the Reddit/GitHub feedback list). Tipps content is still DE-only. If you spot another string that falls back to German, screenshot + path opens the next fix.
 
 </details>
 
@@ -659,7 +780,32 @@ In development. Browse, install, and manage plugins from inside the card. Manife
 
 ## What's next
 
-See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for the next ten ideas — prioritized.
+See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for **twenty ideas** — the original ten from May plus a new ten shaped by what shipped through June. Sketchpad widget recommended as the next flagship.
+
+<br>
+
+---
+
+## Recent milestones
+
+Quick way to see how the card has evolved since the last big doc refresh.
+
+| Version | Highlight |
+|---|---|
+| v1.1.1924 | Bento detail-overlay top fix in Safari + scrollbar inside widget padding |
+| v1.1.1918 | Bento favourites/suggestions widget — grid ↔ list view toggle |
+| v1.1.1911 | List-View Quick Control — icon-as-switch + universal `⋯` inline actions |
+| v1.1.1903 | **Quick Control** — the device icon is the switch (issue #10) |
+| v1.1.1902 | Wallpaper gallery via `media-source/resolve_media` |
+| v1.1.1900 | Visibility filters for HA's hidden / disabled / diagnostic entities |
+| v1.1.1890 | **Custom card wallpaper** — pick any image as background |
+| v1.1.1875 | List view: switches/lights toggle directly from the row |
+| v1.1.1868 | Background videos — weather domain + device_class fallback layer |
+| v1.1.1866 | Universal history view (charts + activities) for every entity type |
+| v1.1.1855 | Schedule picker rebuilt as iOS-style cards |
+| v1.1.1610 | Tipps/Versionsverlauf deep-link back-button fix (last doc baseline) |
+
+Plus 50+ smaller fixes from Reddit and GitHub feedback: Safari read-state persistence, Firefox transparency, brightness slider snap-back, grid/list mode persistence, German UI overriding English default, empty entity grid on first open, Energy Dashboard scrolling.
 
 <br>
 
@@ -671,6 +817,6 @@ See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for the next ten ideas — prioriti
 
 <br>
 
-<sub>v1.1.1610 · <a href="version-history/versionsverlauf.md">version history</a> · <a href="../README.md">back to readme</a></sub>
+<sub>v1.1.1924 · <a href="version-history/versionsverlauf.md">version history</a> · <a href="../README.md">back to readme</a></sub>
 
 </div>
