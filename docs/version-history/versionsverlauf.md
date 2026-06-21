@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1959 - 2026-06-21
+
+**Title:** 🎚️ Active control button highlight (climate mode) + media player shows all controls
+
+### What
+
+Two control-row fixes: the active climate HVAC mode (e.g. Cooling) was never highlighted, and the media player
+only showed Previous/Play/Next — Shuffle/Repeat/Music Assistant lived on a second slide that didn't exist when
+idle.
+
+### How
+
+- **Climate active mode:** the active flag compared `attributes.hvac_mode` (which doesn't exist on climate
+  entities) — switched to the entity `state` (the hvac mode). The active button now renders white with a dark
+  icon (`.control-button.active` → white bg; `color`/`stroke`/`fill` → dark, covering currentColor and
+  hardcoded icons).
+- **Media player controls:** dropped the `slideIndex` split — Previous/Play/Next + Shuffle + Repeat +
+  Music Assistant/Settings are now one row (the scrollable control row handles overflow), so they always show.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — climate `active: state === mode` + merged media_player buttons
+- `src/components/tabs/UniversalControlsTab.css` — white active button + dark icon
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1958 - 2026-06-21
 
 **Title:** 🌦️ Weather widget: location name no longer drops to "Weather" on a transient binding loss
