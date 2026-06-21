@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1938 - 2026-06-20
+
+**Title:** ⓘ Info popup on the empty Favorites / Suggestions widget
+
+### What
+
+The empty Favorites (and Suggestions) Bento widget now has an ⓘ info button next to its title, opening a
+popup that explains what favorites are and how to add them.
+
+### How
+
+`BentoWidget`'s empty-state renders `<SettingsInfoButton infoKey={favorites|suggestions} lang={lang}>` in a
+header row next to the label. The button falls back to a fixed overlay when there's no `.detail-panel`
+ancestor (it's on the start screen), so it works outside the detail view. Added the `settingsInfo.favorites`
+text (de + en); `settingsInfo.suggestions` already existed. Catalog updated.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — ⓘ on empty-state (favorites/suggestions)
+- `src/components/BentoStartView.css` — `.bento-widget-empty-state-head` row
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.favorites`
+- `docs/info-popups/info-popups-catalog.md` — favorites entry + index row
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1937 - 2026-06-20
 
 **Title:** 🎯 Control-row scroll arrows: per-breakpoint vertical position

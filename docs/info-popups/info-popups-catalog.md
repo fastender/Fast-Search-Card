@@ -49,6 +49,7 @@
 | `sidebar` | Sidebar |
 | `homeScreen` | Startseite / Home Screen |
 | `tts` | Text-to-Speech |
+| `favorites` | Favoriten / Favorites (leeres Bento-Widget) |
 | `suggestions` | Vorschläge / Suggestions |
 | `toasts` | Toasts |
 
@@ -283,7 +284,35 @@
 >
 > *Why it matters:* only with an engine selected can announcements be spoken.
 
+## favorites
+
+> ⓘ am leeren Favoriten-Widget im Bento-Startbildschirm (BentoWidget empty-state).
+
+**DE**
+> ## Favoriten
+>
+> Deine angehefteten Geräte — das Erste, was du auf dem Startbildschirm siehst, immer einen Tipp entfernt.
+>
+> - **Hinzufügen** – ein Gerät in der Suche öffnen und im Detail-Header auf das **♥ Herz** tippen.
+> - **Wo sie erscheinen** – hier auf dem Startbildschirm und im **Favoriten**-Filter der Suche.
+> - **Entfernen** – nochmal das Herz antippen.
+>
+> *Warum wichtig:* die paar Geräte, die du wirklich nutzt, immer vorne — statt die ganze Liste zu scrollen.
+
+**EN**
+> ## Favorites
+>
+> Your pinned devices — the first thing you see on the start screen, always one tap away.
+>
+> - **Add one** – open any device in search and tap the **♥ heart** in its detail header.
+> - **Where they show** – here on the start screen and in the **Favorites** filter in search.
+> - **Remove** – tap the heart again to un-favorite.
+>
+> *Why it matters:* keep the handful of devices you actually use up front, instead of scrolling the whole list.
+
 ## suggestions
+
+> ⓘ am leeren Vorschläge-Widget im Bento-Startbildschirm. (Auch in Settings → Vorschläge.)
 
 **DE**
 > ## Vorschläge
