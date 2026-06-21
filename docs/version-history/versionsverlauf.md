@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1934 - 2026-06-20
+
+**Title:** 🩹 Bento: fix hover-transparency (glass) + empty favorites no longer links to an empty view
+
+### What
+
+Two Bento fixes:
+1. Hovering a glass widget turned its background transparent.
+2. Tapping the empty Favorites/Suggestions widget navigated to an equally empty filter view.
+
+### How
+
+1. The v1.1.1932 `whileHover={{ filter: 'brightness() }}` broke the element's own `backdrop-filter` (a known
+   CSS interaction — `filter` on a `backdrop-filter` element kills the glass). Reverted the clickable
+   fallback widget to `whileHover={{ scale: 1.015 }}`; the corner-clip it was meant to fix is already handled
+   by `disableHoverScale` (v1.1.1933).
+2. The empty-state Favorites/Suggestions widget is now a plain non-interactive `div` (no `onClick`, no
+   hover) — it just shows the hint ("No favorites yet — tap the heart in search…"), so there's no dead-end
+   navigation and no hover effect to break the glass.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — empty-state → non-clickable div; fallback hover scale (not filter)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1933 - 2026-06-20
 
 **Title:** 🩹 Bento device cards no longer clip corners on hover
