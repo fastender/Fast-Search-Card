@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1963 - 2026-06-21
+
+**Title:** 🩹 Control button background is now CSS-only (active highlight correct in both directions)
+
+### What
+
+Turning the climate off left the previously-active button stuck white until a refresh — the mirror of the
+earlier "stays grey after click" issue. Both came from framer-motion writing an inline `background-color`.
+
+### How
+
+Removed `backgroundColor` from `controlButtonVariants` (idle/hover) so framer no longer sets an inline
+background that fights the CSS. The background is now entirely CSS-driven — base grey (`.control-button`),
+hover (`.control-button:hover`), and active white (`.control-button.active`) — so the active highlight applies
+and clears immediately on state change, in both directions. framer still handles scale + hover shadow.
+
+### Files
+
+- `src/utils/animations/buttons.js` — drop inline `backgroundColor` from control button variants
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1962 - 2026-06-21
 
 **Title:** 🩹 Active control button: white background sticks after click (not only after refresh)
