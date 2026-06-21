@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1942 - 2026-06-20
+
+**Title:** 🏷️ "Animations" → "Video Backgrounds" + brighter video hint, now on system entities too
+
+### What
+
+Two of three reported issues: the settings section labelled "Animations" only holds the detail-view video
+setting (misnamed), and the "Enable in Appearance ›" hint was barely visible and only appeared on physical
+devices — not on system/custom entities (settings, todos, news, …) which also have videos.
+
+### How
+
+- Renamed the section label `settings.animations` → "Video Backgrounds" / "Video-Hintergründe" (the row stays
+  "Detail View Videos"; the `animations` info-popup already describes videos).
+- `.video-hint-pill-action` color `#0A84FF` → `#5AC8FA` (brighter iOS blue) + weight 600.
+- Extended `VIDEO_HINT_DOMAINS` (EntityIconDisplay) with weather + the system-entity domains that have videos
+  (calendar/news/settings/integration/todos/tipps/energy_dashboard_device/all_schedules/versionsverlauf).
+
+### Files
+
+- `src/utils/translations/languages/{de,en}.js` — section label
+- `src/components/DetailView.css` — brighter hint action
+- `src/components/DetailView/EntityIconDisplay.jsx` — hint domains
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1941 - 2026-06-20
 
 **Title:** 🩹 Info popup outside the detail view: blur confined to the card + click-outside closes (real fix)
