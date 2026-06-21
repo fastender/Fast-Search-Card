@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1957 - 2026-06-21
+
+**Title:** 📐 Music Assistant panel: fixed height + working custom scrollbar (like the universal device list)
+
+### What
+
+The Music Assistant panel had no fixed height, so its inner lists grew with their content instead of scrolling
+internally — which also meant the CustomScrollbar never appeared. Now it's a fixed-height box that scrolls
+inside, matching the universal device's entity list.
+
+### How
+
+`.ma-panel` height `100%` → fixed `420px` (desktop) / `56vh` (mobile), like `printer-sensors-wrapper`. With a
+bounded panel height the `flex: 1` scroll areas (`.ma-list` / `.ma-browse-content` / `.ma-announce-panel`)
+now overflow internally, so the v1955 CustomScrollbar shows on hover.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.css` — fixed panel height
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1956 - 2026-06-21
 
 **Title:** 🤖 Vacuum clean_area: only the mapped areas (1:1 with native HA)
