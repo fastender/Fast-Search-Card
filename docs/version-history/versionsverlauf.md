@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1960 - 2026-06-21
+
+**Title:** 🎵 Music Assistant: edge masks (h+v) + scrollable tab bar in the changelog-bar style
+
+### What
+
+Two polish items on the Music Assistant panel: the scroll areas had hard-cut edges (no fade), and the tab bar
+(Search/Library/Queue/Up Next) didn't scroll or match the changelog category bar.
+
+### How
+
+- **Masks:** vertical scroll areas (`.ma-list`, `.ma-browse-content`, `.ma-announce-panel`) get a bottom fade
+  always + a top fade once scrolled (`is-scrolling`, toggled via `onScroll`); the horizontal browse rows
+  (`.ma-browse-row`) get a left+right fade.
+- **Tab bar:** wrapped in `.ma-tabs-bar` and made horizontally scrollable (pills, `flex: 0 0 auto`,
+  radius 14) with dark scroll arrows on the edges (`useScrollIndicators` → `.ma-tabs-arrow`), 1:1 with the
+  versionsverlauf filter bar.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx` — scrollable tabs + arrows + is-scrolling state
+- `src/components/controls/MusicAssistantPanel.css` — masks + tab-bar pill/arrow styles
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1959 - 2026-06-21
 
 **Title:** 🎚️ Active control button highlight (climate mode) + media player shows all controls
