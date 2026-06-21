@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1955 - 2026-06-21
+
+**Title:** 🎛️ Music Assistant panel: dark container + custom scrollbar (like the settings sub-views)
+
+### What
+
+The expandable Music Assistant panel in the media-player detail had no container and used the native
+scrollbar. Gave it the same dark rounded container + CustomScrollbar as the climate/TV/vacuum settings views.
+
+### How
+
+- `.ma-panel` → dark self-contained container (`rgba(0,0,0,0.15)`, `border-radius: 24px`, `overflow: hidden`).
+- Native scrollbars hidden on the three scroll areas (`.ma-list`, `.ma-browse-content`, `.ma-announce-panel`);
+  a single `<CustomScrollbar>` tracks the active one via a shared `scrollRef` (only one mounts per tab) and is
+  keyed by the active view so it re-measures on tab switch. Panel hover drives its visibility.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx` — shared scrollRef + panel hover + CustomScrollbar
+- `src/components/controls/MusicAssistantPanel.css` — dark container + hidden native scrollbars
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1954 - 2026-06-21
 
 **Title:** 🤖 Vacuum: native area cleaning (vacuum.clean_area) + Fan speed label fix (EN)
