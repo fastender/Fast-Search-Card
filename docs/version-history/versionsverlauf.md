@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1954 - 2026-06-21
+
+**Title:** 🤖 Vacuum: native area cleaning (vacuum.clean_area) + Fan speed label fix (EN)
+
+### What
+
+Home Assistant's vacuum integration now has a native `vacuum.clean_area` action (clean specific mapped areas).
+Added it to the vacuum detail view. Also fixed the fan-speed control label showing German ("Lüftergeschwindigkeit")
+in English mode.
+
+### How
+
+- New control `clean_area` in the vacuum config, gated on `VacuumEntityFeature.CLEAN_AREA` (supported_features
+  bit `16384`). Its expandable renders a new `VacuumAreaPicker`: HA areas as multi-select chips + a start button
+  that calls `vacuum.clean_area` with `{ entity_id, cleaning_area_id: [...] }` (the service's required field).
+  Areas come from the card's area registry (`useData().areas`); empty-state hint when none are mapped.
+- Added `controls.cleanArea` / `selectAreasToClean` / `startCleaning` / `noAreasForVacuum` (de + en) and the
+  missing `controls.fanSpeed` in the English bucket (it had been falling back to the German string).
+
+### Files
+
+- `src/components/controls/VacuumAreaPicker.jsx` — new area picker
+- `src/components/controls/PresetButtonsGroup.jsx` — dispatch `clean_area` → picker
+- `src/utils/deviceConfigs.js` — vacuum `clean_area` button + expandable (feature-gated)
+- `src/components/tabs/UniversalControlsTab.css` — picker styles
+- `src/utils/translations/languages/{de,en}.js` — labels (+ EN fanSpeed fix)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1953 - 2026-06-21
 
 **Title:** ⚪ Task list filter tabs: icons in a round white button
