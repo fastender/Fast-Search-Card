@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1936 - 2026-06-20
+
+**Title:** ✨ Control-button row: edge fade mask + scroll arrows (like the category bar)
+
+### What
+
+Follow-up to v1.1.1935 (single-line scrollable control buttons): added an edge fade mask and left/right
+scroll arrows so it's clear there's more to scroll — matching the category bar.
+
+### How
+
+New reusable `ScrollableControlRow` (`components/controls/`) wraps the buttons, uses the existing
+`useScrollIndicators` hook for `showLeft`/`showRight`, applies a conditional `fade-left`/`fade-right` mask on
+`.control-row`, and renders the same arrow indicators as `SubcategoryBar` (tap scrolls by 200px). Used in
+both detail-view layouts (`UniversalControlsTab`, energy + standard) and the list `⋯` panel
+(`DomainControls`), so all share one implementation. The arrows + 10px side padding make the first/last
+buttons fully reachable.
+
+### Files
+
+- `src/components/controls/ScrollableControlRow.jsx` (new) — mask + arrows wrapper
+- `src/components/controls/DomainControls.jsx` — use it
+- `src/components/tabs/UniversalControlsTab.jsx` — use it (both control-row spots)
+- `src/components/tabs/UniversalControlsTab.css` — `.control-row-scroll-wrap`, fade masks, `.control-row-arrow`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1935 - 2026-06-20
 
 **Title:** ➡️ Detail control buttons stay on one line (horizontally scrollable)
