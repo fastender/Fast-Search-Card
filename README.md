@@ -32,7 +32,7 @@ A modern dashboard for Home Assistant.<br>
 
 <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/climate.gif" width="240"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/music.gif" width="240"> <img src="https://raw.githubusercontent.com/fastender/Fast-Search-Card/main/media/gifs/light.gif" width="240">
 
-<sub>Detail View with video backgrounds — climate, music, light.</sub>
+<sub>Detail View video backgrounds — climate, music, light. Anything could play there. Your own footage works too. <a href="https://github.com/fastender/Fast-Search-Card/tree/main/media">Starter pack and conventions →</a></sub>
 
 <br>
 
