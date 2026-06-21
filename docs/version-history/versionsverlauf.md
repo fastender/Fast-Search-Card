@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1952 - 2026-06-21
+
+**Title:** 🌐 Search autocomplete: language-pure ghost suggestions (+ missing English terms)
+
+### What
+
+In English mode the inline search autocomplete still ghosted German terms ("Klima", "Licht") and some English
+equivalents were missing entirely (e.g. `climate` wasn't a synonym at all, so typing "cli" suggested nothing).
+
+### How
+
+Split every search synonym into per-language `de` / `en` word lists (language-neutral abbreviations like
+`temp`/`co2`/`lux`/`kwh` live in both) and filled the English gaps (`climate`, `cooling`, `cool`, `ac`,
+`cleaning`, `security`, …) — these now match the localized category bar labels. The inline ghost
+(`computeSuggestion`) is built from a **language-scoped** index (`buildSynonymIndex(lang)` /
+`buildCategoryIndex(lang)`), so EN mode only suggests English and DE mode only German. Token **resolution**
+(typed word → filter, via `useFuzzySearch`) still uses the full both-language index, so either language is
+recognized on submit.
+
+### Files
+
+- `src/utils/searchSynonyms.js` — de/en split + missing English words + lang-scoped index builders
+- `src/components/SearchField.jsx` — build ghost index with `currentLanguage`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1951 - 2026-06-21
 
 **Title:** ✨ Favorites widget: hover scale back on (without corner clipping)
