@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1947 - 2026-06-21
+
+**Title:** 📂 Detail videos can now live in the HA media folder (config/media), not just /local
+
+### What
+
+Videos uploaded via the Home Assistant media browser live in `config/media/…`, which `/local/` (= `config/www`)
+can't serve — so they 404'd and never played. The detail-video resolver now falls back to the media source.
+
+### How
+
+- New `browseMediaFolder({ hass, path })` in `mediaSourceService` — generic, video-capable folder listing via
+  `media_source/browse_media` with a robust root-segment-walk fallback.
+- `getEntityVideoUrl(item, hass)`: after the `/local/` (www) lookups fail, browse the matching media folder
+  once, match the flat candidate filenames (`{domain}_{state}.mp4`, system-entity name, weather condition, …)
+  in-memory, and resolve the first hit via `media_source/resolve_media` to a signed URL. Runs before the
+  random-default fallback so a specific media video wins. The media path is derived from the configured
+  base path (`/local/videos` → `media-source://media_source/local/videos` = `config/media/videos`).
+- `DetailView` passes `hass` into the resolver.
+
+### Files
+
+- `src/services/mediaSourceService.js` — `browseMediaFolder`
+- `src/utils/videoHelpers.js` — media-source fallback + `hass` param
+- `src/components/DetailView.jsx` — pass `hass`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1946 - 2026-06-21
 
 **Title:** 🎬 Flat video files + robust existence check (HEAD → ranged GET)
