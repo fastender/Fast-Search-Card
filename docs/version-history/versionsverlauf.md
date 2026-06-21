@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1945 - 2026-06-21
+
+**Title:** 🐛 Custom video folder: default-video fallback no longer serves the old folder
+
+### What
+
+After changing the video folder, entities without a specific matching file still loaded their fallback
+default video from the *previous* folder (e.g. `/local/fast-search-videos`).
+
+### How
+
+`discoverDefaultVideos` cached the discovered `default_N.mp4` URLs for 24h under a folder-agnostic
+localStorage key — so a folder change kept returning the old folder's cached URLs. The cache key now includes
+the base path (`videoDefaultsCache:<basePath>`), making it self-correcting: a new folder triggers fresh
+discovery. Also strip trailing slashes from the configured path so a `/local/videos/` entry doesn't build a
+`//` URL that 404s and falls through to that default fallback.
+
+### Files
+
+- `src/utils/videoHelpers.js` — per-folder default-video cache key + trailing-slash strip
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1944 - 2026-06-20
 
 **Title:** 🎨 Video hint: white action text + control-button hover
