@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1946 - 2026-06-21
+
+**Title:** 🎬 Flat video files + robust existence check (HEAD → ranged GET)
+
+### What
+
+User-reported: `tips.mp4` and `light_off.mp4` placed directly in `/local/videos/` weren't picked up. Two
+causes: system-entity videos were only looked up in a `system-entities/` subfolder, and the HEAD-only
+existence check can fail on some HA/proxy setups even when the file exists.
+
+### How
+
+- `getEntityVideoUrl`: weather + system-entity lookups now try the repo subfolder layout first, then fall
+  back to the **flat** path in the base folder (`/local/videos/tips.mp4`, `/local/videos/weather_sunny.mp4`).
+- `checkVideoExists`: if the `HEAD` request isn't `ok`, retry with a 1-byte ranged `GET`
+  (`Range: bytes=0-0`) — static servers answer 206/200 without downloading the whole file. Fixes existing
+  files (e.g. `light_off.mp4`) being treated as missing when HEAD isn't answered with 200.
+
+### Files
+
+- `src/utils/videoHelpers.js` — flat-path fallback + ranged-GET existence check
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1945 - 2026-06-21
 
 **Title:** 🐛 Custom video folder: default-video fallback no longer serves the old folder
