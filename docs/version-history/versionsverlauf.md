@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1953 - 2026-06-21
+
+**Title:** ⚪ Task list filter tabs: icons in a round white button
+
+### What
+
+The colored list icons in the tasks filter bar (e.g. shopping list, to-do) sat bare in the pills and were hard
+to make out. Put them in a round white button for better visibility.
+
+### How
+
+Wrapped the `ListIcon` in each list-filter tab in a `.filter-tab-icon-circle` (22px white circle, flex-centered).
+On the active (white) tab the circle turns a subtle grey so it doesn't vanish into the white background while
+the colored icon stays visible.
+
+### Files
+
+- `src/system-entities/entities/todos/TodosView.jsx` — icon wrapped in circle span
+- `src/system-entities/entities/todos/styles/TodosView.css` — `.filter-tab-icon-circle`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1952 - 2026-06-21
 
 **Title:** 🌐 Search autocomplete: language-pure ghost suggestions (+ missing English terms)
