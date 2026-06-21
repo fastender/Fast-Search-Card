@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1951 - 2026-06-21
+
+**Title:** ✨ Favorites widget: hover scale back on (without corner clipping)
+
+### What
+
+The Bento favorites widget (widget 1) cards had their hover scale disabled (to stop corner clipping). Re-enabled
+it — the cards lift/scale on hover again, without getting clipped.
+
+### How
+
+Removed `disableHoverScale` from the favorites grid and list `DeviceCard` renders. Gave `.bento-carousel-page`
+a `6px` inner padding (box-sizing: border-box, so paging is unaffected) so the grid hover scale (1.05) has room
+inside `.bento-carousel-pages-viewport { overflow: hidden }`. The list view already had matching padding (v1919).
+The single live-device widgets (Tips etc.) keep `disableHoverScale` — there the card fills the widget and would
+always clip.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — drop `disableHoverScale` on favorites grid + list cards
+- `src/components/BentoStartView.css` — `.bento-carousel-page` padding for scale room
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1950 - 2026-06-21
 
 **Title:** 🌡️ Climate icon: cooling/heating entities show the right glyph (not the grey off icon)
