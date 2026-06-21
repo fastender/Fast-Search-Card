@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1948 - 2026-06-21
+
+**Title:** 🔎 Media-folder videos: discover the folder across sources (fix "Unknown source directory")
+
+### What
+
+v1.1.1947's media lookup assumed the www alias name (`local`) was also the media-source directory name, which
+failed with "Unknown source directory" on setups where it isn't. Media-folder videos still didn't load.
+
+### How
+
+`browseMediaFolder` no longer trusts the derived path. It still tries the direct id first, but otherwise
+**discovers** the folder: browse every media source (config/media + any `media_dirs`) and find a subfolder
+whose name matches the configured folder's last segment (`videos`) — or a source named that. This works
+regardless of how the media source directory is actually named.
+
+### Files
+
+- `src/services/mediaSourceService.js` — discovery-based `browseMediaFolder` + `extractMediaFiles` helper
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1947 - 2026-06-21
 
 **Title:** 📂 Detail videos can now live in the HA media folder (config/media), not just /local
