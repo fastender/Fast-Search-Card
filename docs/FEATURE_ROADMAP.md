@@ -480,6 +480,47 @@ Eight languages on top of EN+DE = ten total. Roadmap target, not a fixed list �
 
 ---
 
+## Part four — long-term track: companion integration
+
+### 22. Companion Integration (long-term)
+
+**Pitch:** A real Home Assistant **integration** (Python, in-Core-eligible) that runs alongside the card and unlocks features needing server-side persistence — Sketchpad sync, predictive-suggestion training data, notification history beyond the browser cache, cross-device favourites.
+
+**Why it ships eventually:** Two strategic wins.
+
+1. **Quality Scale eligibility.** Lovelace cards are stuck in the `Custom` special tier forever — see [QUALITY.md](QUALITY.md) for the full story. An integration can go through Bronze → Silver → Gold officially. That's the only path to a real "graded by HA" status.
+
+2. **Features the card can't do alone.** Anything needing cross-device state, push notifications, scheduled background work, or persistent caches beyond the browser benefits from a backend. The Sketchpad widget (#11) is a prime example — without a server-side blob, sync across devices is awkward. A small companion integration solves it cleanly.
+
+**Status quo:** Two precedents already exist.
+- `fast-news-reader` — separate HACS package, scope is RSS-only.
+- `nielsfaber/scheduler-component` — third-party scheduler the card integrates with.
+
+A first-party `fast-search-card` integration would be the third companion — broader in scope, designed specifically as the card's optional backend.
+
+**What ships (eventual):**
+- Python integration following HA conventions (config flow, async, typed, full test coverage).
+- Optional install — card stays a full standalone product, integration is power-user opt-in.
+- Service endpoints for:
+  - Sketchpad sync (store path data, broadcast updates)
+  - Notification history (toast persistence beyond browser cache)
+  - Predictive-suggestion training data (opt-in cross-device pattern learning)
+  - Sensor-roll / time-lapse storage (#19)
+  - Multi-user profile persistence (#15)
+- Submitted for Core inclusion once Bronze-level coverage is in place.
+- Long-form documentation, including the migration path from "card-only" to "card + integration".
+
+**Effort:** Large. Python integration from scratch with full test coverage + Core submission process = weeks of work, not days. Not even on the medium-term radar — this is a 2027 conversation, after Tests (Gap 1 in QUALITY.md) and a handful of the Part-Two ideas have shipped.
+
+**Why it's a long-term track:** It's a different codebase, different language, different release cadence, different review process. Slotting it as a regular roadmap entry would distort priorities. Listed here so the path to "real HA Quality Scale Gold" is visible and intentional — not because it should ship next.
+
+**Files (estimate, eventual):**
+- Separate Python repo: `home-assistant/core` pull request after the integration matures, or a `fastender/fast-search-card-integration` HACS-distributed repo first.
+- `custom_components/fast_search_card/` (new — eventual Core path)
+- New WS API endpoints documented in card-side `src/utils/companionApi.js`
+
+---
+
 ## Quick-priority matrix (both batches)
 
 | Bucket | Ideas | Why |
@@ -517,4 +558,4 @@ Ideas that came up but didn't make either batch:
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **20 feature ideas + 1 parallel localization track** = 21 entries total. Original ten reflect "what was clearly missing in May 2026"; the new ten reflect "what users keep asking about post-Quick Control"; #21 keeps the localisation expansion visible without burying it as an afterthought.
+- The roadmap covers **20 feature ideas + 2 parallel/long-term tracks** = 22 entries total. Original ten reflect "what was clearly missing in May 2026"; the new ten reflect "what users keep asking about post-Quick Control"; #21 keeps the localisation expansion visible; #22 documents the long-term Companion Integration path that would unlock real HA Quality Scale grading (see [QUALITY.md](QUALITY.md)).

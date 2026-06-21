@@ -43,7 +43,7 @@ A modern dashboard for Home Assistant.<br>
 <br>
 <br>
 
-[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Security](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) · [Performance](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
+[Trailer](https://www.youtube.com/watch?v=GDTA6Qx5IxE) · [Install Guide](https://youtu.be/lqQ3jtwOqH8) · [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) · [Security](https://github.com/fastender/Fast-Search-Card/blob/main/docs/SECURITY.md) · [Performance](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) · [Quality](https://github.com/fastender/Fast-Search-Card/blob/main/docs/QUALITY.md) · [Roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md)
 
 </div>
 
@@ -165,6 +165,18 @@ rAF-batched updates. virtua-virtualized lists. Instant repeat searches via LRU c
 Measured on every release. Single-file bundle you can profile yourself.
 
 See [PERFORMANCE.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) for the full audit and the numbers we measure on every release.
+
+<br>
+
+## Quality
+
+Home Assistant has a [Quality Scale](https://www.home-assistant.io/docs/quality_scale/) for integrations — Bronze, Silver, Gold, Platinum. Lovelace cards are explicitly out of scope.
+
+This card lands in the `Custom` special tier by definition. Measured against the Scale's principles anyway, it meets Silver across the board, with Gold-equivalent quality in every area except automated tests.
+
+No fake badge. Just a transparent self-assessment.
+
+See [QUALITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/QUALITY.md) for the full tier-by-tier mapping and what's still missing.
 
 <br>
 
@@ -355,6 +367,7 @@ No mystery. No pretending.
 <br>
 
 - [Features](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) — Everything the card does
+- [Quality](https://github.com/fastender/Fast-Search-Card/blob/main/docs/QUALITY.md) — Where the card stands on HA's Quality Scale principles
 - [Version history](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md) — Every release, every change
 
 </details>
