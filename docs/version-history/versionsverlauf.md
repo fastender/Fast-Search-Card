@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1956 - 2026-06-21
+
+**Title:** 🤖 Vacuum clean_area: only the mapped areas (1:1 with native HA)
+
+### What
+
+The area picker listed ALL Home Assistant areas. Native HA only shows the areas the vacuum's segments are
+actually mapped to. Fixed to match.
+
+### How
+
+Mirrored the native frontend (`ha-more-info-view-vacuum-clean-areas`): read the extended entity-registry entry
+via WS `config/entity_registry/get` and take `options.vacuum.area_mapping` (its keys are the mapped area_ids),
+then filter the card's area list to those. While the registry loads, render nothing; if there's no mapping,
+show the existing empty-state hint. Also added the native "order may not be supported" note under the chips.
+
+### Files
+
+- `src/components/controls/VacuumAreaPicker.jsx` — registry-based area filtering + order hint
+- `src/utils/translations/languages/{de,en}.js` — `cleanAreaOrderHint`
+- `src/components/tabs/UniversalControlsTab.css` — hint style
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1955 - 2026-06-21
 
 **Title:** 🎛️ Music Assistant panel: dark container + custom scrollbar (like the settings sub-views)
