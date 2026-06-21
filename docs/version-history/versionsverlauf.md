@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1941 - 2026-06-20
+
+**Title:** 🩹 Info popup outside the detail view: blur confined to the card + click-outside closes (real fix)
+
+### What
+
+Follow-up to v1.1.1940. The Bento info popup still blurred the **whole screen** and still couldn't be
+dismissed by clicking outside. The v1940 `stopPropagation` wasn't enough.
+
+### How
+
+Root cause for both: with no `.detail-panel`, the overlay rendered `position: fixed` (full viewport) **and**
+stayed inside the ⓘ button (backdrop clicks bubbled back to it → reopen). Now `openPopup` falls back to
+portaling into the nearest `.main-container` (the card, `position: relative`) when there's no detail panel.
+That confines the dark blur to the card (`position: absolute`) **and** lifts the overlay out of the button,
+so the backdrop click closes cleanly. Detail-view popups still portal into `.detail-panel`, unchanged.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx` — `.main-container` portal fallback
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1940 - 2026-06-20
 
 **Title:** 🩹 Info popup (no-detail-panel fallback): click-outside closes + left-aligned text
