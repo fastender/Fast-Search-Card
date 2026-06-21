@@ -429,28 +429,41 @@
 ## videoFolder
 
 > Ersetzt die frühere Footer-Anmerkung ("Place videos in … config/www/fast-search-videos/").
+> v1.1.1949: um den Medien-Ordner-Support (config/media via media_source) erweitert.
 
 **DE**
 > ## Video-Ordner
 >
-> Wo die Karte nach den Video-Dateien sucht.
+> Wo die Karte nach den Video-Dateien sucht. Der eingestellte Ordnername (der letzte Teil des Pfads) wird für beide Varianten unten genutzt.
 >
-> - **Pfad:** `/local/fast-search-videos`
-> - Lege die Videos in den Home-Assistant-www-Ordner: `config/www/fast-search-videos/`.
+> **Variante A — www-Ordner**
+>
+> - Pfad `/local/videos` → Dateien in `config/www/videos/` legen.
 > - `/local/…` ist die HA-Verknüpfung zu `config/www/…`.
 >
-> *Warum wichtig:* Liegen die Videos woanders, werden sie nicht gefunden.
+> **Variante B — Medien-Ordner**
+>
+> - Videos über den Home-Assistant-Medien-Browser in einen Ordner hochladen, der wie das letzte Pfad-Segment heißt (`videos`).
+> - Die Karte findet diesen Ordner automatisch über deine Medienquellen — kein www-Zugriff nötig.
+>
+> *Warum wichtig:* die Karte prüft erst den www-Pfad, dann den Medien-Ordner — beide Orte funktionieren, solange der Ordnername passt.
 
 **EN**
 > ## Video Folder
 >
-> Where the card looks for the video files.
+> Where the card looks for the video files. The folder name you set (the last part of the path) is used for both options below.
 >
-> - **Path:** `/local/fast-search-videos`
-> - Place the videos in the Home Assistant www folder: `config/www/fast-search-videos/`.
+> **Option A — www folder**
+>
+> - Path `/local/videos` → put the files in `config/www/videos/`.
 > - `/local/…` is HA's alias for `config/www/…`.
 >
-> *Why it matters:* if the videos are elsewhere, they won't be found.
+> **Option B — media folder**
+>
+> - Upload the videos via the Home Assistant media browser into a folder named like the path's last segment (`videos`).
+> - The card discovers that folder automatically across your media sources — no www access needed.
+>
+> *Why it matters:* the card checks the www path first, then the media folder, so either location works as long as the folder name matches.
 
 ## videoFiles
 

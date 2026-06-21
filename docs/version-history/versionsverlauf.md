@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1949 - 2026-06-21
+
+**Title:** 📝 Video Folder info popup documents the media-folder option
+
+### What
+
+The "Video Folder" info popup only described the www folder. Updated it to also cover the new media-folder
+option (config/media via the HA media browser).
+
+### How
+
+Rewrote `settingsInfo.videoFolder` (de + en) into two clearly-labelled options — A) www folder
+(`/local/videos` → `config/www/videos/`), B) media folder (upload via HA media browser, auto-discovered by
+folder name). Catalog `docs/info-popups/info-popups-catalog.md` updated in the same release (hard rule).
+
+### Files
+
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.videoFolder`
+- `docs/info-popups/info-popups-catalog.md` — videoFolder entry
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1948 - 2026-06-21
 
 **Title:** 🔎 Media-folder videos: discover the folder across sources (fix "Unknown source directory")
