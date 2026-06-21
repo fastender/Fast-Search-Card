@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1962 - 2026-06-21
+
+**Title:** 🩹 Active control button: white background sticks after click (not only after refresh)
+
+### What
+
+After selecting a climate mode, the icon went dark but the button background stayed grey — it only turned
+white after a page refresh.
+
+### How
+
+`ControlButton` is a framer-motion button whose `controlButtonVariants` (idle/hover) leave an inline
+`background-color` after hover/tap. An inline style beats a normal CSS rule, so `.control-button.active {
+background: #fff }` lost (after refresh there's no inline style yet, hence white). Switched the active
+background rules to `background-color: #fff !important` — CSS `!important` beats a non-important inline style,
+so the active button is white immediately and consistently.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — active background `!important`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1961 - 2026-06-21
 
 **Title:** 🩹 Active climate button: dark icon actually shows + stays white on hover
