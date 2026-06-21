@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1958 - 2026-06-21
+
+**Title:** 🌦️ Weather widget: location name no longer drops to "Weather" on a transient binding loss
+
+### What
+
+The weather slider widget sometimes showed just "Weather" instead of the area (e.g. "Haus") in both the header
+and the footer — when `entity.area`/`entity.name` were momentarily empty, it fell straight back to "Weather".
+
+### How
+
+Resolve the location name robustly from the HA registry when the entity's own area/name is empty: entity →
+`area_id`, else device → `area_id` → area name (`hass.entities`/`hass.devices`/`hass.areas`).
+- `BentoRichWeather` (header): registry fallback + caches the last good name (`useRef`) so a transient empty
+  render doesn't flip the title.
+- `getSliderItemLabel` (footer, via `BentoRichSlider`): same registry-based resolution, now receives `hass`.
+
+### Files
+
+- `src/components/bento/widgets/BentoRichWeather.jsx` — robust header name + last-good cache
+- `src/components/bento/helpers.js` — `resolveWeatherArea` + `getSliderItemLabel(…, hass)`
+- `src/components/bento/widgets/BentoRichSlider.jsx` — pass `hass` to the footer label
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1957 - 2026-06-21
 
 **Title:** 📐 Music Assistant panel: fixed height + working custom scrollbar (like the universal device list)
