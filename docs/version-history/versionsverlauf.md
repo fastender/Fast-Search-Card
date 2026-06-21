@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1961 - 2026-06-21
+
+**Title:** 🩹 Active climate button: dark icon actually shows + stays white on hover
+
+### What
+
+Follow-up to v1.1.1959. The active control button went white but its icon stayed white (invisible), and
+hovering it made it look inactive again.
+
+### How
+
+`.control-button svg { stroke/fill: white !important }` (an old visibility fix) beat the v1959 active-icon
+rule. Re-did it with `!important` + higher specificity: `.control-button.active .button-icon svg { stroke:
+#1c1c1e !important }` (+ `fill` for non-`fill="none"` icons). Also added
+`.control-button.active:hover:not(.disabled):not(.expanded) { background: #fff }` so the hover rule no longer
+overrides the active white background.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — active-icon `!important` + active-hover background
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1960 - 2026-06-21
 
 **Title:** 🎵 Music Assistant: edge masks (h+v) + scrollable tab bar in the changelog-bar style
