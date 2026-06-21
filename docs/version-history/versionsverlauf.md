@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1944 - 2026-06-20
+
+**Title:** 🎨 Video hint: white action text + control-button hover
+
+### What
+
+Polish on the "Video backgrounds available" hint pill: the action text is now white (not blue), and its
+hover matches the detail control buttons.
+
+### How
+
+`.video-hint-pill-action` color → `rgba(255,255,255,0.95)`. `.video-hint-pill:hover` now uses the same hover
+as `.control-button`: `transform: scale(1.05)` + `background: rgba(255,255,255,0.15)` + `box-shadow:
+0 8px 24px rgba(0,145,255,0.2)` (with an `all 0.2s ease` transition).
+
+### Files
+
+- `src/components/DetailView.css` — white action text + control-button-style hover
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1943 - 2026-06-20
 
 **Title:** ✏️ Detail-video folder path is now editable (like the wallpaper folder)
