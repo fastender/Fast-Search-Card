@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.1937 - 2026-06-20
+
+**Title:** 🎯 Control-row scroll arrows: per-breakpoint vertical position
+
+### What
+
+The control-row scroll arrows sat at a fixed `top: 42px`; tuned the vertical position per layout.
+
+### How
+
+`.control-row-arrow` `top: 28px` (desktop/tablet), `top: 20px` under `@media (max-width: 768px)` (mobile).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — responsive arrow `top`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1936 - 2026-06-20
 
 **Title:** ✨ Control-button row: edge fade mask + scroll arrows (like the category bar)
