@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1939 - 2026-06-20
+
+**Title:** 🎨 Device settings (climate/TV/vacuum) get the dark container + scrollbar like Universal lists
+
+### What
+
+When you open a control button's expandable settings on a regular entity (e.g. climate Fan/Swing/Oscillation,
+media_player, vacuum), the rows floated on the panel. Now they sit in the same dark rounded container with a
+custom scrollbar as the Universal-device sub-views (Controls/Sensors/…).
+
+### How
+
+`DomainSettingsPicker` in **live** mode now wraps its rows in a dark container (`.dsp-dark`, matching
+`.ios-settings-container`: `rgba(0,0,0,0.15)`, radius 24, capped height) with a scroll node and a
+`<CustomScrollbar>` (hover/scroll, top fade mask) — the same pattern `UniversalEntityList` uses. Schedule-mode
+(the schedule editor) is unchanged.
+
+### Files
+
+- `src/components/common/DomainSettingsPicker.jsx` — dark container + CustomScrollbar in live mode
+- `src/components/common/DomainSettingsPicker.css` — `.dsp-dark` / `.dsp-dark-scroll`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1938 - 2026-06-20
 
 **Title:** ⓘ Info popup on the empty Favorites / Suggestions widget
