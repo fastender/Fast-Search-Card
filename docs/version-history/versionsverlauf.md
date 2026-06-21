@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1943 - 2026-06-20
+
+**Title:** ✏️ Detail-video folder path is now editable (like the wallpaper folder)
+
+### What
+
+Third of the reported issues: the "Video Folder" path was a read-only display. It's now an editable text
+field, matching the wallpaper folder.
+
+### How
+
+Replaced the static `path` row in the Detail-View-Videos sub-view with the same `ios-item--static` +
+`<input>` pattern the wallpaper folder uses (`WALLPAPER_INPUT_STYLE`, placeholder = default path), wired to
+the existing `handleVideoPathChange` (persists `detailViewVideosPath`).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — editable video path input
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1942 - 2026-06-20
 
 **Title:** 🏷️ "Animations" → "Video Backgrounds" + brighter video hint, now on system entities too
