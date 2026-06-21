@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1935 - 2026-06-20
+
+**Title:** ➡️ Detail control buttons stay on one line (horizontally scrollable)
+
+### What
+
+In the detail view the control buttons (e.g. climate Heating / Cooling / Auto / Drying / Fan only / Settings)
+wrapped onto a second row when they didn't fit. They now stay on a single row and scroll horizontally.
+
+### How
+
+`.control-row` in `UniversalControlsTab.css`: `flex-wrap: wrap` → `nowrap` + `overflow-x: auto` (hidden
+scrollbar, touch momentum). `justify-content: safe center` keeps them centered when they fit but left-aligns
+on overflow so the first buttons stay reachable. Added 6px vertical padding so the hover scale doesn't clip
+at the new `overflow-y: hidden`.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — single-line scrollable `.control-row`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1934 - 2026-06-20
 
 **Title:** 🩹 Bento: fix hover-transparency (glass) + empty favorites no longer links to an empty view
