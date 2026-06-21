@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.1932 - 2026-06-20
+
+**Title:** 🩹 Bento widgets no longer clip on hover (brightness instead of scale)
+
+### What
+
+In the Bento view, hovering the small/fallback widgets (e.g. the Tips tile, widgets 3/4) clipped the tile —
+the hover scale grew the element past the height-cap `overflow: hidden` in the narrow layout.
+
+### How
+
+`BentoWidget`'s two `motion.button` widgets (empty-state + fallback) now use `whileHover={{ filter:
+'brightness(1.06)' }}` instead of `whileHover={{ scale: 1.015 }}`. Brightness doesn't change the element's
+bounds, so there's nothing to clip in any layout; the tap feedback (`scale: 0.985`, shrinks) is unchanged.
+
+### Files
+
+- `src/components/bento/BentoWidget.jsx` — hover scale → brightness on the two button widgets
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1931 - 2026-06-20
 
 **Title:** 🔄 Entity-state reconciliation safety-net + "Clear cache" now refreshes states
