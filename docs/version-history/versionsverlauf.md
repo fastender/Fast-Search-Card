@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1950 - 2026-06-21
+
+**Title:** 🌡️ Climate icon: cooling/heating entities show the right glyph (not the grey off icon)
+
+### What
+
+A climate entity that reports `hvac_action` (e.g. `cooling`) showed the grey "off" fan icon instead of the
+snowflake, while an otherwise-identical entity without `hvac_action` showed the correct icon.
+
+### How
+
+`getIcon` used `attributes.hvac_action || state` directly as the icon-map key. But the climate icon map is
+keyed by hvac **mode** (`cool`, `heat`, …) while `hvac_action` reports **activity** (`cooling`, `heating`, …)
+— so `cooling` matched no key and fell through to `off` (FanOff, grey). Now `hvac_action` is translated to a
+mode key first (`cooling→cool`, `heating→heat`, `drying→dry`, `fan→fan_only`, pre/defrost→heat), falling back
+to the mode (`state`) for idle/off/unknown. Also aliased `heat_cool→auto` (no dedicated heat_cool icon).
+
+### Files
+
+- `src/assets/icons/iconRegistry.js` — climate hvac_action → mode mapping
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1949 - 2026-06-21
 
 **Title:** 📝 Video Folder info popup documents the media-folder option
