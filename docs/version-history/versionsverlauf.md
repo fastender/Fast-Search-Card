@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1933 - 2026-06-20
+
+**Title:** 🩹 Bento device cards no longer clip corners on hover
+
+### What
+
+Hovering a live-device Bento widget (e.g. the Tips / Energy tiles) scaled the inner `<DeviceCard>` (its own
+grid hover, scale 1.05); the widget's `overflow: hidden` then cut the card's rounded corners to square.
+(Measured live: the card itself wasn't clipped — the hover scale was.)
+
+### How
+
+Added a `disableHoverScale` prop threaded `DeviceCard` → `DeviceCardGridView` / `DeviceCardListView`, gating
+`whileHover` on `!disableHoverScale`. `BentoWidget` sets it on all three DeviceCard renders (carousel grid,
+live-device, and list mode). In the Bento the tiles no longer scale on hover, so nothing clips; the search
+grid/list keep their hover pop.
+
+### Files
+
+- `src/components/DeviceCard.jsx` — `disableHoverScale` prop → grid + list views
+- `src/components/DeviceCard/DeviceCardGridView.jsx` — gate `whileHover`
+- `src/components/DeviceCard/DeviceCardListView.jsx` — gate `whileHover`
+- `src/components/bento/BentoWidget.jsx` — pass `disableHoverScale` on the 3 DeviceCard renders
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1932 - 2026-06-20
 
 **Title:** 🩹 Bento widgets no longer clip on hover (brightness instead of scale)
