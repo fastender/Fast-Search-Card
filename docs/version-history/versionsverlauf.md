@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.1940 - 2026-06-20
+
+**Title:** 🩹 Info popup (no-detail-panel fallback): click-outside closes + left-aligned text
+
+### What
+
+The info popup opened from the Bento (e.g. the empty Favorites ⓘ) couldn't be dismissed by clicking outside
+(only the ✕ worked) and its text was centered — inconsistent with every other info popup.
+
+### How
+
+Both came from the no-`.detail-panel` fallback rendering the overlay **inline inside the ⓘ button**:
+- **Click-outside:** the backdrop click bubbled up to the ⓘ button and re-fired `openPopup()`, so it reopened
+  instantly. Added `e.stopPropagation()` to the center-layer `onClick` so the close click doesn't reach the
+  button.
+- **Centered text:** the markdown body inherited `text-align: center` from the Bento ancestor. Set explicit
+  `textAlign: 'left'` on the body. (Detail-view popups were already left, unchanged.)
+
+Fixed once in the shared `SettingsInfoButton`, so every info popup behaves identically.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx` — backdrop stopPropagation + body left-align
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1939 - 2026-06-20
 
 **Title:** 🎨 Device settings (climate/TV/vacuum) get the dark container + scrollbar like Universal lists
