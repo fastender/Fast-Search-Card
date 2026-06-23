@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1969 - 2026-06-23
+
+**Title:** 🐛 Active-count badges actually count now (chips were reading a never-set `isActive`)
+
+### What
+
+The active-count badges (e.g. "Lights 4") still showed nothing even with the toggle on — the count was always
+zero.
+
+### How
+
+`SubcategoryBar` computed the per-chip active count from `item.isActive`, a property that is never set on the
+device objects → every count was 0 → no badge. Switched to `isEntityActive(state, domain, attributes)` (the
+same helper the device cards use) via a small `isItemActive(item)` wrapper. Recomputed in the existing
+counts effect (re-runs on each render / state change), so the numbers are live.
+
+### Files
+
+- `src/components/SubcategoryBar.jsx` — count via `isEntityActive` instead of `item.isActive`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1968 - 2026-06-23
 
 **Title:** 🔢 Toggle for the active-count badges on the filter chips (e.g. "Lights 4")
