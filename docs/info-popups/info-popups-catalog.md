@@ -63,6 +63,7 @@
 | `animations` | Animationen / Animations |
 | `videoFolder` | Video Folder (Animations-Detail) |
 | `videoFiles` | Video Files (ⓘ statt Inline-Anmerkung) |
+| `timeSort` | Zeit-Sortierung (Allgemein-Tab) — Toolbar-Uhr-Button + Profile |
 | `wallpaperUrl` | Hintergrundbild → Bild-URL (Image URL) |
 | `wallpaperFolder` | Hintergrundbild → Galerie (media_dirs / media_source Setup) |
 
@@ -502,6 +503,38 @@
 > **Note:** videos are played once when the detail view opens; the last frame stays visible. Placeholders `default_1.mp4` … `default_10.mp4` (random selection).
 >
 > *Why it matters:* only exactly-named files are found – a typo in the name = no video.
+
+## timeSort
+
+> Bereich: **Settings → Allgemein → Zeit-Sortierung**. ⓘ am Sektions-Header. Erklärt den Toolbar-Uhr-Button (Gruppierung nach letzter Aktivität) + die drei Profile (Fein/Standard/Grob).
+
+**DE**
+> ## Zeit-Sortierung
+>
+> Fügt einen Uhr-Button zur Toolbar hinzu. Aktiv gruppiert er die Geräteliste nach **letzter Aktivität** (neueste zuerst) statt nach Raum.
+>
+> - **Profile** bestimmen, wie fein die Zeitfenster sind:
+>   - **Fein** – Gerade eben · Letzte 15 Min · Letzte 30 Min · Letzte Stunde
+>   - **Standard** – Letzte 15 Min · Letzte Stunde · Heute
+>   - **Grob** – Letzte Stunde · Letzte 6 Std · Letzte 12 Std
+> - Alles jenseits des letzten Fensters landet in **Heute** / **Älter**.
+> - Funktioniert zusätzlich zum Kategorie-/Raum-Filter – z.B. „Lichter, nach Aktivität".
+>
+> *Warum wichtig:* sofort sehen, was sich gerade im Zuhause geändert hat, ohne durch Räume zu scrollen.
+
+**EN**
+> ## Sort by time
+>
+> Adds a clock button to the toolbar. When active, the device list is grouped by **recent activity** (most recent first) instead of by room.
+>
+> - **Profiles** set how fine the time windows are:
+>   - **Fine** – Just now · Last 15 min · Last 30 min · Last hour
+>   - **Standard** – Last 15 min · Last hour · Today
+>   - **Coarse** – Last hour · Last 6 hours · Last 12 hours
+> - Everything beyond the last window falls into **Today** / **Older**.
+> - Works on top of the category/area filter – e.g. "Lights, by activity".
+>
+> *Why it matters:* quickly see what just changed in your home, without scrolling rooms.
 
 ## wallpaperUrl
 

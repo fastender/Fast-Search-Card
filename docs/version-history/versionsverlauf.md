@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1966 - 2026-06-23
+
+**Title:** ⚙️ Time-sort settings: on/off toggle + window profile (Fine / Standard / Coarse)
+
+### What
+
+Made the time-sort grouping configurable via a new "Sort by time" section in the General settings: enable/disable
+the toolbar clock button + choose the time-window granularity.
+
+### How
+
+- New `appearance.timeSortEnabled` (default on) + `appearance.timeSortProfile` (`fine`/`standard`/`coarse`,
+  default standard) in the General/Appearance settings tab — a `LiquidGlassSwitch` + three radio rows (checkmark
+  on the active), with a ⓘ info popup (`settingsInfo.timeSort`).
+- `groupByRecency` now takes a profile → window list: **Fine** (5/15/30 min, 1 h), **Standard** (15 min, 1 h),
+  **Coarse** (1 h, 6 h, 12 h), each plus Today + Older.
+- `SearchField` reads the settings (live via `timeSortChanged` broadcast), gates the clock button
+  (`timeSortEnabled` → `FilterControlPanel`) and passes the profile into the grouping.
+- New `settings.timeSort*` labels, `recencyGroups.{min30,hour6,hour12}`, `settingsInfo.timeSort` (de + en) +
+  catalog entry.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — settings section
+- `src/components/SearchField.jsx` + `SearchField/components/FilterControlPanel.jsx` — wiring + button gate
+- `src/components/SearchField/utils/searchFilters.js` — profile-based `groupByRecency`
+- `src/utils/translations/languages/{de,en}.js` — labels + info text
+- `docs/info-popups/info-popups-catalog.md` — `timeSort` entry
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1965 - 2026-06-23
 
 **Title:** 🕒 New "sort by time" grouping (replaces the type filter)
