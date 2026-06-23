@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1970 - 2026-06-23
+
+**Title:** 🎚️ Master filter on/off + filter info popup (+ catalog)
+
+### What
+
+Step 3 of the filter rework: a master toggle that turns the **entire** filter button in the toolbar on/off, plus
+an ⓘ info popup explaining the whole filter section.
+
+### How
+
+- New `appearance.filterEnabled` (default on) — a "Filter" master switch at the top of the Filter sub-view; when
+  off the rest of the sub-view collapses. `SearchField` reads it (live, via `filterTogglesChanged`) and only
+  renders `FilterControlPanel` when on.
+- The main "Filter" section header is now a `SettingsSectionHeader` with `infoKey="filter"` → new
+  `settingsInfo.filter` popup (master / by categories / by areas / active count / sort by time). de + en + catalog
+  entry (`docs/info-popups/info-popups-catalog.md`).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — master toggle + info header
+- `src/components/SearchField.jsx` — gate the whole `FilterControlPanel`
+- `src/utils/translations/languages/{de,en}.js` — `filterMaster` + `settingsInfo.filter`
+- `docs/info-popups/info-popups-catalog.md` — `filter` entry
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1969 - 2026-06-23
 
 **Title:** 🐛 Active-count badges actually count now (chips were reading a never-set `isActive`)

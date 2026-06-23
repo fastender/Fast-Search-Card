@@ -63,6 +63,7 @@
 | `animations` | Animationen / Animations |
 | `videoFolder` | Video Folder (Animations-Detail) |
 | `videoFiles` | Video Files (ⓘ statt Inline-Anmerkung) |
+| `filter` | Filter & Sortierung (Allgemein-Tab) — Master + Toolbar-Filter + Aktiv-Zähler |
 | `timeSort` | Zeit-Sortierung (Allgemein-Tab) — Toolbar-Uhr-Button + Profile |
 | `wallpaperUrl` | Hintergrundbild → Bild-URL (Image URL) |
 | `wallpaperFolder` | Hintergrundbild → Galerie (media_dirs / media_source Setup) |
@@ -503,6 +504,34 @@
 > **Note:** videos are played once when the detail view opens; the last frame stays visible. Placeholders `default_1.mp4` … `default_10.mp4` (random selection).
 >
 > *Why it matters:* only exactly-named files are found – a typo in the name = no video.
+
+## filter
+
+> Bereich: **Settings → Allgemein → Filter** (ⓘ am „Filter"-Sektions-Header, der in die „Filter & Sortierung"-Sub-View führt). Erklärt den Master-Schalter (ganzer Filter-Button an/aus), die Toolbar-Filter (Kategorien/Räume), den Aktiv-Zähler-Badge und die Zeit-Sortierung.
+
+**DE**
+> ## Filter & Sortierung
+>
+> Steuert den **Filter-Button** in der Such-Toolbar und wie die Geräteliste eingegrenzt und sortiert wird.
+>
+> - **Filter (Master)** – den ganzen Filter-Button an/aus. Aus = aufgeräumte Toolbar ohne Filter-UI.
+> - **Nach Kategorien / Nach Räumen** – diese Filter-Dimensionen in der Toolbar ein-/ausblenden.
+> - **Aktive Anzahl** – Badge an jedem Chip mit der Zahl der *eingeschalteten* Geräte (z.B. „Lichter 4").
+> - **Nach Zeit sortieren** – die Liste nach letzter Aktivität gruppieren (eigene Info dazu).
+>
+> *Warum wichtig:* nur die Filter behalten, die du wirklich nutzt — oder komplett ausblenden für einen minimalen Look.
+
+**EN**
+> ## Filter & sorting
+>
+> Controls the **filter button** in the search toolbar and how the device list can be narrowed down and ordered.
+>
+> - **Filter (master)** – turn the whole filter button on/off. Off = a clean toolbar with no filter UI.
+> - **By categories / By areas** – show or hide those filter dimensions in the toolbar.
+> - **Show active count** – a badge on each chip with the number of devices that are *on* (e.g. "Lights 4").
+> - **Sort by time** – group the list by recent activity (see its own info).
+>
+> *Why it matters:* keep only the filters you actually use — or hide them entirely for a minimal look.
 
 ## timeSort
 
