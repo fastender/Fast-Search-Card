@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1967 - 2026-06-23
+
+**Title:** ⚙️ Filter settings moved into a sub-view + optional categories/areas toolbar filters
+
+### What
+
+Step 1 of the filter-settings rework. The filter settings now live in their own sub-view (like Design → Grid
+Columns), and the "By categories" / "By areas" toolbar filters can be turned on/off individually (like the
+time-sort button). (Active-count badges in the category submenu come next.)
+
+### How
+
+- New "Filter" nav row in the General tab → **Filter & sorting** sub-view (`currentView === 'filter'`),
+  containing: toolbar-filter toggles (By categories / By areas) + the sort-by-time toggle & profile.
+- New `appearance.filterCategoriesEnabled` / `filterAreasEnabled` (default on) + `saveFilterToggles` →
+  `filterTogglesChanged` broadcast.
+- `SearchField` reads them live and passes `categoriesEnabled` / `areasEnabled` to `FilterControlPanel`, which
+  now conditionally renders the categories / areas buttons.
+- New `settings.filterSection` / `filterRow` / `filterRowDescription` (de + en).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — Filter sub-view + toggles
+- `src/components/SearchField.jsx` + `SearchField/components/FilterControlPanel.jsx` — wiring + button gates
+- `src/utils/translations/languages/{de,en}.js` — labels
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1966 - 2026-06-23
 
 **Title:** ⚙️ Time-sort settings: on/off toggle + window profile (Fine / Standard / Coarse)
