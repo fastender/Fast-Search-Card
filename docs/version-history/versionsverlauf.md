@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1965 - 2026-06-23
+
+**Title:** 🕒 New "sort by time" grouping (replaces the type filter)
+
+### What
+
+The third toolbar filter ("Filter by types") is replaced by a **sort-by-time** mode: it groups the device list
+into activity time windows, most-recent-first.
+
+### How
+
+- `FilterControlPanel`: the types button → a clock button (`ClockIcon`), `activeSubFilter` value `types` →
+  `recency`, tooltip `tooltips.sortByTime`.
+- `groupDevicesByRoom({ …, sortByRecency })`: when set, groups the (already category/area-filtered) devices by
+  `last_changed` into windows — **Just now · Last 15 min · Last hour · Today · Older** — sorted newest-first
+  within each. `last_changed` is read from `window._hass.states` (authoritative), falling back to the item.
+- `SearchField` passes `sortByRecency: activeSubFilter === 'recency'`.
+- New `recencyGroups.*` section labels + `tooltips.sortByTime` (de + en).
+
+### Files
+
+- `src/components/SearchField/components/{FilterControlPanel,Icons}.jsx` — clock button + icon
+- `src/components/SearchField/utils/searchFilters.js` — `groupByRecency` + `sortByRecency`
+- `src/components/SearchField.jsx` — pass the flag
+- `src/utils/translations/languages/{de,en}.js` — labels + tooltip
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1964 - 2026-06-23
 
 **Title:** 🌍 Fix visual-editor warning + auto-pick English for non-German HA users (Reddit)
