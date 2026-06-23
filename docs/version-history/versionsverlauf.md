@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1971 - 2026-06-23
+
+**Title:** ⓘ Quick Control settings: section header + info popup
+
+### What
+
+The Quick Control row in the General settings had no section header or info button. Added a "Quick Control"
+header with an ⓘ popup, matching the other sections.
+
+### How
+
+Added a `SettingsSectionHeader title={t('quickControl')} infoKey="quickControl"` above the Quick Control nav
+row. The `settingsInfo.quickControl` text already existed (from when the feature shipped) — now it's surfaced.
+Added the full `quickControl` entry to the info-popup catalog (it only had an index row).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — section header + ⓘ
+- `docs/info-popups/info-popups-catalog.md` — full `quickControl` entry
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1970 - 2026-06-23
 
 **Title:** 🎚️ Master filter on/off + filter info popup (+ catalog)

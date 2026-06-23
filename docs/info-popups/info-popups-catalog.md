@@ -384,6 +384,36 @@
 >
 > *Why it matters:* this is where you tune readability and style.
 
+## quickControl
+
+> Bereich: **Settings → Allgemein → Quick Control** (ⓘ am Sektions-Header, v1.1.1971). Erklärt den Icon-als-Schalter (Tap) + Hold-to-confirm für riskante Geräte.
+
+**DE**
+> ## Schnellsteuerung
+>
+> Macht das **Geräte-Icon auf der Karte zum Schalter** – steuern, ohne die Detail-Ansicht zu öffnen.
+>
+> - **Tippen aufs Icon** schaltet sichere Geräte sofort (Licht, Schalter, Lüfter, Media …).
+> - **Riskante Geräte** (Cover/Rollladen, Schloss) verlangen in der öffnenden/entriegelnden Richtung ein **Halten (~1 s)** – ein amber Ring füllt sich zur Bestätigung. Die sichere Richtung (schließen/verriegeln) bleibt ein einfacher Tap.
+> - **Tippen auf die Karte** (neben dem Icon) öffnet weiterhin die Detail-Ansicht.
+>
+> **Hinweis:** Auf dem Handy gibt es ein haptisches Feedback. System-Entities (News, Wetter …) sind nicht betroffen.
+>
+> *Warum wichtig:* schnelle Alltags-Steuerung – mit Schutz gegen versehentliches Öffnen von Garage/Tür.
+
+**EN**
+> ## Quick Control
+>
+> Turns the **device icon on the card into a switch** – control without opening the detail view.
+>
+> - **Tap the icon** to switch safe devices instantly (lights, switches, fans, media …).
+> - **Risky devices** (covers, locks) require a **press-and-hold (~1 s)** in the opening/unlocking direction – an amber ring fills to confirm. The safe direction (close/lock) stays a simple tap.
+> - **Tapping the card** (next to the icon) still opens the detail view.
+>
+> **Note:** on mobile there's haptic feedback. System entities (news, weather …) are unaffected.
+>
+> *Why it matters:* fast everyday control – with protection against accidentally opening a garage/door.
+
 ## homeAssistant
 
 **DE**
