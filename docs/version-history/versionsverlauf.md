@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1968 - 2026-06-23
+
+**Title:** 🔢 Toggle for the active-count badges on the filter chips (e.g. "Lights 4")
+
+### What
+
+Step 2 of the filter rework: the active-count badge on the filter chips (the number of devices that are ON,
+e.g. "Lights 4") is now switchable via a setting — it was always on.
+
+### How
+
+- New `appearance.categoryActiveCounts` (default on), folded into the filter toggles + the
+  `filterTogglesChanged` broadcast, with a "Show active count" switch in the Filter sub-view.
+- `SearchField` passes `showActiveCounts` to `SubcategoryBar`, which now gates the existing `chip-active-badge`
+  on it (`activeCount > 0 && showActiveCounts`). The count itself was already computed per chip.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — toggle + storage
+- `src/components/SearchField.jsx` — `activeCounts` in filter toggles + pass `showActiveCounts`
+- `src/components/SubcategoryBar.jsx` — gate the badge on the prop
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1967 - 2026-06-23
 
 **Title:** ⚙️ Filter settings moved into a sub-view + optional categories/areas toolbar filters
