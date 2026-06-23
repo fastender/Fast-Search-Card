@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1964 - 2026-06-23
+
+**Title:** 🌍 Fix visual-editor warning + auto-pick English for non-German HA users (Reddit)
+
+### What
+
+Two reported issues: the Lovelace visual editor showed "this._configElement.setConfig is not a function", and
+non-German/English HA users (e.g. Italian) saw German labels ("Geräte") because the card defaulted to German.
+
+### How
+
+- **Editor:** `getConfigElement()` returned a plain `<div>` with no `setConfig`. HA's editor calls
+  `configElement.setConfig(config)` on it. Added a no-op `el.setConfig = () => {}` (the card needs no YAML
+  config — all settings live in-card), so the info screen shows instead of the error.
+- **Language default:** the card ships de + en and hard-defaulted to `de`. Now `syncLangFromHass(hass.language)`
+  runs once on the first hass tick (DataProvider) — if the user hasn't explicitly chosen a language, it derives
+  from the HA frontend language: starts with `de` → German, otherwise → English. German HA users keep German;
+  everyone else gets English instead of German. (Full Italian etc. would need its own translation file.)
+
+### Files
+
+- `build.sh` — `setConfig` no-op on the config element (local wrapper, ships in the bundle)
+- `src/utils/langStore.js` — `syncLangFromHass`
+- `src/providers/DataProvider.jsx` — call it on first hass
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1963 - 2026-06-21
 
 **Title:** 🩹 Control button background is now CSS-only (active highlight correct in both directions)
