@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1974 - 2026-06-25
+
+**Title:** ♻️ Consolidate the 7 round scroll-arrow buttons into a shared base
+
+### What
+
+Third cleanup pass (no visual change). The 7 round scroll-indicator buttons (News, Todos, Versionsverlauf, Tipps,
+Music-Assistant tabs, Control-Row, Weather hourly bar) each re-declared the same 10 CSS properties (28×28 circle, flex
+centering, color, cursor, z-index, …). A chevron-size or shape tweak meant editing 7 files. Centralized the common
+base; each feature keeps only what actually differs.
+
+### How
+
+New `src/styles/shared.css` (imported in `index.jsx`, so it lands in the single shadow-DOM `<style>` block alongside
+toast/perceivedSpeed). It holds one grouped rule with the 10 shared properties for all 7 arrow selectors. Each
+feature's CSS now carries ONLY its variations: `top`/`transform` (vertical nudge), `background` (flat black vs. the
+glass look on Control-Row/Weather), and button resets. Since no property appears in both the shared rule and a
+feature rule, the result is bundle-order-independent and computed-style-identical to before — esbuild even merged the
+five flat-background arrows into one selector list.
+
+### Files
+
+- new: `src/styles/shared.css` — shared scroll-arrow base
+- `src/index.jsx` — import shared.css
+- trimmed common props (kept only variations): `news/styles/NewsView.css`, `todos/styles/TodosView.css`,
+  `versionsverlauf/styles/VersionsverlaufView.css`, `tipps/styles/TippsView.css`,
+  `controls/MusicAssistantPanel.css`, `tabs/UniversalControlsTab.css`,
+  `device-entities/styles/WeatherDeviceView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1973 - 2026-06-25
 
 **Title:** ♻️ Consolidate inline locale ternaries onto `getLocale()`
