@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.1978 - 2026-06-26
+
+**Title:** ♻️ Shared `callHAWebSocket` + `safeStorage` helpers
+
+### What
+
+Seventh cleanup pass (no behavior change). Two small duplicated utilities, centralized:
+- The "call HA over WebSocket, supporting both connection variants" scaffold was re-declared as a local helper in
+  multiple services.
+- The `try { JSON.parse(localStorage.getItem(...)) } catch` / `try { setItem(JSON.stringify(...)) } catch` boilerplate
+  was copy-pasted dozens of times.
+
+### How
+
+- New `src/utils/haWebSocket.js` → `callHAWebSocket(hass, msg)` (prefers `connection.sendMessagePromise`, falls back to
+  `hass.callWS`, else rejects). Adopted in `VacuumAreaPicker` (dropped its local `callWS`) and `mediaSourceService`
+  (`browse` + `resolveMediaUrl`). `logbookService` was intentionally left — it uses `connection.sendMessagePromise` as a
+  guard (connection-only, no callWS fallback), so swapping would change its semantics.
+- New `src/utils/safeStorage.js` → `readJSON(key, fallback)` / `writeJSON(key, value)` / `removeKey(key)`. Migrated 12
+  exact-match sites across 6 files (quickControlStore, entitiesSnapshot, MusicAssistantPanel, settings/index,
+  settingsReaders, SettingsTab). Conservatively left every site with extra logic in the try-body, a logging `catch`, a
+  non-JSON value, or no try/catch at all — those aren't behavior-equivalent to the helper.
+
+Note: the audit's "QW-3" (a `getEntityDisplayName` for `friendly_name || entity_id`) was dropped — those sites are
+already one-liners with varying fallbacks, so a helper would add an import/indirection without saving lines.
+
+### Files
+
+- new: `src/utils/haWebSocket.js`, `src/utils/safeStorage.js`
+- `src/components/controls/VacuumAreaPicker.jsx`, `src/services/mediaSourceService.js` — adopt `callHAWebSocket`
+- `src/utils/quickControlStore.js`, `src/utils/entitiesSnapshot.js`, `src/components/controls/MusicAssistantPanel.jsx`,
+  `src/system-entities/entities/settings/index.js`, `src/components/SearchField/utils/settingsReaders.js`,
+  `src/components/tabs/SettingsTab.jsx` — adopt `safeStorage`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1977 - 2026-06-26
 
 **Title:** ♻️ `useScrollFade` hook — de-duplicate the is-scrolling top-fade effect
