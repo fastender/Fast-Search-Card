@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.1972 - 2026-06-25
+
+**Title:** 🧹 Dead-code cleanup — 8 orphaned files + 8 unused exports removed
+
+### What
+
+Source-hygiene pass (no behavior change). Two read-only audit agents swept the codebase for dead and duplicated
+code; this release removes the high-confidence, fully-orphaned items. Since `src/` is bundled by esbuild (unused
+modules are tree-shaken), the shipped bundle is unchanged — this is purely about a leaner, more maintainable source
+tree. The successful build is the safety check that no live import was broken.
+
+### How
+
+Removed 8 files that nothing imports (verified against the full import graph from `src/index.jsx`):
+
+- `components/charts/UniversalChartsView.jsx`, `components/charts/ChartComponents.jsx` — superseded when charts were
+  folded into their tabs (v1.1.1746).
+- `hooks/useEntityPolling.js`, `hooks/useLang.js` — helpers created but never adopted.
+- `system-entities/.../device-entities/components/ExpandableCard.jsx` (+ `.css`) — unreferenced.
+- `components/controls/CircularSlider.css`, `device-entities/styles/DeviceDetailView.css` — orphaned stylesheets.
+
+Removed 8 exported symbols with zero usages: `TypesIcon` (replaced by `ClockIcon` in v1.1.1965), `GridReturnIcon`,
+`SCHEDULE_STATUS`, `saveStatsBarSettings`, `circularSliderPowerToggleVariants` (+ its barrel re-export),
+`getQuickControlEnabled`, and `navStyle`/`btnPrimaryStyle`/`btnSecondaryStyle` from the UniversalSetup shared styles.
+
+`CloseX` and `ChevronLarge` (in `common/icons/ui.jsx`) were **kept** on purpose — they are the canonical targets for
+the upcoming inline-icon consolidation, so deleting them now would only mean re-adding them later.
+
+### Files
+
+- deleted: `components/charts/UniversalChartsView.jsx`, `components/charts/ChartComponents.jsx`,
+  `hooks/useEntityPolling.js`, `hooks/useLang.js`, `.../device-entities/components/ExpandableCard.jsx` + `.css`,
+  `components/controls/CircularSlider.css`, `.../device-entities/styles/DeviceDetailView.css`
+- `components/SearchField/components/Icons.jsx`, `components/EnergyIcons.jsx`, `utils/scheduleConstants.js`,
+  `components/tabs/SettingsTab/components/general/settingsStorage.js`, `utils/animations/components.js`,
+  `utils/animationVariants.js`, `utils/quickControlStore.js`,
+  `system-entities/.../setup-flows/UniversalSetup/shared.jsx` — removed dead exports
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1971 - 2026-06-23
 
 **Title:** ⓘ Quick Control settings: section header + info popup
