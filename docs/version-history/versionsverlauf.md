@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1979 - 2026-06-26
+
+**Title:** ♻️ Shared `getAreaName` + central spring transitions
+
+### What
+
+Eighth cleanup pass (no behavior change). Two more duplicated patterns, centralized.
+
+### How
+
+- **QW-4** — `getAreaName(entityId, hass)` added to `utils/homeAssistantService.js`: resolves an entity's room/area
+  name via entity-registry → device-registry → state-attribute → `hass.areas[id].name`. Replaced 3 hand-rolled copies
+  (`AllSchedulesView.getEntityArea`, `bento/helpers.resolveWeatherArea`, `BentoRichWeather.areaFromRegistry`). The bulk
+  `enrichAllEntitiesWithAreas` (works off loaded arrays, not the live `hass` object) is a different shape and was left.
+- **QW-6** — new `utils/animations/transitions.js` exporting `SPRING_SMOOTH` (`{type:'spring',stiffness:300,damping:30}`)
+  and `SPRING_SNAPPY` (`{…,500,25}`), the two spring presets that were inlined ~50× across dialogs/settings/sliders.
+  Migrated 56 exact-match literals (45 smooth + 11 snappy) across 17 files. Now the app's two spring "feels" are tunable
+  in one place. Left every spring with extra keys (`delay`/`mass`) or different numbers (e.g. 380/32, 280/22, 300/24).
+
+### Files
+
+- `src/utils/homeAssistantService.js` — new `getAreaName`; `all-schedules/AllSchedulesView.jsx`,
+  `components/bento/helpers.js`, `components/bento/widgets/BentoRichWeather.jsx` — adopt it
+- new: `src/utils/animations/transitions.js`; 17 files migrated to `SPRING_SMOOTH`/`SPRING_SNAPPY` (CalendarEventDialog,
+  CalendarView, CalendarSettingsView, EnergyDashboardSettingsView, iOSSettingsView, TodosView, TodoFormDialog,
+  TodosSettingsView, todos/settings/sections, StatsBar/General/StartScreen/Appearance SettingsTab, LiquidGlassSlider,
+  CircularSlider, CustomScrollbar, ActionSheet)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1978 - 2026-06-26
 
 **Title:** ♻️ Shared `callHAWebSocket` + `safeStorage` helpers
