@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.1975 - 2026-06-25
+
+**Title:** ♻️ Shared `.no-scrollbar` utility — consolidate hidden-scrollbar CSS
+
+### What
+
+Fourth cleanup pass (no visual change). The "hide the native scrollbar" recipe
+(`::-webkit-scrollbar { display: none }` + `scrollbar-width: none` + `-ms-overflow-style: none`) was copy-pasted
+across ~22 components. Replaced the duplicated copies with a single `.no-scrollbar` utility class.
+
+### How
+
+Added `.no-scrollbar` to `src/styles/shared.css`. Migrated 22 display:none-only scrollbar rules onto it: each scroll
+container's JSX got the `no-scrollbar` class, and the per-component hide rules were deleted (27 JSX elements total —
+some shared classes are reused across files, e.g. `.news-filter-bar` in both News and AllSchedules).
+
+Deliberately left untouched (conservative — this is cosmetic and not build-verifiable): the 3 components that style a
+**visible** custom scrollbar (UniversalControlsTab / BentoStartView / MusicAssistantPanel), dead selectors with no JSX
+usage, an ID-based selector, and `.ios-settings-view` (applied in 32+ places, several dynamic — risk of missing one
+outweighs the dedup; its own hide rule stays intact). Going forward, new scroll containers should just add the
+`no-scrollbar` class.
+
+### Files
+
+- `src/styles/shared.css` — new `.no-scrollbar` utility
+- 12 CSS files: removed display:none-only scrollbar rules (DetailView, SearchField, DomainSettingsPicker, PickerWheel,
+  CalendarView, WeatherDeviceView, IntegrationView, news/iOSSettingsView, NewsView, TippsView, TodosView,
+  VersionsverlaufView)
+- ~17 JSX files: added `no-scrollbar` to the scroll containers (NewsView, AllSchedulesView, SearchField, CalendarView,
+  CalendarEventDialog, HourlyForecast, WeatherDeviceView, IntegrationView, SettingsSectionInfo, UniversalEntityList,
+  EntityIconDisplay, DomainSettingsPicker, PickerWheel, TippsList, TippDetail, TodosView, VersionsList, VersionDetail,
+  ChartsHistoryView, DeviceActivitiesView)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1974 - 2026-06-25
 
 **Title:** ♻️ Consolidate the 7 round scroll-arrow buttons into a shared base
