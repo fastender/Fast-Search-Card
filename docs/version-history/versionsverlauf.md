@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1973 - 2026-06-25
+
+**Title:** ♻️ Consolidate inline locale ternaries onto `getLocale()`
+
+### What
+
+Second cleanup pass (no behavior change). The helper `getLocale(lang)` (→ `'de-DE'` / `'en-US'`) already existed but
+was being re-inlined as `lang === 'de' ? 'de-DE' : 'en-US'` in 14 files. Consolidated all of them onto the single
+helper, so adding a future language is a one-line change instead of a 25-site hunt.
+
+### How
+
+Replaced 25 inline locale ternaries (24 across 13 files + 1 `if/else` variant in `EnergyChartsView`) with
+`getLocale(<lang>)`, adding/merging the import in each file. `getLocale(lang)` is byte-for-byte equivalent to the
+ternary for any real language code.
+
+Intentionally left untouched: the two `toLocaleDateString` fallbacks inside `DetailView.formatTimeAgo` (they belong to
+the larger relative-time formatter that will be unified separately) and the hardcoded `'de-DE'` time string in
+`AIModeInterface` (part of a German-only mock response, not a locale-driven value).
+
+### Files
+
+- 13 files migrated by the locale sweep: `energyDashboardCalculations.js`, `CalendarEventDialog.jsx`,
+  `TodosView.jsx`, `dueDateHelpers.js`, `todoHelpers.js`, `TodosSettingsView.jsx`, `DeviceCard.jsx`,
+  `charts/ChartDatePopover.jsx`, `charts/DeviceActivitiesView.jsx`, `charts/ChartsHistoryView.jsx`,
+  `bento/helpers.js`, `bento/widgets/BentoRichCalendar.jsx`, `services/sensorStatistics.js`
+- `system-entities/.../device-entities/components/EnergyChartsView.jsx` — collapsed `if/else` locale block
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1972 - 2026-06-25
 
 **Title:** 🧹 Dead-code cleanup — 8 orphaned files + 8 unused exports removed
