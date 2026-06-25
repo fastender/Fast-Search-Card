@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1976 - 2026-06-25
+
+**Title:** 🧹 Dead-code cleanup pass 2 — 9 unused symbols removed
+
+### What
+
+Fifth cleanup pass (no behavior change). A fresh dead-code audit of `src/` (now that earlier passes removed the
+orphaned files) found 9 more symbols with zero references. Removed them. Source-only — these are tree-shaken, so the
+shipped bundle is unchanged; the build is the safety check.
+
+### How
+
+- `utils/scheduleConstants.js` — removed 5 dead exports left over from the v1.1.1716 mock-schedule removal:
+  `WEEKDAY_KEYS`, `MOCK_SCHEDULE_CONFIG`, `TIME_CONSTANTS`, `calculateRemainingTime`, `formatClockTime` (the last two
+  were the only consumers of `TIME_CONSTANTS`). A historical comment in `scheduleUtils.js` had already claimed these
+  were gone — now they actually are.
+- `components/tabs/SettingsTab.jsx` — removed the unused `AccordionItem` component and its two only-used-internally
+  variant objects (`accordionVariants`, `contentVariants`); the file's now-unused `framer-motion` import went with
+  them. (The live `accordionVariants` in `utils/animations/accordionAnimations.js` is a different symbol and stays.)
+- `components/WallpaperBootOverlay.jsx` — removed the unused `ZOOM_DELAY_MS` constant.
+
+Audit also confirmed: **zero orphaned files remain** (all 390 source files are reachable from `index.jsx` once
+re-export barrels + dynamic imports are followed), and no dead branches. `CloseX`/`ChevronLarge` in `common/icons/ui.jsx`
+stay as deliberate migration targets.
+
+### Files
+
+- `src/utils/scheduleConstants.js`, `src/components/tabs/SettingsTab.jsx`, `src/components/WallpaperBootOverlay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1975 - 2026-06-25
 
 **Title:** ♻️ Shared `.no-scrollbar` utility — consolidate hidden-scrollbar CSS
