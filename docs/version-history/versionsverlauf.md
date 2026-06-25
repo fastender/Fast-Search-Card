@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1977 - 2026-06-26
+
+**Title:** ♻️ `useScrollFade` hook — de-duplicate the is-scrolling top-fade effect
+
+### What
+
+Sixth cleanup pass (no behavior change). The "is-scrolling top-fade" effect — a scroll listener that toggles the
+`is-scrolling` class while `scrollTop > 0` (driving the CSS mask-image fade) — was copy-pasted verbatim across the
+settings sub-views. Extracted it into one hook.
+
+### How
+
+New `src/hooks/useScrollFade.js`: `const scrollRef = useScrollFade(deps)` creates the ref, runs the effect, returns the
+ref (also passed to `CustomScrollbar`). Takes an optional deps array so sub-views that re-mount their scroll container
+per sub-view (`[currentView]` / `[activeSlot]`) re-attach the listener correctly. Migrated 10 files onto it, each
+dropping a `useRef` + a ~8-line `useEffect` (and the now-unused `useRef`/`useEffect` imports where applicable).
+
+Left untouched (different pattern — a `useCallback` callback-ref for `AnimatePresence mode="wait"` sub-views, plus the
+EnergyDashboard views): CalendarEventDialog, news/iOSSettingsView, ScheduleTab, UniversalSetup, UniversalEntityList,
+the EnergyDashboard* views. A future `useScrollFadeNode`-style variant could fold those in.
+
+### Files
+
+- new: `src/hooks/useScrollFade.js`
+- migrated (10): `SettingsTab/components/{AboutSettingsTab,ToastSettingsTab,PrivacySettingsTab,SidebarItemsSettingsTab,StatsBarSettingsTab,AppearanceSettingsTab,GeneralSettingsTab,StartScreenSettingsTab}.jsx`, `calendar/components/CalendarSettingsView.jsx`, `todos/components/TodosSettingsView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1976 - 2026-06-25
 
 **Title:** 🧹 Dead-code cleanup pass 2 — 9 unused symbols removed
