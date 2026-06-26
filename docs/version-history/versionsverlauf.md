@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1985 - 2026-06-26
+
+**Title:** ⚡ Perf 1/n — Fuse lazy re-index + drop a dead per-render fuzzy search
+
+### What
+
+First release of a multi-agent performance pass. Root cause found by the audit: Home Assistant hands the card a **new
+`entities` array on every state tick** (~6× per second on a busy home), and that new reference cascades into the search
+layer, making it redo expensive work several times a second even when nobody is searching. This release kills the two
+worst offenders in that hot path.
+
+### How
+
+- **`useFuzzySearch` no longer re-indexes Fuse on every tick.** It previously called `fuse.setCollection(items)` +
+  cleared the result cache in a `useEffect([items])` — and `items` is a fresh array each tick, so it rebuilt the entire
+  search index ~6×/s for nothing while idle. Now `setCollection` is **lazy**: it runs only right before an actual search,
+  and only if the items reference changed since the last index. Idle (panel open, not searching) → zero re-index.
+- **Removed a dead full fuzzy search that ran every render.** `SearchField` computed `getSuggestions(searchValue, 5)`
+  (a complete `fuse.search()`) on every render, but the result was never used — the suggestion chips come from
+  `predictiveSuggestions` (a different hook). Deleted the call and `getSuggestions` from the hook entirely.
+
+Both are pure CPU wins, behavior-identical (search still indexes fresh items before searching), and build-verified.
+
+### Files
+
+- `src/hooks/useFuzzySearch.js` — lazy re-index; removed dead `getSuggestions`
+- `src/components/SearchField.jsx` — removed the discarded per-render `getSuggestions` call
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1984 - 2026-06-26
 
 **Title:** ♻️ `SettingsScrollView` — adopt on the Privacy tab
