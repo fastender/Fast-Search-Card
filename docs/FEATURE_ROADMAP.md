@@ -521,21 +521,253 @@ A first-party `fast-search-card` integration would be the third companion — br
 
 ---
 
-## Quick-priority matrix (both batches)
+## Part five — twelve new ideas from competitive + community research
+
+Synthesised from a research pass across r/homeassistant, the HA community forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes, and the Apple Home ecosystem. Each idea references a concrete source; none overlap with #1–#22.
+
+### 23. Card Picker Suggestion Provider
+
+**Pitch:** Make Fast Search Card the smartest entry in HA's native card picker. When a user picks a light or sensor, our card shows up with three variants pre-configured.
+
+**Status quo:** HA 2026.6 shipped `window.customCards.getEntitySuggestion(hass, entityId)` for exactly this. No mainstream custom card has opted in yet.
+
+**What ships:**
+- Register a suggestion provider returning up to three variants per domain: Bento tile, Quick Control switch, full-search variant.
+- Per-domain heuristics: lights → Quick Control, numeric sensors with `state_class` → chart variant, covers → tile with feature row.
+- Variant labels in user's language.
+
+**Effort:** Small. Thin adapter over existing config presets.
+
+**Why it fits:** Positions the card as a first-class citizen in HA's own dashboard editor — discoverable without HACS hunting.
+
+---
+
+### 24. Quick Search Bridge (⌘K interop)
+
+**Pitch:** HA's native Quick Search opens our card; our card hands results back. Two search-first surfaces, one muscle memory.
+
+**Status quo:** HA 2026.2 introduced Quick Search (⌘K) with Navigate / Commands / Entities / Devices / Areas categories. Plus My-link URL shortcuts. Our existing Spotlight roadmap entry (#2) was inside the card; this is the interop layer.
+
+**What ships:**
+- Detect native Quick Search opening, surface the card's index as an extra category.
+- Emit My-style deep links (`/lovelace/...?fsc=entityId`) so navigation lands focused on a specific item.
+- Optional setting: "Replace ⌘K with Fast Search Card" — window-level interceptor scoped to the card's view.
+
+**Effort:** Medium.
+
+**Why it fits:** Two competing palettes confuse users. The card already is search-first; integrating with HA's own palette closes the loop.
+
+---
+
+### 25. Per-card gesture mapper
+
+**Pitch:** Bind tap, double-tap, hold, swipe-up/down/left/right to actions on every card. Per-domain defaults, user-overridable.
+
+**Status quo:** [Actions Card](https://github.com/nutteloost/actions-card) wraps cards with this. Bubble Card issues [#17](https://github.com/Clooos/Bubble-Card/issues/17) and [#63](https://github.com/Clooos/Bubble-Card/issues/63) are both high-reaction. Quick Control already does the icon layer; this extends to the whole tile.
+
+**What ships:**
+- "Gestures" sub-view per device.
+- Bindings: tap, double-tap, hold, swipe-up/down/left/right.
+- Action picker reuses existing service-call / scene / script chooser.
+- Per-domain defaults (light swipe-up = brighter).
+- Tiny indicator dots when gestures are bound (quiet, discoverable).
+
+**Effort:** Medium.
+
+**Why it fits:** The card owns its tile renderer. Cleaner here than in HA Core, which has to fight sections-view drag handles. visionOS gestures are already part of the design language.
+
+---
+
+### 26. Room Card — the unfulfilled Mushroom request
+
+**Pitch:** A single tile for an entire room: name + temperature + occupancy header, then conditional chips for active devices (light on, media playing, door open), then a 12-hour mini-graph.
+
+**Status quo:** Mushroom's discussion [#302](https://github.com/piitaya/lovelace-mushroom/discussions/302) has years of demand. Mushroom refused to ship it. The Bento grid is the natural home.
+
+**What ships:**
+- New `BentoRoomTile` widget bound to an area.
+- Header: room name + temperature + humidity if assigned.
+- Active-device chips appear conditionally (lights on, media playing, climate adjusting).
+- 12-hour temperature mini-graph at the bottom.
+- Tap → opens search filtered to the area.
+
+**Effort:** Medium.
+
+**Why it fits:** Direct competitive wedge against Mushroom. The card already has area-grouping, chip-input, and chart subsystems — this is composition.
+
+---
+
+### 27. Vacuum Room-Map Picker
+
+**Pitch:** Tap rooms on the vacuum's detail view to dispatch it, using HA's native segment-to-area mapping.
+
+**Status quo:** HA 2026.3 shipped `vacuum.clean_area` taking HA area IDs — vendor-neutral. Built-in dashboards still show only a single Start/Stop button. Tasshack's Dreame and vacuum-card both already use it, but as full Lovelace replacements.
+
+**What ships:**
+- Detail-view widget listing areas mapped to the vacuum's segments.
+- Multi-select with tap, single "Clean selected" button.
+- Live status overlay: which room, battery, ETA.
+- "Re-clean last selection" shortcut (most common workflow).
+- Gracefully disables itself when integration doesn't support `clean_area`.
+
+**Effort:** Small.
+
+**Why it fits:** Vacuums already get a detail view. Drop-in upgrade for supported vacuums, no global changes.
+
+---
+
+### 28. Severe Weather Banner
+
+**Pitch:** A persistent top-of-card banner for active weather alerts with severity color, polygon area, and "mute until expires".
+
+**Status quo:** [Weather Alerts Card](https://community.home-assistant.io/t/weather-alerts-card/1010189), [MeteoalarmCard](https://github.com/MrBartusek/MeteoalarmCard), and [NWS Alerts Card](https://community.home-assistant.io/t/nws-alerts-card/986761) all active. Three independent implementations in six months = strong signal. Not the same as the Notification Center (#3) — alerts need urgency, persistence, and typed severity.
+
+**What ships:**
+- Top-of-card banner when an active alert is present.
+- Severity color matching MeteoAlarm/NWS conventions (advisory / watch / warning).
+- Tap opens a sheet: full text, polygon area, time-in-effect progress bar.
+- "Mute until expires" gesture.
+- Multi-source: works with `weather.*` entities, MeteoAlarm, NWS, DWD.
+
+**Effort:** Small.
+
+**Why it fits:** Slot at the top of the Bento grid where StatsBar lives. Glass aesthetic suits urgency without screaming.
+
+---
+
+### 29. Live Activities strip
+
+**Pitch:** A horizontal "Live" strip above the grid for any automation, script, timer, or vacuum currently in a non-idle state.
+
+**Status quo:** Apple Wallet boarding-pass Live Activities (iOS 26) is the pattern. HA has no equivalent surface — running automations/timers are invisible unless you happen to look at their detail view.
+
+**What ships:**
+- Auto-renders above the grid only when there's something live.
+- Each item: rounded glass capsule, icon, single-line state, optional progress bar.
+- Tap → detail view. Long-press → stop/cancel.
+- Auto-dismiss when entity returns to idle for >2 s.
+
+**Effort:** Small. Read-only over existing state; glass capsule is the same family as the existing toolbar pills.
+
+**Why it fits:** Bento already has the canvas. A glanceable, transient row in the same liquid-glass aesthetic — small footprint, high signal.
+
+---
+
+### 30. Backup Status Widget
+
+**Pitch:** A Bento tile that shows next/last backup, lets you run one or browse the catalog.
+
+**Status quo:** HA's backup integration shipped in 2025.1 with `sensor.backup_manager_state`, `event.backup_automatic_backup`, and `backup.create` / `backup.create_automatic` actions. Cloud agents through 2026. Roughly 94% of installs use it. Almost no cards surface it.
+
+**What ships:**
+- Bento tile: countdown to next backup, last success/fail, current state.
+- One-tap "Back up now" using `backup.create_automatic`.
+- List of backup agents (local, Cloud, S3, Dropbox) with size per location.
+- Restore browser (read-only) using the agent file listings.
+
+**Effort:** Small.
+
+**Why it fits:** System-admin concerns are absent from the roadmap. This is the system-entity-shaped widget pattern applied to backups — same shape as Notifications, Tips, Versionsverlauf.
+
+---
+
+### 31. AI Task Panel
+
+**Pitch:** Right-click any camera, image, or sensor → "Ask AI about this". Structured outputs, image generation, browseable history.
+
+**Status quo:** HA 2025.7 added `ai_task.generate_data` for structured AI outputs. HA 2025.10 added `ai_task.generate_image` with media_source storage. Distinct from the Conversation API (#1) — task API is one-shot, structured, and image-capable.
+
+**What ships:**
+- Right-click any image/camera/sensor → "Ask AI" sheet.
+- Saved prompts per entity with structured-output schemas.
+- Generated images browseable via `media_source`, settable as wallpaper, attachable to notifications.
+- Default AI Task entity respected from HA's system settings.
+
+**Effort:** Medium.
+
+**Why it fits:** The card already has a wallpaper subsystem and planned camera live-view. AI image generation slots into both without new infra.
+
+---
+
+### 32. Adaptive Lighting Visualizer
+
+**Pitch:** Show the 24-hour color-temperature curve for any light, with a draggable "now" dot for instant override.
+
+**Status quo:** HomeKit Adaptive Lighting is the well-known pattern. HA's `adaptive_lighting` and `circadian_lighting` integrations have devoted users but no card surfaces the curve. Different from Lighting Scene DJ (#16) — that's creative/scene-driven; this is circadian/temporal.
+
+**What ships:**
+- For any light with `color_temp_kelvin`: 24-hour curve at the bottom of the detail view.
+- Draggable dot = "now" + override.
+- Toggle "Follow circadian curve" — wires to `adaptive_lighting` if installed, else writes a generated schedule.
+- Reuses the existing Chart.js stack with a horizontal Kelvin gradient as the axis fill.
+
+**Effort:** Medium.
+
+**Why it fits:** The card is already visionOS-glass with warm-to-cool gradients in its surface chrome. The chart literally renders the wallpaper's own tonal axis.
+
+---
+
+### 33. Hash-routed deep-link pop-ups
+
+**Pitch:** Every detail-view, every system entity, every Bento widget gets a URL hash. Deep-linkable, back-button-friendly, scriptable from automations.
+
+**Status quo:** [Bubble Card](https://github.com/Clooos/Bubble-Card)'s pop-ups are URL-hash-addressable (`#kitchen`) — closeable via swipe-down, Esc, long-swipe, or hash removal. That's exactly why Bubble exploded. The card's detail views and system entities are currently only reachable by interactive navigation.
+
+**What ships:**
+- Every detail-view URL-addressable: `#device/light.kitchen`, `#calendar/event/abc`, `#settings/appearance`.
+- Close gestures honoured (swipe-down, Esc, browser back).
+- Card emits hashchange events so HA automations can open or close any view via `script.notify` + `data: { url }`.
+- "Copy link to this view" affordance.
+
+**Effort:** Medium.
+
+**Why it fits:** Closes a long-standing UX gap. Combined with #23 + #24, the card becomes natively addressable from the rest of HA.
+
+---
+
+### 34. Strategy Mode — first-run dashboard generator
+
+**Pitch:** A single tap in Settings: "Generate dashboard from my Home Assistant setup". Walks the area/device/label registry and produces a configured Bento + Search layout.
+
+**Status quo:** [Mushroom Strategy](https://github.com/AalianKhan/mushroom-strategy) proved zero-config first-run works using only the registry — no usage heuristics needed. The card's "Configure once" promise is currently asymmetric: HA-side organisation pays off, but the *first* time you install, you still spend an evening tuning Bento slots.
+
+**What ships:**
+- Settings → "Generate from my setup".
+- Reads floor/area/label registries, picks Bento slot defaults from device counts per area.
+- Pre-fills favourite chips per area.
+- Reversible: "Reset to defaults" undoes the generated layout without touching HA state.
+- Optional: re-run after a major HA change (new area, new label) and merge.
+
+**Effort:** Medium.
+
+**Why it fits:** Closes the "but I just installed it" gap. The roadmap is full of features for established users; this one is the on-ramp.
+
+---
+
+## Quick-priority matrix (all batches)
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **High Impact, Low Effort** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub | Existing infrastructure, clear daily payoff |
-| **High Impact, Medium Effort** | #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget | New surfaces but with established patterns |
-| **High visibility, Large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse | Marketing-worthy, but require new subsystems |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget | Existing infrastructure, clear daily payoff |
+| **Medium effort, established patterns** | #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
+| **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
 
-- **#11 Sketchpad** as a flagship feature drop. Differentiates the card. One commit, no new subsystem, viral demo potential.
-- **#2 + #8 as "Spotlight"** — small effort, biggest daily payoff. Infrastructure all there.
-- **#13 Daily Briefing** as a one-evening win. Pure composition of what's already on screen.
+**Flagship:** **#11 Sketchpad** — still the most differentiated single feature on the list. Viral demo potential, one commit, no new subsystem.
 
-If only one ships next: **#11 Sketchpad**. It's the only idea here that no other HA card touches.
+**Easy-win triple, all under a day each:**
+- **#23 Card Picker Suggestion Provider** — uses HA 2026.6's new API. Makes the card discoverable from HA's own dashboard editor. Almost nobody has shipped this yet.
+- **#27 Vacuum Room-Map Picker** — uses HA 2026.3's `vacuum.clean_area`. Tiny scope, real demand.
+- **#28 Severe Weather Banner** — three independent community cards already shipped it. Card has the slot already.
+
+**Spotlight bundle (#2 + #8 + #24):** Combined, this is the search-first card's headline upgrade — global search across everything, ⌘K interop with HA's own palette, the existing infrastructure stretched across both worlds. Half a week of work for a category-defining feature.
+
+**The competitive wedge:** **#26 Room Card** — Mushroom refused to ship this for years, the community has been asking the whole time. Bento is the natural home. This is the move that pulls Mushroom users over.
+
+**The first-impression fix:** **#34 Strategy Mode** — fixes the only honest weakness of the card today (new-user empty-state). Mushroom Strategy proved registry-only generation works. Card has all the data needed.
+
+If only three ship next: **#11 Sketchpad + #23 Card Picker Suggestion + #34 Strategy Mode.** Flagship + discoverability + first-impression — covers acquisition, retention, and signature feature in one quarter.
 
 ---
 
@@ -558,4 +790,9 @@ Ideas that came up but didn't make either batch:
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **20 feature ideas + 2 parallel/long-term tracks** = 22 entries total. Original ten reflect "what was clearly missing in May 2026"; the new ten reflect "what users keep asking about post-Quick Control"; #21 keeps the localisation expansion visible; #22 documents the long-term Companion Integration path that would unlock real HA Quality Scale grading (see [QUALITY.md](QUALITY.md)).
+- The roadmap covers **32 feature ideas + 2 parallel/long-term tracks** = 34 entries total.
+  - **#1–#10** — May 2026's "what was clearly missing then" baseline.
+  - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
+  - **#21** — Localization track (parallel, community-paced).
+  - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
+  - **#23–#34** — June 2026 competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes, and the Apple Home ecosystem. Each idea links a specific source.
