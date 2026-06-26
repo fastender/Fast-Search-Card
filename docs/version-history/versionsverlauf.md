@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1989 - 2026-06-26
+
+**Title:** ⚡ Perf 5/n — composite-only progress bars + passive scroll listeners
+
+### What
+
+Batch 3 (paint/compositing), the changes with **no meaningful visual change** — pure rendering-cost wins. (The
+design-changing audit items — dropping the full-viewport wallpaper blur and trimming the glass-panel filter chain —
+are deliberately left for an explicit decision, since they'd alter the look.)
+
+### How
+
+- **Slideshow progress bars now animate `transform: scaleX` instead of `width`.** Both the Bento carousel dot
+  (`bento-carousel-dot-progress`, on the always-visible start screen) and the Universal hero dot
+  (`universal-hero-dot-progress`) ran a 10s `width: 0%→100%` keyframe in a continuous autoplay loop — `width` triggers
+  layout + paint every frame, forever, while the view is open. `scaleX` (origin left) is compositor-only. Same fill,
+  same look (the only nuance is a sub-pixel rounding of the bar's right corner during the fill — imperceptible on a thin
+  bar).
+- **Four scroll listeners marked `{ passive: true }`** (`SubcategoryBar`, `ChartsHistoryView`, `VersionsList`,
+  `TippsList`) — they only read scroll position, so passive lets the browser scroll without waiting on JS (smoother on
+  touch). Verified none call `preventDefault`.
+
+### Files
+
+- `src/components/BentoStartView.css`, `src/components/tabs/UniversalControlsTab.css` — progress-bar keyframes
+- `src/components/SubcategoryBar.jsx`, `src/components/charts/ChartsHistoryView.jsx`,
+  `src/system-entities/entities/versionsverlauf/components/VersionsList.jsx`,
+  `src/system-entities/entities/tipps/components/TippsList.jsx` — passive scroll listeners
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1988 - 2026-06-26
 
 **Title:** ⚡ Perf 4/n — render-scoping: 60Hz poll → 10Hz, memoized ViewRef context, sliced state-sync
