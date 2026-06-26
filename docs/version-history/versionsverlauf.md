@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1987 - 2026-06-26
+
+**Title:** ⚡ Perf 3/n — split DataContext so device cards stop re-rendering every HA tick
+
+### What
+
+The biggest single live-update win from the audit. Every HA state tick rebuilds the `DataProvider` context object (its
+deps include `entities`/`favorites`/`settings`, which change ~6×/s). `DeviceCard` calls `useData()`, and a context-value
+change re-renders **every** consumer regardless of `memo` — so all 50–200 grid cards re-rendered several times a second
+even though each card only reads stable infrastructure from the context (`cache`, `db`, `pendingTracker`, `callService`).
+
+### How
+
+Added a second, **referentially-stable** `StableDataContext` holding only that infra (its `useMemo` deps are just
+`[callService]`, which is `useCallback([])`-stable; the others are never-reassigned refs). New `useDataStable()` hook.
+`DeviceCard` now reads from it instead of `useData()`. Cards' live state was never coming from the context anyway — it
+arrives via the `device` prop + the existing `memo` comparator — so this only removes the spurious context-churn
+re-render path. Verified DeviceCard touches exactly those 4 fields and nothing volatile.
+
+⚠️ Build-verified (compiles, all fields present), but please **smoke-test the grid once**: toggling a light should still
+flip the card live, tapping opens the detail, the press/pending animation works, and favoriting still updates.
+
+### Files
+
+- `src/providers/DataProvider.jsx` — new `StableDataContext` + `stableValue` + nested provider + re-export
+- `src/providers/dataSelectors.js` — new `useDataStable()` hook
+- `src/components/DeviceCard.jsx` — `useData()` → `useDataStable()`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1986 - 2026-06-26
 
 **Title:** ⚡ Perf 2/n — cache the excluded-entities filter config (stop per-call localStorage reads)
