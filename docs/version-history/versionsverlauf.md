@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1983 - 2026-06-26
+
+**Title:** ♻️ `SettingsScrollView` shell — pilot on the About tab
+
+### What
+
+Start of the settings-shell consolidation (H3/BR-2). The "iOS settings scroll shell" — `ios-settings-container` →
+`ios-view-wrapper` (hover state) → `ios-settings-view` scroll div → `CustomScrollbar`, plus the local `scrollRef`
+(`useScrollFade`) and `isHovered` state — is copy-pasted across dozens of settings sub-views. Extracted it into one
+`<SettingsScrollView>` component. This release is a **pilot on a single, simple view** (the About tab) so the behavior
+can be verified before rolling it out — the shell has high structural variance (callback-ref variants, AnimatePresence
+slide-pagers, multi-region tabs), so it's being migrated incrementally, not big-bang.
+
+### How
+
+New `src/components/common/SettingsScrollView.jsx` owns `useScrollFade` + `isHovered` + the container/wrapper/scroll-div/
+CustomScrollbar markup (props: `padding` default 20px, `deps` for re-mounting sub-views, `viewClassName`/`viewStyle`).
+`AboutSettingsTab` now returns `<SettingsScrollView>…</SettingsScrollView>` instead of the ~16-line inline shell.
+
+⚠️ Visual change can't be verified by the build — needs a manual look at **Settings → About**: it should scroll, the
+custom scrollbar should appear on hover, and the top-fade mask should kick in while scrolled.
+
+### Files
+
+- new: `src/components/common/SettingsScrollView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — adopt the shell + version bump
+
 ## Version 1.1.1982 - 2026-06-26
 
 **Title:** ♻️ Shared `CheckmarkIcon` (de-duplicate the iOS selection checkmark)
