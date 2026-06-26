@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1986 - 2026-06-26
+
+**Title:** ⚡ Perf 2/n — cache the excluded-entities filter config (stop per-call localStorage reads)
+
+### What
+
+`filterExcludedEntities` ran `localStorage.getItem` + `JSON.parse` for three config keys (`excludedPatterns`,
+`filterHiddenEntities`, `filterDiagnosticEntities`) on **every call** — and it's called 5–9× per SearchField render
+(filter + group passes), i.e. ~30–50 synchronous localStorage reads per second on a busy home. Cached it.
+
+### How
+
+The config now reads once into a module-level cache (`getFilterConfig`) and is invalidated by the
+`excludedPatternsChanged` event — which is already broadcast on **all three** write paths (SettingsTab pattern edits,
+settings/index, and the PrivacySettingsTab hidden/diagnostic toggles), so the cache can never go stale. The
+integration-id `Set` is left as-is (already backed by the in-memory `getDeviceConfig` cache). Behavior-identical.
+
+### Files
+
+- `src/utils/patternMatching.js` — module-level config cache + `excludedPatternsChanged` invalidation
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1985 - 2026-06-26
 
 **Title:** ⚡ Perf 1/n — Fuse lazy re-index + drop a dead per-render fuzzy search
