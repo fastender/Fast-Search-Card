@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.1988 - 2026-06-26
+
+**Title:** ⚡ Perf 4/n — render-scoping: 60Hz poll → 10Hz, memoized ViewRef context, sliced state-sync
+
+### What
+
+Three smaller, isolated render-scoping wins from the audit (the root `entities`-identity churn is, on closer look,
+already gated and mostly intrinsic — `flushPendingStateUpdates` returns the same array ref when no listed entity
+changed and keeps unchanged entity objects by-reference, so the big remaining waste was elsewhere).
+
+### How
+
+- **`TabNavigation`**: the active-button watcher ran a self-rescheduling `requestAnimationFrame` loop (~60×/s,
+  continuously, while a system-entity detail with action buttons is open). Switched to a 10Hz `setInterval` — visually
+  instant for a button highlight, ~6× less main-thread work.
+- **`ViewRefContext`**: the provider `value={{…}}` was a fresh object each render; `useMemo`'d it (the callbacks are
+  already `useCallback([])`-stable) so consumers only re-render on actual view transitions.
+- **`useEntityStateSync`**: the sync effect depended on the whole `hass` object → re-ran on every tick. Re-keyed it on
+  this entity's `state` + `brightness` slice, so it only runs when *this* entity changes (`hass` is still read fresh in
+  the body via the closure).
+
+(If you want to spot-check one thing: the light **brightness slider** in a light's detail view — set it, confirm it
+doesn't jump back. The sync-effect change preserves the v1.1.1874 pending-lock logic but now fires only on actual
+brightness changes.)
+
+### Files
+
+- `src/components/DetailView/TabNavigation.jsx`, `src/contexts/ViewRefContext.jsx`, `src/hooks/useEntityStateSync.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1987 - 2026-06-26
 
 **Title:** ⚡ Perf 3/n — split DataContext so device cards stop re-rendering every HA tick
