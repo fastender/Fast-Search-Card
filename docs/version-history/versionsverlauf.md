@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.1982 - 2026-06-26
+
+**Title:** ♻️ Shared `CheckmarkIcon` (de-duplicate the iOS selection checkmark)
+
+### What
+
+Eleventh cleanup pass (no visual change). The iOS selection checkmark (white circle r=11 + black check) was inlined
+~22× across pickers and settings — sometimes as a static `<svg>`, sometimes as an animated `<motion.svg>` that pops in
+with a scale spring. Consolidated into one `CheckmarkIcon` component.
+
+### How
+
+New `CheckmarkIcon` in `common/icons/ui.jsx` with props `size` (default 24), `animated` (scale pop-in via the shared
+`SPRING_SNAPPY` — used by settings toggles; static pickers omit it), `style`, `className`. Migrated 20 inline copies
+(12 static + 8 animated) across 11 files. `CalendarEventDialog`'s local `IOSCheck` wrapper now delegates to it. As a
+bonus, four files dropped their now-unused `SPRING_SNAPPY` import (that preset was only there for these checkmarks).
+
+Left two non-canonical variants untouched (they'd change pixels): a white-stroke color-swatch check in
+`TodosSettingsView`, and a borderless-circle check in `AppearanceSettingsTab`.
+
+### Files
+
+- `src/components/common/icons/ui.jsx` — new `CheckmarkIcon` (+ `motion`/`SPRING_SNAPPY` imports)
+- migrated (11): CalendarEventDialog, CalendarSettingsView, SelectPickerView, IconPickerView, HeroPickerView,
+  news/iOSSettingsView, TodosSettingsView, ToastSettingsTab, StartScreenSettingsTab, GeneralSettingsTab,
+  AppearanceSettingsTab
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1981 - 2026-06-26
 
 **Title:** ♻️ Adopt shared `Chevron` + `NavbarBackIcon` (de-duplicate 103 inline SVGs)
