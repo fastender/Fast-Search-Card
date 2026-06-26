@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1980 - 2026-06-26
+
+**Title:** ♻️ Adopt the shared `CloseX` icon (de-duplicate inline close buttons)
+
+### What
+
+Ninth cleanup pass (no visual change). The `CloseX` icon component has lived in `common/icons/ui.jsx` since the v1972
+icon consolidation as a deliberate migration target; this is the promised follow-up. Replaced 7 hand-inlined close-/
+clear-X SVGs (all byte-identical to `CloseX` — same `M6 6L18 18M18 6L6 18` path, viewBox, `currentColor`, round caps)
+with `<CloseX size=… strokeWidth=… />`.
+
+### How
+
+Migrated 7 sites: VersionsList, TippsList, CalendarView, AllSchedulesView, NewsView, SettingsSectionInfo (size 13 /
+strokeWidth 2.5), MusicAssistantPanel. Each passes `size`/`strokeWidth` to match the original exactly, so the rendered
+icon is unchanged. Left `Icons.jsx` `ClearIcon` untouched — it's built from `<line>` elements with a hardcoded
+`rgba(255,255,255,0.7)` stroke (not `currentColor`), so it isn't equivalent.
+
+(Two of the agent-computed relative import paths were one level too deep and were corrected — the build caught it
+immediately, which is exactly the source-of-truth check for these source-only refactors.)
+
+### Files
+
+- `src/system-entities/entities/versionsverlauf/components/VersionsList.jsx`,
+  `src/system-entities/entities/tipps/components/TippsList.jsx`,
+  `src/system-entities/entities/calendar/CalendarView.jsx`,
+  `src/system-entities/entities/all-schedules/AllSchedulesView.jsx`,
+  `src/system-entities/entities/news/NewsView.jsx`,
+  `src/components/tabs/SettingsTab/components/SettingsSectionInfo.jsx`,
+  `src/components/controls/MusicAssistantPanel.jsx` — inline close-X → `CloseX`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1979 - 2026-06-26
 
 **Title:** ♻️ Shared `getAreaName` + central spring transitions
