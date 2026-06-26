@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1981 - 2026-06-26
+
+**Title:** ♻️ Adopt shared `Chevron` + `NavbarBackIcon` (de-duplicate 103 inline SVGs)
+
+### What
+
+Tenth cleanup pass (no visual change), completing the H1 icon consolidation. The iOS row-chevron (`>`) and the navbar
+back-arrow (`‹`) were inlined as identical SVGs all over the settings/dialog views. Every single copy was byte-identical
+(verified: all 50 chevrons opened with the exact same `<svg className="ios-chevron" width="7" height="12" …>` tag, all
+53 back-arrows with `<svg width="11" height="18" viewBox="0 0 11 18" …>`), so swapping them for the existing `Chevron`
+/ `NavbarBackIcon` components renders pixel-identically.
+
+### How
+
+Replaced 50 inline chevrons → `<Chevron />` and 53 inline back-arrows → `<NavbarBackIcon />` across 20 files (~800 LOC
+of inline SVG removed). Left the one non-canonical case: the `StatsBarSettingsTab` redetect-sensors spinner, which is a
+`<motion.svg>` with a rotation animation and a different viewBox.
+
+### Files
+
+20 files migrated: all `SettingsTab/components/*` (About, Appearance, General, StatsBar, StartScreen, SidebarItems,
+Toast), `tabs/ScheduleTab`, calendar (CalendarEventDialog, CalendarSettingsView), todos (TodoFormDialog,
+TodosSettingsView), news/iOSSettingsView, versionsverlauf/VersionDetail, tipps/TippDetail, integration/ManagementView,
+and the EnergyDashboard views (SettingsHome, SensorsConfig, SensorSelection, CircularOverview). Plus version bump in
+AboutSettingsTab.
+
 ## Version 1.1.1980 - 2026-06-26
 
 **Title:** ♻️ Adopt the shared `CloseX` icon (de-duplicate inline close buttons)
