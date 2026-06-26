@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.1984 - 2026-06-26
+
+**Title:** ♻️ `SettingsScrollView` — adopt on the Privacy tab
+
+### What
+
+Second step of the settings-shell consolidation. `PrivacySettingsTab` is the other top-level tab whose shell is the
+exact same shape as About (plain container → hover wrapper → padded scroll-div → CustomScrollbar, single view, no
+navbar), so it adopts `<SettingsScrollView>` too.
+
+### How
+
+`PrivacySettingsTab` now returns `<SettingsScrollView>…</SettingsScrollView>` and dropped its local `scrollRef`/
+`isHovered`/`useScrollFade`/`CustomScrollbar` plumbing (`useState` stays — used for other state).
+
+Note on scope: measuring the rollout surface showed the "settings shell" is NOT uniform — the **top-level tabs**
+(About, Privacy) use `plain container + motion/hover wrapper, no navbar`, while the **sub-pages** (Toast, StatsBar, …)
+use a `motion slide-in container + plain wrapper + an ios-navbar back header`, and several tabs are AnimatePresence
+sub-view pagers or use callback-refs. `SettingsScrollView` cleanly fits the first shape (now About + Privacy); the
+other shapes would need a different/extended component, so they keep their own shell for now.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/PrivacySettingsTab.jsx` — adopt the shell
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1983 - 2026-06-26
 
 **Title:** ♻️ `SettingsScrollView` shell — pilot on the About tab
