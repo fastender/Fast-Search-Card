@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2005 - 2026-06-27
+
+**Title:** 🎚️ media_player circular slider — title + artist centered, value (time / volume) shown as a number, sturdier swipe
+
+### What
+
+Reworked the media_player detail circular slider (kept the circular design, no Apple redesign): the center now shows the
+track title and artist, with the live value as a plain number — `0:48 / 2:41` on the position slide, `75 %` on the volume
+slide — instead of an uppercase POSITION / VOLUME label. The power toggle stays, both slides and the 5-second
+auto-rotation stay, and touch-swipe between the two slides is more reliable.
+
+### How
+
+- `CircularSliderDisplay` gained an optional `valueLine` prop, rendered as a centered tabular number between the artist
+  and the (now optional) label; the uppercase label only renders when set.
+- `getSliderConfig` media_player: both slides drop the label, set `subValue` to the artist, and pass the time/volume
+  string as `valueLine`. Removed the now-dead `coverUrl` computation.
+- Swipe hardened: 45px threshold, mostly-horizontal guard (`|dx| > |dy|`) so vertical scrolling no longer flips the
+  slide, 600ms window.
+
+### Note
+
+Other domains (light, climate, energy, …) are untouched — `valueLine` defaults to null, so their circular slider renders
+exactly as before. Favorite heart in the control row follows in the next release.
+
+### Files
+
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/controls/CircularSlider.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2004 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — album art now loads on HTTPS (entity_picture_local) so the Apple-Music "Now Playing" cover shows + last mixed-content sources fixed
