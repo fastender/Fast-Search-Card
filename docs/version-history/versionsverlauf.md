@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2012 - 2026-06-27
+
+**Title:** 🎚️ Circular slider — only the handle changes the value (ring no longer hijacks volume/time), tighter title/artist
+
+### What
+
+Two fixes on the circular slider. Clicking or dragging anywhere inside the ring used to change the value (volume/time)
+and showed a grab cursor over the whole circle — so you couldn't swipe inside the ring without nudging the value. Now only
+the handle (the dot) changes the value; the rest of the ring is inert, so a click/swipe there does nothing to the value
+(and on touch passes through to the slide swipe). Also, on the media_player ring the title and artist sat too far apart.
+
+### How
+
+- The drag handlers moved off the whole `<svg>` (now `pointer-events: none`, default cursor) onto the handle, which got
+  a larger invisible hit circle (`r = RADIUS × 0.24`) so it's still easy to grab. The visible handle is purely cosmetic
+  (`pointer-events: none`). Background ring and arc inherit `none`, so events pass through to the container.
+- `CircularSliderDisplay` column gap goes to `0` when `titleScale < 1` (media_player) so title and artist sit tight;
+  other domains keep the normal 4/6px gap.
+
+### Files
+
+- `src/components/controls/CircularSlider.jsx`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2011 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — playlist/album tracks load via browse_media (the non-existent get_*_tracks service was the bug)
