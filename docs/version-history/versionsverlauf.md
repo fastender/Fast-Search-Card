@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2003 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — favorite heart now reflects the real status (read from the queue) + diagnostics removed
+
+### What
+
+The favorite status *is* readable after all: Music Assistant exposes `current_item.media_item.favorite` in the queue
+data. So instead of only mirroring the user's last tap, the heart now shows the real favorite state — including a track
+that was already favorited before — and updates live.
+
+### How
+
+- `loadQueue` extracts `current_item.media_item.favorite` (boolean, or `null` when MA doesn't provide it) into a new
+  `currentFavorite` state, passed down to the now-playing heart.
+- Heart fill = `justFavorited || currentFavorite === true`: real status when known, plus an optimistic fill on tap so it
+  reacts instantly before the queue refresh confirms. Falls back to the tap-only behaviour when MA gives no status.
+- Dropped the queue effect's tab gate so the status loads even on the now-playing view (the heart is always visible);
+  removed `tab` from its deps to avoid re-subscribing on every tab switch.
+- Removed all `[MA DIAG]` console diagnostics (their job is done — favorite button match + queue shape confirmed).
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/controls/ma/components.jsx`
+- `src/utils/musicAssistant.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2002 - 2026-06-27
 
 **Title:** 🔍 Music Assistant — diagnostic: is the current-song favorite status readable?
