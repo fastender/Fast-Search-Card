@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.2004 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — album art now loads on HTTPS (entity_picture_local) so the Apple-Music "Now Playing" cover shows + last mixed-content sources fixed
+
+### What
+
+On an HTTPS dashboard the album art never appeared: Music Assistant serves covers as an absolute `http://<ip>:8095/...`
+URL, which the browser blocks (mixed content), so the Apple-Music-style "Now Playing" card (already built in v1.1.1407)
+never rendered — it only shows when a usable cover exists. Two smaller image sources (the browse provider-logo preload
+and the circular-slider cover) also still logged mixed-content warnings.
+
+### How
+
+- Cover selection now prefers Home Assistant's `entity_picture_local` attribute — the **relative** `/api/media_player_proxy/…`
+  proxy that HA generates for remotely-accessible artwork. Being relative it resolves to the HTTPS origin and loads, so the
+  album cover (and with it the big blurred-backdrop + sharp-square Now-Playing card) finally appears. Falls back to
+  `entity_picture` / `media_image_url` and, if those are http-blocked, to the video/icon as before. Applied in DetailView
+  and the Music Assistant now-playing mini.
+- Browse cover preload and the circular-slider cover now go through `safeMediaUrl`, so absolute http URLs are no longer
+  fetched on HTTPS pages (clears the remaining `path=logo.png` provider-logo mixed-content warning).
+
+### Note
+
+If a player has no `entity_picture_local` (no HA proxy for its art), the cover still can't be shown on HTTPS — that needs
+Music Assistant reachable over HTTPS (reverse proxy / base URL). The card simply falls back to the icon instead of erroring.
+
+### Files
+
+- `src/components/DetailView.jsx`
+- `src/components/controls/ma/components.jsx`
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2003 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — favorite heart now reflects the real status (read from the queue) + diagnostics removed
