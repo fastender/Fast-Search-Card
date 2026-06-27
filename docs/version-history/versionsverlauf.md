@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1998 - 2026-06-27
+
+**Title:** 🩹 Hotfix — Music Assistant queue crash (`i.map is not a function`) + nested-queue parsing
+
+### What
+
+v1.1.1997's queue diagnostic added `data.queue` as an items fallback — but on this user's MA version `data.queue` is an
+**object** (the queue, with `items` inside it), not an array, so `items.map(...)` threw
+`TypeError: i.map is not a function` (uncaught, repeating). Fixed the crash and, in the process, the likely cause of the
+empty queue: the items are nested under `data.queue`.
+
+### How
+
+`loadQueue` now collects item candidates from both flat (`data.items` / `data.queue_items`) and nested
+(`data.queue.items` / `data.queue.queue_items`) shapes, and **only accepts an array** (`candidates.find(Array.isArray)`),
+so a non-array queue object can never reach `.map`. `current` is read from the nested queue too. The `[MA DIAG]` log now
+also prints `data.queue`'s keys, so the exact item path is visible if it's still elsewhere.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1997 - 2026-06-27
 
 **Title:** 🔍 Music Assistant — visible diagnostics for empty Up Next + missing favorite
