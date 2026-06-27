@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2014 - 2026-06-27
+
+**Title:** 🧹 Music Assistant — removed the browse_media diagnostic log
+
+### What
+
+The one-time `[MA DIAG] browse_media …` console line did its job (confirmed browse_media returns the playlist tracks and
+that only 6 MA services exist) and is removed.
+
+### How
+
+- Dropped the `console.warn` diagnostic and its `_browseTracksDiagLogged` flag from `getMusicAssistantItemTracks`.
+
+### Files
+
+- `src/utils/musicAssistant.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2013 - 2026-06-27
 
 **Title:** 🎵 Music Assistant panel — Radio/Announce as text tabs, faded tab strip edges, even now-playing padding
