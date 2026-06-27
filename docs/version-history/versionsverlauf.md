@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.1993 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — radio-mode toggle
+
+### What
+
+Gap #2: Music Assistant can start an endless **radio** based on a track/album/artist (`play_media` with
+`radio_mode: true`), but there was no way to trigger it from the card. Added a radio toggle in the panel header.
+
+### How
+
+A radio-waves toggle sits next to the announcement button. When on, the **Play** action (only `replace`, only for
+`track`/`album`/`artist` — radio mode doesn't apply to playlists/radio) passes `radio_mode: true`, so MA plays the item
+and then continues with similar tracks; feedback reads "Radio started". Wired through all three play paths
+(search results, browse direct-play, browse-detail play-all). The toggle is session-only.
+
+Note: radio mode only works with music providers that support it (Spotify/Apple Music/etc.) — for others MA just plays
+normally.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`, `src/components/controls/ma/icons.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1992 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — favorite the current song (heart button)
