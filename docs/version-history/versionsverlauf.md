@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.1996 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — library "load more" (pagination)
+
+### What
+
+Gap #4 (last of the set): the library tab loaded a fixed 12 items per category with no way to see more. Added a
+"Load more" button.
+
+### How
+
+The per-category `limit` is now state (`browseLimit`, starts at 12, +12 per page up to 96). A full-width "Load more"
+button appears under the library sections whenever any category came back full (so there are probably more items);
+tapping it re-fetches all categories with the higher limit. Hidden once a category is no longer full or the cap is
+reached.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`, `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1995 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — clear-queue button
