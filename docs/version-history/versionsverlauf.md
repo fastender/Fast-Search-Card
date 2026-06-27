@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2020 - 2026-06-28
+
+**Title:** 🎚️ Circular slider — artist scrolls + fades like the title, and the 5s auto-slide pauses while you adjust
+
+### What
+
+Two improvements. A long artist name (e.g. "Nils Hoffmann/Hayden Calnin") used to spill past the ring; it now marquee-
+scrolls with the same left/right fade mask as the title. And the media_player's 5-second auto-slide no longer switches
+slides while you're dragging the ring (volume/position).
+
+### How
+
+- Extracted the title's marquee logic into a reusable `useMarquee` hook and applied it to both the title and the artist
+  (subValue), so they scroll identically. The artist gets the same max-width clamp, edge mask, and non-scrolling tight
+  line-height.
+- `CircularSlider` now reports drag start/end via a new `onDragStateChange` callback; `UniversalControlsTab` pauses the
+  auto-slide (`mpPaused`) while dragging and resumes ~3s after release.
+
+### Files
+
+- `src/hooks/useMarquee.js` (new)
+- `src/components/controls/CircularSlider.jsx`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2019 - 2026-06-28
 
 **Title:** 🎚️ media_player circular — more breathing room between the ring and the control buttons
