@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2006 - 2026-06-27
+
+**Title:** ❤️ media_player — favorite heart added to the control row (Music Assistant)
+
+### What
+
+The Music Assistant favorite was only reachable inside the expanded MA panel. It's now a heart button at the left of the
+media_player control row, so favoriting the current track is one tap from the detail view.
+
+### How
+
+- The control row injects a favorite button when the player has a Music Assistant favorite-button entity
+  (`getMusicAssistantFavoriteButton`). Tapping it presses that button (cross-domain `button.press`) via a dedicated
+  `__ma_favorite__` path in the controls service handler — the row is otherwise locked to the media_player domain.
+- Optimistic fill: the heart turns red (filled icon) on tap and resets when the track changes. The real live favorite
+  status continues to live on the MA panel's now-playing heart (v1.1.2003).
+- Added `favorite` / `favorite_filled` heart icons to the shared control icon set.
+
+### Files
+
+- `src/utils/icons.js`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2005 - 2026-06-27
 
 **Title:** 🎚️ media_player circular slider — title + artist centered, value (time / volume) shown as a number, sturdier swipe
