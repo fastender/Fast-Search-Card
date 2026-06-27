@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2010 - 2026-06-27
+
+**Title:** 🎚️ Music Assistant tab strip — even top padding, scroll arrows realigned
+
+### What
+
+Small polish on the Music Assistant panel's tab strip (Search / Library / Queue / Up Next …): more even top padding and
+the scroll arrows nudged up so they line up with the tab buttons.
+
+### How
+
+- `.ma-tabs` padding `2px 8px 10px 8px` → `8px 8px 10px` (top 2px → 8px).
+- `.ma-tabs-arrow` `top: calc(50% - 5px)` → `calc(50% - 14px)` to stay centered on the taller strip.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2009 - 2026-06-27
 
 **Title:** 🎚️ media_player circular — favorite removed, idle ring dimmed like a light, dots on a dark pill (active only)
