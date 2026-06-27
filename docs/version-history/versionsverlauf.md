@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2007 - 2026-06-27
+
+**Title:** 🎚️ media_player circular — smaller title, power toggle → volume/time switch tab, value mirrors the tab
+
+### What
+
+Three tweaks to the media_player circular slider: the track title is 20% smaller (long titles fit better), the power
+toggle is replaced by a two-icon tab (volume / time) that switches the slide, and the value number (volume % / time) now
+sits the same distance from the bottom of the ring as the tab sits from the top — vertically symmetric.
+
+### How
+
+- `CircularSliderDisplay` got a `titleScale` prop (media_player passes `0.8`); the value/title font is computed from base
+  sizes × scale, so other domains (scale 1) are unchanged.
+- New `slideTab` prop on `CircularSlider` renders a pill with two icon buttons (`mp_volume` / `mp_time`, new currentColor
+  icons) at the exact power-toggle position (60px desktop / 38px mobile above center). Tapping switches the slide via
+  `goToMpSlide`. media_player sets `showPower: false`, so the power toggle gives way to the tab.
+- The value line moved out of the centered text stack into an absolutely-positioned element mirrored below center (same
+  60/38px offset), so its distance to the ring edge matches the tab's. Title + artist stay centered between them.
+
+### Files
+
+- `src/utils/icons.js`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/controls/CircularSlider.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2006 - 2026-06-27
 
 **Title:** ❤️ media_player — favorite heart added to the control row (Music Assistant)
