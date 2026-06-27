@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1990 - 2026-06-26
+
+**Title:** ⚡ Perf 6/n — rAF-coalesce the shared CustomScrollbar (smoother scrolling)
+
+### What
+
+`CustomScrollbar` is the single hottest shared component (78 instances across 37 files). Its `updateScrollbar` ran on
+**every** trigger with no batching — the scroll listener (fires >60×/s), a `ResizeObserver`, and a deep
+`childList+subtree+characterData` `MutationObserver` (re-fires on any descendant text change, e.g. News/Todos polling) —
+and each run does layout reads (`getComputedStyle`/`checkVisibility`/`scrollHeight`) plus up to four `setState`s. Batched
+it into one update per frame.
+
+### How
+
+All four triggers now go through a `scheduleUpdate()` that coalesces into a single `requestAnimationFrame` (guarded so
+overlapping triggers in the same frame collapse to one run); the rAF is cancelled on cleanup. The initial paint + delay
+probes still run synchronously for correct first-render sizing. The scroll listener is now `{ passive: true }`. Pure
+batching — the scrollbar logic/appearance is unchanged.
+
+⚠️ Behavioral (scroll) — build-verified, but worth a quick **scroll smoke-test**: in any scrollable panel (News, Todos,
+Settings) the thumb should still appear on scroll/hover and track position correctly.
+
+### Files
+
+- `src/components/CustomScrollbar.jsx` — rAF-coalesced updates + passive scroll listener
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1989 - 2026-06-26
 
 **Title:** ⚡ Perf 5/n — composite-only progress bars + passive scroll listeners
