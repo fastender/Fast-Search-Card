@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2016 - 2026-06-27
+
+**Title:** 🎚️ Circular slider — smooth time scrubbing (seek on release, no live-value fight) + MA now-playing margin
+
+### What
+
+Scrubbing the position on the media_player ring stuttered: every drag movement fired a `media_seek`, and the live position
+re-synced onto the handle every second — both fighting the drag. Now the seek fires once when you let go, and the live
+value no longer overrides the handle mid-drag, so scrubbing is smooth.
+
+### How
+
+- `useCircularDrag` gained `commitOnEnd` (media_player position sets it): during the drag it only updates the visual and
+  remembers the last value; the `onValueChange` (the `media_seek`) fires once on release. Volume and other domains keep
+  their live behaviour.
+- A shared `isDraggingRef` lets `useSliderAnimation` skip syncing the external value while a drag is in progress, so the
+  1-second position tick can't snap the handle back.
+- `.ma-now-playing` margin `0 8px 10px` → `8px 8px 10px`.
+
+### Files
+
+- `src/hooks/useCircularDrag.js`
+- `src/hooks/useSliderAnimation.js`
+- `src/components/controls/CircularSlider.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2015 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — multi-level browsing (artist → albums → tracks, podcast → episodes, audiobook → chapters)
