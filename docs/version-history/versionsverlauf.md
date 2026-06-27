@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2000 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — favorite finally works (DE button) + queue shows current/next + detail cover mixed-content
+
+### What
+
+Console diagnostics pinpointed all three. The favorite heart never appeared because the MA favorite button entity is
+named in German (`button.bad_aktuellen_titel_favorisieren`) — "favori**sieren**" doesn't contain "favori**t**", so the
+`/favorit/` match missed it. The queue/Up Next was empty because `get_queue` returns `items` as a **count** (139), not
+the array. And the detail-view cover still triggered mixed-content because it's rendered there, not only in the MA panel.
+
+### How
+
+- **Favorite:** broadened the button-entity match `/favorit/` → `/favori/` (covers `favorite`/`Favorit`/`favoriten`/
+  `favorisieren`/`favori`(FR)). The heart now resolves the German button and presses it.
+- **Queue:** `get_queue` doesn't return the full list (only `items` count + `current_item` + `next_item` — the full
+  queue lives behind MA's own WS API). The card now builds a mini-queue from `current_item` + `next_item`, so Queue shows
+  current + next and **Up Next shows the next track** instead of "Nothing playing". The header shows the real total with
+  a "current + next only" note.
+- **Detail cover:** `DetailView` now builds the media_player cover-art background via `pickCover`, so an absolute `http://`
+  cover on an HTTPS dashboard is dropped (falls back to the video/icon) instead of a blocked image + console error.
+
+### Files
+
+- `src/utils/musicAssistant.js`, `src/components/controls/MusicAssistantPanel.jsx`, `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1999 - 2026-06-27
 
 **Title:** 🩹 Detail-video device_class 404 noise + Music Assistant cover mixed-content + sharper queue/favorite diag
