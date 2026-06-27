@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.1999 - 2026-06-27
+
+**Title:** 🩹 Detail-video device_class 404 noise + Music Assistant cover mixed-content + sharper queue/favorite diag
+
+### What
+
+Three fixes from a user's console: a detail-video 404 probe, blocked Music-Assistant cover images, and clearer
+diagnostics for the still-open queue/favorite parsing.
+
+### How
+
+- **Video filenames:** the card probed `{domain}_{device_class}_{state}.mp4` for every domain — for `media_player` that
+  meant `media_player_speaker_on.mp4` (device_class `speaker`), a guaranteed 404 before falling back to the correct
+  `media_player_on.mp4`. The device_class video layer is documented (media/README) only for sensors/covers, so it's now
+  gated to `sensor`/`binary_sensor`/`cover`. Other domains use `{domain}_{state}.mp4` directly — no more phantom 404.
+- **Cover mixed-content:** MA often serves covers over an absolute `http://…:8095/imageproxy` URL; on an HTTPS dashboard
+  the browser blocks it (console errors + broken image). New `utils/mediaUrl.js` (`safeMediaUrl`/`pickCover`): relative
+  URLs get the HTTPS origin, and absolute `http://` URLs on an HTTPS page are dropped to the letter-gradient fallback.
+  Applied centrally in `CoverArt` (all MA panel covers) and `NowPlayingMini` (now prefers the HTTPS-safe `entity_picture`
+  over the raw `media_image_url`). The real album art needs MA to serve the image over HTTPS (a reverse-proxy / MA base
+  URL setting) — the card just stops erroring.
+- **Diagnostics:** the `[MA DIAG]` lines now print the queue object's keys, `data.items` type/value, and
+  `current_item`/`next_item` presence as plain strings, plus the favorite button entity_id — so the exact item path /
+  favorite-button name is visible.
+
+### Files
+
+- `src/utils/videoHelpers.js`, new `src/utils/mediaUrl.js`, `src/components/controls/ma/icons.jsx`,
+  `src/components/controls/ma/components.jsx`, `src/components/controls/MusicAssistantPanel.jsx`,
+  `src/utils/musicAssistant.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1998 - 2026-06-27
 
 **Title:** 🩹 Hotfix — Music Assistant queue crash (`i.map is not a function`) + nested-queue parsing
