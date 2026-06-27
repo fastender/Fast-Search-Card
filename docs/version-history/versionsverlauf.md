@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2013 - 2026-06-27
+
+**Title:** 🎵 Music Assistant panel — Radio/Announce as text tabs, faded tab strip edges, even now-playing padding
+
+### What
+
+Polish on the Music Assistant panel. The Radio-mode and Announce controls in the tab strip were icon buttons; they're now
+text tabs ("Radio" / "Ansage") consistent with Search / Library / Queue / Up Next. The tab strip gets a soft left/right
+fade mask, and the now-playing bar's padding is evened out.
+
+### How
+
+- The Radio and Announce buttons now use the `ma-tab` class with text labels (active = highlighted, like the other tabs);
+  removed the now-unused `RadioIcon` / `MegaphoneIcon` imports.
+- `.ma-tabs` gets a `mask-image` / `-webkit-mask-image` linear-gradient fade on both edges (18px).
+- `.ma-now-playing` padding `8px 10px` → `8px 8px 10px`.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2012 - 2026-06-27
 
 **Title:** 🎚️ Circular slider — only the handle changes the value (ring no longer hijacks volume/time), tighter title/artist
