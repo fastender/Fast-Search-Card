@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.1992 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — favorite the current song (heart button)
+
+### What
+
+Music Assistant gap #1: there was no way to favorite/like the playing track from the card. Music Assistant doesn't
+expose a favorite *service* — instead its integration creates a per-player **button entity** ("favorite current song").
+Added a heart button to the now-playing header that presses it.
+
+### How
+
+- `utils/musicAssistant.js` — `getMusicAssistantFavoriteButton(hass, mediaPlayerId)` finds a `button.*` entity on the
+  **same device** as the player whose entity_id contains `favorit` (the integration's `favorite_current_song` button);
+  `favoriteCurrentSong()` does `button.press`.
+- `ma/components.jsx` (`NowPlayingMini`) — a heart button appears next to play/transfer **only when that button entity
+  exists** (defensive, like the transfer/announce gating). Tapping it favorites the current song with a red-heart pop
+  animation + a feedback toast.
+- New `HeartIcon`; `.ma-np-btn-fav` styling.
+
+⚠️ Build-verified. The heart only shows if your Music Assistant exposes the favorite-current-song button on the player's
+device — please confirm it appears while a track plays, and that tapping it adds the song to your MA favorites.
+
+### Files
+
+- `src/utils/musicAssistant.js`, `src/components/controls/ma/components.jsx`, `src/components/controls/ma/icons.jsx`,
+  `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1991 - 2026-06-26
 
 **Title:** ⚡ Perf 7/n — will-change hygiene (free idle GPU layers, no visual change)
