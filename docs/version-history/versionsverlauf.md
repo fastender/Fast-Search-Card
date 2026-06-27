@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2018 - 2026-06-28
+
+**Title:** 🎵 media_player device card — highlighted (bright) when playing, like lights/climate
+
+### What
+
+A media_player card in the grid stayed dark even while playing. Active devices (lights on, climate heating/cooling) show
+a bright/highlighted card; a media_player that's playing now does too.
+
+### How
+
+- `DeviceCard`'s `isActive` had no media_player branch, so a `playing` player fell through to `isEntityActive`, which
+  returns false for it. Added a branch: media_player counts as active when `playing` / `paused` / `buffering` / `on`
+  (idle / off / standby / unavailable stay dark).
+
+### Files
+
+- `src/components/DeviceCard.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2017 - 2026-06-27
 
 **Title:** 🎚️ media_player circular — tighter title/artist (non-scrolling), 20% bigger ring on mobile
