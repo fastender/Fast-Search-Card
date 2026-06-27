@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2021 - 2026-06-28
+
+**Title:** 🎵 media_player — less button gap, and no "Idle" flicker between tracks
+
+### What
+
+Two fixes. The space added between the ring and the control buttons in v1.1.2019 was too much, so it's reduced (which
+also shrinks the leftover gap when the Music Assistant panel slides up). And pressing Next/Previous briefly flashed the
+gray "Idle" ring between tracks — now the transition stays on the playing view.
+
+### How
+
+- `.device-control-buttons` margin for media_player: 40/56px → 28/40px (desktop/mobile).
+- New `isMediaPlayerActive(state, attributes)` helper treats `playing` / `paused` / `buffering` / `on` as active, plus a
+  brief `idle` / `unknown` **with a loaded title** (`media_title` / `media_content_id`) — the track-change transition — so
+  it no longer drops to the Idle view. Genuine idle (no title) still greys out. Used by the slider config, the detail
+  cover, and the device card.
+
+### Files
+
+- `src/utils/deviceHelpers.js`
+- `src/utils/deviceConfigs.js`
+- `src/components/DetailView.jsx`
+- `src/components/DeviceCard.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2020 - 2026-06-28
 
 **Title:** 🎚️ Circular slider — artist scrolls + fades like the title, and the 5s auto-slide pauses while you adjust
