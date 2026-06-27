@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2001 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — favorite heart stays filled (no longer reverts after a few seconds)
+
+### What
+
+After favoriting a song the heart filled red, then reverted to empty after ~1.4 s — which looked like the favorite was
+being undone (it isn't; Music Assistant keeps it).
+
+### How
+
+Removed the 1.4 s reset timeout. The heart now stays filled for the current track and only resets when the track
+changes (`media_title`/`media_content_id` change). The favorited state itself isn't queryable — the MA favorite button
+is a momentary press with no readable on/off state — so the heart reflects the user's action for the current track,
+not a live favorite status.
+
+### Files
+
+- `src/components/controls/ma/components.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2000 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — favorite finally works (DE button) + queue shows current/next + detail cover mixed-content
