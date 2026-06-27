@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.1995 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — clear-queue button
+
+### What
+
+Queue function: the Queue tab was read-only on Music Assistant versions without `queue_command` (no per-item skip/
+remove). Added a **Clear queue** action that works regardless, plus a queue-count header.
+
+### How
+
+New `clearMusicAssistantQueue` helper prefers the standard `media_player.clear_playlist` (broadly available, even where
+MA's `queue_command` isn't) and falls back to MA's `queue_command: clear`. The Queue tab now shows a header with the
+track count and a "Clear" button when the queue is non-empty; clearing refreshes the queue. (Per-item skip/remove
+remain gated on `queue_command` as before — they appear automatically if your MA version exposes it.)
+
+### Files
+
+- `src/utils/musicAssistant.js`, `src/components/controls/MusicAssistantPanel.jsx`,
+  `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1994 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — group / sync players (multi-room)
