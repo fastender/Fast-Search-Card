@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2015 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — multi-level browsing (artist → albums → tracks, podcast → episodes, audiobook → chapters)
+
+### What
+
+The library drill-down is now multi-level. Tapping an artist shows their albums; tapping an album opens its tracks;
+podcasts open their episodes and audiobooks their chapters — with a back button that steps up one level at a time. This
+is everything the Home Assistant media browser exposes for an item (the richer native sections — similar artists, top
+tracks, provider details, images — come only from the Music Assistant server's own API and aren't reachable from a card).
+
+### How
+
+- `normalizeBrowseChild` now carries `canExpand` / `canPlay`. In the detail list, an expandable item (album/artist/
+  podcast/audiobook) is tappable to drill in (chevron hint) while its play/next/add buttons still act on the whole item;
+  tracks/episodes just play.
+- `MusicAssistantPanel` keeps a `browseStack`: `drillInto` pushes the current level and loads the next via
+  `browse_media`; the back button pops one level (showing the parent's name) or returns to the library at the root.
+
+### Files
+
+- `src/utils/musicAssistant.js`
+- `src/components/controls/ma/components.jsx`
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2014 - 2026-06-27
 
 **Title:** 🧹 Music Assistant — removed the browse_media diagnostic log
