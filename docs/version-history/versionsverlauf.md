@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1991 - 2026-06-26
+
+**Title:** ⚡ Perf 7/n — will-change hygiene (free idle GPU layers, no visual change)
+
+### What
+
+Trimmed `will-change` hints that named **non-composited** properties — those force the browser to permanently reserve
+a GPU layer/buffer for something that can never benefit from one. Zero visual change.
+
+### How
+
+- `.bento-rich-slider-page` (stacked slideshow pages on the start screen): dropped `filter` from
+  `will-change: transform, opacity, filter` — the cross-fade only animates transform + opacity, so `filter` just held an
+  idle filter buffer per page.
+- `.control-button` + `.preset-button`: dropped `background-color` from `will-change: transform, background-color` —
+  `background-color` isn't a composited property, so the hint did nothing useful (one wasted reservation per button).
+- Removed the dead `@keyframes toast-pulse` (zero references).
+
+### Files
+
+- `src/components/BentoStartView.css`, `src/components/tabs/UniversalControlsTab.css`, `src/styles/toast.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1990 - 2026-06-26
 
 **Title:** ⚡ Perf 6/n — rAF-coalesce the shared CustomScrollbar (smoother scrolling)
