@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2019 - 2026-06-28
+
+**Title:** 🎚️ media_player circular — more breathing room between the ring and the control buttons
+
+### What
+
+After the mobile ring was enlarged 20%, the control buttons (Previous, Pause, …) sat too close to the ring (the bigger
+ring overflows the fixed-height slider wrapper). The buttons now have more space below the ring.
+
+### How
+
+- The controls tab gets an `is-media-player` class. CSS bumps `.device-control-buttons` `margin-top` for media_player to
+  40px (desktop) / 56px (mobile, where the enlarged ring overflows the smaller wrapper more). Other domains keep the
+  default 20px.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2018 - 2026-06-28
 
 **Title:** 🎵 media_player device card — highlighted (bright) when playing, like lights/climate
