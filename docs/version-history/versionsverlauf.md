@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.1997 - 2026-06-27
+
+**Title:** 🔍 Music Assistant — visible diagnostics for empty Up Next + missing favorite
+
+### What
+
+Two MA features didn't appear for a user whose Music Assistant clearly has the data (a 129-item queue, a native favorite
+heart): the Up Next/Queue tab showed "Nothing playing", and the favorite heart never rendered. The existing queue
+diagnostic used `logger.debug`, which is stripped from the production build — so the real response shape was never
+visible. Switched both to `console.warn` (survives the build) and added a favorite-button diagnostic.
+
+### How
+
+- `loadQueue` now `console.warn`s the raw `get_queue` response, its top-level + unwrapped keys, and the extracted item
+  count (one-time). Also added `data.queue` as a third items fallback.
+- `getMusicAssistantFavoriteButton` `console.warn`s (one-time) whether `hass.entities` is present, the player's
+  `device_id`, the button entities on that device, any `favorite` button in HA, and the match — plus a fallback match
+  when device mapping is unavailable.
+
+This is an instrumentation release: please reload, open the MA panel with a track playing (Queue/Up Next tab), open the
+browser console, and report the `[MA DIAG]` lines so the parsing/detection can be fixed precisely.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`, `src/utils/musicAssistant.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1996 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — library "load more" (pagination)
