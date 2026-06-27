@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.1994 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — group / sync players (multi-room)
+
+### What
+
+Gap #3: the now-playing header could **transfer** the queue to another player (move), but not **group** players to play
+in sync (multi-room). Added a grouping picker next to the transfer button.
+
+### How
+
+Music Assistant has no own group service — grouping uses the standard `media_player.join` / `media_player.unjoin`. New
+helpers `isGroupingSupported` (checks the `GROUPING` supported-feature bit), `getGroupMembers` (reads
+`attributes.group_members`), `joinPlayers`, `unjoinPlayer`. A chain-link button opens a list of the other MA players;
+each row toggles join/unjoin and shows a green check when it's in the group. The button appears only when the player
+reports the grouping feature and other MA players exist. Transfer and group popups are mutually exclusive.
+
+### Files
+
+- `src/utils/musicAssistant.js`, `src/components/controls/ma/components.jsx`, `src/components/controls/ma/icons.jsx`,
+  `src/components/controls/MusicAssistantPanel.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.1993 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — radio-mode toggle
