@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2017 - 2026-06-27
+
+**Title:** 🎚️ media_player circular — tighter title/artist (non-scrolling), 20% bigger ring on mobile
+
+### What
+
+On non-desktop the title and artist still had a visible gap, and the user wants the media_player ring 20% larger there.
+The gap came from the title's 1.2 line-height (needed only while the marquee scrolls); a non-scrolling title now sits
+tight above the artist. The mobile ring is 20% bigger (a trial — to be rolled out to the other circulars if it lands well).
+
+### How
+
+- The title uses `line-height: 1` + `overflow: visible` when it isn't scrolling (tight, no clipping), switching to
+  `1.2` + `overflow: hidden` only while the marquee runs (descender room).
+- New `sizeScale` prop on `CircularSlider` scales only the mobile responsive size (`<220` → ×scale; desktop unchanged).
+  The media_player slides pass `sizeScale: 1.2`, so the mobile ring goes 160 → 192px.
+
+### Files
+
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/controls/CircularSlider.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2016 - 2026-06-27
 
 **Title:** 🎚️ Circular slider — smooth time scrubbing (seek on release, no live-value fight) + MA now-playing margin
