@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2009 - 2026-06-27
+
+**Title:** 🎚️ media_player circular — favorite removed, idle ring dimmed like a light, dots on a dark pill (active only)
+
+### What
+
+Three adjustments: the Favorite button is removed from the control row; when the player is idle (or off/standby/
+unavailable) the ring goes inactive like a light that's off — gray, no fill arc, no handle, just the state text; and the
+slide dots get a dark pill background again and only appear while the player is active.
+
+### How
+
+- Removed the control-row Favorite injection and its `__ma_favorite__` cross-domain handler, the favorite-button lookup,
+  the optimistic state, and the now-unused imports / `favorite` icons. (The Music Assistant panel's now-playing heart is
+  unaffected.)
+- `getSliderConfig` media_player returns an inactive config when not playing/paused: `value: 0` + `progressMode: true`
+  (no arc, no handle), gray `#9E9E9E`, the state text centered, `interactive: false` — mirroring how `light` renders when
+  off.
+- The slide dots (`slideDots`) only render when the player is active (`mpIsActive` gate) and sit on a
+  `rgba(0,0,0,0.32)` rounded pill, like the original power-toggle capsule.
+
+### Files
+
+- `src/utils/icons.js`
+- `src/utils/deviceConfigs.js`
+- `src/components/controls/CircularSlider.jsx`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2008 - 2026-06-27
 
 **Title:** 🎚️ media_player circular — top page dots replace the tab, smaller scrolling title with edge fade, value lower
