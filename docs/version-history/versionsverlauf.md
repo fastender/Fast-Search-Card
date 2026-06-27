@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2008 - 2026-06-27
+
+**Title:** 🎚️ media_player circular — top page dots replace the tab, smaller scrolling title with edge fade, value lower
+
+### What
+
+Five-part refinement of the media_player circular slider: the volume/time tab at the top is replaced by generic page
+dots (more universal), the redundant bottom page dots are removed, the title and artist are smaller again, a long title
+now scrolls inside the ring with a soft left/right fade mask, and the value number sits lower.
+
+### How
+
+- New `slideDots` prop on `CircularSlider` (`{ index, count, onSelect }`) renders page dots at the former power-toggle
+  position (top of the ring); the active dot is a wide pill, tapping switches the slide. The previous icon tab and its
+  `mp_volume` / `mp_time` icons are gone, and the bottom `mp-page-dots` block is removed.
+- Title scale 0.8 → 0.64, artist gets a new `subValueScale` of 0.8 (both ~20% smaller than v1.1.2007).
+- The title is clamped to the inner ring width (`size × 0.72`); when the text is wider it marquee-scrolls (existing rAF
+  loop) and a `mask-image` / `-webkit-mask-image` linear-gradient fades both edges. Short titles render sharp, no mask.
+- The value number moved to `size × 0.29` below center (≈⅔ of the radius) — proportional so it sits the same on the
+  280px and 160px rings instead of a fixed offset that would fall outside the small ring.
+
+### Files
+
+- `src/utils/icons.js`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/controls/CircularSlider.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2007 - 2026-06-27
 
 **Title:** 🎚️ media_player circular — smaller title, power toggle → volume/time switch tab, value mirrors the tab
