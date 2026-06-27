@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2011 - 2026-06-27
+
+**Title:** 🎵 Music Assistant — playlist/album tracks load via browse_media (the non-existent get_*_tracks service was the bug)
+
+### What
+
+Opening a playlist/album/artist in the Music Assistant panel always showed "No tracks available" even though it works
+natively. Root cause: the drill-down called `music_assistant.get_playlist_tracks` (and `get_album_tracks` etc.), services
+that don't exist in the MA HA integration (it ships only 6 services), so the call always failed silently. Now the tracks
+load through `media_player/browse_media` — the same standard HA media browser the native UI uses.
+
+### How
+
+- `getMusicAssistantItemTracks` rewritten to call `media_player/browse_media` (entity_id + media_content_id + type) and
+  normalize the returned `children` to track items. The caller now passes `entityId`.
+- Added a one-time `[MA DIAG]` log on first browse: child count + sample keys + the list of available `music_assistant`
+  services — to determine whether a fuller queue is reachable (the Up Next limitation: `get_queue` only returns the
+  current + next item plus a count, not the full list).
+
+### Files
+
+- `src/utils/musicAssistant.js`
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2010 - 2026-06-27
 
 **Title:** 🎚️ Music Assistant tab strip — even top padding, scroll arrows realigned
