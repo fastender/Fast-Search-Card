@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2002 - 2026-06-27
+
+**Title:** 🔍 Music Assistant — diagnostic: is the current-song favorite status readable?
+
+### What
+
+Checking whether the "favorite" claim holds: a `button.*` entity is momentary (no on/off state), but Music Assistant
+media items carry a `favorite` boolean — and the queue's `current_item.media_item` may expose it. If so, the heart could
+reflect the real favorite status (live) instead of just the user's last action.
+
+### How
+
+Added a one-time `[MA DIAG]` log of `current_item`'s keys, its `media_item`'s keys, and any `favorite` field — to find
+the exact path before wiring the heart to the real status.
+
+### Files
+
+- `src/components/controls/MusicAssistantPanel.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2001 - 2026-06-27
 
 **Title:** 🎵 Music Assistant — favorite heart stays filled (no longer reverts after a few seconds)
