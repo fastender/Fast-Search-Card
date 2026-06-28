@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2041 - 2026-06-28
+
+**Title:** 🩹 Sidebar overflow popup — same opaque frost (it went transparent over the detail glass too)
+
+### What
+
+The sidebar three-dots popup also showed through when opened over the detail view — same nested-backdrop-filter issue
+(its `.glass-panel` blur is dead once it sits over the detail-panel's glass). Given the same fix as the media_player
+sheet: an opaque frost background instead of a live blur, so it reliably covers wherever it opens. Without a
+backdrop-filter the transform pop animation is safe again, so it's restored.
+
+### How
+
+- `.vpm-more-popup.glass-panel`: opaque `rgba(26,26,30,0.93)` + radial sheen `!important` (overrides glass-panel's
+  transparent), `::before` (the backdrop-filter layer) set to `display: none`, heavier box-shadow.
+- Reveal: `clip-path` → back to `opacity/scale/y` spring pop (no backdrop-filter to break).
+
+### Files
+
+- `src/components/SearchSidebar.jsx`
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2040 - 2026-06-28
 
 **Title:** 🩹 media_player sheet — opaque frost instead of (impossible) nested blur; smooth slide + rounded + shadow back
