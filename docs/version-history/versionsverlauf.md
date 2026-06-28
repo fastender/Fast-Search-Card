@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2027 - 2026-06-28
+
+**Title:** 🪟 media_player bottom sheet — glass uses the exact Appearance → Background settings (like the detail panel)
+
+### What
+
+The bottom sheet's glass now uses the exact same backdrop-filter recipe as the detail panel, driven by the user's
+Appearance → Background settings (Blur, Saturation, Brightness/Opacity, Contrast, Grayscale) — instead of a hardcoded
+blur. So the sheet matches the right-hand detail background one-to-one and reacts to those sliders.
+
+### How
+
+- `.mp-sheet` `backdrop-filter` / `-webkit-backdrop-filter` copied verbatim from `.detail-panel`:
+  `blur(calc(20px + var(--background-blur))) saturate(calc(180% * var(--background-saturation)/100%))
+  brightness(var(--background-brightness)) contrast(var(--background-contrast)) grayscale(var(--background-grayscale))`,
+  with the same `rgba(30,30,30,0.4)` base + top radial highlight.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2026 - 2026-06-28
 
 **Title:** 🪟 media_player bottom sheet — no dim backdrop, visionOS glass background like the detail panel
