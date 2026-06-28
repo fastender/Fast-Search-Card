@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2033 - 2026-06-28
+
+**Title:** 🎚️ media_player — ring slightly smaller with more room, softer artist tone, sheet now covers the cover
+
+### What
+
+Follow-up polish on the media_player detail: the mobile ring is a touch smaller again with more space to the control
+buttons below; the tappable artist line drops the red for a soft light Apple-like tone with a lighter weight; and the
+bottom sheet now actually covers the cover where it overlaps it (the cover image was bleeding through the transparent
+top of the sheet).
+
+### How
+
+- `sizeScale` `1.44` → `1.32`; `.is-media-player .device-control-buttons` margin-top `28→36` (desktop) / `40→50` (mobile).
+- Artist `subValueColor` `#f0463c` → `rgba(255,255,255,0.88)`, match-title weight `500` → `300`.
+- While the sheet is open, the cover image (`.detail-left-cover-art` + `.detail-left-now-playing`) is hidden too
+  (`opacity: 0`) — the header (back/title/favorite) stays, so behind the whole sheet is the clean panel glass.
+
+### Files
+
+- `src/utils/deviceConfigs.js`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2032 - 2026-06-28
 
 **Title:** 🎚️ media_player — sheet into the cover, bigger ring on mobile, clickable red artist that opens it in Music Assistant
