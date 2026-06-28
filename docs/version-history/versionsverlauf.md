@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2036 - 2026-06-28
+
+**Title:** 🫧 Glass slides stay blurred during the animation (clip-path reveal instead of transform)
+
+### What
+
+The media_player bottom sheet and the mobile sidebar overflow popup were transparent while animating and only blurred
+once they reached their final position — the blur "popped" in at the end. That's a Chromium quirk: an element animated
+with `transform` doesn't render its `backdrop-filter` until the transform settles. Both now reveal with a `clip-path`
+mask instead, so the element never moves and the blur is live the whole way.
+
+### How
+
+- `.mp-sheet`: `y: 100% → 0` replaced with `clip-path: inset(100% …) → inset(0 …)` (rounded 26px top) — the sheet
+  reveals upward into place, blurred throughout.
+- `.vpm-more-popup`: `opacity/scale/y` spring replaced with the same `clip-path` reveal (rounded 24px) — the popup
+  grows up out of the dock, blurred throughout.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/SearchSidebar.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2035 - 2026-06-28
 
 **Title:** 🎚️ media_player — swap title/artist emphasis, looser spacing, Music Assistant button after Next
