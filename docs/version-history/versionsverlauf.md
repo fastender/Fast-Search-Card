@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2026 - 2026-06-28
+
+**Title:** 🪟 media_player bottom sheet — no dim backdrop, visionOS glass background like the detail panel
+
+### What
+
+Two tweaks to the new mobile Music Assistant bottom sheet: the backdrop no longer dims the view behind it (it's just a
+transparent tap-to-close catcher), and the sheet itself now uses the same visionOS-style glass as the detail panel —
+translucent with a backdrop blur, so the content behind shows through, softly blurred.
+
+### How
+
+- `.mp-sheet-overlay` background `rgba(0,0,0,0.5)` → `transparent`.
+- `.mp-sheet` near-solid background → the detail-panel glass recipe: a subtle top radial highlight over `rgba(30,30,30,0.45)`
+  plus `backdrop-filter: blur(30px) saturate(170%)`. The inner Music Assistant panel is made transparent inside the sheet
+  so the glass isn't covered by a box-in-box.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2025 - 2026-06-28
 
 **Title:** 🎵 media_player mobile — Music Assistant opens as a bottom sheet (controls row on top, panel fills below)
