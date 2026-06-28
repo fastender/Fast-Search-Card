@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2023 - 2026-06-28
+
+**Title:** 📏 Detail view — video/news hero also 200px on mobile (was 250px)
+
+### What
+
+On non-desktop the cover/hero (`.detail-left`) was 200px by default but 250px for video and news-image heroes. They're
+now all 200px, so a video/news detail view gains ~50px for the controls below — and the hero height is consistent.
+
+### How
+
+- `.detail-left.has-video` and `.detail-left.has-news-image` `min-height: 250px` → `200px` in the `max-width: 768px`
+  media query.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2022 - 2026-06-28
 
 **Title:** 📏 Detail view — hide the divider on mobile to give detail-right ~21px more height
