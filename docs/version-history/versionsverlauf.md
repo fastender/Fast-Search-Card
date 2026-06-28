@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2042 - 2026-06-28
+
+**Title:** 📲 Roll the media_player prototype out to all detail views — bottom sheet + bigger ring
+
+### What
+
+The media_player detail-view prototype (bottom sheet for expandable controls + a bigger mobile ring) now applies to the
+other domains too. On mobile, tapping an expandable control (light brightness/color, climate settings, cover position,
+fan modes, water_heater, universal-device sub-views, …) opens the same bottom sheet. The circular ring is also enlarged
+on mobile for the value-based domains, matching media_player. `energy_dashboard_device` keeps its own tabbed layout.
+
+### How
+
+- `sheetMode` decoupled from media_player: `isMediaPlayer && isCompactMode` → `isCompactMode` (the sheet only opens when
+  an expandable is actually tapped, so domains without expandables are unaffected).
+- `sizeScale: 1.32` added to the slider configs of light, climate, fan, cover, water_heater, humidifier.
+- Button-clearance margin generalised from `.is-media-player` to a `.big-ring` class (added when `sizeScale ≥ 1.3`), so
+  the control buttons clear the larger ring on every domain.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2041 - 2026-06-28
 
 **Title:** 🩹 Sidebar overflow popup — same opaque frost (it went transparent over the detail glass too)
