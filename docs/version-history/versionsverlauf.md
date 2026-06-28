@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2044 - 2026-06-28
+
+**Title:** 📐 Sheet — climate settings fill to bottom; circular value centered, Apple-like caption order
+
+### What
+
+Two follow-ups. The climate (and other DomainSettingsPicker) settings list now fills to the bottom of the sheet like the
+universal-device list did. And the circular ring layout is more Apple-like for the value-based domains: the big number
+sits closer to the ring centre, the label (e.g. "TARGET TEMPERATURE") is a caption directly under the number, the
+secondary line ("Current: 21°C") below it, and the power toggle moved up for more breathing room.
+
+### How
+
+- `.mp-sheet .ios-section` / `.ios-card`: `flex: 1` + inner `overflow-y: auto` (fill to bottom, scroll inside).
+- `CircularSliderDisplay`: value-display container down-shift `+10px → +22px` for non-media_player (`titleScale ≥ 1`);
+  label rendered above the subValue (caption directly under the value).
+- `PowerToggle` vertical offset `38/60 → 50/74` (higher).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/controls/CircularSliderDisplay.jsx` · `PowerToggle.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2043 - 2026-06-28
 
 **Title:** 📐 Sheet — universal-device list fills to the bottom; section header gets breathing room
