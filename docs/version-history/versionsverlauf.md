@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2043 - 2026-06-28
+
+**Title:** 📐 Sheet — universal-device list fills to the bottom; section header gets breathing room
+
+### What
+
+In the bottom sheet, the universal-device sub-view list (the dark container with "SETTINGS" + items) kept its fixed
+420px height and stopped well short of the sheet bottom, leaving a big empty gap. It now fills the available sheet
+height with a small bottom gap. The section header inside that list also gets some space above it so it doesn't stick to
+the container's top edge.
+
+### How
+
+- `.mp-sheet .printer-sensors-wrapper`: `height: auto; flex: 1 1 auto; min-height: 0` (was a fixed 420px — kept outside
+  the sheet). `.mp-sheet-content` gets `padding-bottom: 10px` for the bottom gap.
+- `.printer-sensors-wrapper .ios-section-header`: `margin-top: 24px` (scoped to the universal-device list only).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/system-entities/entities/news/components/iOSSettingsView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2042 - 2026-06-28
 
 **Title:** 📲 Roll the media_player prototype out to all detail views — bottom sheet + bigger ring
