@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2029 - 2026-06-28
+
+**Title:** 🪟 media_player bottom sheet — hide the whole controls column behind it so the glass is clean (no see-through)
+
+### What
+
+After dropping the sheet's own tint (v1.1.2028) the content behind it (status, tabs, the inline controls) showed through.
+Now, while the sheet is open, the entire controls column (`.detail-right`) is hidden behind it, so the sheet's
+backdrop-filter blurs the clean panel glass — the same background as the controls area — with nothing showing through.
+The cover stays visible above.
+
+### How
+
+- A `mp-sheet-open` class is toggled on the `.detail-panel` while the sheet is open; CSS sets `.detail-panel.mp-sheet-open
+  .detail-right { visibility: hidden }`. The sheet itself is portaled into `.detail-panel` (not a child of `.detail-right`),
+  so it stays visible.
+- Sheet height 74% → 70% so it stays within the controls area and doesn't blur a sliver of the cover at its top.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2028 - 2026-06-28
 
 **Title:** 🪟 media_player bottom sheet — glass now matches the controls area 1:1 (no double tint)
