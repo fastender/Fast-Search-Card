@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2030 - 2026-06-28
+
+**Title:** 🪟 media_player bottom sheet — actually hide the controls behind it (opacity, not visibility)
+
+### What
+
+The controls (the circular slider, the buttons) still showed through the open sheet despite v1.1.2029 hiding
+`.detail-right`. Cause: `.slider-wrapper` has an explicit `visibility: visible`, which overrode the inherited
+`visibility: hidden`. Switched to `opacity: 0`, which multiplies down the whole subtree and can't be undone by a child —
+so the controls column is now genuinely hidden behind the sheet and the glass stays clean.
+
+### How
+
+- `.detail-panel.mp-sheet-open .detail-right` → `opacity: 0; pointer-events: none` (was `visibility: hidden`).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2029 - 2026-06-28
 
 **Title:** 🪟 media_player bottom sheet — hide the whole controls column behind it so the glass is clean (no see-through)
