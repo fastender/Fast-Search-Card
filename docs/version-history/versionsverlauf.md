@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2025 - 2026-06-28
+
+**Title:** 🎵 media_player mobile — Music Assistant opens as a bottom sheet (controls row on top, panel fills below)
+
+### What
+
+On mobile, tapping the Music Assistant control button now opens a bottom sheet (~74% of the card) instead of cramming the
+panel inline. The sheet shows the control buttons in one horizontal scrollable row at the top and the active control's
+content (the Music Assistant panel) filling the height below with internal scroll. Closes by tapping the dimmed backdrop
+or the grabber. Pilot on media_player; desktop and other domains keep the inline behaviour.
+
+### How
+
+- New `sheetMode = isMediaPlayer && isCompactMode`. In sheet mode, expanding a control no longer hides the slider /
+  moves the buttons up (the initial view stays behind the backdrop), and the inline `PresetButtonsGroup` is skipped.
+- A bottom sheet is `createPortal`-ed into the `.detail-panel` (the same overlay pattern as the info popups), animated
+  with framer-motion (`AnimatePresence`, slide up/down + backdrop fade). It reuses `ScrollableControlRow` + `ControlButton`
+  for the controls row and `PresetButtonsGroup` for the content; a flex chain makes the panel fill and scroll internally.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2024 - 2026-06-28
 
 **Title:** 🎵 media_player detail — no outer scrollbar; the MA panel fills the space and scrolls internally (like light/climate)
