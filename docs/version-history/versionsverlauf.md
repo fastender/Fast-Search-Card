@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2040 - 2026-06-28
+
+**Title:** 🩹 media_player sheet — opaque frost instead of (impossible) nested blur; smooth slide + rounded + shadow back
+
+### What
+
+Root cause of the see-through sheet: it is portaled into `.detail-panel`, which itself has a `backdrop-filter` (and
+`isolation: isolate`). A nested `backdrop-filter` renders with no effect in Chromium, so only the flat tint showed. Live
+blur is not possible at this position, so the sheet now uses an opaque frost tint that reliably covers. Without a
+backdrop-filter, the real `translateY` slide, `border-radius` corners and `box-shadow` all work again with no caveats.
+
+### How
+
+- `.mp-sheet`: background → `radial sheen + rgba(26,26,30,0.93)` (no `backdrop-filter`, `::before` removed); box-shadow
+  restored.
+- Reveal: `clip-path` → `y: 100% → 0` translateY slide (nothing to break the blur anymore).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2039 - 2026-06-28
 
 **Title:** 🪟 media_player sheet — same glass recipe as the (working) sidebar popup: blurred, opaque, rounded
