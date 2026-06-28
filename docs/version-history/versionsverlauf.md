@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2032 - 2026-06-28
+
+**Title:** 🎚️ media_player — sheet into the cover, bigger ring on mobile, clickable red artist that opens it in Music Assistant
+
+### What
+
+Three things on the media_player detail: the Music Assistant bottom sheet now extends up into the cover for more area
+(only the cover header stays free); the mobile ring is another 20% bigger; and the artist name under the title is now the
+same size as the title, red, and tappable — tapping it opens the Music Assistant panel and searches that artist (the same
+place a Music Assistant artist click takes you).
+
+### How
+
+- `.mp-sheet` height `calc(100% - 250px)` → `calc(100% - 110px)`.
+- media_player `sizeScale` `1.2` → `1.44` (mobile ring ≈ 230px).
+- `CircularSliderDisplay` artist gets `subValueMatchTitle` (uses the title font), `subValueColor` (`#f0463c`), and an
+  `onSubValueClick`; the media_player config sets the first two, `UniversalControlsTab` wires the click to open
+  `ma_search` and pass the artist name as `initialQuery` down to `MusicAssistantPanel`, which opens the search tab with it.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` · `.jsx`
+- `src/components/controls/CircularSlider.jsx` · `CircularSliderDisplay.jsx` · `PresetButtonsGroup.jsx` · `MusicAssistantPanel.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2031 - 2026-06-28
 
 **Title:** 📏 Mobile detail — uniform 250px cover; bottom sheet height tracks it
