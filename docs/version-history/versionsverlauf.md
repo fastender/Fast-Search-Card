@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2035 - 2026-06-28
+
+**Title:** 🎚️ media_player — swap title/artist emphasis, looser spacing, Music Assistant button after Next
+
+### What
+
+The soft light/thin treatment now sits on the title (not the artist): the title is the soft `rgba(255,255,255,0.88)`
+weight-300 line and the artist is the strong white weight-500 line. The title/artist gap was a touch tight, so it's a
+bit looser. And the Music Assistant control button moved out of last place — it now sits right after Next, before
+Shuffle/Repeat.
+
+### How
+
+- `CircularSliderDisplay` (when matching the title): title `300` + `rgba(255,255,255,0.88)`, artist `500`; artist
+  `subValueColor` → `rgba(255,255,255,1)`; artist `marginTop` `-8px` → `-4px`.
+- `deviceConfigs` media_player: the `ma_search` / `settings` button is pushed right after Next, ahead of the
+  Shuffle/Repeat pushes — order is now Previous · Play/Pause · Next · Music Assistant · Shuffle · Repeat.
+
+### Files
+
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2034 - 2026-06-28
 
 **Title:** 🎚️ media_player — smaller title/artist with tighter spacing; sheet gets a light frost so the cover stays visible but covered
