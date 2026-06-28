@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2031 - 2026-06-28
+
+**Title:** 📏 Mobile detail — uniform 250px cover; bottom sheet height tracks it
+
+### What
+
+The mobile cover (`.detail-left`) is back to a uniform 250px for all hero types (base / media_player cover, video, news).
+The Music Assistant bottom sheet height now follows the cover so it still covers exactly the controls area without
+overlapping the cover.
+
+### How
+
+- `.detail-left` base + `.has-video` + `.has-news-image` `min-height` → `250px`.
+- `.mp-sheet` height `70%` → `calc(100% - 250px)` (card height minus the 250px cover = the controls area exactly).
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2030 - 2026-06-28
 
 **Title:** 🪟 media_player bottom sheet — actually hide the controls behind it (opacity, not visibility)
