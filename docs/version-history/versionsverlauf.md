@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2037 - 2026-06-28
+
+**Title:** 🔲 media_player sheet — round the top corners (backdrop-filter was bleeding square)
+
+### What
+
+The bottom sheet's top corners looked square: `backdrop-filter` ignores `border-radius` (and the `clip-path round`,
+which framer also dropped while animating), so the blurred backdrop bled into the square corners. The sheet is now
+wrapped in a static `overflow: hidden` rounded container, which clips the child's backdrop-filter to a proper rounded
+shape. The inner sheet keeps its clip-path reveal (no `round` needed anymore).
+
+### How
+
+- New `.mp-sheet-clip` wrapper holds the positioning + `border-radius: 26px 26px 0 0` + `overflow: hidden` + box-shadow;
+  `.mp-sheet` becomes `inset: 0` inside it, loses its own border-radius/box-shadow. The wrapper is never transformed so
+  the blur stays live; the inner clip-path animates `inset(100%…) → inset(0…)` without `round`.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2036 - 2026-06-28
 
 **Title:** 🫧 Glass slides stay blurred during the animation (clip-path reveal instead of transform)
