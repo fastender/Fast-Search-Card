@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2028 - 2026-06-28
+
+**Title:** 🪟 media_player bottom sheet — glass now matches the controls area 1:1 (no double tint)
+
+### What
+
+The sheet's glass looked darker than the controls (detail-right) area. Cause: the sheet sits nested over the detail
+panel, so its own `rgba(30,30,30,0.4)` tint stacked on top of the panel's tint — double-darkening. The sheet now carries
+no tint of its own; the panel's tint shows through its backdrop-filter once, so it matches the controls glass exactly.
+The inline controls behind the sheet are also hidden so the glass stays clean instead of a blurred smear of slider/buttons.
+
+### How
+
+- `.mp-sheet` background `rgba(30,30,30,0.4)` + highlight → `transparent` (keeps the same backdrop-filter recipe / system
+  variables).
+- On mobile, the inline `.slider-wrapper` + `.device-control-buttons` are `visibility: hidden` while a control is expanded
+  (the sheet is open) — they're fully covered anyway, and this gives the sheet a clean glass backdrop.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2027 - 2026-06-28
 
 **Title:** 🪟 media_player bottom sheet — glass uses the exact Appearance → Background settings (like the detail panel)
