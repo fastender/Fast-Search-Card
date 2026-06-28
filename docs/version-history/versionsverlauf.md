@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2038 - 2026-06-28
+
+**Title:** 🔲 media_player sheet — actually round the corners (own border-radius rounds the backdrop-filter; clip-path moved to the wrapper)
+
+### What
+
+v1.1.2037's wrapper didn't round the sheet at all: a parent's rounded `overflow:hidden` clip does not clip a child's
+`backdrop-filter` in Chromium. What does work is the glass element's OWN `border-radius` (as in v1.1.2034). So the roles
+are swapped: the static wrapper carries the clip-path reveal (rectangular, fine), and the inner sheet carries the
+`border-radius` + `backdrop-filter`. Nothing is transformed, so the blur stays live and the corners are properly round.
+
+### How
+
+- `.mp-sheet-clip` (now the animated `motion.div`): positioning + the `clip-path: inset(100%…) → inset(0…)` reveal,
+  nothing else.
+- `.mp-sheet` (now a plain inner `div`): `inset: 0` + `border-radius: 26px 26px 0 0` + `backdrop-filter` + frost. Its own
+  border-radius rounds its own backdrop-filter. (Drop-shadow removed — it would be clipped by the wrapper's reveal clip.)
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2037 - 2026-06-28
 
 **Title:** 🔲 media_player sheet — round the top corners (backdrop-filter was bleeding square)
