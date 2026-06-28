@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2034 - 2026-06-28
+
+**Title:** 🎚️ media_player — smaller title/artist with tighter spacing; sheet gets a light frost so the cover stays visible but covered
+
+### What
+
+The ring title/artist were a touch large and too far apart — both are a bit smaller now and sit closer together.
+And we're trying the alternative for the sheet/cover overlap: instead of hiding the cover image, the cover stays
+visible above the sheet and the sheet gets a light frost tint so it covers (rather than show-through) the part of the
+cover behind it.
+
+### How
+
+- media_player `titleScale` `0.64` → `0.56` (title + match-title artist); artist `marginTop: -8px` (only when
+  matching the title) to close the gap the scrolling line-height opens up.
+- `.mp-sheet` background `transparent` → `rgba(40,40,40,0.35)` (light frost over the same system blur); the v1.1.2033
+  cover-image hide rule was removed so the cover shows above the sheet again.
+
+### Files
+
+- `src/utils/deviceConfigs.js`
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2033 - 2026-06-28
 
 **Title:** 🎚️ media_player — ring slightly smaller with more room, softer artist tone, sheet now covers the cover
