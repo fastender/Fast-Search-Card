@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2022 - 2026-06-28
+
+**Title:** 📏 Detail view — hide the divider on mobile to give detail-right ~21px more height
+
+### What
+
+On non-desktop the horizontal divider between the cover and the controls cost ~21px (1px line + 10/10px margins) that,
+because detail-right is `flex:1`, came straight out of the controls/panel area. It's now hidden on mobile — cover and
+controls sit directly adjacent (cleaner), and detail-right gains the height. Desktop keeps its vertical column divider.
+
+### How
+
+- `.detail-divider` gets `display: none` inside the `max-width: 768px` media query.
+- The divider is now always rendered in JSX (desktop shows it, CSS hides it on mobile); the old mobile-video render
+  condition is removed as obsolete.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2021 - 2026-06-28
 
 **Title:** 🎵 media_player — less button gap, and no "Idle" flicker between tracks
