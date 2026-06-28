@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2039 - 2026-06-28
+
+**Title:** 🪟 media_player sheet — same glass recipe as the (working) sidebar popup: blurred, opaque, rounded
+
+### What
+
+v1.1.2038's sheet was transparent in Chrome: the `clip-path` on the parent wrapper severed the child's `backdrop-filter`
+from its backdrop, so only the flat tint showed. The sidebar overflow popup never had this problem because it uses the
+`.glass-panel` recipe — the blur lives on a `::before` pseudo-element and the element itself just clips. The sheet now
+uses the exact same recipe, so the blur works, the corners are round, and a slightly heavier tint actually covers what's
+behind it.
+
+### How
+
+- `.mp-sheet` is a single element again (wrapper removed): `overflow: hidden` + `border-radius: 26px 26px 0 0` +
+  transparent background + the `clip-path` reveal (on the element itself — that does not break its own blur).
+- `.mp-sheet::before` (z-index -1) carries the `backdrop-filter` + tint `rgba(30,30,30,0.5)`; the element's own
+  overflow+radius clip it to rounded corners.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2038 - 2026-06-28
 
 **Title:** 🔲 media_player sheet — actually round the corners (own border-radius rounds the backdrop-filter; clip-path moved to the wrapper)
