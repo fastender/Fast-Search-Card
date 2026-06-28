@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2024 - 2026-06-28
+
+**Title:** 🎵 media_player detail — no outer scrollbar; the MA panel fills the space and scrolls internally (like light/climate)
+
+### What
+
+The media_player detail view showed an outer scrollbar that light and climate don't. Cause: the Music Assistant panel
+had a fixed height (`56vh` on mobile / `420px`), which overflowed the controls container — so the whole controls area
+scrolled. Now the panel fills the available height via a flex chain and only its inner list scrolls, so the outer
+container no longer scrolls — consistent with the short-preset domains.
+
+### How
+
+- The controls tab gets a `has-expanded` class while a control is open.
+- Scoped to `.is-media-player.has-expanded`: `.device-control-design` → `overflow: hidden`; `.device-control-buttons`,
+  `.control-presets.visible`, and `.ma-panel` get `flex: 1 1 auto; min-height: 0` (panel `height: auto`) so the panel
+  flexes to fit instead of its fixed height. Other domains are untouched.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2023 - 2026-06-28
 
 **Title:** 📏 Detail view — video/news hero also 200px on mobile (was 250px)
