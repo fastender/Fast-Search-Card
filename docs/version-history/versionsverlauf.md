@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2045 - 2026-06-28
+
+**Title:** 🌡️ climate ring — no "target" caption when off, degrees-only current; settings container fills sheet
+
+### What
+
+Climate polish. When the climate is off, the "TARGET TEMPERATURE" caption no longer shows (it doesn't fit "Off"). The
+secondary current-temperature line drops the "Current:" prefix and shows just the degrees ("20°C"), which reads cleaner
+under the big number. And the dark settings container in the sheet now actually fills to the bottom — v1.1.2044 targeted
+the wrong level; the real container is `.dsp-root.dsp-dark` / `.dsp-dark-scroll`, both capped at `max-height: 420px`.
+
+### How
+
+- `deviceConfigs` climate: `label` → `null` when `state === 'off'`; `subValue` → `` `${currentTemp}${tempUnit}` `` (no
+  "Current:" prefix).
+- `.mp-sheet .dsp-root.dsp-dark` / `.dsp-dark-scroll`: `max-height: none` + `flex: 1` (fill, scroll inside). Replaces the
+  v1.1.2044 `.ios-section`/`.ios-card` rules.
+
+### Files
+
+- `src/utils/deviceConfigs.js`
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2044 - 2026-06-28
 
 **Title:** 📐 Sheet — climate settings fill to bottom; circular value centered, Apple-like caption order
