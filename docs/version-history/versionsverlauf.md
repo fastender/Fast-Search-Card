@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2046 - 2026-06-29
+
+**Title:** 👇 Bottom sheet — drag down to dismiss (iOS/Reddit-style)
+
+### What
+
+The bottom sheet can now be dragged down to close it, like an iOS/Reddit sheet. The drag is started from the grabber
+handle only, so the content inside still scrolls normally. Dragging far enough down, or a quick downward flick,
+dismisses the sheet; a small drag snaps it back.
+
+### How
+
+- `UniversalControlsTab`: `useDragControls` + a grabber drag-zone (`onPointerDown` starts the drag). The sheet gets
+  `drag="y"`, `dragListener={false}`, `dragConstraints={{ top: 0, bottom: 0 }}`, `dragElastic={{ top: 0, bottom: 0.9 }}`.
+- `onDragEnd`: close when `offset.y > 120` or `velocity.y > 600`, otherwise framer snaps back to `y: 0`.
+- New `.mp-sheet-grab-zone` (large hit area, `touch-action: none`, grab cursor); the visible bar is `pointer-events: none`.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2045 - 2026-06-28
 
 **Title:** 🌡️ climate ring — no "target" caption when off, degrees-only current; settings container fills sheet
