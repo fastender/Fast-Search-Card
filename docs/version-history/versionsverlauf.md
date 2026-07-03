@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2048 - 2026-06-29
+
+**Title:** 🏷️ Cover — quick-stat pills now share the entity-id button's row
+
+### What
+
+The quick-stat pills ("20°C current", "20°C target", …) now sit on the same row as the entity-id tag button at the
+bottom of the cover/icon area, instead of on a separate row above it. Looks cleaner and reclaims vertical space. When the
+tag button is opened to show the entity_id, the stats shrink/scroll out of the way.
+
+### How
+
+- `EntityIconDisplay`: the `.quick-stats` block moved out of its own `.detail-info-row` and into the `.entity-id-row`,
+  right after the tag button.
+- `.entity-id-row .quick-stats`: `flex: 1; min-width: 0` (fill the rest of the row, scroll horizontally).
+
+### Files
+
+- `src/components/DetailView/EntityIconDisplay.jsx`
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2047 - 2026-06-29
 
 **Title:** 🏷️ entity-id pill — expands on mobile too (was stuck as a 36px circle)
