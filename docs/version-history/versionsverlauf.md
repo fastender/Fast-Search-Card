@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2049 - 2026-06-29
+
+**Title:** 🪗 List-view actions tray — smoother, Apple-like expand animation
+
+### What
+
+Expanding the quick-actions submenu in the device list view felt abrupt/janky. The animation now uses an Apple-style
+expo-out deceleration curve (instead of the fast Material curve), runs a touch longer, and animates height and opacity
+separately (content fades in faster than the tray grows). DomainControls has no entrance animations of its own, so this
+is purely the tray's height reveal.
+
+### How
+
+- `DeviceCardListView` `.device-list-actions-panel`: transition `duration 0.22, ease [0.4,0,0.2,1]` →
+  `height: { duration 0.38, ease [0.16,1,0.3,1] }` + `opacity: { duration 0.2, easeOut }`; added `will-change: height`.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2048 - 2026-06-29
 
 **Title:** 🏷️ Cover — quick-stat pills now share the entity-id button's row
