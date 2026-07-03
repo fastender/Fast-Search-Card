@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2054 - 2026-07-04
+
+**Title:** 🪗 List-view actions tray — drop the opacity animation (backdrop-filter per-frame recompute was the close jank)
+
+### What
+
+Closing the list-view actions tray still stuttered. Root cause found: the tray animated `opacity` over content that
+contains `backdrop-filter: blur` control buttons. Group opacity over a backdrop-filter forces an offscreen buffer plus a
+blur recompute every frame; on close the opacity starts at 1 (full blur) so the very first frames are the most
+expensive — exactly matching "only the close janks". The tray now animates height only (the content is revealed/hidden
+by the height clip anyway, no fade needed).
+
+### How
+
+- `DeviceCardListView`: removed `opacity` from `initial`/`animate`/`exit` and from the transitions. Height only — open =
+  `spring(400/44)`, close = `tween 0.24s`.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2053 - 2026-07-04
 
 **Title:** 🪗 List-view actions tray — clean close (own tween, no spring tail)
