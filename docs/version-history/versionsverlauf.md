@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2053 - 2026-07-04
+
+**Title:** 🪗 List-view actions tray — clean close (own tween, no spring tail)
+
+### What
+
+After v1.1.2052 the open was smooth but the close stuttered. The overdamped spring has a long, slow settle — closing, it
+crawled the last few pixels to 0, which read as jank. The close now uses its own short tween with a defined end; the
+open keeps the smooth spring.
+
+### How
+
+- `DeviceCardListView`: the `exit` gets its own `transition` — `height: { duration 0.26, ease [0.4,0,0.2,1] }` +
+  `opacity: { duration 0.16, easeIn }`. The top-level (open) transition stays `spring(400/44)`.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2052 - 2026-07-04
 
 **Title:** 🪗 List-view actions tray — measured-height framer animation (no auto-height hitch)
