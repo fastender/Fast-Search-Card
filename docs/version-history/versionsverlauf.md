@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2051 - 2026-06-29
+
+**Title:** 🚪 Room headers — tap to filter to that room + active-device badge
+
+### What
+
+The room group headers in the device list (e.g. "Anziehraum") are now tappable: tapping one filters the list to that
+room by driving the existing "Filter by areas" mechanism (the chip bar switches to areas mode with that room active).
+Tapping the already-active room switches back to all rooms. Each header also shows a small badge with the number of
+active devices in that room, matching the category chips.
+
+### How
+
+- `GroupedDeviceList`: the header name is now a `<button>` (`onRoomSelect(item.room)`), with a `search-group-active-badge`
+  counting `item.devices` that are active (`isEntityActive`).
+- `SearchField`: `handleRoomSelect` sets `activeSubFilter = 'areas'` + selects the room subcategory (toggles back to
+  `all` if already active); passed to both `GroupedDeviceList` call sites.
+- `perceivedSpeed.css`: button reset + hover for `.search-group-title-button`, ellipsis on `.search-group-title-text`,
+  and the `.search-group-active-badge` style.
+
+### Files
+
+- `src/components/SearchField/components/GroupedDeviceList.jsx`
+- `src/components/SearchField.jsx`
+- `src/styles/perceivedSpeed.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2050 - 2026-06-29
 
 **Title:** 🔲 List-view items — rounder corners (Apple-Home look)
