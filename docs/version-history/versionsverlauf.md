@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2047 - 2026-06-29
+
+**Title:** 🏷️ entity-id pill — expands on mobile too (was stuck as a 36px circle)
+
+### What
+
+Tapping the entity-id tag button on mobile flipped it to the open (white) state but the pill never expanded to show the
+entity_id — it stayed a small circle. Desktop expanded fine. Cause: the mobile rule pinned a fixed `width: 36px`, which
+overrode the content-based growth. Now it uses `min-width`, so the pill expands to the id (with marquee for long ids)
+like on desktop.
+
+### How
+
+- `@media (max-width: 768px) .entity-id-toggle-button`: `width: 36px` → `min-width: 36px` (keep `height: 36px`).
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2046 - 2026-06-29
 
 **Title:** 👇 Bottom sheet — drag down to dismiss (iOS/Reddit-style)
