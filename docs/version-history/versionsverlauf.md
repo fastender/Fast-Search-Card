@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2050 - 2026-06-29
+
+**Title:** 🔲 List-view items — rounder corners (Apple-Home look)
+
+### What
+
+The device list-view items looked too boxy compared with Apple Home's rounded tiles. The corner radius is now more
+generous.
+
+### How
+
+- `.device-list-item` `border-radius: 16px → 24px`.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardList.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2049 - 2026-06-29
 
 **Title:** 🪗 List-view actions tray — smoother, Apple-like expand animation
