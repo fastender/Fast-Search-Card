@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2052 - 2026-07-04
+
+**Title:** 🪗 List-view actions tray — measured-height framer animation (no auto-height hitch)
+
+### What
+
+The list-view quick-actions tray still stuttered on open. The cause is `height: 0 → 'auto'`: framer has to measure the
+auto height synchronously when the animation starts, which hitches on the first frame. It now measures the content
+height itself via a ref and animates to a fixed pixel value (a `ResizeObserver` keeps it current if something expands
+inside), driven by an overdamped spring. No more auto-measure hitch, smoother open/close.
+
+### How
+
+- `DeviceCardListView`: refs on the panel + an inner content wrapper; `useLayoutEffect` sets `actionsHeight =
+  panel.scrollHeight` and observes the inner element. Panel `animate={{ height: actionsHeight }}` with
+  `spring(stiffness 400, damping 44)` (overdamped → no overshoot). Removed `will-change: height`.
+
+### Files
+
+- `src/components/DeviceCard/DeviceCardListView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2051 - 2026-06-29
 
 **Title:** 🚪 Room headers — tap to filter to that room + active-device badge
