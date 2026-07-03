@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2055 - 2026-07-04
+
+**Title:** 🚪 Room header — no hover highlight + fix the active badge (was always 0)
+
+### What
+
+Two fixes to the tappable room headers: the hover highlight is gone (only a short tap feedback remains), and the
+active-device badge now actually works. It never appeared because the header virtual item has no `.devices` (only the
+row items do), so the count was always 0. It now reads the room's devices from `groupedData.devicesByRoom[room]`, so
+rooms with active devices show the count (rooms with none — e.g. all-off — show no badge, like the chips).
+
+### How
+
+- `perceivedSpeed.css`: removed `.search-group-title-button:hover`; kept a subtle `:active`.
+- `GroupedDeviceList`: `activeCount` now from `groupedData.devicesByRoom[item.room]` (filtered by `isEntityActive`)
+  instead of the non-existent `item.devices`.
+
+### Files
+
+- `src/styles/perceivedSpeed.css`
+- `src/components/SearchField/components/GroupedDeviceList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2054 - 2026-07-04
 
 **Title:** 🪗 List-view actions tray — drop the opacity animation (backdrop-filter per-frame recompute was the close jank)
