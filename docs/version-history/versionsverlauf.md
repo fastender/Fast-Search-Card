@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2056 - 2026-07-04
+
+**Title:** 📱 detail-right as a draggable bottom sheet on mobile (cover pilot)
+
+### What
+
+New mobile interaction (pilot on the cover domain): the whole `.detail-right` (status · tabs · tab content) becomes a
+draggable bottom sheet over the cover, with three snap points — peek (status + tabs visible, lots of cover), half, and
+full. Drag from the grabber; the tab content still scrolls normally. Same feel as the media_player controls sheet.
+
+### How
+
+- New `DetailRightSheet` component: `useDragControls` + a `useMotionValue` `y`, drag from a grabber only
+  (`dragListener={false}`), snaps computed from the measured sheet height (`peek` = header-only ~124px, `half`, `full`),
+  nearest-snap on drag end with a small velocity projection, spring settle.
+- `DetailView`: `detailRightSheetable = isMobile && domain === 'cover'`; the detail-right inner content is rendered
+  inside `DetailRightSheet` when sheetable (plain `.detail-right` otherwise), and `.detail-content` gets `has-detail-sheet`.
+- CSS: `.detail-content.has-detail-sheet .detail-left` fills the card; `.detail-right--sheet` is an absolute, opaque
+  frost sheet (no backdrop-filter — avoids the nested-glass pitfall) with rounded top + shadow; grabber styles; the tab
+  content fills + scrolls inside.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` (new)
+- `src/components/DetailView.jsx` · `DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2055 - 2026-07-04
 
 **Title:** 🚪 Room header — no hover highlight + fix the active badge (was always 0)
