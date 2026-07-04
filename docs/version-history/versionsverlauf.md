@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2059 - 2026-07-04
+
+**Title:** 🏷️ entity-id toggle round again + detail-right sheet snap tweaks
+
+### What
+
+The entity-id tag button went oval — its icon wrapper is 40px but the mobile button is 36px tall, and since v1.1.2047
+it uses `min-width` (not a fixed width), so it grew to 40×36. The icon wrapper is now 36px on mobile too, so it's a
+36×36 circle again. And the detail-right sheet snap points were nudged: full 10px lower (more cover on top), half 10px
+higher; peek unchanged.
+
+### How
+
+- `@media (max-width: 768px) .entity-id-toggle-button-icon`: `width/height: 36px` (was 40px).
+- `DetailRightSheet` snaps: `full: 10`, `half: max(10, round(maxDown*0.46) − 10)`, `peek: maxDown`.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2058 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — square top (no rounding) + cover stats ride the sheet edge
