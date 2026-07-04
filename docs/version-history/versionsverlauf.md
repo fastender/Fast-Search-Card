@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2064 - 2026-07-04
+
+**Title:** 🪟 detail-right sheet — real glass (portaled out of the card glass)
+
+### What
+
+The detail-right sheet now uses the same real glass background as the mobile sidebar (`backdrop-filter` blur + radial
+sheen), instead of the opaque frost. Because a nested backdrop-filter is dead inside the card's own glass
+(`.detail-panel`), the sheet is now portaled out into `.detail-panel-wrapper` (its parent — absolute, card-sized, no
+backdrop-filter), where the blur actually works. Caveat: backdrop-filter breaks while an element is being transformed,
+so during the drag / entrance pull the glass can briefly go flat — it settles to real glass at each snap.
+
+### How
+
+- `DetailView`: resolves `detailContentRef.closest('.detail-panel-wrapper')` and `createPortal`s the `DetailRightSheet`
+  there (falls back to inline until resolved).
+- `.detail-right--sheet`: `background: transparent` + `::before` with the `.glass-panel` recipe (backdrop-filter + radial
+  gradient + `rgba(30,30,30,0.4)` tint). Removed the opaque frost.
+
+### Files
+
+- `src/components/DetailView.jsx` · `DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2063 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — no content flash during the entrance
