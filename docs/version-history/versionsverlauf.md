@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2058 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — square top (no rounding) + cover stats ride the sheet edge
+
+### What
+
+Two corrections on the cover sheet pilot. The top corners are now square (the earlier "keine Rundung" meant *no*
+rounding, not a rounding bug). And the cover stats/tag row (icon-content) — previously hidden behind the sheet — now
+sticks just above the sheet's top edge and moves with it as you drag (peek → full), matching the mockup.
+
+### How
+
+- `.detail-right--sheet`: `border-radius: 0`.
+- New `useDetailRightSheet` hook owns the shared `y` (MotionValue), `snaps`, and a derived `iconContentY = y - peek`
+  (updated via a `y.on('change')` listener). `DetailView` calls it; `DetailRightSheet` takes `y`/`snaps`/`onSnaps` as
+  props (measure reports up via `onSnaps`), and `EntityIconDisplay` gets `sheetActive` + `sheetIconY` and renders the
+  entity-id-row as a `motion.div` with `style={{ y: sheetIconY }}`.
+- CSS: `.entity-id-row--sheet` is `position: absolute; bottom: 112px` (≈ peek height 124 − detail-left padding 20), so it
+  sits ~8px above the peek sheet edge; the translateY keeps it there at half/full.
+
+### Files
+
+- `src/hooks/useDetailRightSheet.js` (new) · `src/components/DetailView/DetailRightSheet.jsx` · `EntityIconDisplay.jsx`
+- `src/components/DetailView.jsx` · `DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2057 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — round top corners + tab content fades in from peek→half
