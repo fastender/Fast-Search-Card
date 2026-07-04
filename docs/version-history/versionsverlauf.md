@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2061 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — springier, later ghost-drag entrance + half nudged up
+
+### What
+
+Tuning the detail-right sheet entrance: it now starts later and uses a springy pull (instead of a smooth tween) from
+peek up to half. The half snap moved up a bit more (30px offset vs 20); full stays at 20px down.
+
+### How
+
+- `DetailRightSheet`: entrance `animate(y, half, { spring, stiffness 220, damping 22, delay 0.6 })` (was tween 0.55s /
+  delay 0.35). Snaps: `full: 20`, `half: max(20, round(maxDown*0.46) − 30)`, `peek: maxDown`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2060 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — starts at half with a "ghost-drag" entrance, ±20px snap offsets
