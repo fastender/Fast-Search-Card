@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2063 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — no content flash during the entrance
+
+### What
+
+On open, the sheet content briefly flashed visible then hid before the springy pull. Cause: before the sheet is
+measured, the body-opacity listener defaulted to `1` (visible), then dropped to `0` after measuring — and since peek
+shows the top ~28px of the body, that read as a quick flash. The opacity now stays `0` until the sheet is measured.
+
+### How
+
+- `DetailRightSheet` body-opacity `update()`: early-return (leave opacity 0) while `peek <= 0` (not yet measured),
+  instead of falling through to `1`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2062 - 2026-07-04
 
 **Title:** 📱 sheet half nudged up, later entrance + mobile sidebar lower
