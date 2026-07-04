@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2057 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — round top corners + tab content fades in from peek→half
+
+### What
+
+Two fixes on the mobile detail-right sheet (cover pilot): the top corners were square, and the tab content should be
+hidden at peek and fade in as the sheet is pulled up. Corners: `will-change: transform` promoted a compositor layer on
+which the rounded overflow clip was lost — removed it. Fade: the tab content now sits in its own wrapper whose opacity
+is driven by the sheet position (0 at peek → 1 at half and up).
+
+### How
+
+- `.detail-right--sheet`: removed `will-change: transform` (kept `overflow:hidden` + `border-radius`).
+- `DetailRightSheet` now takes `header` + `body` separately; `body` is wrapped in `.detail-right-sheet-body` whose
+  opacity is a `useMotionValue` updated by a `y.on('change')` listener (re-computed on `[snaps]`): `0` at peek, linear to
+  `1` by half.
+- `DetailView`: passes `header={<TabNavigation/>}` + `body={<tab-content/>}`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `DetailView.jsx` · `DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2056 - 2026-07-04
 
 **Title:** 📱 detail-right as a draggable bottom sheet on mobile (cover pilot)
