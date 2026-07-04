@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2062 - 2026-07-04
+
+**Title:** 📱 sheet half nudged up, later entrance + mobile sidebar lower
+
+### What
+
+More tuning: the detail-right sheet's half snap moved up a touch more (35px offset vs 30), the ghost-drag entrance
+starts even later, and the mobile sidebar dock sits closer to the bottom edge.
+
+### How
+
+- `DetailRightSheet`: `half = max(20, round(maxDown*0.46) − 35)`; entrance `delay 0.6 → 0.9`.
+- `.vision-pro-menu--mobile`: `bottom: 2rem → 0.5rem`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2061 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — springier, later ghost-drag entrance + half nudged up
