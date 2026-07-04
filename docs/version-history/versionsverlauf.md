@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2065 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — clipped to the card bottom (was extending too far down, square)
+
+### What
+
+After the real-glass re-portal (v1.1.2064), the sheet extended well past the card bottom with a square edge, because
+`.detail-panel-wrapper` is as tall as the whole main-container (not just the 672px card). The sheet is now wrapped in a
+card-sized clip container (672px, `border-radius: 35px`, `overflow: hidden`), so it ends cleanly at the card bottom with
+the card's rounding — like the normal panel.
+
+### How
+
+- `DetailView`: the portaled sheet is wrapped in `<div class="detail-right-sheet-clip">`.
+- CSS `.detail-right-sheet-clip`: `position:absolute; top:0; height:672px; border-radius:35px; overflow:hidden;
+  pointer-events:none` (the sheet inside re-enables `pointer-events:auto`; clicks in the transparent top pass to the
+  cover). The sheet's `bottom:0` is now the card bottom.
+
+### Files
+
+- `src/components/DetailView.jsx` · `DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2064 - 2026-07-04
 
 **Title:** 🪟 detail-right sheet — real glass (portaled out of the card glass)
