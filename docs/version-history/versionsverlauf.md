@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2060 - 2026-07-04
+
+**Title:** 📱 detail-right sheet — starts at half with a "ghost-drag" entrance, ±20px snap offsets
+
+### What
+
+The detail-right sheet now opens at the half snap instead of peek, with an entrance animation that looks like an
+invisible hand drags it up from peek to half. The full/half snap offsets were also increased from 10px to 20px (full
+20px lower for more cover on top, half 20px higher).
+
+### How
+
+- `DetailRightSheet` `compute`: on first init `y.set(peek)` then `animate(y, half, { tween, 0.55s, ease
+  [0.32,0.72,0,1], delay 0.35s })`. Snaps: `full: 20`, `half: max(20, round(maxDown*0.46) − 20)`, `peek: maxDown`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2059 - 2026-07-04
 
 **Title:** 🏷️ entity-id toggle round again + detail-right sheet snap tweaks
