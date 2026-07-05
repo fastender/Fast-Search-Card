@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2074 - 2026-07-05
+
+**Title:** 🏠 room header — tiny gap under the text before the line + no press background
+
+### What
+
+Two small touches on the grouped list room header (e.g. "Anziehraum"). The hairline under the room name now has a
+tiny bit of breathing room between the text and the line. And pressing the room name no longer changes its background
+— the tap still filters to that room, just without any color feedback.
+
+### How
+
+- `perceivedSpeed.css`: sticky `.grouped-search-results .v-header .search-group-title` padding `8px 0 0 0` →
+  `8px 0 4px 0` (the `::after` line sits at `bottom:0`, so the extra padding-bottom pushes it away from the text).
+- `perceivedSpeed.css`: `.search-group-title-button:active` background `rgba(255,255,255,0.12)` → `none`.
+
+### Files
+
+- `src/styles/perceivedSpeed.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2073 - 2026-07-05
 
 **Title:** 📱 detail-right sheet now on all domains (previously-excluded ones included)
