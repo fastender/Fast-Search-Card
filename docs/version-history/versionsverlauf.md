@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2067 - 2026-07-05
+
+**Title:** 📱 detail-right sheet — cleaner entrance (straight to half) + immediate exit on back
+
+### What
+
+Two animation issues from the portal move. **Entrance:** the sheet flashed peek → hidden → half. The "hidden" step was
+the portal fallback re-mounting the sheet (it first rendered inline, then re-parented into the portal). Now there is no
+inline fallback, and the sheet starts fully hidden below the card and — after a delay — springs straight to half (no
+peek-first). **Exit:** pressing back left the sheet lingering ~350ms then popping, because it is portaled outside the
+detail-panel's AnimatePresence (frozen in the exit snapshot). It now slides down and out immediately on close.
+
+### How
+
+- `DetailRightSheet` entrance: `y.set(sheetH)` (fully hidden) → `animate(y, half, spring 200/25, delay 0.9)`.
+- `DetailView` portal: fallback is `null` instead of an inline render (the re-mount was the visible "fade-out"). The
+  `useLayoutEffect` resolves the portal target before paint, so the sheet mounts directly in the portal.
+- `DetailView` exit: on `isVisible → false`, `animate(detailSheet.y, hidden, 0.24s ease-in)`. The MotionValue lives in
+  the hook (DetailView stays mounted during the 400ms close window), so framer updates the DOM node even though the
+  React subtree is frozen.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2066 - 2026-07-05
 
 **Title:** 📱 controls sheet (position/settings) — repositioned after the detail-right portal move
