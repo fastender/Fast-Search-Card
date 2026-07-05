@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2066 - 2026-07-05
+
+**Title:** 📱 controls sheet (position/settings) — repositioned after the detail-right portal move
+
+### What
+
+Follow-on from the detail-right sheet: the media_player-style controls sheet (opened by an expandable like cover
+"Position"/"Settings") was mispositioned — square bottom, too far up. Its portal target resolves via
+`closest('.detail-panel')`, but the controls tab now lives inside the DetailRightSheet clip container (outside
+`.detail-panel`), so it fell back to `.main-container` (near-zero height when the detail is open). It now targets the
+card-sized clip container, so it positions and clips like before.
+
+### How
+
+- `UniversalControlsTab` sheet-target resolution now tries `closest('.detail-right-sheet-clip')` first, then
+  `.detail-panel`, then `.main-container`.
+- `.detail-right-sheet-clip .mp-sheet-overlay`: `pointer-events: auto` (the clip container is `pointer-events: none`).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2065 - 2026-07-04
 
 **Title:** 📱 detail-right sheet — clipped to the card bottom (was extending too far down, square)
