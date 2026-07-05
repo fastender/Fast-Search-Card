@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2071 - 2026-07-05
+
+**Title:** 📱 detail-right sheet grabber — "grow & glow" grab feedback (visionOS switch feel)
+
+### What
+
+Grabbing the detail-right sheet handle now gives an Apple-like spring response: on press the grabber inflates (wider +
+taller), brightens, and picks up a soft glow — like a visionOS switch knob. It stays "grabbed" for the whole drag and
+springs back on release.
+
+### How
+
+- `DetailRightSheet.jsx`: `grabbed` state set on the grab-zone `pointerdown` (alongside `dragControls.start`), cleared
+  on a window `pointerup`/`pointercancel` (release can land outside the zone mid-drag). The grabber is a `motion.div`
+  animating `width 40→62`, `height 5→6`, `backgroundColor 0.30→0.92`, `boxShadow → 0 0 15px` — width/height on a spring
+  (500/24), color/shadow on a 0.25s tween.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2070 - 2026-07-05
 
 **Title:** 📱 vision-pro quick menu tighter padding — mobile only (desktop stays 12px)
