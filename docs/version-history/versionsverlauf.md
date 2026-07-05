@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2069 - 2026-07-05
+
+**Title:** 📱 detail-right sheet half snap 20px higher + vision-pro menu tighter padding
+
+### What
+
+Two small tweaks. The detail-right sheet's **half** snap now sits 20px higher (more cover visible above it). And the
+vision-pro quick menu (`.vpm-menu.glass-panel`) has tighter padding — 6px instead of 12px.
+
+### How
+
+- `DetailRightSheet.jsx`: `half = max(20, round(maxDown × 0.46) − 55)` (was `− 35`).
+- `SearchField.css`: `.vpm-menu.glass-panel { padding: 6px 6px; }` (was `12px 12px`).
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2068 - 2026-07-05
 
 **Title:** 📱 controls sheet — stretch a bit higher inside the detail-right sheet (cover)
