@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2072 - 2026-07-05
+
+**Title:** 📱 grow & glow on the controls sheet grabber + detail-right sheet rolled out to more domains
+
+### What
+
+Two things. **(1)** The controls sheet (media_player / cover Position & Settings) grabber now has the same "grow &
+glow" grab feedback as the detail-right sheet. **(2)** The detail-right bottom-sheet pilot — confirmed on cover — is
+rolled out to the normal device domains: light, climate, fan, switch, water_heater, humidifier, vacuum, lock, and
+universal_device. Excluded (own UI): media_player, energy_dashboard, scene/script/automation, sensor/binary_sensor,
+settings, calendar.
+
+### How
+
+- `UniversalControlsTab.jsx`: `sheetGrabbed` state on the mp-sheet grab-zone `pointerdown` (cleared on window
+  `pointerup`/`pointercancel`); `.mp-sheet-grab` is now a `motion.div` (width 40→62, height 5→6 spring 500/24;
+  backgroundColor + boxShadow 0.25s) — identical to the detail-right grabber.
+- `DetailView.jsx`: new module-level `DETAIL_RIGHT_SHEET_DOMAINS` set. `detailRightSheetable` is computed once near the
+  top (`isMobile && DETAIL_RIGHT_SHEET_DOMAINS.has(domain)`) and shared by all three gates (portal target, close-exit
+  animation, render) so they can't drift. Removed the old inline `=== 'cover'` checks and the duplicate declaration.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2071 - 2026-07-05
 
 **Title:** 📱 detail-right sheet grabber — "grow & glow" grab feedback (visionOS switch feel)
