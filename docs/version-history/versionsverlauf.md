@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2078 - 2026-07-05
+
+**Title:** ⚡ Perf batch 1 — CSS marquee (kills 60fps re-render loop), drag dedupe, sanitizer cache, snaps guard
+
+### Why
+
+A three-agent performance analysis flagged the ring-title marquee as the biggest steady-state CPU consumer: the
+`useMarquee` hook advanced `scrollOffset` via setState **per animation frame**, and since that state lived in
+`CircularSlider`, the whole slider tree (~10 framer-motion nodes) re-rendered at 60fps whenever a long title scrolled.
+Four smaller hot spots rode along.
+
+### What
+
+- **CSS marquee**: title/artist scrolling in the ring center is now a pure CSS animation. One measurement (plus
+  ResizeObserver + `fonts.ready` re-measure) decides if the text overflows; if so, a 2-copy track animates
+  `translateX(0 → -50%)` — seamless by definition, zero React renders per frame. Same pattern as the device-card
+  state marquee. `useMarquee.js` deleted; `CircularSliderDisplay` owns the marquee state locally (props
+  `valueRef/scrollOffset/isScrolling/subValueRef/subScrollOffset/subIsScrolling` removed).
+- **Title remount fix**: the title span was keyed on `value`, so on the media_player position slide it remounted and
+  replayed its entrance animation **every second** (visible pulsing). Now keyed on the text itself.
+- **Drag dedupe + rect cache** (`useCircularDrag`): pointermoves that don't change the step-rounded value now bail out
+  early — previously each move caused a re-render and (without commitOnEnd) an HA service call per pixel cluster. The
+  SVG bounding rect is measured once per drag instead of per move (forced-reflow removal).
+- **Icon sanitizer cache**: `sanitizeIconHTML` ran a full DOMParser parse + tree walk per control button per render;
+  results are now cached in a module-level map (capped at 500).
+- **Sheet snaps guard**: `DetailRightSheet` reports snap positions as a fresh object on mount and every
+  ResizeObserver fire; `useDetailRightSheet.setSnaps` now bails when the values are unchanged, avoiding spurious
+  full DetailView re-renders.
+
+### Files
+
+- `src/components/controls/CircularSliderDisplay.jsx` · `CircularSlider.jsx` · `src/components/tabs/UniversalControlsTab.css`
+- `src/hooks/useMarquee.js` (deleted) · `src/hooks/useCircularDrag.js` · `src/hooks/useDetailRightSheet.js`
+- `src/utils/iconSanitizer.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2077 - 2026-07-05
 
 **Title:** 🎯 circular slider — center the number+unit as a group + keep long titles inside the ring
