@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2079 - 2026-07-05
+
+**Title:** ⚡ Perf batch 2 — kill the per-tick render cascade (notifications, SearchField, SubcategoryBar, flush gate)
+
+### Why
+
+Verification of the June perf audit showed the entity-flush root cause was fixed, but the per-tick cascade survived
+through two side doors: a notifications effect that rebuilt the data context on every HA tick, and SearchField's raw
+`useHass()` subscription re-rendering the biggest component in the card on every websocket message.
+
+### What
+
+- **Notifications no longer invalidate the context per tick.** The "initial refresh" effect ran on EVERY hass tick,
+  scanned all `hass.states` entries, and set a fresh `notifications` array each time — invalidating `contextValue`
+  and re-rendering every `useData()` consumer ~6×/s. It now seeds once per connection (ongoing changes already come
+  through the targeted `persistent_notification.*` handler), `refreshNotifications` bails on an unchanged signature
+  (id|created_at|title|message), and the sparse-first-load reload path re-seeds for late-arriving states.
+- **SearchField no longer subscribes to raw hass.** The `useHass()` at the top of the card's biggest component
+  (grid + 30+ hooks) is gone; the four real consumers subscribe themselves: StatsBar, BentoStartView,
+  DetailViewWrapper (renders nothing when closed → trivial tick), and a new tiny `AreaHeaderSensors` component in
+  GroupedDeviceList (only the temp/humidity header spans tick, not the device list). GreetingsBar's static
+  `user.name` reads non-reactively via `getHass()`.
+- **SubcategoryBar props memoized.** `items`/`allItems` were built inline per SearchField render (2× O(N) object
+  clones), permanently defeating SubcategoryBar's `memo()`. Now `useMemo` keyed on `[devices, favorites,
+  activeCategory]`.
+- **Excluded entities can't sneak back in after boot.** Post-initial-load, unknown entities from `state_changed`
+  were pushed into `entities` unfiltered — an excluded high-frequency sensor would join on its first event and
+  mutate the array (full cascade) on every subsequent tick. New entities now pass `filterExcludedEntities` first.
+
+### Files
+
+- `src/providers/DataProvider.jsx` · `src/components/SearchField.jsx`
+- `src/components/StatsBar.jsx` · `src/components/BentoStartView.jsx`
+- `src/components/SearchField/components/DetailViewWrapper.jsx` · `GroupedDeviceList.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2078 - 2026-07-05
 
 **Title:** ⚡ Perf batch 1 — CSS marquee (kills 60fps re-render loop), drag dedupe, sanitizer cache, snaps guard
