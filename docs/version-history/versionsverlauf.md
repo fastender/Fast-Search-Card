@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2081 - 2026-07-06
+
+**Title:** 🧹 Perf batch 4 — dead-code cleanup + SolarCarousel fake-data bug removed
+
+### What
+
+Cleanup round from the perf/refactor analysis. The one behavioral fix: **entities with "solar" in their entity_id no
+longer show a hardcoded demo carousel** (fake 5.2 kW / 2.8 kW / 85% values) instead of their real circular slider —
+that was leftover demo code and an actual bug for real solar entities. The rest is dead code:
+
+- **Cover-image path in the ring center deleted** — since v2075 the media_player cover renders full-bleed in the left
+  view; `deviceConfigs` only ever passed `coverImage: null`. Removed the prop chain (CircularSlider →
+  CircularSliderDisplay), the render block, the `safeMediaUrl` import, and the three `coverImage: null` config lines.
+- **SolarCarousel component + CSS deleted** (no remaining references).
+- Removed unused `_mediaDuration` config field, unused `dragX`/`dragY` MotionValues and `hasAnimated` destructure in
+  CircularSlider (plus the now-unused `useMotionValue` import).
+- CSS orphans removed: `.mp-dot`, all four `.climate-settings-wrapper` blocks (no JSX references).
+- **PresetButtonsGroup rules-of-hooks fix**: `useRef`/`useState` were declared after an early return, so the hook
+  count flipped 0↔2 on the same instance when expanding/collapsing — worked by luck in Preact, now hooks come first.
+- Removed dead props: `showVideo` on EntityIconDisplay (never used inside), `isMobile`/`position`/`statsBarEnabled`
+  on DetailViewWrapper (never read; `position` was shadowed by a toast-options local).
+
+Not touched on purpose: the dead `initialTabName` prop on DetailView — it hides a feature gap ("navigate to device
+with tab X" never switches tabs) and deserves a deliberate wire-up rather than deletion.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` · `UniversalControlsTab.css` · `src/utils/deviceConfigs.js`
+- `src/components/controls/CircularSlider.jsx` · `CircularSliderDisplay.jsx` · `PresetButtonsGroup.jsx`
+- `src/components/controls/SolarCarousel.jsx` + `.css` (deleted)
+- `src/components/DetailView.jsx` · `DetailView/EntityIconDisplay.jsx` · `SearchField.jsx` · `SearchField/components/DetailViewWrapper.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2080 - 2026-07-06
 
 **Title:** ⚡ Perf batch 3 — open detail view no longer re-renders on raw hass ticks
