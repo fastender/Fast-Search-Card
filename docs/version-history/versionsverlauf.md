@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2075 - 2026-07-05
+
+**Title:** 📱 mobile tabs top padding + media_player cover full-bleed in the left view
+
+### What
+
+Two things. **(1)** The mobile tab bar (`.mobile-tabs`) has a little less air on top — 9px instead of 18px (others
+stay 18px). **(2)** For media_player the now-playing album cover now fills the entire left view edge-to-edge
+(full-bleed) instead of a centered square. The title/artist sit at the bottom over a soft dark scrim.
+
+### How
+
+- `DetailView.css`: `.mobile-tabs` padding `18px` (all) → `9px 18px 18px 18px`.
+- `DetailView.css`: `.detail-left-now-playing` is now `position:absolute; inset:0` with the text pinned to the bottom;
+  `.detail-left-cover-art-sharp` is `position:absolute; inset:0; object-fit:cover` (no square aspect-ratio, no
+  radius/shadow — the `.detail-left` clips it to the `35px 0 0 35px` corners); the sharp cover sits at z-index 50
+  (above the blurred bg z0, below the header/tag z100); `.detail-left-now-playing-text` gets a bottom-up gradient scrim
+  for legibility.
+
+### Files
+
+- `src/components/DetailView.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2074 - 2026-07-05
 
 **Title:** 🏠 room header — tiny gap under the text before the line + no press background
