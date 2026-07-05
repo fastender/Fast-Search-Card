@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2080 - 2026-07-06
+
+**Title:** ⚡ Perf batch 3 — open detail view no longer re-renders on raw hass ticks
+
+### Why
+
+With the grid decoupled (v2079), the open detail view was the last raw-tick consumer: DetailViewWrapper subscribed
+`useHass()` and re-rendered the entire DetailView tree (header getters, all four tab vnodes, TabNavigation, the
+bottom sheet) on every unthrottled `setHass` call — even when the change was irrelevant to the viewed entity.
+
+### What
+
+- **DetailViewWrapper dropped its `useHass()` subscription.** hass is only needed inside service calls → it now reads
+  `getHass()` at call time (fresher than any render closure). The `hass` prop to DetailView is gone.
+- **DetailView derives hass per render** (`hassProp || getHass()`). It already re-renders on every entity flush
+  (150ms-gated `useEntities`), so the snapshot is exactly as fresh as the entity data it renders — without the
+  wrapper re-rendering the whole tree per raw tick.
+- **UniversalControlsTab subscribes to live hass itself** (`useHass()`, prop as fallback). It is — besides the
+  quick-stats — the only `hass.states` reader in the detail subtree (universal hero, energy live values, MA panel via
+  prop pass-down), so its liveness is now architecturally independent of the parent's render cadence.
+- **Header getters deduplicated**: the six special-domain header getters (settings/todos/news/calendar/printer/
+  schedules) ran twice each (stateText + stateDuration = 12 calls per render); now computed once into
+  `specialHeaderInfo` (the domains are mutually exclusive).
+
+### Files
+
+- `src/components/SearchField/components/DetailViewWrapper.jsx` · `src/components/DetailView.jsx`
+- `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2079 - 2026-07-05
 
 **Title:** ⚡ Perf batch 2 — kill the per-tick render cascade (notifications, SearchField, SubcategoryBar, flush gate)
