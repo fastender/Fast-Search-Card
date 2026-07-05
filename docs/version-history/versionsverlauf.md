@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2077 - 2026-07-05
+
+**Title:** 🎯 circular slider — center the number+unit as a group + keep long titles inside the ring
+
+### What
+
+The ring-center content wasn't always visually centered. **(1)** The unit (`%`, `°C`) was positioned absolutely
+outside the number's width, so the flex only centered the number and the unit hung off to the right — the "98 %" group
+looked shifted left. Now the number and unit are centered together as a group (unit still raised like a superscript).
+**(2)** Long titles (e.g. a universal device's full name when no hero sensor is set) scrolled in a box that reached
+almost to the ring edges, so they looked off-center — the box is now narrower and stays cleanly centered in the ring.
+The media_player title/artist path (titleScale < 1) is untouched.
+
+### How
+
+- `CircularSliderDisplay.jsx`: `.value-wrapper` `display:inline-block` → `inline-flex; align-items:flex-start`; the
+  `.circular-unit` drops `position:absolute; left:100%; top:0` and flows inline (with a small `margin-top` to keep the
+  superscript look). `titleMaxWidth` `size*0.72` → `size*0.64`.
+
+### Files
+
+- `src/components/controls/CircularSliderDisplay.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2076 - 2026-07-05
 
 **Title:** 📱 remove now-playing text in left view + big media_player ring on all domains
