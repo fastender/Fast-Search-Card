@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2073 - 2026-07-05
+
+**Title:** 📱 detail-right sheet now on all domains (previously-excluded ones included)
+
+### What
+
+The detail-right bottom-sheet now applies to every domain on mobile — including the ones excluded in v2072
+(media_player, energy_dashboard, scene/script/automation, sensor/binary_sensor, settings, calendar) plus the rest
+(news, todos, schedules, printer3d). Requested by the user.
+
+### How
+
+- `DetailView.jsx`: replaced the `DETAIL_RIGHT_SHEET_DOMAINS` whitelist with an (empty) `DETAIL_RIGHT_SHEET_EXCLUDE`
+  blacklist. `detailRightSheetable = isMobile && !!domain && !DETAIL_RIGHT_SHEET_EXCLUDE.has(domain)` — so it's on
+  everywhere, and any single domain that misbehaves can be turned off with a one-line set entry.
+
+### Files
+
+- `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2072 - 2026-07-05
 
 **Title:** 📱 grow & glow on the controls sheet grabber + detail-right sheet rolled out to more domains
