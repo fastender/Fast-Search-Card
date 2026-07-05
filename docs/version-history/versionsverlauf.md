@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2070 - 2026-07-05
+
+**Title:** 📱 vision-pro quick menu tighter padding — mobile only (desktop stays 12px)
+
+### What
+
+The tighter 6px padding on the vision-pro quick menu (`.vpm-menu.glass-panel`) from v2069 was applied globally, which
+also affected the desktop vertical menu. Now the base stays at 12px (desktop) and only the mobile pill gets 6px.
+
+### How
+
+- `SearchField.css`: reverted base `.vpm-menu.glass-panel` to `padding: 12px 12px`; added `padding: 6px 6px` to
+  `.vision-pro-menu--mobile .vpm-menu.glass-panel`.
+
+### Files
+
+- `src/components/SearchField/SearchField.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2069 - 2026-07-05
 
 **Title:** 📱 detail-right sheet half snap 20px higher + vision-pro menu tighter padding
