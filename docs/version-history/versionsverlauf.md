@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2068 - 2026-07-05
+
+**Title:** 📱 controls sheet — stretch a bit higher inside the detail-right sheet (cover)
+
+### What
+
+The controls sheet (cover Position/Settings) now stretches a bit further up when it lives in the detail-right clip
+container — leaving ~80px at the top instead of 110px, so it has more panel area. The media_player controls sheet
+(portaled into `.detail-panel`) is unchanged at 110px.
+
+### How
+
+- `UniversalControlsTab.css`: `.detail-right-sheet-clip .mp-sheet { height: calc(100% - 80px); }`.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2067 - 2026-07-05
 
 **Title:** 📱 detail-right sheet — cleaner entrance (straight to half) + immediate exit on back
