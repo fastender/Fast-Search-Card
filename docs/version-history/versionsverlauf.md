@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2076 - 2026-07-05
+
+**Title:** 📱 remove now-playing text in left view + big media_player ring on all domains
+
+### What
+
+Two things. **(1)** The media_player left view no longer shows the title/artist text over the full-bleed cover — just
+the cover. **(2)** The circular slider ring on mobile is now the big media_player size on every domain (switch, lock,
+vacuum, universal, …), not just the ones that opted in. Desktop is unchanged (the mobile size factor is ignored at
+desktop ring sizes).
+
+### How
+
+- `DetailView.jsx`: removed the `.detail-left-now-playing-text` (title + artist) block; the now-playing wrapper holds
+  only the full-bleed `.detail-left-cover-art-sharp`.
+- `CircularSlider.jsx`: default `sizeScale` `1` → `1.32` (only scales the mobile ring, `base < 220`). Domains that set
+  `1.32` explicitly are unchanged.
+- `UniversalControlsTab.jsx`: `.big-ring` class fallback `(sizeScale || 1)` → `(sizeScale || 1.32)` so the control-
+  button spacing matches the bigger ring everywhere (the media_player pattern, now uniform).
+
+### Files
+
+- `src/components/DetailView.jsx` · `src/components/controls/CircularSlider.jsx` · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2075 - 2026-07-05
 
 **Title:** 📱 mobile tabs top padding + media_player cover full-bleed in the left view
