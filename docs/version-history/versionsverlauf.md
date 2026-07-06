@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2082 - 2026-07-06
+
+**Title:** 🔗 "Navigate to device with target tab" wired up (initialTabName) + dev mode unbroken
+
+### Why
+
+The plumbing for opening a device detail view on a specific tab existed end-to-end — SearchField holds
+`initialTab` state, `DetailViewWrapper.handleActionNavigate` extracts `params.openTab` and passes
+`initialTabName` into DetailView — but **DetailView never read the prop**, so any navigation with a target tab
+silently landed on tab 0. v2081 deliberately kept the dead prop for a wire-up instead of deleting it; this is
+that wire-up. Historical note: the only caller that ever passed `openTab` was the all-schedules → device
+navigation (`{ openTab: 'schedule' }`), which was later replaced by inline editing — so the mechanism is now
+functional again for current and future callers (ContextTab items navigate without a target tab and are
+unaffected).
+
+### What
+
+- **Tab-name → index mapping per domain** (`getDetailTabNames`, DetailView.jsx): mirrors `getFilteredTabIcons()`
+  branch for branch. Default domains: `controls / schedule / history / context` (0-3); sensor/binary_sensor have
+  no schedule tab: `controls / history / context` (0-2); `printer3d_device`/`energy_dashboard_device` map via
+  their controlConfig button ids; settings maps `general / appearance / filter / about`; system entities without
+  tabs return an empty list.
+- **Apply effect** keyed on `entity_id` + `initialTabName`, declared deliberately AFTER the entity-change
+  reset effect (both fire in the same commit; the later `setActiveTab` wins). Unmappable names (e.g.
+  `'schedule'` on a sensor) leave the tab untouched. For settings, the SettingsTab ref is switched too (same
+  path as a manual tab click).
+- **One-shot semantics**: after applying, DetailView calls `onInitialTabConsumed` → DetailViewWrapper clears
+  upstream via `setInitialTab(null)`, so a later manual open never jumps to a stale tab.
+- **Dev-mode fix (pre-existing breakage)**: `src/utils/translations.js` re-exported a `default` that
+  `translations/index.js` doesn't provide. Rollup tolerates the dead re-export in production builds, but native
+  ESM in `vite dev` hard-fails module instantiation — the dev page has been a blank screen since the getLocale
+  consolidation. Removed the dead line (all 38 imports are named).
+
+### Verified
+
+In-page integration tests against the real components (dev server, mock hass): light + `'schedule'` → tab 1;
+light + `'history'` → tab 2 (charts content mounted); sensor + `'history'` → tab 1 of 3 (sensor tab order);
+sensor + `'schedule'` → unmappable, tab unchanged, still consumed; no target tab → tab 0, not consumed;
+full DetailViewWrapper chain → `'context'` lands on tab 3 and `setInitialTab(null)` fires exactly once.
+
+### Files
+
+- `src/components/DetailView.jsx` — `getDetailTabNames` helper + apply/consume effect, new props
+- `src/components/SearchField/components/DetailViewWrapper.jsx` — `onInitialTabConsumed` wiring
+- `src/utils/translations.js` — dead default re-export removed (dev-mode fix)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2081 - 2026-07-06
 
 **Title:** 🧹 Perf batch 4 — dead-code cleanup + SolarCarousel fake-data bug removed
