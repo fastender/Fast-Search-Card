@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.2083 - 2026-07-06
+
+**Title:** 🧪 PILOT: real liquid glass (@samasante/liquid-glass) on the detail-right sheet
+
+### What
+
+Test integration of [@samasante/liquid-glass](https://github.com/samasante/liquid-glass) — an Apple-style liquid-glass
+lens that runs an SVG displacement filter on the live DOM (no html2canvas screenshot). On the mobile detail-right
+sheet, the glass background is now a `<Glass>` layer: in Chrome/Edge it *bends* the page behind the sheet
+(`backdrop-filter: url()` displacement + chromatic edge), in Safari/Firefox it degrades cleanly to frost + tint.
+
+Why this spot: the sheet is portaled outside the card's own backdrop-filter (v2064), so the nested-filter limitation
+doesn't apply, and it floats over the cover photo where refraction is actually visible.
+
+Compatibility checked up front: the lib renders its SVG filter defs inline in the component (shadow-DOM-safe —
+`url(#id)` is tree-scoped), uses only standard hooks + `useId` (preact/compat-safe via the existing `react` alias),
+zero runtime deps.
+
+### How
+
+- `npm i @samasante/liquid-glass` (v0.1.1; react/react-dom peers resolve to preact/compat via the vite alias).
+- `DetailRightSheet.jsx`: `LIQUID_GLASS_PILOT` flag (kill switch — set to `false` to restore the old glass); when on,
+  renders `<Glass style={{position:absolute, inset:0, zIndex:-1, background:'rgba(30,30,30,0.4)'}} />` as the sheet's
+  background layer and tags the sheet with `.detail-right--sheet-lg`.
+- `DetailView.css`: `.detail-right--sheet-lg::before { display: none; }` — the old `::before` backdrop-filter glass
+  would double up with the pilot layer.
+
+Note: version jumped to 1.1.2083 because 1.1.2082 was released in parallel by the background task session
+(initialTabName wire-up).
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/components/DetailView.css` · `package.json`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2082 - 2026-07-06
 
 **Title:** 🔗 "Navigate to device with target tab" wired up (initialTabName) + dev mode unbroken
