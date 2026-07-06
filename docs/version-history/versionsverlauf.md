@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2084 - 2026-07-06
+
+**Title:** 🎛️ Liquid glass gets appearance settings (on/off, frost, refraction, color fringe, tint)
+
+### What
+
+The liquid-glass pilot (v2083) is now user-tunable. Appearance → Design has a new "Liquid Glass" row opening a
+sub-view with: an **on/off toggle** (off = the classic frosted glass returns instantly — this replaces the hardcoded
+pilot flag), and four sliders: **Frost** (blur inside the glass, 0–30px), **Refraction** (displacement strength,
+0–0.3), **Color fringe** (chromatic aberration/dispersion, 0–1), and **Tint** (dark tint alpha, 0–80%). All changes
+apply live — the detail sheet updates while you drag, even with the detail view open.
+
+### How
+
+- New `src/utils/liquidGlassSettings.js`: shared `LIQUID_GLASS_DEFAULTS` + `readLiquidGlassSettings()` (appearance
+  section keys `liquidGlassEnabled/Frost/Strength/Dispersion/Tint`; defaults = the lib's balanced look + 40% tint).
+- `AppearanceSettingsTab.jsx`: "Liquid Glass" item in the Design card + `liquidGlass` sub-view (toggle + 4
+  `LiquidGlassSlider`s, section footers as explanations). Saves like the background sliders: instant
+  `broadcastSetting('liquidGlassChanged', settings)` + 200ms-debounced persist.
+- `DetailRightSheet.jsx`: the `LIQUID_GLASS_PILOT` const is gone; the sheet reads the settings on mount and
+  subscribes to `liquidGlassChanged` — `<Glass optics={{frost, strength, dispersion}}>` + tint alpha from settings;
+  the `.detail-right--sheet-lg` class (hides the old `::before` glass) now follows the toggle.
+- Translations: 13 new `settings.liquidGlass*` keys (de + en).
+
+### Files
+
+- `src/utils/liquidGlassSettings.js` (new) · `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/utils/translations/languages/de.js` · `en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2083 - 2026-07-06
 
 **Title:** 🧪 PILOT: real liquid glass (@samasante/liquid-glass) on the detail-right sheet
