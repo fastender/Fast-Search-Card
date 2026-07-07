@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2085 - 2026-07-07
+
+**Title:** 🔧 Liquid glass FIX — the glass was invisible (wrong mode: Glass must wrap the content)
+
+### Why
+
+The v2083/2084 pilot showed no glass at all and the new sliders had no visible effect. Root cause (found in the lib
+source): `<Glass>`'s **material mode** — frost + tint + bright edge everywhere, live page-bend in Chrome/Edge — only
+engages when the component has **children**. Our empty `<Glass />` background layer fell into the standalone DOM
+mode, which auto-fits its width to the (non-existent) wrapped content: `width: fit-content` → **0px wide** →
+completely invisible, and every optics change was a no-op on an invisible element.
+
+### What
+
+`DetailRightSheet` now renders the sheet content (grab zone + header + body) **inside** `<Glass>` — the documented
+"wrap any styled box" material usage. The Glass wrapper is the sheet's inner container (`position:absolute; inset:0;
+display:flex; flex-direction:column`), so the layout chain (grabber → tabs → scrollable tab content) is unchanged;
+the lib keeps children crisp and interactive above its glass layers. Tint/frost/refraction/color-fringe come from the
+v2084 appearance settings as before. Toggle off = plain fragment + the classic `::before` glass.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2084 - 2026-07-06
 
 **Title:** 🎛️ Liquid glass gets appearance settings (on/off, frost, refraction, color fringe, tint)
