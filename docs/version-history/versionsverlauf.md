@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2089 - 2026-07-07
+
+**Title:** 🔍 "Refraction sliders do nothing" mystery solved — it was Safari; honest browser hints added
+
+### What
+
+The user reported the Refraction and Color-fringe sliders never had any effect. Systematic isolation (minimal
+`backdrop-filter: url()` shadow-DOM tests, then the real `<Glass>` component, then the real `DetailRightSheet` with
+the real card CSS — all in a local Chromium preview) proved the whole chain works. Resolution: the observation came
+from **Safari** — WebKit cannot render SVG reference filters (`url()`) in `backdrop-filter` at all, so the lib
+deliberately degrades to frost + tint there (its documented behavior). In Chrome/Edge everything works, including
+both sliders.
+
+Change in this release: the two slider footers now say so ("Chrome/Edge only — Safari cannot render reference
+filters"), so nobody hunts this ghost again. A briefly-considered removal of the two sliders was reverted once the
+Safari finding landed.
+
+### Files
+
+- `src/utils/translations/languages/de.js` · `en.js` — footer hints
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — comment documenting the finding
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2088 - 2026-07-07
 
 **Title:** 🧹 Liquid glass batch B — refactor, dead glass CSS removed, one source for the glass recipe
