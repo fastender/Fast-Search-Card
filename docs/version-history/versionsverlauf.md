@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2090 - 2026-07-07
+
+**Title:** 🍎 Safari refraction pilot — the sheet bends a copy of the cover (refract mode)
+
+### What
+
+Safari/Firefox/iOS can't render `backdrop-filter: url()` (the live-bend path — Blink-only), but they CAN render
+`filter: url()` on an element. The lib's cross-browser answer is the **refract-copy mode**: hand `<Glass>` a copy of
+what's behind the lens and it bends the copy (the pattern from the official GlassNotification example). The
+detail-right sheet now does exactly that on non-Blink engines: it refracts a position-matched copy of the
+media_player cover art, counter-translated live during drag so it stays pixel-aligned with the real cover behind the
+sheet. Chrome/Edge keep the (better) live material mode; domains without a cover (video/icon backgrounds) keep the
+frost+tint fallback on Safari.
+
+Verified in the Chromium preview by forcing the copy path (`window.__LG_FORCE_REFRACT` test hook): refraction +
+chromatic fringe render, the alignment anchor matches at rest, and the copy counter-scrolls correctly when the sheet
+is moved (screenshots at two y positions). Actual Safari rendering/performance needs a device test.
+
+### How
+
+- `utils/liquidGlassSettings.js`: `supportsLiveBend()` — the lib's own Blink sniff (userAgentData / UA regex, iOS
+  ruled out), plus the `__LG_FORCE_REFRACT` hook for preview testing.
+- `DetailRightSheet.jsx`: new `refractSrc` prop; on `!liveBend && refractSrc` renders `<Glass refract={copy}
+  behind="#17171a" width/height/radius>` instead of the material layer. The copy = a full-clip-size (`672px`)
+  `motion.div` holding the cover `<img>` (object-fit cover, 35px radius), offset by a `refractY` MotionValue =
+  `-(90 + y)` — the sheet's top offset in clip space, updated per drag frame without React renders. Sheet
+  measurement now also records `glassSize` (refract mode needs explicit pixel dimensions). New `SHEET_TOP_OFFSET`/
+  `CLIP_HEIGHT` constants document the CSS coupling (top: 90px / clip height: 672px).
+- `DetailView.jsx`: `mediaCoverUrl` hoisted out of the detail-left IIFE (both the full-bleed cover and the sheet's
+  refract copy need it); passed as `refractSrc`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/components/DetailView.jsx` · `src/utils/liquidGlassSettings.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2089 - 2026-07-07
 
 **Title:** 🔍 "Refraction sliders do nothing" mystery solved — it was Safari; honest browser hints added
