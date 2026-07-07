@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2086 - 2026-07-07
+
+**Title:** ⚡ Liquid glass perf + refactor — grabber isolated, stable optics, dedup'd settings markup
+
+### What
+
+Hardening pass over the now-confirmed liquid-glass integration. No visual change.
+
+**Performance**
+
+- **Grabber extracted into its own `SheetGrabber` component.** The "grow & glow" `grabbed` state lived in the sheet
+  root, so every grab AND every release re-rendered the whole sheet — including the `<Glass>` wrapper and the diff of
+  the entire tab content — twice per drag. Now only the tiny grabber re-renders.
+- **`optics` memoized.** The sheet re-renders on every entity flush (fresh header/body vnodes); the optics object now
+  keeps its identity so GlassMaterial's internal `merged` memo stays warm. (Verified in the lib source that the
+  expensive displacement-map rasterization keys on primitive fields — this is hygiene on top, not a bug fix.)
+- Drag-start callback stabilized via `useCallback`.
+
+**Refactor**
+
+- New `useLiquidGlassSettings()` hook (`src/hooks/useLiquidGlassSettings.js`) — the read-once + subscribe-to-
+  `liquidGlassChanged` logic moved out of DetailRightSheet; reusable if more surfaces get glass later.
+- The mid-file `import` and the stale pilot comments in DetailRightSheet cleaned up; the render IIFE replaced by a
+  plain conditional (Glass-wrapped vs. plain fragment).
+- `AppearanceSettingsTab`: the four identical slider sections (label/value/slider/footer, ~100 lines of duplication)
+  collapsed into one local `LiquidGlassSliderSection` component.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/hooks/useLiquidGlassSettings.js` (new)
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2085 - 2026-07-07
 
 **Title:** 🔧 Liquid glass FIX — the glass was invisible (wrong mode: Glass must wrap the content)
