@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.2088 - 2026-07-07
+
+**Title:** 🧹 Liquid glass batch B — refactor, dead glass CSS removed, one source for the glass recipe
+
+### What
+
+Second hardening batch from the glass analysis. No visual change.
+
+**Refactor**
+
+- `useLiquidGlassSettings` now uses the house `useSettingBroadcast` hook instead of re-implementing the
+  addEventListener plumbing (exactly the drift that hook was created to kill in v1721).
+- The persist key-mapping moved next to the reader: `persistLiquidGlassSettings()` in `utils/liquidGlassSettings.js`
+  — previously the `liquidGlass*` storage keys lived in two files (drift risk when adding an optic).
+- `handleLiquidGlassChange`: side effect moved out of the setState updater (updaters must be pure; compute → set →
+  save like every other handler in the file).
+- Defaults documented as intentional: the card keeps the "clear" look (frost 0.5) the user approved, not the lib's
+  material defaults (frost 6) — comment added so nobody "fixes" it later.
+- Settings row description now says the pilot applies to the mobile sheet (the row is also visible on desktop).
+
+**Dead glass CSS removed (all proven unreferenced)**
+
+- `.detail-backdrop` rule pair — one rule (`blur(0px)`) existed only to be neutralized by the other
+  (`none !important`); no JSX references either class.
+- `.stats-bar .glass-panel::before` — descendant selector that can never match (both classes sit on the same node).
+- `.glass-panel::after { display:none !important }` — neutralizer for a gloss effect deleted long ago.
+
+**One source for the glass recipe**
+
+- The user-settings backdrop-filter chain (`blur(calc(20px + var(--background-blur)))…grayscale(…)`) and the tint
+  gradient were byte-identical in three places (`.detail-panel`, `.detail-right--sheet::before`,
+  `.glass-panel::before`). Now defined once as `--glass-backdrop` / `--glass-tint-bg` — deliberately on the carrier
+  elements (not `:root`, whose matching depends on where styles are injected; pseudo-elements inherit from their
+  carrier). This also puts the previously-unused `--glass-blur-amount` var to work. The sidebar's hover-deblur
+  variant (10px/240%) stays literal on purpose (different values).
+
+### Files
+
+- `src/hooks/useLiquidGlassSettings.js` · `src/utils/liquidGlassSettings.js`
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/DetailView.css` · `src/components/SearchField/SearchField.css` · `src/styles/perceivedSpeed.css`
+- `src/utils/translations/languages/de.js` · `en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2087 - 2026-07-07
 
 **Title:** ⚡ Liquid glass batch A — toggle remount bug fixed, 4× cheaper map, rAF-throttled broadcast
