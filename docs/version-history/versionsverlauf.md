@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2087 - 2026-07-07
+
+**Title:** ⚡ Liquid glass batch A — toggle remount bug fixed, 4× cheaper map, rAF-throttled broadcast
+
+### What
+
+First of two hardening batches from the glass analysis (two agents + measurements).
+
+- **Toggle no longer remounts the sheet content.** The on/off state switched the wrapper TYPE (`<Glass>` ↔
+  `<Fragment>`), so Preact remounted the entire sheet subtree — on the settings sheet (where the toggle lives) one
+  tap kicked the user out of the Liquid Glass sub-view and briefly showed the stale switch value. `<Glass>` is now an
+  absolutely-positioned background layer (z-index −1, like the old `::before`) behind stable content — with an empty
+  full-size dummy child to keep the lib's MATERIAL mode engaged (without children it collapses to 0 width, the v2085
+  lesson). Only the glass layer mounts/unmounts on toggle.
+- **`mapSize: 256`** (lib default 512): the displacement map is re-rasterized on every sheet mount — i.e. every
+  entity switch. 256² is ~4× cheaper (measured 10.7ms → 3.0ms pixel loop, plus smaller PNG encode/decode and 0.75MB
+  less ImageData) and visually indistinguishable at our refraction strength on a sheet-sized surface.
+- **Broadcast rAF-throttled**: settings-slider `pointermove` can outrun the frame rate (120Hz touch), and every
+  `liquidGlassChanged` broadcast forces a filter-id bump + full backdrop re-rasterization on the sheet. Broadcasts now
+  coalesce to one per frame (last-write-wins); persist stays 200ms-debounced.
+- **Optics memo keyed on primitives** (`[lg.frost, lg.strength, lg.dispersion]` instead of `[lg]`): tint-slider drags
+  no longer churn the optics identity (tint isn't an optic — it rides `style.background`, the cheapest channel).
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2086 - 2026-07-07
 
 **Title:** ⚡ Liquid glass perf + refactor — grabber isolated, stable optics, dedup'd settings markup
