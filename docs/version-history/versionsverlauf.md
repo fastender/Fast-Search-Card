@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2091 - 2026-07-07
+
+**Title:** 🍎 Safari refraction extended to video backgrounds (light, cover, …) — verified in real WebKit
+
+### What
+
+The v2090 Safari refract-copy path only covered media_player cover art. It now also works for entity **video
+backgrounds**: on non-Blink engines the sheet refracts a `<video>` clone of the entity video (autoplay/muted/loop,
+same full-bleed geometry), with the lib's `live` flag so WebKit re-rasterizes the filter every frame — otherwise the
+refracted copy would freeze on the first frame. Same precedence as the left pane: cover art beats video; entities
+with neither keep the frost+tint fallback.
+
+Verified in real WebKit (Playwright) against the actual repo asset (`media/videos/light_on.mp4`): the refracted
+region shows visible chromatic fringing, the seam at the sheet edge is continuous (the subject crosses the boundary
+without offset — the two video elements stay in sync), and two screenshots 1.5s apart prove the copy plays and the
+filter updates live.
+
+Also noteworthy from this session's earlier diagnosis: `filter: url(#id)` resolves correctly inside (even nested)
+shadow roots in BOTH Blink and WebKit; only cross-boundary references (element in shadow, defs in document) fail —
+in both engines. Playwright + WebKit stays installed as a dev dependency for future Safari verification.
+
+### How
+
+- `DetailRightSheet.jsx`: new `refractVideoSrc` prop; refract node renders the cover `<img>` (refractSrc) or a
+  `<video>` clone; `live` set only for the video case.
+- `DetailView.jsx`: passes `refractVideoSrc={!mediaCoverUrl ? videoUrl : null}`.
+
+### Files
+
+- `src/components/DetailView/DetailRightSheet.jsx` · `src/components/DetailView.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2090 - 2026-07-07
 
 **Title:** 🍎 Safari refraction pilot — the sheet bends a copy of the cover (refract mode)
