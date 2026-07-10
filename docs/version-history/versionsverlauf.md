@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2093 - 2026-07-07
+
+**Title:** 🎛️ Liquid glass settings polish (hide when off, ⓘ popups) + sheet scroll-to-bottom fix at half
+
+### What
+
+Three fixes from user feedback.
+
+- **Sub-options hidden when Liquid Glass is off**: with the Enabled toggle off, the 12 sliders and the Safari toggle
+  disappear — dead controls made no sense.
+- **ⓘ info popups instead of footer texts**: every row's explanation ("Replaces the detail sheet glass…",
+  "Blur inside the glass…", …) moved from an always-visible footer under the card into the standard ⓘ popup next to
+  the label — the sub-view was getting very long. The texts are the existing `liquidGlass*Footer` translation keys,
+  fed via `SettingsInfoButton`'s `content` prop (no key duplication into `settingsInfo`); the info-popup catalog
+  documents the mapping (house rule).
+- **Sheet scroll bug fixed**: at the HALF (and peek) snap the sheet is translated down by `y`, so its bottom part —
+  and with it the end of the scrollable tab content — sat below the card edge and could never be scrolled into view
+  (e.g. the Brightness row in the Liquid Glass sub-view was unreachable at half, visible only at full). The sheet now
+  sets `--sheet-bottom-pad` (= the current snap offset) and `#tab-content-container` gets that as `padding-bottom`,
+  restoring the missing scroll headroom. Deliberately updated only at snap points, not per drag frame (padding
+  triggers layout; nobody scrolls mid-drag).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` · `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/DetailView.css` · `docs/info-popups/info-popups-catalog.md`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2092 - 2026-07-07
 
 **Title:** 🎛️ Liquid glass: full optics set (bend/sheen/glow/brightness…) + Safari copy-refraction now opt-in

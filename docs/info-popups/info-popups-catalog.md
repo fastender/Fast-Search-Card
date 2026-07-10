@@ -68,6 +68,33 @@
 | `wallpaperUrl` | Hintergrundbild → Bild-URL (Image URL) |
 | `wallpaperFolder` | Hintergrundbild → Galerie (media_dirs / media_source Setup) |
 
+#### Liquid Glass (Unteransicht, v1.1.2093) — ⚠️ `content`-Prop statt `settingsInfo`-Keys
+
+Die 14 ⓘ-Popups der Liquid-Glass-Unteransicht (Darstellung → Design → Liquid
+Glass) nutzen **nicht** den `settingsInfo`-Bucket, sondern den `content`-Prop
+von `SettingsInfoButton`: Die Texte existierten bereits als Footer-Keys unter
+`ui.settings.liquidGlass*Footer` (de+en) und wurden v1.1.2093 von Footern unter
+den Karten in ⓘ-Popups verschoben — Duplikation in `settingsInfo` wurde bewusst
+vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
+`de.js`/`en.js` → `ui.settings.liquidGlass*Footer`.
+
+| Zeile (Label) | Text-Key (`ui.settings.…`) |
+|---|---|
+| Aktiviert / Enabled (Toggle) | `liquidGlassEnabledFooter` |
+| Frost | `liquidGlassFrostFooter` |
+| Brechung / Refraction | `liquidGlassStrengthFooter` |
+| Farbsaum / Color fringe | `liquidGlassDispersionFooter` |
+| Tönung / Tint | `liquidGlassTintFooter` |
+| Biegung / Bend | `liquidGlassBendFooter` |
+| Biegungs-Breite / Bend width | `liquidGlassBendWidthFooter` |
+| Glanz / Sheen | `liquidGlassSheenFooter` |
+| Glanz-Breite / Sheen width | `liquidGlassSheenWidthFooter` |
+| Glanzlicht / Specular | `liquidGlassSpecularFooter` |
+| Glanz-Winkel / Sheen angle | `liquidGlassSheenAngleFooter` |
+| Glow | `liquidGlassGlowFooter` |
+| Helligkeit / Brightness | `liquidGlassBrightnessFooter` |
+| Safari: Brechung (Kopie) / refraction (copy) (Toggle) | `liquidGlassSafariRefractFooter` |
+
 ### Settings → Filter (früher „Privacy")
 
 | infoKey | Sektion (Header) |
