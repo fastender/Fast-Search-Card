@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2094 - 2026-07-08
+
+**Title:** 🧱 Batch 5 phase 1 — DetailView split: header-info hook + left pane extracted (917 → 638 lines)
+
+### What
+
+First phase of the structural split of the DetailView orchestrator. No behavior change — verified by an agent doing a
+token-level before/after parity review (every string, guard, fallback chain, prop mapping and hook order compared;
+verdict: zero deviations).
+
+- **`DetailView/useDetailHeaderInfo.js`** (new): `formatTimeAgo` + the six special-domain header getters
+  (news/settings/all_schedules/calendar/todos/printer3d, ~200 lines) moved out of the orchestrator into a hook that
+  returns `{stateText, stateDuration}` with the same precedence chain and the generic `getStateText/getStateDuration`
+  fallback. The 15s "since X" duration tick lives in the hook now too.
+- **`DetailView/DetailLeftPane.jsx`** (new): the left render-IIFE became a pure-props component — video / news-image /
+  cover-art precedence (cover beats video), blurred + sharp full-bleed cover, DetailHeader, EntityIconDisplay (sheet
+  ride-along via `sheetIconY`). Video state/refs stay in the orchestrator (its load effect needs them);
+  `newsArticleImageUrl` is hoisted next to `mediaCoverUrl`.
+- DetailView.jsx shrinks 917 → 638 lines; `getStateText/getStateDuration` and `DetailHeader/EntityIconDisplay`
+  imports dropped there; barrel re-exports added.
+
+Next phases: DetailRightPane + portal hook, DetailTabContent, then the UniversalControlsTab 5-phase split.
+
+### Files
+
+- `src/components/DetailView/useDetailHeaderInfo.js` (new) · `src/components/DetailView/DetailLeftPane.jsx` (new)
+- `src/components/DetailView.jsx` · `src/components/DetailView/index.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2093 - 2026-07-07
 
 **Title:** 🎛️ Liquid glass settings polish (hide when off, ⓘ popups) + sheet scroll-to-bottom fix at half
