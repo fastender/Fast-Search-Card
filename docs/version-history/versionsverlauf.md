@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2092 - 2026-07-07
+
+**Title:** 🎛️ Liquid glass: full optics set (bend/sheen/glow/brightness…) + Safari copy-refraction now opt-in
+
+### What
+
+Two user decisions. **(1)** The Safari/Firefox copy-refraction (v2090/91) is now **off by default** — the
+position-synced background copy bothered the user. A new toggle in the Liquid Glass settings ("Safari: refraction
+(copy)") opts back in; it has no effect on Chrome/Edge, which keep the live bend. Without opt-in, WebKit shows the
+clean frost+tint material as before. **(2)** The settings sub-view now exposes the lib's full demo-panel optics set,
+with defaults equal to the lib's material defaults (so nothing changes visually until a slider is touched):
+
+- **Bend** (0–1, default 0.45) and **Bend width** (0–0.5, default 0.16) — the edge-zone curl
+- **Sheen** (0–3, default 0.32), **Sheen width** (0–10, default 3), **Specular** (0–3, default 1),
+  **Sheen angle** (0–360°, default 45°)
+- **Glow** (0–1, default 0.1) and **Brightness** (−1…+1, default 0 — brighten/darken veil)
+
+All apply live while dragging (the broadcast is rAF-throttled since v2087 — important here, because
+bend/sheen/glow changes re-rasterize the displacement map on every change).
+
+Note for the settings entity itself: its sheet gets the copy-refraction automatically as soon as a `settings` video
+exists in the video folder (videoHelpers already maps the domain) — with the toggle on, the live preview then bends
+on the settings sheet too.
+
+### How
+
+- `utils/liquidGlassSettings.js`: 9 new fields (defaults = `MATERIAL_OPTICS`), reader + writer extended.
+- `DetailRightSheet.jsx`: optics memo passes the 8 new fields; `useRefractCopy` additionally gated on
+  `lg.safariRefract` (and moved below the `lg` declaration — the first placement was a TDZ bug caught in review).
+- `AppearanceSettingsTab.jsx`: 8 `LiquidGlassSliderSection`s + the Safari toggle section.
+- Translations: 20 new `settings.liquidGlass*` keys (de + en).
+
+### Files
+
+- `src/utils/liquidGlassSettings.js` · `src/components/DetailView/DetailRightSheet.jsx`
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`
+- `src/utils/translations/languages/de.js` · `en.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2091 - 2026-07-07
 
 **Title:** 🍎 Safari refraction extended to video backgrounds (light, cover, …) — verified in real WebKit
