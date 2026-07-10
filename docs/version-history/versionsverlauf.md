@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2096 - 2026-07-08
+
+**Title:** 🧱 Batch 5 phase 3 — DetailTabContent extracted; only the active tab's vnode is built (601 → 491 lines)
+
+### What
+
+Third phase of the DetailView split, agent-verified for parity (verdict: full behavior parity; the only flagged
+divergence — a string `activeTab` — is unreachable at every call site).
+
+- **`DetailView/DetailTabContent.jsx`** (new): the former `renderTabContent` as a stateless component. Domain
+  branches unchanged (settings → SettingsTab with its own tab management; system entities → registry view with the
+  v1.1.1345 remount key; sensors without the schedule tab). Improvement: a `switch` builds **only the active tab's
+  vnode** — before, all 3-4 tab vnodes plus their inline closures were constructed every render just to pick one by
+  index. The old `contents[activeTab] || contents[0]` fallback maps to the `default` case (out-of-range → tab 0).
+- DetailView.jsx: 601 → 491 lines. Seven imports moved out (UniversalControlsTab, EntityHistoryView, ScheduleTab,
+  ContextTab, SystemEntityLazyView, handleTimerCreate/handleScheduleCreate); SettingsTab stays (getTabIcons for the
+  settings tab bar).
+
+Cumulative: 917 → 491 lines (−426) across phases 1-3. Next: the tabNav/tabContent memoization (the last open item
+from the July perf analysis), then the UniversalControlsTab split.
+
+### Files
+
+- `src/components/DetailView/DetailTabContent.jsx` (new) · `src/components/DetailView.jsx` · `src/components/DetailView/index.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2095 - 2026-07-08
 
 **Title:** 🧱 Batch 5 phase 2 — DetailView split: right pane + sheet portal/exit lifecycle extracted (638 → 601 lines)
