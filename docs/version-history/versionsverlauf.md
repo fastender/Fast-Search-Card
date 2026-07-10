@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2095 - 2026-07-08
+
+**Title:** 🧱 Batch 5 phase 2 — DetailView split: right pane + sheet portal/exit lifecycle extracted (638 → 601 lines)
+
+### What
+
+Second phase of the DetailView structural split. No behavior change — again verified by an agent doing a token-level
+before/after parity review (verdict: zero deviations, all three diff hunks accounted for).
+
+- **`DetailView/useSheetPortal.js`** (new hook): the sheet's portal-target resolution
+  (`closest('.detail-panel-wrapper')`, pre-paint via useLayoutEffect — no inline-fallback remount flicker) and the
+  close-exit animation (slide the sheet out via the live MotionValue). Deliberately a hook at the DetailView level,
+  NOT part of the pane: AnimatePresence freezes the exiting subtree, so an effect inside the pane would never see
+  `isVisible → false` and the v2067 hanging-sheet bug would return — the file documents this trap.
+- **`DetailView/DetailRightPane.jsx`** (new component, deliberately effect-free): the branch logic — classic
+  `.detail-right` container (desktop / excluded domains) vs `DetailRightSheet` portaled into the card-sized clip
+  container, with the refract props passed through.
+- DetailView.jsx: 638 → 601 lines; `createPortal`, `animate`, `useLayoutEffect`, `DetailRightSheet` and
+  `SHEET_PEEK_VISIBLE` imports dropped there; barrel re-exports added.
+
+Cumulative: 917 → 601 lines (−316) across phases 1+2. Next: DetailTabContent, then the UniversalControlsTab split.
+
+### Files
+
+- `src/components/DetailView/useSheetPortal.js` (new) · `src/components/DetailView/DetailRightPane.jsx` (new)
+- `src/components/DetailView.jsx` · `src/components/DetailView/index.js`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2094 - 2026-07-08
 
 **Title:** 🧱 Batch 5 phase 1 — DetailView split: header-info hook + left pane extracted (917 → 638 lines)
