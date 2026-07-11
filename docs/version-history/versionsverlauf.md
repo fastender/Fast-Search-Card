@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2099 - 2026-07-08
+
+**Title:** 🧱 Batch 5 UCT split phase 2 — media-player slideshow → useMediaPlayerSlides hook (1083 → 987 lines)
+
+### What
+
+Extracted the media_player slideshow mechanics from UniversalControlsTab into a hook. Agent-verified for parity
+(byte-equivalent effects; verdict: 1:1, one benign effect-ordering note analyzed as inert).
+
+- **`src/hooks/useMediaPlayerSlides.js`** (new): slide index + 5s auto-advance (paused on hover/touch/expanded
+  control) + 1s position tick (client-side live position on slide 1) + horizontal swipe + slide dots + drag-pause.
+  Signature `useMediaPlayerSlides({ item, isMediaPlayer, expandedControl })`; returns the slide value, position
+  tick, the four pointer/touch handlers, the slide-dots object, and the drag-state handler. `mpPaused`, `mpIsActive`,
+  `goToMpSlide`, the refs and constants are internal.
+- The artist-click (`mpArtistQuery` + `handleArtistClick`) deliberately STAYED in the component — it calls
+  `toggleExpandable`, which is defined later in the file, so moving it would have been an ordering bug.
+- The interleaved bottom-sheet code (Phase 4's target) is untouched; UCT drops 1083 → 987 lines.
+
+### Files
+
+- `src/hooks/useMediaPlayerSlides.js` (new) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2098 - 2026-07-08
 
 **Title:** 🧱 Batch 5 UCT split phase 1 — UniversalHeroImage extracted (1168 → 1083 lines)
