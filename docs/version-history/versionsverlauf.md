@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2101 - 2026-07-08
+
+**Title:** 🧱 Batch 5 UCT split phase 4a — energy live values → useEnergyLiveValues hook (883 → 806 lines)
+
+### What
+
+Extracted the `energy_dashboard_device` live sensor values from UniversalControlsTab into a hook (first half of
+phase 4; the ControlsSheet component follows in 4b). Byte-verified: the moved logic is byte-identical (59 code lines,
+zero differences), and the four consumer sites (sliderConfig value/unit/today-consumption + the big memo deps) are
+unchanged.
+
+- **`src/hooks/useEnergyLiveValues.js`** (new): the midnight-value fetch (once, from the Statistics API) + the live
+  W/kW and kWh reads from `hass.states` (with the `_display_primary/_secondary` slideshow override). Signature
+  `useEnergyLiveValues(item, hass)`; returns `{ liveEnergyValue, liveEnergyUnit, currentKwhValue, midnightKwhValue }`.
+- Contiguous block; UCT drops 883 → 806 lines.
+
+### Files
+
+- `src/hooks/useEnergyLiveValues.js` (new) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2100 - 2026-07-08
 
 **Title:** 🧱 Batch 5 UCT split phase 3 — universal-device hero slideshow → useUniversalHero hook (987 → 883 lines)
