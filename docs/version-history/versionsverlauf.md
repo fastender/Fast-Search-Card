@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2097 - 2026-07-08
+
+**Title:** ⚡ Batch 5 phase 3b — tabNav/tabContent memoized: foreign entity ticks no longer re-diff the open detail
+
+### What
+
+The last open item from the July perf analysis (A1). DetailView re-renders on every entity flush (up to ~6×/s) — and
+until now rebuilt the TabNavigation and the whole tab-content vnode tree each time, forcing Preact to re-diff the
+entire right pane even when the change concerned a *different* entity. Now:
+
+- **`tabNav` + `tabContent` are `useMemo`'d** on their real inputs (liveItem, activeTab, lang, header strings, slider
+  position, action buttons, stable callbacks). Unchanged entities keep their object identity in the flush, so
+  `liveItem` is referentially stable for foreign ticks → the memos hold → Preact's `_original` bailout skips the
+  right pane entirely. `filteredTabIcons` is memoized too (array identity fed the tabNav deps).
+- **`hass` is deliberately NOT a dep** (documented in code): tabs use it only for WS/service calls (connection stays
+  valid on a stale object — verified for ScheduleTab's create closures, EntityHistoryView, SettingsTab), and the only
+  live `hass.states` render-reader (UniversalControlsTab) self-subscribes since v2080. TabNavigation stays live for
+  viewRefs because it subscribes to ViewRefContext itself — context updates re-render consumers even inside memoized
+  vnodes.
+- **DetailViewWrapper stabilized** so the memo chain actually holds: the four handlers (back, favorite, service call,
+  action navigate) are `useCallback`'d — `handleActionNavigate` reads `devices` through a ref (it changes per flush;
+  as a dep it would have defeated the memos permanently) — and the `item` literal is memoized per `selectedDevice`.
+- The 15s duration tick still updates the header (headerInfo strings are tabNav deps) while tabContent keeps holding.
+
+Dependency-completeness was reviewed (free-variable audit of every memo/callback; provider methods confirmed
+useCallback'd; registry late-registration accepted as boot-time-only edge).
+
+### Files
+
+- `src/components/DetailView.jsx` · `src/components/SearchField/components/DetailViewWrapper.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2096 - 2026-07-08
 
 **Title:** 🧱 Batch 5 phase 3 — DetailTabContent extracted; only the active tab's vnode is built (601 → 491 lines)
