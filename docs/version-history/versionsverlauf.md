@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2098 - 2026-07-08
+
+**Title:** 🧱 Batch 5 UCT split phase 1 — UniversalHeroImage extracted (1168 → 1083 lines)
+
+### What
+
+Start of the UniversalControlsTab structural split (the last big Batch-5 item, same phase-by-phase workflow as the
+DetailView split). Phase 1 is the safest: a pure move. The self-contained `UniversalHeroImage` sub-component (the
+hero-image / camera display with its own load-error fallbacks, ~85 lines, depends only on `getLang` + preact hooks)
+moved from the bottom of UniversalControlsTab.jsx into its own file next to the other control sub-components.
+
+Verified by byte-diff: the function body is byte-identical, both JSX call sites unchanged, and the only orchestrator
+edits are the new import + the removed function.
+
+### Files
+
+- `src/components/controls/UniversalHeroImage.jsx` (new) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2097 - 2026-07-08
 
 **Title:** ⚡ Batch 5 phase 3b — tabNav/tabContent memoized: foreign entity ticks no longer re-diff the open detail
