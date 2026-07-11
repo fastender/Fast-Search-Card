@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2102 - 2026-07-08
+
+**Title:** 🧱 Batch 5 UCT split phase 4b — mobile controls sheet → ControlsSheet component (806 → 712 lines)
+
+### What
+
+Extracted the mobile controls bottom-sheet from UniversalControlsTab into its own component. Agent-verified 1:1
+(every drag constraint, the grow&glow animate values, and the portal target-gating equivalence checked).
+
+- **`src/components/controls/ControlsSheet.jsx`** (new): the portal + overlay + drag-to-dismiss sheet + grow&glow
+  grabber + the controls-buttons row and the expanded PresetButtonsGroup panel. Internal: the drag controls, the
+  drag-end handler, and the grabbed state + window pointerup/cancel listeners. Props carry the rest
+  (`target, expandedControl, onClose, controlConfig, activePreset, onPresetSelect, onToggleExpandable, onServiceCall,
+  item, lang, hass, maInitialQuery`).
+- The portal-target resolution (`closest()` on the tab ref), the `mp-sheet-open` class toggle, `sheetMode` and
+  `closeSheet` stay in the orchestrator (they bind to `controlsTabRef` / the expandable state). The
+  `sheetMode && sheetTarget` gate becomes `target={sheetMode ? sheetTarget : null}` + `if (!target) return null` —
+  equivalent (sheetTarget is only ever set under sheetMode, never reset).
+- `createPortal` and `useDragControls` imports dropped from the orchestrator; UCT drops 806 → 712 lines.
+
+Cumulative across the UCT split (phases 1–4b): 1168 → 712 lines (−456). Remaining: phase 5, unify the duplicated
+energy vs standard render paths.
+
+### Files
+
+- `src/components/controls/ControlsSheet.jsx` (new) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2101 - 2026-07-08
 
 **Title:** 🧱 Batch 5 UCT split phase 4a — energy live values → useEnergyLiveValues hook (883 → 806 lines)
