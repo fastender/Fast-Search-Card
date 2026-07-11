@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2100 - 2026-07-08
+
+**Title:** 🧱 Batch 5 UCT split phase 3 — universal-device hero slideshow → useUniversalHero hook (987 → 883 lines)
+
+### What
+
+Extracted the universal-device multi-hero slideshow from UniversalControlsTab into a hook. Agent-verified: the moved
+code is byte-identical (73 code lines each, zero differences).
+
+- **`src/hooks/useUniversalHero.js`** (new): the hero list (from `attributes.hero`), the 10s auto-advance (paused
+  while an expandable control is open, restarts on manual dot-click via the `safeUniversalIdx`-in-deps fix), the
+  horizontal swipe (both render paths), and the image/camera-hero URL building (`heroImageSrc`/`heroImageLabel`).
+  Signature `useUniversalHero({ item, isUniversalDevice, hass, expandedControl })`; returns the hero list, safe
+  index, active hero, the image flags/URLs, swipe-enabled flag, the three pointer handlers, and the index setter.
+  `universalHeroIdx`, `activeHeroDomain`, `swipeStartRef` are internal.
+- Contiguous block (unlike phase 2's interleaving); UCT drops 987 → 883 lines.
+
+### Files
+
+- `src/hooks/useUniversalHero.js` (new) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2099 - 2026-07-08
 
 **Title:** 🧱 Batch 5 UCT split phase 2 — media-player slideshow → useMediaPlayerSlides hook (1083 → 987 lines)
