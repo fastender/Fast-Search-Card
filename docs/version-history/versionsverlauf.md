@@ -1,5 +1,14 @@
 # Versionsverlauf
 
+## Version 1.1.2112 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider — rings a bit thicker again (15 → 18)
+
+### Files
+
+- `src/components/controls/CircularMultiRing.jsx` — `STROKE` 15 → 18
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2111 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider thumb — bring the morph back on grab (glassy fill + colored halo), rest stays plain white
