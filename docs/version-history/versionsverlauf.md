@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.2103 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider redesign phase 1 — media_player as a visionOS 2-ring (volume + position, both draggable)
+
+### What
+
+First phase of the unified visionOS-27-style CircularSlider (design approved earlier via mockups). media_player now
+renders **two concentric rings** instead of the old 2-slide slideshow: **volume outside (orange) + track position
+inside (cyan), both independently draggable**. Built as a **parallel component set** wired in only for media_player —
+the existing `CircularSlider` (and all 7 other domains) is left completely untouched (zero risk); unifying the other
+domains onto the new component follows in later phases (hence "media_player first").
+
+- **visionOS optics:** translucent glass track (`rgba(255,255,255,0.07)`), per-domain gradient progress arc with a
+  soft SVG glow, and a glass-optic thumb bead (radial white→translucent + top highlight + drop-shadow + colored halo).
+  **Chromatic dispersion dropped in favor of the glow** — cleaner and cheaper at 2–3 concentric rings.
+- **Symmetric fixed-slot center:** three absolutely-positioned slots (TOP / MID / BOTTOM), all
+  `translate(-50%,-50%)`, positions reserved so hiding a slot never shifts the value or the others. For media_player:
+  volume % on top (orange), title/artist dead-center (2-line, marquee, iOS-27 weight), runtime on the bottom (cyan).
+- **State-driven ring count:** playing/paused/buffering (or idle-with-track-metadata) → 2 rings; idle/standby/on with
+  no track → **1 interactive volume ring** (position is meaningless without a track); off/unavailable → 1 grey
+  non-interactive ring. The 1s live-position tick is now decoupled from the (now inert) slide index so it runs
+  whenever the player is playing.
+- Both rings drive the existing, unchanged `sliderChangeHandlers.media_player` — volume → `volume_set`, position →
+  `media_seek` (commit-on-release). Verified end-to-end against a mock player (drag → real service call, live tick,
+  correct ring count per state).
+
+### Files
+
+- `src/components/controls/CircularMultiRing.jsx` (new) — parent: N concentric rings in one SVG + the center
+- `src/components/controls/CircularRing.jsx` (new) — one ring: own drag + spring, glass track, gradient arc + glow, glass thumb
+- `src/components/controls/CircularSliderCenter.jsx` (new) — the symmetric fixed-slot center
+- `src/components/controls/circularMarquee.jsx` (new) — marquee extracted from `CircularSliderDisplay` (shared)
+- `src/components/controls/CircularSliderDisplay.jsx` — now imports the shared marquee (behavior unchanged)
+- `src/utils/deviceConfigs.js` — new `getMediaPlayerRingsConfig` (rings + center data model)
+- `src/hooks/useMediaPlayerSlides.js` — position tick decoupled from slide index (2-ring shows position always)
+- `src/components/tabs/UniversalControlsTab.jsx` — renders `CircularMultiRing` for media_player, per-ring service handlers
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2102 - 2026-07-08
 
 **Title:** 🧱 Batch 5 UCT split phase 4b — mobile controls sheet → ControlsSheet component (806 → 712 lines)
