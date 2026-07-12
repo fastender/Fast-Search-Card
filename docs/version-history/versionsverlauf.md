@@ -1,5 +1,14 @@
 # Versionsverlauf
 
+## Version 1.1.2120 - 2026-07-13
+
+**Title:** 🎛️ Badge label — smaller font (12px desktop / 10px mobile) + tighter padding (2px 8px)
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — badge font 12px/10px, padding 2px 8px / 2px 7px
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2119 - 2026-07-13
 
 **Title:** 🎛️ Pill label → outline badge (no fill), per user's DevTools tweak
