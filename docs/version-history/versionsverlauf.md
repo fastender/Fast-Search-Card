@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2104 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider 2-ring polish — center text without a shadow-backdrop + thumb morph 1:1 with the horizontal glass slider
+
+Two refinements on top of the v1.1.2103 media_player 2-ring (user feedback from the live beta):
+
+- **Center text: removed the dark shadow-backdrop.** The soft drop-shadow (10px/8px blur) behind the title/artist +
+  value lines summed into a dark cloud that read as a masking background. Dropped entirely (`TEXT_SHADOW`/`SIDE_SHADOW`
+  → `none`). The left/right marquee edge-fade (`WebkitMaskImage`) is a separate mechanism and stays.
+- **Thumb morph now 1:1 with the horizontal `LiquidGlassSlider`.** On grab the thumb morphs exactly like the
+  Appearance-settings sliders: `scaleX 1 → 1.18`, `scaleY 1 → 0.92` (SPRING_SNAPPY), the glass bead goes glassier
+  (opacity down) and its colored halo intensifies; on release it springs back (stiffness 380 / damping 14). The thumb
+  is now a translated group with its circles at local (0,0) so the scale morphs around the bead center in-place
+  instead of shifting position.
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — shadow-backdrop removed
+- `src/components/controls/CircularRing.jsx` — grab-morph (scaleX/scaleY + glassy fill + halo) 1:1 with LiquidGlassSlider
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2103 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider redesign phase 1 — media_player as a visionOS 2-ring (volume + position, both draggable)
