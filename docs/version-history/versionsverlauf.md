@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2111 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider thumb — bring the morph back on grab (glassy fill + colored halo), rest stays plain white
+
+v2109 stripped the thumb down to plain white but also removed the grab morph. Restored it **only on grab**: while
+grabbed the white fill goes translucent (`opacity 1 → 0.55`, glassy) and the ring-colored glow halo fades in
+(`0 → 0.7`), on top of the bigger grow (1.5). At rest the thumb is still a plain solid-white circle (halo invisible,
+fill opaque).
+
+### Files
+
+- `src/components/controls/CircularRing.jsx` — grab restores bead-opacity fade + colored halo; rest = plain white
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2110 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider — bigger thumb grab-grow (1.18 → 1.5)
