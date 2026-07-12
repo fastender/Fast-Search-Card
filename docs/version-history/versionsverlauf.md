@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2115 - 2026-07-13
+
+**Title:** 🎛️ Unified center — entity label always on the bottom line, in the OFF/status state too
+
+Follow-up to v1.1.2114: in the status/OFF state (e.g. "Aus", "Verriegelt", "An") the entity label used to sit as a
+caption directly under the status text. Now it goes to the **bottom line** just like the value state — so "Helligkeit"
+is in the same position whether the light shows `65 / Prozent / Helligkeit` or `Aus / Helligkeit`. Status centers no
+longer render a caption under the text.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — adapter: entity label → bottom line for both value and status centers
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2114 - 2026-07-13
 
 **Title:** 🎛️ Unified value center — unit as a word (Prozent/Grad) instead of a symbol, entity label moves to the bottom line
