@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2106 - 2026-07-12
+
+**Title:** 🎛️ media_player 1-ring volume center → big centered number, small superscript unit, two-line with "Lautstärke"
+
+When a media_player is available but not playing (idle/standby/on), it shows a single interactive volume ring. Its
+center used to render the volume as one string (`"30 %"`, unit same size) plus the state text below. Reworked on user
+request:
+
+- New **`value` center variant** in `CircularSliderCenter`: a big, centered number with the unit rendered **small and
+  superscript** (absolutely positioned to the right so it never shifts the number off-center), and a label line below.
+- The available-volume center now uses it: **big centered `69`, small `%`, second line `Lautstärke`** (translated,
+  `controls.volume`) instead of the state text.
+- This variant is separate from the 2-ring (playing) center (title/artist) and from the old `CircularSlider`'s
+  group-centered number+unit (v2077) — those are untouched.
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — new `value` variant (centered number + superscript unit + label)
+- `src/utils/deviceConfigs.js` — `getMediaPlayerRingsConfig` available-volume center → `value` variant with `Lautstärke`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2105 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider thumb grab-morph → uniform grow (scaleY = scaleX)
