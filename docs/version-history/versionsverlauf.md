@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2108 - 2026-07-12
+
+**Title:** 🎛️ Volume-center — drop the "%" unit entirely (just the number + "Lautstärke")
+
+User preferred no unit at all. The available-volume 1-ring center now shows only the big centered number and the
+"Lautstärke" label — `unit: null` (the `value` variant already renders no unit when it's null). The number is now
+perfectly centered since nothing overhangs to the right.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — `getMediaPlayerRingsConfig` available-volume center `unit: '%' → null`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2107 - 2026-07-12
 
 **Title:** 🎛️ Volume-center unit — align the small "%" to the number's cap height (iOS-like), not floating above
