@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2121 - 2026-07-13
+
+**Title:** 🎛️ Value center — tighter gap between the number and the unit word
+
+Reduced the vertical space between line 1 (the number, e.g. "42") and line 2 (the unit word, e.g. "Prozent") in the
+value center: flex gap 4px → 0 and the number's line-height 1 → 0.85.
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — value block gap/line-height
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2120 - 2026-07-13
 
 **Title:** 🎛️ Badge label — smaller font (12px desktop / 10px mobile) + tighter padding (2px 8px)
