@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2109 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider — thicker rings + simpler plain-white thumb (keeps grab-grow)
+
+- **Thicker rings:** ring stroke 12.5 → 15 (viewBox units) across the multi-ring slider.
+- **Simpler thumb:** the thumb is now a plain **white** circle with only a soft drop-shadow — the glass radial-gradient
+  fill, the colored glow-halo and the top highlight are gone. The only grab feedback kept is the **uniform grow**
+  (scaleX/scaleY 1 → 1.18 on grab, spring-back on release). Removed the now-unused thumb radial-gradient def and the
+  bead/halo opacity motion values.
+
+### Files
+
+- `src/components/controls/CircularMultiRing.jsx` — `STROKE` 12.5 → 15
+- `src/components/controls/CircularRing.jsx` — plain-white thumb; dropped glass fill/halo/highlight; grab-grow kept
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2108 - 2026-07-12
 
 **Title:** 🎛️ Volume-center — drop the "%" unit entirely (just the number + "Lautstärke")
