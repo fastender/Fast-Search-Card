@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2118 - 2026-07-13
+
+**Title:** 🎛️ Cover every domain (siren/valve/number/…) + ring-colored pill label
+
+Two things:
+
+- **All domains on the new ring.** Routing is now "everything except media_player / energy_dashboard_device /
+  universal_device" (was an allowlist). Unlisted domains (siren, valve, input_boolean, remote, alarm_control_panel,
+  number, …) previously fell to a `default` that showed a meaningless `0 % / CONTROL`. The `default` `getSliderConfig`
+  is now smart: on/off state → status word + working power toggle (generic `turn_on`/`turn_off`); numeric state →
+  read-only value + unit; any other state → the state text as status. So a siren now reads **Off** with a power
+  toggle instead of `0 %`.
+- **Ring-colored pill label.** The bottom entity label (value state) is now an uppercase **pill in the ring color**
+  (gold "HELLIGKEIT" for a light, green "ZIELTEMPERATUR" for climate, blue for a number) — like a visionOS accent chip.
+  media_player's bottom line (runtime) stays plain text.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — smart `default` slider config; adapter bottom = ring-colored pill
+- `src/components/controls/CircularSliderCenter.jsx` — pill rendering for the bottom label
+- `src/components/tabs/UniversalControlsTab.jsx` — route all domains except the 3 special paths
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2117 - 2026-07-13
 
 **Title:** 🎛️ Unify the last single-ring domains — binary_sensor, sensor, vacuum (read-only)
