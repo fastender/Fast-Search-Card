@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2110 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider — bigger thumb grab-grow (1.18 → 1.5)
+
+The thumb now grows more noticeably on grab: scale 1.18 → **1.5** (still SPRING_SNAPPY, spring-back on release
+unchanged).
+
+### Files
+
+- `src/components/controls/CircularRing.jsx` — grab-grow scale 1.18 → 1.5
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2109 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider — thicker rings + simpler plain-white thumb (keeps grab-grow)
