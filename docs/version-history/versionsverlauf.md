@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2114 - 2026-07-13
+
+**Title:** 🎛️ Unified value center — unit as a word (Prozent/Grad) instead of a symbol, entity label moves to the bottom line
+
+For the unified single-ring domains: dropped the unit symbols (`%`, `°`) the user didn't want. Instead the value
+center now reads (light example): big **65** / **Prozent** (the unit spelled out, as the caption under the number) /
+**Helligkeit** (the entity label, moved to the bottom line — like the 2-ring media_player's bottom line). Climate:
+**22** / **Grad** / **Zieltemperatur**.
+
+- `unitToWord(unit, lang)`: `% → Prozent/Percent`, `°C/°F/° → Grad/Degrees`; other units pass through unchanged.
+- Adapter `sliderConfigToRingsConfig(config, lang)`: value center caption = the unit word (no symbol), bottom line =
+  the entity label. Status centers (lock/switch) keep their label as the caption. (Note: climate's current-temp
+  subValue is not shown in this layout for now.)
+
+### Files
+
+- `src/utils/deviceConfigs.js` — `unitToWord` + adapter caption/bottom mapping; passes `lang`
+- `src/components/tabs/UniversalControlsTab.jsx` — pass `lang` to the adapter
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2113 - 2026-07-13
 
 **Title:** 🎛️ CircularSlider redesign phase 4 — unify the single-ring domains onto the new visionOS component
