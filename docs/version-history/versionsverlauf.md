@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2105 - 2026-07-12
+
+**Title:** 🎛️ CircularSlider thumb grab-morph → uniform grow (scaleY = scaleX)
+
+Follow-up to v1.1.2104: on the round circular thumb the horizontal slider's squish (scaleX 1.18 / scaleY 0.92) read
+oddly. Changed `scaleY` to match `scaleX` (both **1.18**) → the bead grows uniformly (stays round) on grab instead of
+morphing into an ellipse. The glassy fill + halo intensify and the spring-back on release are unchanged.
+
+### Files
+
+- `src/components/controls/CircularRing.jsx` — grab morph scaleY 0.92 → 1.18 (uniform)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2104 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider 2-ring polish — center text without a shadow-backdrop + thumb morph 1:1 with the horizontal glass slider
