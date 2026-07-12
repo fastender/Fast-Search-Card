@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2119 - 2026-07-13
+
+**Title:** 🎛️ Pill label → outline badge (no fill), per user's DevTools tweak
+
+The ring-colored bottom label is now a clean **outline badge** (2px ring-color border, 8px corners, no background
+fill) instead of the tinted pill — matching the user's DevTools adjustment.
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — pill: drop background, 2px border, border-radius 8px
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2118 - 2026-07-13
 
 **Title:** 🎛️ Cover every domain (siren/valve/number/…) + ring-colored pill label
