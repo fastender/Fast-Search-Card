@@ -1,5 +1,14 @@
 # Versionsverlauf
 
+## Version 1.1.2122 - 2026-07-13
+
+**Title:** 🎛️ Badge label — mobile font 10px → 9px
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — badge mobile font-size 9px
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2121 - 2026-07-13
 
 **Title:** 🎛️ Value center — tighter gap between the number and the unit word
