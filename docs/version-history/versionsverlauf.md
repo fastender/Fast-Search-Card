@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2107 - 2026-07-12
+
+**Title:** 🎛️ Volume-center unit — align the small "%" to the number's cap height (iOS-like), not floating above
+
+Follow-up to v1.1.2106: the superscript `%` sat higher than the number `65` because it was anchored to the container's
+line-box top (which includes the font's ascent gap above the digits). Anchored it to the number's cap height instead
+(`top: 20%` of the number-sized container) so the unit's top sits flush with the top of the digits — a clean iOS-style
+superscript.
+
+### Files
+
+- `src/components/controls/CircularSliderCenter.jsx` — `value` variant unit `top: 0.08em → 20%` (cap-aligned)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2106 - 2026-07-12
 
 **Title:** 🎛️ media_player 1-ring volume center → big centered number, small superscript unit, two-line with "Lautstärke"
