@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2113 - 2026-07-13
+
+**Title:** 🎛️ CircularSlider redesign phase 4 — unify the single-ring domains onto the new visionOS component
+
+Migrated the single-ring domains (light, climate, cover, fan, lock, switch, humidifier, water_heater, scene, script,
+automation) from the old `CircularSlider` onto the new `CircularMultiRing` — so they all get the thicker ring, the
+plain-white thumb with grab-morph and the symmetric center. Done via an **adapter** (no per-domain rewrite):
+
+- **`sliderConfigToRingsConfig(config)`** (deviceConfigs): maps the existing `getSliderConfig()` output → `{rings,
+  center}`. A string `displayValue` (e.g. "Aus", "Verriegelt", "Öffnet…") becomes a **status** center; otherwise the
+  number becomes a **value** center (big number + small cap-aligned unit + label, plus `subValue` on the bottom line).
+  The ring is interactive only when the old config isn't `readOnly`/`progressMode`/`hideSlider` (so an off light shows
+  no thumb).
+- **`CircularSliderCenter`**: added a self-positioning **power toggle** (reuses `PowerToggle`, 150 ms dedupe against
+  the preact-compat double-onChange) and a **status** variant (big text + label).
+- **`UniversalControlsTab`**: routes the `UNIFIED_DOMAINS` set through `CircularMultiRing` (ring drag →
+  `handleSliderChange`, power → `handlePowerToggle` — the same handlers as before). media_player (own 2-ring path),
+  energy_dashboard_device (own render branch) and universal_device (hero slideshow/image) are excluded.
+
+The old `CircularSlider` stays in place as the fallback for the excluded domains for now (retire later once energy +
+universal are migrated).
+
+### Files
+
+- `src/utils/deviceConfigs.js` — new `sliderConfigToRingsConfig` adapter
+- `src/components/controls/CircularSliderCenter.jsx` — power toggle + status variant
+- `src/components/tabs/UniversalControlsTab.jsx` — route UNIFIED_DOMAINS through CircularMultiRing
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2112 - 2026-07-12
 
 **Title:** 🎛️ CircularSlider — rings a bit thicker again (15 → 18)
