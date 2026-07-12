@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2116 - 2026-07-13
+
+**Title:** 🎛️ Status center — match the number's font size + drop the redundant label in the OFF state
+
+Two fixes on the unified single-ring status/OFF state:
+
+- **Font size:** short status words (Off/On/Aus/An) now render at the same big size as the value number (`valueFs`), so
+  "Off" no longer looks smaller than "2". Long words (Verriegelt/Entriegelt/Öffnet…) stay at the smaller size so they
+  still fit the ring.
+- **No redundant label:** the OFF/status state no longer shows the entity label on the bottom line ("Brightness" under
+  "Off" was pointless) — it's just the status word, centered. The value state keeps `number / unit-word / label`.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — adapter: status center drops the bottom label
+- `src/components/controls/CircularSliderCenter.jsx` — status text uses valueFs for short words
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2115 - 2026-07-13
 
 **Title:** 🎛️ Unified center — entity label always on the bottom line, in the OFF/status state too
