@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2117 - 2026-07-13
+
+**Title:** 🎛️ Unify the last single-ring domains — binary_sensor, sensor, vacuum (read-only)
+
+Added the three remaining read-only info domains to the unified set: `binary_sensor` (Active/Inactive status),
+`sensor` (measurement value + unit word + category label), `vacuum` (state text + battery-colored ring). All read-only
+(no thumb, no power). Now **every `getSliderConfig` domain renders on the new CircularMultiRing except the three that
+have their own paths**: media_player (2-ring), energy_dashboard_device (own render branch) and universal_device (hero
+slideshow/image).
+
+Also: the adapter no longer hard-rounds the value — integers stay as-is, decimals keep 1 place (e.g. a 21.5 °C sensor
+shows `21.5`, not `22`).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — UNIFIED_DOMAINS += binary_sensor, sensor, vacuum
+- `src/utils/deviceConfigs.js` — adapter keeps 1 decimal for non-integer values
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2116 - 2026-07-13
 
 **Title:** 🎛️ Status center — match the number's font size + drop the redundant label in the OFF state
