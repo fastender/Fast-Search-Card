@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2136 - 2026-07-14
+
+**Title:** 🎠 Segmented gauge pager — pause button snug against the pill, matched height
+
+- **Pause/play button hugs the dot pill** (gap 8px → 4px) and is now the **same height as the pill** (22px vs the
+  previous 30px), so the two read as one control group.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — pager gap 4px; pause button 22px square (= pill height)
+
 ## Version 1.1.2135 - 2026-07-14
 
 **Title:** 🎠 Segmented gauge pager — reuse the existing page-dot design, pause button on the right
