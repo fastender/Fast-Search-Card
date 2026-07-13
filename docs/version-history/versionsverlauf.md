@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2135 - 2026-07-14
+
+**Title:** 🎠 Segmented gauge pager — reuse the existing page-dot design, pause button on the right
+
+- **Reuses the card's existing page-dot indicator** instead of a bespoke one: the familiar pill container with the
+  growing active dot and its filling progress bar (`.mp-page-dots` / `.universal-hero-dot` /
+  `.universal-hero-dot-progress`). The progress fill is synced to the auto-advance interval and freezes (full) on pause.
+- **Pause/play button sits to the right of the dot pill** (integrated next to it), matching the requested layout,
+  instead of being stacked below the dots.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — pager now renders the shared `.mp-page-dots` pill + progress fill;
+  pause/play moved to a circular button right of the pill; imports `UniversalControlsTab.css` for the shared styles
+
 ## Version 1.1.2134 - 2026-07-14
 
 **Title:** 🎠 Universal device — allow up to 8 hero metrics so the gauge pager can page them
