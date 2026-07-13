@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2127 - 2026-07-13
+
+**Title:** 🎛️ 3-ring labels → Tesla-style (name + big number + small unit) + mount fill animation
+
+Two changes to the ≥3-ring / labels layout (from a user mockup):
+
+- **Desktop right-labels reworked** to the Tesla-dashboard style: line 1 is the **name** (small, uppercase, in the
+  ring color), line 2 is a **big white number + a small baseline-aligned unit** (e.g. `BEWEGUNG` / `500/880 KCAL`,
+  `TESLA REICHWEITE` / `371.5 km`). Previously it was a big colored number + a unit line, no name.
+- **Ring fill animation on mount:** the labels-mode rings now animate from 0 → their value when opened (Apple-Watch
+  fill-in). `CircularRing` gained an `animateOnMount` prop — a `useLayoutEffect` jumps the spring to `min` then sets it
+  to `value`, so the arc animates in. Enabled for the labels layout (universal/activity/3-ring); the interactive 1–2
+  ring domains are unchanged.
+
+### Files
+
+- `src/components/controls/CircularRing.jsx` — `animateOnMount` (spring jump→set)
+- `src/components/controls/CircularMultiRing.jsx` — Tesla-style right-labels + pass `animateOnMount` for labels mode
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2126 - 2026-07-13
 
 **Title:** 🎛️ Phase 3 stage B — per-ring color + goal for the universal multi-ring (setup wizard)
