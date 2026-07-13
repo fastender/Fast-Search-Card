@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2123 - 2026-07-13
+
+**Title:** 🎛️ Live-value polish — center number follows the drag + climate current temp back
+
+- **Live center number.** The value-center number now follows the drag in real time instead of waiting for the HA
+  round-trip. `CircularRing` reports its live value up while dragging (`onLiveValue`); `CircularMultiRing` overrides the
+  value-center with it during the drag and falls back to the config value on release. Fixes the ~1-tick lag on
+  fan/cover/climate (light was already optimistic). commit-on-release rings (media seek) don't report.
+- **Climate current temp is back.** Added a small dim sub-line under the unit word for the value center (`subLabel`),
+  fed from the config's `subValue` — e.g. climate shows `22 / Grad / 21° / ZIELTEMPERATUR`, a temperature sensor shows
+  its status word. Degree units are reduced to `°` (no C/F) to match the no-symbol style.
+
+### Files
+
+- `src/components/controls/CircularRing.jsx` — `onLiveValue` reports the drag value
+- `src/components/controls/CircularMultiRing.jsx` — live-value override of the value center
+- `src/components/controls/CircularSliderCenter.jsx` — `subLabel` line under the caption
+- `src/utils/deviceConfigs.js` — adapter `subLabel` from subValue
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2122 - 2026-07-13
 
 **Title:** 🎛️ Badge label — mobile font 10px → 9px
