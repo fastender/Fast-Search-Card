@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2132 - 2026-07-14
+
+**Title:** 🎛️ Segmented gauge — tighter spacing between the value and its unit
+
+- **Unit sits closer to the number.** In the per-segment value block the unit was offset by a positive margin below the
+  number; pulled it up (marginTop 2px → -2px) so the unit hugs the value more tightly (e.g. `29.6` / `°C`).
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — unit marginTop 2px → -2px
+
 ## Version 1.1.2131 - 2026-07-14
 
 **Title:** 🎛️ Segmented gauge — show 4 segments for universal (cap 3→4) + value centered as the primary anchor
