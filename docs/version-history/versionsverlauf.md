@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2134 - 2026-07-14
+
+**Title:** 🎠 Universal device — allow up to 8 hero metrics so the gauge pager can page them
+
+- **Universal setup now accepts up to 8 hero metrics** (was 5). With the new segmented-gauge pager, more than 4 metrics
+  simply split into slides (5 → 4 + 1, 8 → 4 + 4), so the picker no longer needs to stop at 5.
+- **`getUniversalRingsConfig` ring cap raised 4 → 8** to match, feeding all selected heroes into the paginating gauge.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — `getUniversalRingsConfig` ring cap 4 → 8
+- `src/system-entities/entities/integration/components/setup-flows/UniversalSetup.jsx` — hero limit 5 → 8 (slice, add
+  guard, `maxHeroes`)
+
 ## Version 1.1.2133 - 2026-07-14
 
 **Title:** 🎠 Segmented gauge — paginate into slides when there are more than 4 metrics
