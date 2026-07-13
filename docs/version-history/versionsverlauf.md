@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2130 - 2026-07-14
+
+**Title:** 🎛️ Segmented gauge polish — uppercase curved names, more gap to the ring, smaller values
+
+- Curved segment names are now **uppercase**.
+- **More gap** between the names and the ring (`RN` R+17 → R+23, ring R 118 → 116).
+- **Number + unit a touch smaller** (desktop 29 → 26 / 25 → 23 for 4-up; mobile scaled down; unit 12 → 11).
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2129 - 2026-07-14
 
 **Title:** 🎛️ Segmented gauge — curved segment names on the OUTSIDE of the ring + values centered in each segment
