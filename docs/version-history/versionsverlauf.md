@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2131 - 2026-07-14
+
+**Title:** 🎛️ Segmented gauge — show 4 segments for universal (cap 3→4) + value centered as the primary anchor
+
+- **4-metric universal now works.** `getUniversalRingsConfig` capped the rings at 3, so a universal_device with 4
+  heroes only showed 3 segments. Raised to 4 (the gauge lays out 2/3/4 cleanly).
+- **The number is now the centered anchor** of each segment, with the unit hanging absolutely below it — so the value
+  sits dead-center on the segment mid-point instead of the number+unit block being centered (which pushed the number
+  slightly up).
+
+### Files
+
+- `src/utils/deviceConfigs.js` — `getUniversalRingsConfig` ring cap 3 → 4
+- `src/components/controls/SegmentedRingGauge.jsx` — value-anchored centering (unit absolute below)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2130 - 2026-07-14
 
 **Title:** 🎛️ Segmented gauge polish — uppercase curved names, more gap to the ring, smaller values
