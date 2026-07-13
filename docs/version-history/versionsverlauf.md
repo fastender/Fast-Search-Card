@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2125 - 2026-07-13
+
+**Title:** 🎛️ CircularSlider redesign phase 3 (stage A) — universal_device multi-hero → concentric rings
+
+A universal_device with **≥2 heroes** now renders them as **concentric rings** (labels mode) instead of the hero
+slideshow. The multi-hero config already existed in the setup wizard (pick + order up to 5 heroes); this just changes
+the rendering. `getUniversalRingsConfig` turns each numeric hero into a ring: value from the state, auto max (100 for
+%/battery/humidity, the sensor's `max` attribute, else a "nice" ceiling), an auto color from a pink/lime/cyan palette,
+and the **real value + unit in the label** (so the ring fill is relative but the numbers are exact). Capped at 3 rings.
+A new `layout="labels"` prop forces the labels layout from 2 rings up (Apple-Watch right-labels on desktop, invisible
+center-tap → modal on mobile).
+
+Single-hero and image/camera heroes are unchanged. Rings are read-only for now.
+
+Stage B (later): per-ring color + goal/max + interactivity in the setup wizard.
+
+### Files
+
+- `src/utils/deviceConfigs.js` — `getUniversalRingsConfig` (heroes → rings)
+- `src/components/controls/CircularMultiRing.jsx` — `layout` prop (force labels mode)
+- `src/components/tabs/UniversalControlsTab.jsx` — route universal ≥2 heroes to the multi-ring
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2124 - 2026-07-13
 
 **Title:** 🎛️ CircularSlider redesign phase 5 — the 3-ring layout (Apple-Watch right-labels + mobile tap→modal)
