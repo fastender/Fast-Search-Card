@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2128 - 2026-07-13
+
+**Title:** 🎛️ Multi-metric ring → watchOS segmented gauge (replaces the concentric labels layout)
+
+Reworked the multi-metric display (universal ≥2 heroes, activity 3-ring) from concentric rings + side-labels/modal into
+a single **segmented ring gauge** (watchOS style, from the user's mockup):
+
+- **One ring split into N equal segments** with gaps (2 → two half-circles, 3 → 120°, 4 → 90°, …). Each segment has a
+  dark track + a colored fill (the value's share, from the segment start, round caps, soft glow).
+- **Center holds the labels**, each positioned in its segment's region: name in the segment color + big white number +
+  small unit. Thin divider lines point to the gaps; a shared unit (e.g. "BAR") shows in the middle when all metrics
+  share it.
+- **The fills animate from 0 → value** on mount.
+- New component `SegmentedRingGauge.jsx`; `CircularMultiRing`'s labels mode now renders it and the old concentric
+  labels layout + `CircularRingModal` are retired. 1–2-ring center domains (media, single-value) are unchanged.
+
+Verified in the harness: 2-metric (half-circles), 3-metric, configured colors + goals, mount fill animation.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` (new)
+- `src/components/controls/CircularMultiRing.jsx` — labels mode → segmented gauge; concentric labels + modal removed
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2127 - 2026-07-13
 
 **Title:** 🎛️ 3-ring labels → Tesla-style (name + big number + small unit) + mount fill animation
