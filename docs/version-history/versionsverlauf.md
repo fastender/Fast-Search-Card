@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2124 - 2026-07-13
+
+**Title:** 🎛️ CircularSlider redesign phase 5 — the 3-ring layout (Apple-Watch right-labels + mobile tap→modal)
+
+Built the 3-ring layout capability (the founding Apple-Watch mockup). It activates at **≥3 rings** (1–2 rings keep the
+symmetric center):
+
+- **Desktop:** the ring sits left with its center empty; the values move to **Apple-style labels on the right** — the
+  big `value/max` in the ring color + the unit below (e.g. `500/880 KCAL` pink, `22/30 MIN.` lime, `10/12 STD.` cyan).
+- **Mobile:** no room for right-labels → the ring center is a **completely invisible tap area** (no hint/chevron) that
+  opens a **centered glass modal** listing one row per ring (color-dot + name + value). Tap the backdrop to close (a
+  centered modal, not a bottom-sheet).
+
+No live consumer yet — energy_dashboard_device and universal_device will feed it 3-ring data in the next phases; it's
+demoed with the activity 3-ring. Existing 1–2-ring domains are untouched (the layout only triggers at ring count ≥ 3).
+
+### Files
+
+- `src/components/controls/CircularRingModal.jsx` (new) — centered glass modal for the mobile 3-ring
+- `src/components/controls/CircularMultiRing.jsx` — labels-mode layout (desktop right-labels / mobile tap→modal)
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2123 - 2026-07-13
 
 **Title:** 🎛️ Live-value polish — center number follows the drag + climate current temp back
