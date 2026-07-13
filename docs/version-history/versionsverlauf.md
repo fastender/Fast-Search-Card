@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2129 - 2026-07-14
+
+**Title:** 🎛️ Segmented gauge — curved segment names on the OUTSIDE of the ring + values centered in each segment
+
+Refined the watchOS segmented gauge:
+
+- The segment **name is now curved along the outside of the ring** (SVG `textPath`, Tesla-style), in the segment
+  color. Bottom-half segments are drawn on a reversed arc so the text stays upright.
+- The **number + unit sit centered at each segment's mid-angle** (a consistent radius), so e.g. the bottom metric's
+  value is centered in its segment instead of drifting toward the middle.
+- Ring radius pulled in slightly to make room for the outside labels. Fill-from-0 mount animation unchanged.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — curved outside names (textPath) + segment-centered values
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2128 - 2026-07-13
 
 **Title:** 🎛️ Multi-metric ring → watchOS segmented gauge (replaces the concentric labels layout)
