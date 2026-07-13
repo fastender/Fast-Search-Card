@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2133 - 2026-07-14
+
+**Title:** 🎠 Segmented gauge — paginate into slides when there are more than 4 metrics
+
+- **More than 4 metrics now paginate.** A single ring holds at most 4 segments, so when a device exposes more the gauge
+  splits the metrics into slides of up to 4 (5 → slide 1 with 4 segments + slide 2 with 1; 8 → 4 + 4). Each slide
+  re-plays its own 0→value fill animation on entry.
+- **Slider controls live in the center.** A row of dot indicators (one per slide, tap a dot to jump) sits dead-center,
+  with a **separate pause/play button** below it. The gauge auto-advances through the slides every 4.5 s; pause stops it.
+- **Swipe support.** On multi-slide gauges you can drag horizontally to move between slides.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — chunk rings into pages of 4; per-page `GaugePage` with its own
+  mount animation; `AnimatePresence` slide transition; center dot pager + pause/play button + autoplay + drag-to-swipe
+
 ## Version 1.1.2132 - 2026-07-14
 
 **Title:** 🎛️ Segmented gauge — tighter spacing between the value and its unit
