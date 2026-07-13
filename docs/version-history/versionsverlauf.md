@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2126 - 2026-07-13
+
+**Title:** 🎛️ Phase 3 stage B — per-ring color + goal for the universal multi-ring (setup wizard)
+
+The universal `hero` config gained per-ring **color** and **goal/max**. The storage schema grows from `hero: string[]`
+to `hero: [{ id, color, goal }]` (fully backward-compatible — a normalizer reads legacy string / string[] too), mirroring
+the existing `chart_sensors` `[{id, color}]` pattern.
+
+- **`heroEntry.js`** (new): `normalizeHeroesArray`/`heroIdList`/`pickNextHeroColor` — canonical `{id, color, goal}`
+  normalization used at every read point (color = an RGB-triple from the chart palette; goal = the ring's max, null = auto).
+- **Setup wizard (`HeroPickerView`):** each selected hero now has a **color swatch** (opens the color picker) and a
+  **goal input** (the ring's target/max; empty = auto). Reuses the chart color-picker sub-view.
+- **`getUniversalRingsConfig`** uses the configured color (`rgb(...)`) and goal (falls back to the auto max/palette).
+- All hero readers normalized: `useUniversalHero` (→ IDs), `UniversalEntityList` exclude (→ IDs), UCT passes the raw
+  hero config. Full bundle compiles; the ring data flow is verified in the harness (config colors + goals applied).
+
+### Files
+
+- `src/utils/heroEntry.js` (new) · `src/utils/deviceConfigs.js` (color/goal) · `src/hooks/useUniversalHero.js`
+- `src/system-entities/.../UniversalSetup.jsx` + `UniversalSetup/HeroPickerView.jsx` (color swatch + goal input)
+- `src/system-entities/.../UniversalEntityList.jsx` (normalize exclude) · `src/components/tabs/UniversalControlsTab.jsx`
+- `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx` — version bump
+
 ## Version 1.1.2125 - 2026-07-13
 
 **Title:** 🎛️ CircularSlider redesign phase 3 (stage A) — universal_device multi-hero → concentric rings
