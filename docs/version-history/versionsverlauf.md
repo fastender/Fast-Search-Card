@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2144 - 2026-07-14
+
+**Title:** 🎯 Universal device — move the slide pager to sit centered below the four control buttons
+
+- **The dot pager moved from the ring center to below the control buttons.** It now sits in the flow at the end of the
+  control column, horizontally centered under the four buttons (Controls / Sensors / Diagnostics / Misc) — verified 0 px
+  offset from the button row's center. Same on the image and gauge slides.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — render `HeroSlidePager` after the control buttons
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-pager` back to in-flow, centered (`margin: 14px auto 6px`)
+
 ## Version 1.1.2143 - 2026-07-14
 
 **Title:** 🎯 Universal device — center the slide pager inside the ring
