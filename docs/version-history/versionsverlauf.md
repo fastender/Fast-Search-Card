@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2146 - 2026-07-14
+
+**Title:** ↩️ Universal device — revert the pager back to below the control buttons
+
+- **Undid v1.1.2145.** Moving the pager into the gap between the ring and the buttons pushed the control buttons down
+  (changed the arrangement); reverted it to sit centered **below** the four control buttons, so the buttons keep their
+  position.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — render `HeroSlidePager` after the control buttons again
+
 ## Version 1.1.2145 - 2026-07-14
 
 **Title:** 🎯 Universal device — place the slide pager between the ring and the control buttons
