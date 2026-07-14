@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2143 - 2026-07-14
+
+**Title:** 🎯 Universal device — center the slide pager inside the ring
+
+- **The dot pager now sits in the center of the ring** (the empty middle of the segmented gauge) instead of below the
+  slider. Positioned absolutely at the measured ring center (160 px desktop / 106 px mobile) and centered both axes —
+  verified 0 px offset from the ring center.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-pager` absolute, centered on the ring center
+
 ## Version 1.1.2142 - 2026-07-14
 
 **Title:** 🎠 Universal device — replace the slide arrows with the dot pager + pause button
