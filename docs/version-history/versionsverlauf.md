@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2147 - 2026-07-14
+
+**Title:** 🎯 Universal device — pager in the gap between ring and buttons, without moving either
+
+- **The dot pager now sits in the gap between the ring and the control buttons — absolutely positioned**, so neither the
+  ring nor the four buttons move (rendering it in-flow there had pushed the buttons down). Verified on desktop: pager
+  fully inside the 300–336 px gap, horizontally centered, ring/buttons unchanged.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-pager` absolute at the gap center (318 px desktop /
+  185 px mobile)
+
 ## Version 1.1.2146 - 2026-07-14
 
 **Title:** ↩️ Universal device — revert the pager back to below the control buttons
