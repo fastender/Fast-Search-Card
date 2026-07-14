@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2137 - 2026-07-14
+
+**Title:** 🎛️ Segmented gauge — 2-metric split is now top/bottom (horizontal divider), single metric drops its stray tick
+
+- **Two metrics now split top/bottom** with a **horizontal** divider (gaps at 3 & 9 o'clock) instead of left/right with a
+  vertical one — the first value sits in the top half, the second in the bottom half.
+- **Single-metric slide no longer draws a divider.** With only one metric there is no boundary, so the lone vertical
+  tick that used to sit in the ring's gap is gone.
+
+### Files
+
+- `src/components/controls/SegmentedRingGauge.jsx` — `rot = n===2 ? 90 : 0` applied to segment/name/number angles;
+  divider lines skipped when `n < 2`
+
 ## Version 1.1.2136 - 2026-07-14
 
 **Title:** 🎠 Segmented gauge pager — pause button snug against the pill, matched height
