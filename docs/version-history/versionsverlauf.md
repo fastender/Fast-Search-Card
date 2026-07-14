@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2142 - 2026-07-14
+
+**Title:** 🎠 Universal device — replace the slide arrows with the dot pager + pause button
+
+- **The left/right slide arrows are gone.** Universal-device slide navigation (image/camera ↔ segmented gauge) now uses
+  the same **dot pager with a pause button** as the segmented gauge: the pill of page dots (the active one grows into a
+  pill with a filling progress bar synced to the 10 s auto-advance) plus a separate pause/play button. Tap a dot to jump
+  to that slide; pause stops the auto-advance and freezes the fill.
+- The pager fully isolates its pointer events from the card's swipe handler (no phantom-swipe), and rides on the
+  re-render-proof slide swap from v1.1.2141.
+
+### Files
+
+- `src/components/controls/HeroSlidePager.jsx` — new dots+pause pager (reuses `.mp-page-dots` / `.universal-hero-dot`)
+- `src/components/controls/HeroNavArrows.jsx` — deleted
+- `src/hooks/useUniversalHero.js` — `paused`/`togglePause`, pausable auto-advance, `goToSlidePos`
+- `src/components/tabs/UniversalControlsTab.jsx` — render `HeroSlidePager` below the slider instead of the arrows
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-arrow` → `.hero-slide-pager` / `.hero-slide-pause`
+
 ## Version 1.1.2141 - 2026-07-14
 
 **Title:** 🐛 Universal slide arrows — really fix the unresponsive arrow (two root causes found)
