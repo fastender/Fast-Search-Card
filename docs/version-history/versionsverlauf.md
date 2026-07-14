@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2140 - 2026-07-14
+
+**Title:** 🐛 Universal slide arrows — fix the click that sometimes did nothing, align image, nudge arrows down
+
+- **Fixed: the slide arrow sometimes did nothing** (especially right after opening the device or after a long idle). The
+  hero-slideshow reset ran on `[entity_id, hero-count]`; when the hero list settled asynchronously (or the count changed
+  transiently) it fired *mid-navigation* and snapped the slide back to 0, eating the click. It now resets only on a real
+  device change (`[entity_id]`). The arrow buttons also stop pointer propagation so the swipe handler can't swallow the
+  tap, and get `touch-action: manipulation` (no 300 ms tap delay on touch).
+- **Image/video now aligns like the gauge.** On mobile the image sat 9 px lower (it was vertically centered while the
+  gauge is top-aligned); the image is now top-aligned on mobile too, so both slides start at the same height.
+- **Arrows nudged down** — desktop +10 px (now centered on the content), mobile a touch lower to sit on the ring.
+
+### Files
+
+- `src/hooks/useUniversalHero.js` — reset effect deps `[entity_id, length]` → `[entity_id]`
+- `src/components/controls/HeroNavArrows.jsx` — stop pointerdown propagation
+- `src/components/controls/UniversalHeroImage.jsx` — vertical align via `.universal-hero-image-box` class
+- `src/components/tabs/UniversalControlsTab.css` — arrow `top` 150→160 (desktop) / 80→96 (mobile),
+  `touch-action: manipulation`, `.universal-hero-image-box` mobile `align-items: flex-start`
+
 ## Version 1.1.2139 - 2026-07-14
 
 **Title:** 🎞️ Universal device — Apple-style arrows to page between the image and the gauge
