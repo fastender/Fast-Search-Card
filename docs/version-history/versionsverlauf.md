@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2139 - 2026-07-14
+
+**Title:** 🎞️ Universal device — Apple-style arrows to page between the image and the gauge
+
+- **Left/right chevron arrows (Apple style)** now sit over the slider area of a universal device and page between its
+  slides — the camera/image hero(es) and the segmented gauge. Translucent circular buttons, vertically centered.
+- **Slides are now coherent.** All numeric/text heroes render the *same* segmented gauge, so they now count as **one**
+  slide instead of repeating the identical gauge once per hero. Swipe, the arrows, and the 10 s auto-advance all step
+  between real views (image ↔ gauge), and auto-advance no longer runs when there's only one effective slide.
+- The old bottom hero page-dots are removed — the arrows replace them.
+- **Note on the gauge's center dots:** those belong to the gauge's own *metric* pager, which only appears when a gauge
+  has **more than 4** metrics. A 3-metric gauge is a single page, hence no center dots.
+
+### Files
+
+- `src/hooks/useUniversalHero.js` — effective-slide model (numeric heroes collapse to one gauge slide); `goToNextSlide`/
+  `goToPrevSlide` skip-navigation; swipe + auto-advance gated on `slideCount`
+- `src/components/controls/HeroNavArrows.jsx` — new Apple-style chevron arrow buttons
+- `src/components/tabs/UniversalControlsTab.jsx` — render arrows over the slider; bottom hero-dots removed
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-arrow` styles
+
 ## Version 1.1.2138 - 2026-07-14
 
 **Title:** 🧹 Universal device — drop the redundant bottom page-dots when the segmented gauge is shown
