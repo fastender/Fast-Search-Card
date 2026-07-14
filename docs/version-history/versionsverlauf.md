@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2145 - 2026-07-14
+
+**Title:** 🎯 Universal device — place the slide pager between the ring and the control buttons
+
+- **The dot pager now sits centered in the gap between the segmented gauge and the four control buttons** (moved up from
+  below the buttons). Verified on desktop: 14 px below the ring, 42 px above the buttons, horizontally centered.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — render `HeroSlidePager` between the slider and the control buttons
+
 ## Version 1.1.2144 - 2026-07-14
 
 **Title:** 🎯 Universal device — move the slide pager to sit centered below the four control buttons
