@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2141 - 2026-07-14
+
+**Title:** 🐛 Universal slide arrows — really fix the unresponsive arrow (two root causes found)
+
+Deep analysis in the integration harness (real `UniversalControlsTab` + a universal device with a camera hero + 3 sensor
+heroes + simulated frequent hass updates) surfaced **two** distinct causes of "the arrow stops responding":
+
+- **The view got stuck under frequent re-renders.** The click *did* change the slide index, but the inner
+  `AnimatePresence mode="wait"` never mounted the new slide while the card was re-rendering constantly (every hass
+  update) — so the old slide stayed on screen and the arrow looked dead. (`mode="popLayout"` was worse: it left orphaned
+  "popped" elements and blanked the panel.) Replaced the inner AnimatePresence with a plain keyed `motion.div`
+  (enter-fade only, no exit/wait): a stable key means no re-mount and no flicker during re-renders, and a slide change
+  swaps reliably. Verified 1 child at all times, view always follows state, works after idle.
+- **A phantom swipe cancelled the click.** The arrow's `pointerup` still bubbled to the card's swipe handler; if a stale
+  swipe-start lingered (a previous press whose release the card never saw — finger lifted off-card / eaten by the sheet
+  gesture), it fired a swipe that navigated one way while the click navigated back → net nothing. The arrows now fully
+  stop propagation of `pointerdown`/`pointerup`/`pointercancel`, so they never touch the swipe machinery.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — inner `AnimatePresence mode="wait"` → plain keyed `motion.div`
+- `src/components/controls/HeroNavArrows.jsx` — isolate all arrow pointer events from the parent swipe handler
+
 ## Version 1.1.2140 - 2026-07-14
 
 **Title:** 🐛 Universal slide arrows — fix the click that sometimes did nothing, align image, nudge arrows down
