@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2138 - 2026-07-14
+
+**Title:** 🧹 Universal device — drop the redundant bottom page-dots when the segmented gauge is shown
+
+- **The bottom hero page-dots are gone under the segmented gauge.** A universal device with ≥2 numeric/text heroes now
+  renders the segmented gauge, which shows every metric at once and carries its **own pager in the center**. The old
+  bottom row of per-hero dots didn't move anything there (the gauge is keyed to the entity, not the hero index), so it
+  was dead UI — it now only appears for the image/camera hero slideshow, where it still navigates.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — bottom `.mp-page-dots` now gated with `!useUniversalRings`
+
 ## Version 1.1.2137 - 2026-07-14
 
 **Title:** 🎛️ Segmented gauge — 2-metric split is now top/bottom (horizontal divider), single metric drops its stray tick
