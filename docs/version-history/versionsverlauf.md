@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2148 - 2026-07-14
+
+**Title:** 🎯 Universal device — fine-tune the pager height (mobile a bit lower, desktop a bit higher)
+
+- **Mobile:** pager moved 15 px down (top 185 → 200 px) — it was clipping the gauge's lower curved label.
+- **Desktop:** pager moved 14 px up (top 318 → 304 px) — it sat too close to the four control buttons.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-pager` top 318→304 (desktop) / 185→200 (mobile)
+
 ## Version 1.1.2147 - 2026-07-14
 
 **Title:** 🎯 Universal device — pager in the gap between ring and buttons, without moving either
