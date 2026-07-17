@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2154 - 2026-07-17
+
+**Title:** 🎨 Universal device — arrows sit outside the camera image (Apple-style carousel)
+
+- **The slide arrows no longer overlap the camera image/stream.** When slide navigation is active the image (and the
+  WebRTC stream) is pulled in on both sides (`.has-hero-arrows` → 52 px desktop / 46 px mobile side padding) so the
+  arrows sit in the side gutters — verified no overlap (14 px desktop / 8 px mobile gap on each side). The gauge slide
+  is untouched (its arrows already sit outside the rings).
+- **Arrows refined toward Apple:** smaller (36/32 px), lighter ultra-thin-material look (softer translucent fill, inner
+  hairline highlight, subtle drop shadow, stronger blur), finer/longer chevron stroke, focus outline removed.
+- WebRTC stream element gets rounded corners (18 px) to match the still image's rounding.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — `.has-hero-arrows` side padding for image/stream; arrow restyle;
+  image-box base padding moved from inline to CSS
+- `src/components/tabs/UniversalControlsTab.jsx` — `has-hero-arrows` class when arrows are shown
+- `src/components/controls/HeroNavArrows.jsx` — finer chevron
+- `src/components/controls/UniversalHeroImage.jsx` — padding moved to CSS
+- `src/components/controls/WebRtcHeroStream.jsx` — rounded corners on the stream element
+
 ## Version 1.1.2153 - 2026-07-17
 
 **Title:** 📹 Universal device — camera hero can optionally stream live via WebRTC (AlexxIT/WebRTC)
