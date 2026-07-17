@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2150 - 2026-07-17
+
+**Title:** ⚡ Universal device — slide deck: rapid arrow clicks stay fluid (no more remount per click)
+
+- **Root cause of "rapid arrow clicks stop feeling fluid":** every slide change re-mounted the whole slide content (the
+  keyed wrapper changed its key), so each click reloaded the camera image over the network and restarted the enter
+  animation — rapid clicks piled these up.
+- **New slide DECK:** all slides (camera image(s) + the segmented gauge) now stay **permanently mounted**, stacked on
+  top of each other; switching just crossfades them (opacity/scale via **native CSS transitions**, which retarget
+  flawlessly mid-flight). No remount, no camera reload, no restarting animations — verified with 10 synchronous
+  back-to-back clicks: state and rendered styles stay in sync, every following click toggles, and the camera `<img>`
+  DOM node provably survives untouched (marker test).
+- Deliberately **not** framer-motion for this crossfade: declarative animation targets can lose sync under
+  rapid-fire retargets (and framer is rAF-driven, which also freezes in hidden tabs); native CSS transitions are
+  interruption-safe by design.
+- Rings are now computed independently of the active slide (the gauge stays mounted behind an active camera slide).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — slide deck (all slides mounted, CSS crossfade); stable deck key;
+  `universalRings` no longer gated on the active slide
+- `src/hooks/useUniversalHero.js` — `universalSlides` descriptors (per-image src/label via shared src builder)
+
 ## Version 1.1.2149 - 2026-07-17
 
 **Title:** 🎯 Universal device — pager directly below the buttons + slide arrows return (fluid this time)
