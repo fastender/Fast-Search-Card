@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2155 - 2026-07-17
+
+**Title:** 🎨 Universal device — slide arrows match the detail back-button 1:1, camera stream without border
+
+- **The slide arrows are now styled 1:1 like the detail-view back button**, hover included: 40 px (36 px mobile) dark
+  circle `rgba(0,0,0,0.5)` + `blur(10px)`, no border, thin `1.5` chevron (svg 20/18 px), hover →
+  `rgba(0,0,0,0.7)` + `scale(1.05)`, tap → `scale(0.95)`. (Was a lighter bespoke "material" look.)
+- **The camera stream's border is gone.** The AlexxIT/WebRTC card's inner `ha-card` frame/shadow/background is stripped
+  via its CSS custom properties (`--ha-card-border-width: 0`, `--ha-card-box-shadow: none`,
+  `--ha-card-background: transparent`), keeping the rounded corners.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.css` — `.hero-slide-arrow` restyled to match `.back-button`
+- `src/components/controls/HeroNavArrows.jsx` — chevron path/stroke identical to the back button
+- `src/components/controls/WebRtcHeroStream.jsx` — strip the ha-card border/shadow/background on the stream element
+
 ## Version 1.1.2154 - 2026-07-17
 
 **Title:** 🎨 Universal device — arrows sit outside the camera image (Apple-style carousel)
