@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2151 - 2026-07-17
+
+**Title:** 🐛 Universal device — camera image was invisible (0×0) under the new slide deck
+
+- **Root cause:** the v1.1.2150 deck stacked its slides with `position: absolute`. But `.device-control-design` is a
+  flex column with `align-items: center`, so `.slider-wrapper` derives its width from its **content** — and absolutely
+  positioned layers contribute no intrinsic width. The whole chain collapsed to ~0 px and the camera image
+  (`max-width: 100%`) rendered at **0×0** — invisible. (The gauge survived only because it has a fixed pixel size and
+  simply overflowed.)
+- **Fix (two parts):** the deck now overlaps its slides via a **CSS grid stack** (all slides share grid cell 1/1,
+  staying in-flow), and `.slider-wrapper` gets an explicit `width: 100%` so the size chain is definite. Visually
+  neutral for every other domain — the wrapper centers its content itself (verified: media_player ring rendered and
+  centered).
+- Verified in the harness: camera image back at full size (338×241 px in a 380 px panel, centered), gauge unchanged,
+  10 synchronous arrow clicks stay consistent, pager/pause working.
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — deck layers: absolute stack → CSS grid stack (`grid-area: 1/1`)
+- `src/components/tabs/UniversalControlsTab.css` — `.slider-wrapper` explicit `width: 100%`
+
 ## Version 1.1.2150 - 2026-07-17
 
 **Title:** ⚡ Universal device — slide deck: rapid arrow clicks stay fluid (no more remount per click)
