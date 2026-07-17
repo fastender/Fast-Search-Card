@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2161 - 2026-07-17
+
+**Title:** 🟢 Live Activities strip — "what's happening right now" above the Bento grid (roadmap #29)
+
+Lane 2 of the three-lane attention model. A horizontal **"Live" strip** appears above the Bento grid **only while
+something is actually running**, and dissolves itself when the state ends.
+
+- **Glass capsules** per running thing: device icon (reuses the animated icon registry), name, one-line status and — where
+  it exists — a thin **progress bar** (timer countdown position, media playback position).
+- **High-signal source set, deliberately small** (no "light is on" noise): active **timers** (with live countdown, e.g.
+  `4:52`), **vacuum** cleaning/returning, **covers** opening/closing, **media players** playing (track title), running
+  **scripts**, and running **automations** (via `current > 0` — an automation's `on` state only means *enabled*).
+- **Self-resolving:** when the entity returns to idle, the capsule briefly shows "fertig", is held ~2 s, then animates
+  out. No dismiss, no badge, no history — that's the Alert lane's job.
+- **Tap → the device's detail view** via a new generic `fsc-open-entity` deep-link event (reusable seam).
+- 1-second ticker only runs while something needs it (countdown/progress/hold) — zero timer load otherwise; strip
+  renders `null` when nothing is live.
+- **Verified:** 11-assertion node test for the source derivation (filtering, priority sort, timer/media progress math,
+  de/en labels, automation `current` gate) + end-to-end in the dev harness (capsules render, countdown ticks, hold
+  fills and prunes after 2 s — state-verified —, tap opens the detail view).
+
+### Files
+
+- `src/utils/liveActivitySources.js` — NEW: pure "what's live?" derivation + priority sort + event gate
+- `src/components/LiveActivityStrip.jsx` — NEW: capsule strip (hold/auto-dissolve, conditional ticker, progress bars)
+- `src/components/SearchField.jsx` — strip mounted above `BentoStartView`; generic `fsc-open-entity` listener
+
 ## Version 1.1.2160 - 2026-07-17
 
 **Title:** 🚨 Critical banner — never covered anymore (info-popup layer)
