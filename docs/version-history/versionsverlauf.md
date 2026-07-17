@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2153 - 2026-07-17
+
+**Title:** 📹 Universal device — camera hero can optionally stream live via WebRTC (AlexxIT/WebRTC)
+
+- **New per-hero "Live stream (WebRTC)" toggle** in the universal setup wizard (only offered for `camera.*` heroes).
+  When enabled and the [AlexxIT/WebRTC](https://github.com/AlexxIT/WebRTC) card is installed, the camera slide renders
+  the real **live stream** instead of the still image — the card hosts the globally registered `webrtc-camera` custom
+  element (AlexxIT's card handles signaling, MSE fallback and reconnects itself) and keeps `hass` updated.
+- **Battery-aware by design:** the stream is only mounted while the camera slide is actually visible. Covered by the
+  gauge slide, the WebRTC connection is torn down and the frozen still image takes over (fits the v1.1.2152 heat fix —
+  no hidden video decoding). Verified in the harness with a stub element: mount with the right entity on activation,
+  `disconnectedCallback` on hide, clean re-mount on return.
+- **Graceful fallback:** WebRTC card not installed (or element fails) → still image, exactly as before. The wizard row
+  shows whether AlexxIT/WebRTC was detected.
+- Hero schema grew `{id, color, goal}` → `{id, color, goal, live}` — fully backward compatible via the normalizer.
+
+### Files
+
+- `src/components/controls/WebRtcHeroStream.jsx` — NEW: imperative host for the `webrtc-camera` custom element
+- `src/components/tabs/UniversalControlsTab.jsx` — `DeckImageSlide` renders the stream while active (still image
+  otherwise); non-deck single-camera path unified onto `DeckImageSlide`
+- `src/hooks/useUniversalHero.js` — hero entries normalized once; slides + `activeHeroLive` carry the `live` flag
+- `src/utils/heroEntry.js` — `live` preserved in the normalized hero entry
+- `src/system-entities/.../UniversalSetup.jsx` + `UniversalSetup/HeroPickerView.jsx` — per-camera-hero live toggle
+
 ## Version 1.1.2152 - 2026-07-17
 
 **Title:** 🔥 Universal device — stop the phone from heating up (background camera refetches + needless SVG rebuilds)
