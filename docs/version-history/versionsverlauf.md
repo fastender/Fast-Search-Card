@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2156 - 2026-07-17
+
+**Title:** 🔔 Notification Center step 1 — three alert sources merged, with severity (roadmap #3)
+
+First slice of the Notification Center (roadmap #3, "three-lane attention model"). This step lays the **data
+foundation** and surfaces it through the existing popover — no new UI surface yet.
+
+- **Three alert sources, one normalized list.** Besides `persistent_notification.*` (existing), the card now surfaces:
+  **HA-native `alert.*` entities** (state `on` = firing; clears when HA resolves it) and a **zero-config danger
+  `device_class` whitelist** (`moisture`/`smoke`/`gas`/`carbon_monoxide`/`safety` → Critical, `battery`/`problem` →
+  Warning — "on = danger", no thresholds, no rules engine, per the design boundary).
+- **Severity model (1–4)** with fixed colors (red/orange/blue/neutral): danger classes as above, `alert.*` = Warning,
+  bare persistent notifications = Info. List sorted by severity, newest first within a level.
+- **Popover upgraded minimally:** severity dot per entry; the dismiss (×) only on persistent notifications —
+  `alert.*`/danger entries clear when HA resolves them (local acknowledge comes in step 2).
+- **StatsBar badge** now counts all three sources automatically (same data).
+- Wiring: `state_changed` refreshes the list for `alert.*` and whitelisted `binary_sensor`s too (cheap gate, no full
+  scans; these entities keep flowing into the normal entity updates as well).
+- **Data layer verified with a 10-assertion node test** (merge, sort, schema, localized danger labels, filtering of
+  idle/off/non-whitelisted, gate behavior, null safety).
+
+### Files
+
+- `src/utils/notificationSources.js` — NEW: severity model + colors, danger whitelist, `alert.*`/danger extractors,
+  `state_changed` gate (pure functions, single source of truth)
+- `src/providers/dataNotifications.js` — `buildNotificationList` merges the three sources (reuses the existing
+  persistent extractor)
+- `src/providers/DataProvider.jsx` — merged list in `refreshNotifications` (id-based diff/toasts), widened event gate
+- `src/components/NotificationsPanel.jsx` — severity dot; dismiss only for persistent entries
+
 ## Version 1.1.2155 - 2026-07-17
 
 **Title:** 🎨 Universal device — slide arrows match the detail back-button 1:1, camera stream without border
