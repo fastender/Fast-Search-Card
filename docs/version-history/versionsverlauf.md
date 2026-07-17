@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2158 - 2026-07-17
+
+**Title:** 🔔 Notification Center step 3 — "Mitteilungen" system entity with filters and history (roadmap #3)
+
+The Center itself. A new system entity **"Mitteilungen"** (mirrors News/Todos/Versionsverlauf) — searchable in the
+grid, opens as a full detail view.
+
+- **Overview tab:** the active alert lane (same decorated/filtered view as badge + popover — nothing re-implemented)
+  with **severity filter chips All · Critical · Warning · Info**, severity dots, source tag (Hinweis / HA-Alert /
+  Sensor), relative time, unread highlight, and snooze (1 h) + dismiss per entry.
+- **History tab** (via the header action buttons Übersicht | Verlauf, with active-state highlight and a clock icon):
+  the local log of the last 100 firings — read-only, including entries that were acknowledged or have resolved since.
+- Deliberately thin entity shell: all data flows through the existing `useNotifications` selector and the
+  `notificationState` store — the entity is registration + view only, no second data source.
+- **Verified end-to-end** in the dev harness (real card booted with mock hass containing all three sources): entity
+  searchable, chips filter correctly, dismiss on an HA alert hides it from the overview but keeps it in history, tab
+  switching via header buttons works with correct active marking, acknowledge survives tab switches. No console errors.
+
+### Files
+
+- `src/system-entities/entities/notifications/` — NEW: `index.js` (entity shell), `NotificationsView.jsx` (Center),
+  `styles/NotificationsView.css`
+- `src/system-entities/registry.js` — entity registered in autoDiscover
+- `src/components/DetailView/TabNavigation.jsx` — notifications wired into the action dispatch chains (overview /
+  history / back, active-button polling); clock icon for the history button on this domain
+
 ## Version 1.1.2157 - 2026-07-17
 
 **Title:** 🔔 Notification Center step 2 — local read/snooze/acknowledge state + history log (roadmap #3)
