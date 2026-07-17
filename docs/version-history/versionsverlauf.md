@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2160 - 2026-07-17
+
+**Title:** 🚨 Critical banner — never covered anymore (info-popup layer)
+
+- **The critical banner was covered by the search panel** (e.g. when opening the bell popover): the panel stacks up to
+  `z-index: 1001`, the banner sat at 500. It now lives on the same layer as the info-popup modal (**9999**) — a
+  critical alert must never be covered by anything in the card. Verified via hit-testing with the search panel
+  expanded: the banner wins.
+
+### Files
+
+- `src/components/CriticalBanner.jsx` — banner z-index 500 → 9999
+
 ## Version 1.1.2159 - 2026-07-17
 
 **Title:** 🚨 Notification Center — critical banner at the top of the card (roadmap #3, banner slice)
