@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2152 - 2026-07-17
+
+**Title:** 🔥 Universal device — stop the phone from heating up (background camera refetches + needless SVG rebuilds)
+
+Two sustained-load sources found on the universal card:
+
+- **The hidden camera slide kept refetching in the background.** The deck keeps the camera `<img>` permanently mounted;
+  Home Assistant rotates camera access tokens continuously, and every rotation changed the img `src` → a network fetch +
+  JPEG decode even while the gauge slide was covering the image. New `DeckImageSlide` **freezes the src while its slide
+  is inactive** and catches up to the current token the moment the slide becomes active (live behavior while visible is
+  unchanged). Verified: ~10 token rotations while hidden → 0 src changes; on activation the src jumps to the newest
+  token; while active it follows live.
+- **The segmented gauge rebuilt its SVG on every hass tick.** `getUniversalRingsConfig` returns new objects each render
+  even when no value changed, so the gauge (with its per-segment drop-shadow filters) re-rendered constantly. The rings
+  identity is now stabilized via a value signature and `SegmentedRingGauge` is memoized — **0 gauge re-renders during
+  hass churn** unless a value actually changes.
+- Camera `<img>` also gets `decoding="async"` (JPEG decode off the critical path).
+
+### Files
+
+- `src/components/tabs/UniversalControlsTab.jsx` — `DeckImageSlide` (frozen src while inactive); rings identity
+  stabilized via signature ref
+- `src/components/controls/SegmentedRingGauge.jsx` — wrapped in `memo`
+- `src/components/controls/UniversalHeroImage.jsx` — `decoding="async"`
+
 ## Version 1.1.2151 - 2026-07-17
 
 **Title:** 🐛 Universal device — camera image was invisible (0×0) under the new slide deck
