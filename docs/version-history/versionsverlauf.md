@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2157 - 2026-07-17
+
+**Title:** 🔔 Notification Center step 2 — local read/snooze/acknowledge state + history log (roadmap #3)
+
+Second slice: the **local state layer**. The card has no backend, so read/snooze/acknowledge live in localStorage
+(module-level store, the codebase's established pattern), pruned and capped.
+
+- **Dismiss now works on every source.** Persistent notifications keep the real `persistent_notification.dismiss`;
+  `alert.*` and danger sensors get a **local acknowledge** — instance-bound (`id@created_at`): the acknowledged firing
+  stays hidden, but if HA resolves it and it fires again later, it reappears as a fresh unread item.
+- **Snooze (1 h) per entry** — ID-bound "quiet until X": hides the item *and* suppresses its toasts, across re-firings,
+  until the timer expires.
+- **Read state + badge semantics per the roadmap:** opening the popover marks the visible items read (after a short
+  beat); the StatsBar badge now counts **active ∧ unread ∧ non-snoozed** instead of raw list length. Unread entries are
+  slightly brighter in the list.
+- **History log** (cap 100, deduped per firing instance, newest first) written on every refresh — the data basis for
+  the Center's history tab in step 3.
+- All decoration/filtering happens once in the `useNotifications` selector — badge, popover and the future Center share
+  the same view; no logic duplicated into components.
+- **Store verified with a 10-assertion node test** (instance-bound ack, ID-bound snooze incl. expiry, markRead, history
+  dedupe/cap, LRU entry cap); step-1 data-layer suite re-run green.
+
+### Files
+
+- `src/utils/notificationState.js` — NEW: local state store (read/ack/snooze/history) + pure `decorateNotifications`
+- `src/providers/dataSelectors.js` — `useNotifications` decorates/filters; unified `dismiss(n)`, `markAllRead`, `snooze`
+- `src/providers/DataProvider.jsx` — history recording; snoozed IDs don't toast
+- `src/components/NotificationsPanel.jsx` — dismiss on all sources, snooze button, read-on-open, unread highlight
+
 ## Version 1.1.2156 - 2026-07-17
 
 **Title:** 🔔 Notification Center step 1 — three alert sources merged, with severity (roadmap #3)
