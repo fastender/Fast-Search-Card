@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2159 - 2026-07-17
+
+**Title:** 🚨 Notification Center — critical banner at the top of the card (roadmap #3, banner slice)
+
+- **A persistent glass banner now appears at the top of the card while a Critical alert is active** (leak / smoke /
+  gas / CO / safety from the zero-config danger whitelist, or critical `alert.*`). Red liquid-glass pill with warning
+  icon, title and message — deliberately showing **only the single highest active Critical**, not an auto-cycling
+  ticker.
+- **Tap → opens the Mitteilungen center** (new `fsc-open-notifications` event, same mechanic as the existing
+  appearance deep-link). **× → local acknowledge** — the banner also disappears on snooze or when HA resolves the
+  state, and an acknowledged alert stays hidden across reloads (verified).
+- Built as a **reusable `GlassBanner` layer** (accent color / icon / texts as props) so the Severe-Weather banner
+  (roadmap #28) can feed the same slot later.
+- Out-of-flow (absolute, top of `main-container`) — pushes nothing around; centered via `left/right:0 + margin:auto`
+  **deliberately without transform**, because framer-motion's y-entrance animation would overwrite a
+  `translateX(-50%)` (found during verification).
+
+### Files
+
+- `src/components/CriticalBanner.jsx` — NEW: `GlassBanner` (presentational, shared with #28) + `CriticalBanner` feeder
+- `src/components/SearchField.jsx` — banner mounted at the top of `main-container`; `fsc-open-notifications` listener
+
 ## Version 1.1.2158 - 2026-07-17
 
 **Title:** 🔔 Notification Center step 3 — "Mitteilungen" system entity with filters and history (roadmap #3)
