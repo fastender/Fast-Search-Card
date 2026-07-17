@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2149 - 2026-07-17
+
+**Title:** 🎯 Universal device — pager directly below the buttons + slide arrows return (fluid this time)
+
+- **The dot pager now sits directly below the four control buttons** (mobile AND desktop) — in-flow after the buttons,
+  so nothing shifts. The absolute in-the-gap placement from v2147/48 is gone.
+- **The left/right slide arrows are back**, vertically centered on the ring (measured Δ 1 px on both breakpoints). They
+  page image/camera ↔ segmented gauge, complementing the dots. The earlier "arrow click doesn't work fluidly" failure
+  was root-caused and fixed in v1.1.2141 (keyed `motion.div` instead of the stuck `AnimatePresence mode="wait"` under
+  frequent hass re-renders, plus full pointer isolation from the card's swipe handler) — re-verified now: 6/6 rapid
+  clicks and 3/3 stale-swipe-ref clicks (the old failure scenario) all toggle the slide.
+
+### Files
+
+- `src/components/controls/HeroNavArrows.jsx` — recreated (v2141 pointer-isolated version)
+- `src/components/tabs/UniversalControlsTab.jsx` — render arrows over the slider; pager stays after the buttons
+- `src/components/tabs/UniversalControlsTab.css` — pager back to in-flow below buttons; `.hero-slide-arrow` at the
+  measured ring center (160 px desktop / 106 px mobile)
+
 ## Version 1.1.2148 - 2026-07-14
 
 **Title:** 🎯 Universal device — fine-tune the pager height (mobile a bit lower, desktop a bit higher)
