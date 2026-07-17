@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2162 - 2026-07-17
+
+**Title:** 👁 Watch lane, step W1 — the in-card threshold engine (roadmap #3, lane 3)
+
+Lane 3 begins: **"tell me when a value crosses a line" — authored in the card, no YAML.** This step ships the invisible
+foundation: definition store, hysteresis evaluator and the feed into the alert lane. (The "＋ Hinweis" authoring UI on
+the entity detail view is the next step; there is no way to create a watch from the UI yet.)
+
+- **`watchStore`** (localStorage, module-store pattern): watch definitions `{entity_id, above/below, threshold, margin,
+  unit, severity, enabled}` + runtime state (firing / firedAt / lastValue) that survives reloads. CRUD + subscription.
+- **Hysteresis against flapping:** fires crossing the threshold, re-arms only once the value crosses back by `margin`
+  (unit-aware defaults: 2 for %, 0.5 for °C/°F). `unavailable`/`unknown` hold the current state instead of resolving.
+- **Evaluated client-side on the `state_changed` stream** the DataProvider already subscribes to — with a cheap
+  per-entity gate, a full-snapshot pass on connect (state may have crossed while no dashboard was open) and re-evaluation
+  when definitions change.
+- **A firing watch is a normal alert-lane notification** (source `watch`): it appears in popover/center/badge, toasts via
+  the existing diff, can be snoozed, and **acknowledge is firing-instance-bound** (`created_at = firedAt`) — resolves and
+  re-fires as a fresh unread item. Nothing re-implemented.
+- **Verified with a 16-assertion node test** (hysteresis both directions incl. zone flapping and NaN-hold, instance
+  binding on re-fire, merger integration, threshold-update runtime reset, disabled/remove) + both notification suites
+  re-run green.
+
+### Files
+
+- `src/utils/watchStore.js` — NEW: definitions + runtime, pure hysteresis (`nextFiringState`), evaluators, alert-lane feed
+- `src/providers/dataNotifications.js` — firing watches merged as source 4
+- `src/providers/DataProvider.jsx` — evaluation on state_changed (gated), on connect, and on definition changes
+
 ## Version 1.1.2161 - 2026-07-17
 
 **Title:** 🟢 Live Activities strip — "what's happening right now" above the Bento grid (roadmap #29)
