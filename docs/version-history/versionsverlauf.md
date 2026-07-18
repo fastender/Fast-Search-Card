@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2167 - 2026-07-18
+
+**Title:** ✏️ Watch edit-in-place — tap an existing hint to adjust it
+
+- **A hint's threshold, direction and importance can now be changed** without deleting and re-creating it. Tapping a
+  row in the Context tab's "Hinweise" list opens the same authoring sheet, **pre-filled** from the definition
+  ("Hinweis bearbeiten", importance panel already expanded, "Speichern" button) and saves via `updateWatch` — same
+  id, no duplicate, runtime state re-armed so the next evaluation decides afresh.
+- Verified end-to-end (node store round-trip + in-harness DOM drive): row → sheet pre-filled 65 % → bump to 66 % +
+  switch to Info → one stored def (`above 66 %`, Info), row updates live.
+
+### Files
+
+- `src/components/tabs/ContextTab/WatchAuthoringSheet.jsx` — optional `editWatch` prop (init from def, `updateWatch` branch, edit header/button)
+- `src/components/tabs/ContextTab/WatchesSection.jsx` — hint rows clickable → edit mode
+
 ## Version 1.1.2166 - 2026-07-18
 
 **Title:** 🧹 Live-activity settings in their own sub-view (no more doubled sections)
