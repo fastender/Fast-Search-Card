@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2168 - 2026-07-18
+
+**Title:** ⏱️ Duration watches — "tell me when it's been on for 15 min" (lights, switches, covers …)
+
+- **A new watch kind for on/off entities.** Threshold watches need a numeric value + unit, so lights/switches/covers
+  never showed the "Hinweise" tab. Now any on/off-style entity (light, switch, fan, cover, binary_sensor, lock,
+  media_player, …) gets a **duration hint**: "tell me when it's been **on** for **15 min**". Reads as one sentence,
+  with 15/30/60-min preset chips, an an/aus (or offen/zu, spielt/pausiert) toggle, and a live "now: on · for 43 min"
+  anchor. Edit-in-place works too.
+- **The honest bit:** the 15-min mark produces no `state_changed` event, so the engine gained a low-frequency 30 s
+  tick that checks duration watches against `last_changed`. Fires once, re-arms when the entity leaves the watched
+  state; a dashboard reopened after the fact evaluates immediately on connect.
+- Verified: 20-assertion node suite (pure hysteresis, store round-trip, both languages, threshold regression) +
+  in-harness DOM drive (light → duration sheet → save "Seit 30 Min. an" → edit to "Seit 1 Std. aus", single stored
+  def).
+
+### Files
+
+- `src/utils/watchStore.js` — `kind: 'duration'` discriminator, `nextDurationFiringState`, shared `evalDef`, `evaluateDurationWatches`, duration message + `formatWatchDuration`/`stateWord`
+- `src/utils/watchSuggestions.js` — `isDurationWatchableEntity`, state options, default state, minute suggestions
+- `src/components/tabs/ContextTab/WatchAuthoringSheet.jsx` — duration mode (shared stepper, state segment)
+- `src/components/tabs/ContextTab/WatchesSection.jsx` — duration row label
+- `src/components/tabs/ContextTab.jsx` — "Hinweise" tab also for on/off entities
+- `src/providers/DataProvider.jsx` — 30 s duration-watch tick
+
 ## Version 1.1.2167 - 2026-07-18
 
 **Title:** ✏️ Watch edit-in-place — tap an existing hint to adjust it
