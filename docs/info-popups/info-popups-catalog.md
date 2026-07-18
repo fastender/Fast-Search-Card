@@ -114,6 +114,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
 | `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
+| `quietHours` | Toasts (Detail) | Ruhezeiten / Quiet hours |
 | `privacySecure` | About | „Your data is secure"-Karte |
 
 ### Außerhalb des Settings-Systems (kartenweit)
@@ -886,6 +887,32 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Duration** – how long it stays.
 >
 > *Why it matters:* so you get feedback the way that disturbs you least.
+
+## quietHours
+
+**DE**
+> ## Ruhezeiten
+>
+> Ein Zeitfenster, in dem Meldungen **nicht aufploppen**.
+>
+> - **Von / Bis** – das Fenster; über Mitternacht (z. B. 22:00–07:00) wird korrekt behandelt.
+> - Toasts **und** der rote Critical-Banner bleiben in diesem Fenster still.
+> - Die Meldungen entstehen trotzdem – Glocke (Badge) und Center füllen sich normal. **Nichts geht verloren.**
+> - **Kritisches immer durchlassen** – Leck, Rauch, Gas & Co. (Severity 1) erscheinen auch nachts. Standardmäßig an.
+>
+> *Warum wichtig:* Ein Wandtablet im Flur/Schlafzimmer soll nachts nicht bei jeder Kleinigkeit aufblitzen – Sicherheitskritisches aber schon.
+
+**EN**
+> ## Quiet hours
+>
+> A time window in which messages **don't pop up**.
+>
+> - **From / To** – the window; wrapping past midnight (e.g. 22:00–07:00) is handled correctly.
+> - Both toasts **and** the red critical banner stay silent within it.
+> - Messages are still created – bell (badge) and Center fill up as usual. **Nothing is lost.**
+> - **Always allow critical** – leak, smoke, gas & co. (severity 1) still appear at night. On by default.
+>
+> *Why it matters:* a wall tablet in the hallway/bedroom shouldn't flash for every little thing at night – but safety-critical alerts should.
 
 ## newsFeeds
 

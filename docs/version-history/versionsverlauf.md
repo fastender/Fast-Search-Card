@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2169 - 2026-07-18
+
+**Title:** 🌙 Quiet hours — no pop-ups in a nightly window (nothing lost, critical still gets through)
+
+- **A time window that silences pop-ups.** During quiet hours (e.g. 22:00–07:00) no toast pops and the red critical
+  banner stays down — but the messages are still created and fill the bell badge + Notification Center as usual.
+  Nothing is lost, it just doesn't flash.
+- **Midnight wraparound handled** (22:00–07:00 spans the day boundary correctly). **"Always allow critical"** (on by
+  default) lets severity-1 alerts — leak, smoke, gas — through even at night; turn it off and even those go quiet.
+- Lives in Settings → General → **Benachrichtigungen (Toasts)** → new "Ruhezeiten" section (enable + From/To time
+  pickers + the critical toggle), with a ⓘ info popup.
+- Verified: 24-assertion node suite (parse, same-day + wraparound windows, boundary-exact, severity-aware
+  suppression) + in-harness E2E (section renders, toggle reveals the rows, settings persist to
+  `systemSettings.toasts.quietHours`, and `isNotificationSuppressed` reads them boundary-exact: 22:15 no, 22:45 yes,
+  12:00 no).
+
+### Files
+
+- `src/utils/quietHours.js` — NEW: pure window/suppression logic
+- `src/utils/toastSettings.js` — quietHours section + `getQuietHours`/`isNotificationSuppressed`
+- `src/providers/DataProvider.jsx` — toast pipeline skips suppressed severities
+- `src/components/CriticalBanner.jsx` — banner silent when critical isn't allowed through
+- `src/components/tabs/SettingsTab/components/ToastSettingsTab.jsx` — "Ruhezeiten" section
+- `src/utils/translations/languages/{de,en}.js` + `docs/info-popups/info-popups-catalog.md` — `quietHours` info popup
+
 ## Version 1.1.2168 - 2026-07-18
 
 **Title:** ⏱️ Duration watches — "tell me when it's been on for 15 min" (lights, switches, covers …)
