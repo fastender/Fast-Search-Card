@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2163 - 2026-07-17
+
+**Title:** 👁 Watch lane, step W2 — "＋ Hinweis": Apple-simple threshold authoring in the context tab
+
+The visible piece of lane 3. Numeric entities (value + unit) get a **fourth filter chip "Hinweise"** in the detail
+view's context tab — authoring and management in one place, context-local as designed (no central rule editor).
+
+- **The authoring sheet** (info-popup layer): **suggestion chips** per `device_class` with smart defaults (humidity →
+  "Zu feucht" 65 % / "Zu trocken" 30 %; temperature → warm 26° / cold 16° / **frost risk 3°**; battery → 20 %; CO₂ →
+  1200 ppm; power → 2000 W; plus "Eigener Wert" anchored at the current reading) → **one sentence with one adjustable
+  value** ("Sag mir, wenn es *feuchter* als ⟨65 %⟩ wird", live anchor "jetzt: 58.4 %", stepper with press-and-hold,
+  unit-aware steps: 0.5 for °C, 50 for ppm/W) → collapsed "Mehr Optionen" (importance: Warnung/Info). The user never
+  sees "condition" or an operator.
+- **The list below is the management:** per hint a severity dot, "Über/Unter X melden", pause toggle
+  (LiquidGlassSwitch) and delete. Saving calls `watchStore.addWatch()` — evaluation, hysteresis, center, badge and
+  toasts all come from the W1 engine.
+- Sentence verbs adapt to the device class (feuchter/trockener, wärmer/kälter, generic höher/niedriger), de/en.
+- **Verified:** 6-assertion node test for the suggestion engine + full UI flow end-to-end in the harness (empty state →
+  sheet → chip switch flips verb+value → stepper → severity → save writes the correct definition → list shows it →
+  pause toggle persists `enabled:false` → delete returns to empty state). No console errors.
+
+### Files
+
+- `src/utils/watchSuggestions.js` — NEW: pure suggestion/sentence/step engine + `isWatchableEntity`
+- `src/components/tabs/ContextTab/WatchAuthoringSheet.jsx` — NEW: the three-tier sheet
+- `src/components/tabs/ContextTab/WatchesSection.jsx` — NEW: list + manage + "＋ Hinweis"
+- `src/components/tabs/ContextTab.jsx` / `FilterTabs.jsx` — dynamic tab list, "Hinweise" for numeric entities
+- `src/utils/translations/languages/{de,en}.js` — `context.tabWatches`
+
 ## Version 1.1.2162 - 2026-07-17
 
 **Title:** 👁 Watch lane, step W1 — the in-card threshold engine (roadmap #3, lane 3)
