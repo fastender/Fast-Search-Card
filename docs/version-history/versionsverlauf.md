@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2166 - 2026-07-18
+
+**Title:** 🧹 Live-activity settings in their own sub-view (no more doubled sections)
+
+- **Fixed the v2165 duplication** (user report): both "Configure widgets" and "Live-Aktivitäten" opened the *same*
+  sub-view containing *both* sections. The live-activity settings now live in their **own sub-view** (title
+  "Live-Aktivitäten", with the ⓘ info popup); the Bento view is back to slots only. Same storage, nothing migrates.
+- Verified end-to-end: "Live-Aktivitäten" opens its view (toggle present, no Bento slots), "Widgets konfigurieren"
+  opens "Bento-Widgets" (slots present, no live-activity section).
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/LiveActivitiesSettingsTab.jsx` — NEW: extracted sub-view
+- `src/components/tabs/SettingsTab/components/StartScreenSettingsTab.jsx` — section removed (slots only again)
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — row targets the new `live-activities` view
+
 ## Version 1.1.2165 - 2026-07-18
 
 **Title:** 🧭 Live-activity settings — discoverable entry in Settings → General → Home screen
