@@ -112,6 +112,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
+| `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
 | `privacySecure` | About | „Your data is secure"-Karte |
 
@@ -292,6 +293,32 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - Tap a bento widget on the home screen to open that entity's detail view directly.
 >
 > *Why it matters:* this is how you compose your home screen from exactly the info you want at a glance.
+
+## liveActivities
+
+> v1.1.2164: Sektion „Live-Aktivitäten" in Einstellungen → Startbildschirm (Roadmap #29).
+
+**DE**
+> ## Live-Aktivitäten
+>
+> Eine Leiste über dem Bento-Grid, die zeigt, was **gerade jetzt läuft** — Timer mit Countdown, saugender Staubsauger, fahrende Rollos, spielende Medien, laufende Skripte und Automationen.
+>
+> - Erscheint nur, wenn etwas aktiv ist, und räumt sich selbst weg, wenn der Zustand endet.
+> - Tippe eine Kapsel an, um die Detail-Ansicht des Geräts zu öffnen.
+> - **Lichter, Schalter und Klima** sind Dauerzustände und deshalb standardmäßig aus — aktiviere sie hier gezielt, wenn du sie sehen willst.
+>
+> *Warum wichtig:* Laufende Dinge sind sonst unsichtbar, bis man zufällig ihre Detail-Ansicht öffnet.
+
+**EN**
+> ## Live Activities
+>
+> A strip above the Bento grid showing what's **happening right now** — timers with countdown, a cleaning vacuum, moving covers, playing media, running scripts and automations.
+>
+> - Appears only while something is active and dissolves itself when the state ends.
+> - Tap a capsule to open the device's detail view.
+> - **Lights, switches and climate** are continuous states and therefore off by default — enable them here deliberately if you want them.
+>
+> *Why it matters:* running things are otherwise invisible until you happen to open their detail view.
 
 ## tts
 

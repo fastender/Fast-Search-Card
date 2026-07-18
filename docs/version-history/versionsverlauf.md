@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2164 - 2026-07-18
+
+**Title:** ⚙️ Live activities — settings: on/off, per-source toggles, opt-in lights/switches/climate
+
+The strip becomes configurable (Settings → Start screen → new "Live-Aktivitäten" section, with ⓘ info popup):
+
+- **Global toggle** "Live-Aktivitäten anzeigen" — off removes the strip entirely (no leftover capsules).
+- **Per-source toggles** for the core set (timers, vacuums, covers, media, scripts, automations — all on by default).
+- **Opt-in sources, deliberately off by default:** lights (with brightness %), switches, climate (only while actively
+  heating/cooling via `hvac_action` — not the set mode). They're continuous states; on by default they'd drown the
+  "live" signal — now you enable them deliberately.
+- Settings live in `startScreen.liveActivities`, applied live via the existing `startScreenSettingsChanged` event (same
+  pattern as the Bento toggle) — no reload needed.
+- **Bugfix along the way:** the timer countdown froze when no other hass updates arrived — the strip's `useMemo`
+  never recomputed on ticker re-renders. The tick is now a memo dependency; countdown runs standalone.
+- **Verified:** extended node suite (default filtering, opt-in extraction incl. brightness/hvac_action, sort order,
+  core-source off, settings normalize/merge) + live in the harness: default = timer only → light toggle on → capsule
+  "Flur Licht 50 %" appears → global off → strip gone. Info-popup catalog updated (rule).
+
+### Files
+
+- `src/utils/liveActivitySources.js` — `DEFAULT_LIVE_ACTIVITY_SETTINGS` + `normalizeLiveActivitySettings`; `sources`
+  filter param; light/switch/climate extractors
+- `src/components/LiveActivityStrip.jsx` — reads settings, listens to `startScreenSettingsChanged`; tick as memo dep
+- `src/components/tabs/SettingsTab/components/StartScreenSettingsTab.jsx` — new settings section
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.liveActivities`
+- `docs/info-popups/info-popups-catalog.md` — new `liveActivities` entry
+
 ## Version 1.1.2163 - 2026-07-17
 
 **Title:** 👁 Watch lane, step W2 — "＋ Hinweis": Apple-simple threshold authoring in the context tab
