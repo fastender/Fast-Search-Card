@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2165 - 2026-07-18
+
+**Title:** 🧭 Live-activity settings — discoverable entry in Settings → General → Home screen
+
+- **The v2164 settings section was buried** behind "Configure widgets" in the Bento sub-view — nobody looks for live
+  activities there. The **Home screen card in General settings now has its own "Live-Aktivitäten" row** (with a
+  subtitle naming the sources incl. the opt-ins) that jumps straight to the section. Verified end-to-end in the
+  harness: Settings → General → row visible → opens the sub-view → global toggle reveals the source toggles and
+  persists.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — "Live-Aktivitäten" row in the Home-screen card
+
 ## Version 1.1.2164 - 2026-07-18
 
 **Title:** ⚙️ Live activities — settings: on/off, per-source toggles, opt-in lights/switches/climate
