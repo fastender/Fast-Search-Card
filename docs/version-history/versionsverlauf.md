@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2170 - 2026-07-21
+
+**Title:** 🏝️ The Island (phase 1) — the StatsBar becomes a morphing capsule
+
+- **The StatsBar is gone; in its place lives the Island** — a Dynamic-Island-style glass capsule top-center that
+  shows exactly one thing, chosen by priority: **alert ▸ live ▸ ambient**. Warnings/infos tint the capsule (orange/
+  blue) and drop in with a bounce; two or more roll up into a "N Mitteilungen" stack (iOS-style); a running
+  timer/vacuum/media shows live with a ticking countdown (split + N for multiple, user's pick); at rest it's a calm
+  clock + weather + presence dot. Critical stays with the red banner — clean division of labor.
+- **The Apple morph, for real this time in framer:** the capsule resizes via `layout` spring (with overshoot), and
+  content cross-fades with the blur-zoom material transition (`AnimatePresence popLayout`, old content blurs/shrinks
+  out, new blurs/grows in).
+- **What died:** the 6 energy widgets, the avatar, the old bell popover, the 5-second mobile rotation —
+  `StatsBar.jsx` (602 LOC) deleted. Tap always opens the fitting view (alerts/ambient → Mitteilungen center, live →
+  the entity's detail view); no inline controls by design.
+- **Continuity:** the old "StatsBar aktivieren" master toggle still gates the Island; the Bento space-reserve
+  wrapper is untouched. The StatsBar settings sub-view (widget toggles, energy sensors) is now partly inert —
+  phase 2 rebuilds it into Island settings and merges the LiveActivityStrip into the capsule.
+- Verified: 18-assertion node suite for the pure state selection (`islandState.js`: priority, collection threshold,
+  split+N, content keys, dot colors, tints) + dev-harness E2E across all moods (live "Pizza 11:36" ticking → alert
+  "Waschmaschine fertig" → collection "2 Mitteilungen" → ambient clock + idle dot) and both tap events
+  (`fsc-open-notifications` / `fsc-open-entity`).
+
+### Files
+
+- `src/utils/islandState.js` — NEW: pure mood selection, content keys, dot color, tints
+- `src/components/Island.jsx` — NEW: the capsule (framer layout morph + blur-zoom crossfade + mood contents)
+- `src/components/SearchField.jsx` — Island mounted in the StatsBar slot; `powerEntity` extraction removed
+- `src/components/SearchField/SearchField.css` — `.island-pill` pill shape (inherits user glass)
+- `src/components/StatsBar.jsx` — DELETED (602 LOC)
+
 ## Version 1.1.2169 - 2026-07-18
 
 **Title:** 🌙 Quiet hours — no pop-ups in a nightly window (nothing lost, critical still gets through)
