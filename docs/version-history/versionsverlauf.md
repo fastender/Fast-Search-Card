@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2176 - 2026-07-21
+
+**Title:** 🏝️ Island phase 3c — peek: hold the capsule for a preview
+
+- **Press and hold the island (~0.5 s) to peek** without leaving the screen: in alert/ambient mood the
+  notification popover docks under the capsule (the polished v2157 panel returns from orphanhood — acknowledge,
+  snooze, mark-read inline); in live mood a glass list of **all** running activities appears, each row opening its
+  entity. A short tap stays the fast path (opens the fitting view); after a long-press the release-click is
+  swallowed. The live peek closes itself when nothing runs anymore.
+- Verified in the harness: hold on live → list with both activities and no navigation event, row pick fires
+  `fsc-open-entity` and closes, short tap still opens the primary entity, hold during an alert shows the panel.
+
+### Files
+
+- `src/components/Island.jsx` — long-press detection, peek state, anchor span, `LivePeekList`
+- `src/components/NotificationsPanel.jsx` — back in use (island peek)
+
 ## Version 1.1.2175 - 2026-07-21
 
 **Title:** 🏝️ Island phase 3b — rolling digits and the green "fertig" moment
