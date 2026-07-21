@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2172 - 2026-07-21
+
+**Title:** 🏝️ Island phase 2b — settings rebuilt, 2,072 LOC of orphaned StatsBar machinery removed
+
+- **Settings → General → "Insel"** (was "StatsBar") now opens a compact new sub-view: master toggle (same
+  `appearance.statsBarEnabled` storage — your on/off state carries over), a link to the live-activity source
+  toggles, an ⓘ info popup explaining the three moods, and a priority explainer. The legacy raw
+  `localStorage.statsBarEnabled` key (only ever read by the deleted StatsBar) is cleaned up on first save.
+- **The big sweep:** with the StatsBar dead, its entire support system had zero runtime consumers —
+  `StatsBarSettingsTab.jsx` (1,257 LOC widget toggles + energy-sensor detection UI), `energyDashboardService.js`
+  (514 LOC), `EnergyIcons.jsx` (269 LOC) and `statsbar/widgetStorage.js` (32 LOC) are deleted. The Bento energy
+  widget is untouched — it runs on the system entity's own pipeline, not this config.
+- Info-popup catalog updated per the standing rule: new `island` entry replaces `statsBar` + `statsBarWidgets`.
+- Verified end-to-end in the dev harness: General row "Insel · Aktiv" → new view → toggle persists + legacy key
+  removed → "Live-Aktivitäten" link opens the sources sub-view.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/IslandSettingsTab.jsx` — NEW compact settings
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — row + view case rewired
+- `src/utils/translations/languages/{de,en}.js` — `settingsInfo.island` added, statsBar entries removed
+- `docs/info-popups/info-popups-catalog.md` — island entry
+- DELETED: `StatsBarSettingsTab.jsx`, `statsbar/widgetStorage.js`, `services/energyDashboardService.js`, `components/EnergyIcons.jsx`
+
 ## Version 1.1.2171 - 2026-07-21
 
 **Title:** 🏝️ Island phase 2a — the strip merges into the capsule, the island lives on the Bento start screen

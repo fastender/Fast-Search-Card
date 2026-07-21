@@ -108,8 +108,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 | infoKey | Ort | Sektion |
 |---|---|---|
-| `statsBar` | StatsBar (Detail) | EINSTELLUNGEN / SETTINGS |
-| `statsBarWidgets` | StatsBar (Detail) | Verfügbare Widgets |
+| `island` | Insel (Detail) | Die Insel / The Island |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
 | `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
@@ -682,55 +681,37 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > *Why it matters:* gives you a fixed card background, independent of the HA wallpaper.
 
-## statsBar
+## island
 
-> v1.1.1813: enthält jetzt auch die „About StatsBar"-Features (Inline-Sektion entfernt).
-
-**DE**
-> ## Status-Leiste
->
-> Eine Widget-Leiste oben in der Karte mit Live-Werten.
->
-> - **Status-Leiste aktivieren** – schaltet die ganze Leiste ein/aus.
-> - **Erkennungs-Modus** – Automatisch sucht Sensoren selbst, Manuell weist du gezielt zu.
->
-> **Features:** Live-Updates · Energy-Dashboard-Integration · anpassbare Widgets
->
-> *Warum wichtig:* Automatik = schnell startklar; Manuell = volle Kontrolle.
-
-**EN**
-> ## Status Bar
->
-> A widget bar at the top of the card with live values.
->
-> - **Enable status bar** – turns the whole bar on or off.
-> - **Detection mode** – Automatic finds sensors itself, Manual lets you assign each source.
->
-> **Features:** live updates · Energy Dashboard integration · customizable widgets
->
-> *Why it matters:* automatic = fast; manual = full control.
-
-## statsBarWidgets
+> v1.1.2172 (Insel Phase 2b): ersetzt `statsBar` + `statsBarWidgets` — die
+> StatsBar (Widget-Leiste + Energie-Sensor-Konfiguration) ist der morphenden
+> Insel gewichen (v2170/71), die ihren Inhalt selbst wählt.
 
 **DE**
-> ## Verfügbare Widgets
+> ## Die Insel
 >
-> Welche Kacheln in der Status-Leiste erscheinen.
+> Eine morphende Glas-Kapsel oben mittig — sie zeigt immer genau **eins**, nach Priorität:
 >
-> - Schalte einzelne Widgets ein/aus: Wetter, Stromnetz, Solar, Batterie, Tarife, Uhr.
-> - Pro Widget legst du die Datenquelle (Sensor) fest.
+> - **Meldung** – Warnungen orange, Infos blau; mehrere stapeln sich zu „N Mitteilungen". Kritisches erscheint zusätzlich als roter Banner.
+> - **Live-Aktivität** – laufender Timer (Countdown), Sauger, Rollo, Medien … Bei mehreren: die wichtigste plus „+N".
+> - **Ruhe** – Uhr, Wetter, Presence-Punkt (grau = nichts wartet).
 >
-> *Warum wichtig:* Jedes Widget braucht eine gültige Sensor-Quelle.
+> Tippen öffnet die passende Ansicht: Meldungen → Mitteilungen-Center, Live → Geräte-Detail.
+>
+> *Warum wichtig:* Ein ruhiges Element statt vieler Widgets — es meldet sich nur, wenn es etwas zu sagen gibt.
 
 **EN**
-> ## Available Widgets
+> ## The Island
 >
-> Which tiles appear in the status bar.
+> A morphing glass capsule top center — it always shows exactly **one** thing, by priority:
 >
-> - Toggle widgets: Weather, Grid, Solar, Battery, Tariffs, Clock.
-> - For each widget you set the data source (sensor).
+> - **Alert** – warnings orange, infos blue; several stack into "N notifications". Critical additionally raises the red banner.
+> - **Live activity** – a running timer (countdown), vacuum, cover, media … With several: the most important plus "+N".
+> - **Rest** – clock, weather, presence dot (gray = nothing waiting).
 >
-> *Why it matters:* each widget needs a valid sensor source.
+> Tapping opens the fitting view: alerts → notification center, live → the device's detail view.
+>
+> *Why it matters:* one calm element instead of many widgets — it only speaks up when there's something to say.
 
 ## limits
 
