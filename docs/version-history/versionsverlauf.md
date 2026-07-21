@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2177 - 2026-07-21
+
+**Title:** 🏝️ Island phase 3d — the hero transition: the capsule morphs into the view (both directions)
+
+- **Tapping the island no longer just opens a view — the capsule becomes it.** A glass clone lifts off the pill,
+  waits for the detail view to mount (rAF poll, 700 ms budget), flies to its rect while the radius morphs
+  999px → 35px, and dissolves as the real view stands. **Closing morphs back:** every close path (back, X,
+  overview) funnels through the same `showDetail true→false` transition — the cached panel rect spawns a clone
+  that shrinks into the pill.
+- **Never breaks by design:** if the view doesn't mount in time the clone simply dissolves (worst case looks like
+  before); views opened from the grid (not island-initiated) never reverse-morph (session flag guards it). The
+  deliberate fake-hero approach (DOM clone, rect→rect) is immune to the portal/shadow-DOM boundaries where framer's
+  `layoutId` would fail.
+- Verified in the harness (with a new MessageChannel-pumped rAF driver — hidden preview tabs throttle both rAF and
+  timers): open flight spawn-at-pill → grows to panel → dissolves; reverse spawns after the exit animation and
+  lands exactly on the pill (radius back to 999px); non-island opens leave no cached rect (guard confirmed via
+  debug trace).
+
+### Files
+
+- `src/utils/heroTransition.js` — NEW: `createHeroClone` (flyTo/dissolve) + `waitForElement`
+- `src/components/Island.jsx` — open flight on tap, reverse flight on `showDetail` false-transition, session guard
+- `src/components/SearchField.jsx` — passes `showDetail` to the Island
+
 ## Version 1.1.2176 - 2026-07-21
 
 **Title:** 🏝️ Island phase 3c — peek: hold the capsule for a preview
