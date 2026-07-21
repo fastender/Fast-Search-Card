@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2175 - 2026-07-21
+
+**Title:** 🏝️ Island phase 3b — rolling digits and the green "fertig" moment
+
+- **Digits now roll like the iOS clock.** Every character of the live status (countdown, media position, percent)
+  and of the ambient clock sits in its own slot; when its character changes, the old one slides up and out while
+  the new one rolls in from below (position-keyed outer span, character-keyed inner, tabular-nums keeps the width).
+- **The "fertig" moment (the old strip's best trick, upgraded):** when the visible live activity ends — timer done,
+  vacuum docked — the island holds a **green** capsule "Pizza · fertig ✓" for 2 seconds before morphing on.
+  An active alert always wins over the done-moment.
+- Verified in the harness: countdown ticks with per-character spans, ending the timer shows "Pizza fertig" with the
+  green border, and 2 s later the capsule is back to the ambient clock.
+
+### Files
+
+- `src/components/Island.jsx` — `RollingDigits`, `DoneContent` + green tint, prev-primary tracking
+
 ## Version 1.1.2174 - 2026-07-21
 
 **Title:** 🏝️ Island phase 3a — the resting line rolls (weather → lights on → windows open)
