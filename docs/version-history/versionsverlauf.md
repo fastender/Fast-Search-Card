@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2174 - 2026-07-21
+
+**Title:** 🏝️ Island phase 3a — the resting line rolls (weather → lights on → windows open)
+
+- **The island's second line now rotates through what the house knows**, iOS-style vertical roll every 4 s:
+  weather temperature → "3 Lichter an" → "1 Fenster offen" → "2 Türen offen". Zero-count items don't appear;
+  a single item stays static; the night face (v2173) skips the roll entirely.
+- Counted live from `hass.states` (pure `getAmbientRollItems`): lights on, `binary_sensor` device_class
+  window / door / garage_door that are open.
+- Verified: 8-assertion node suite (counts, singular/plural de+en, ignored device classes) + harness E2E
+  (line rotates 3 Lichter an → 1 Fenster offen → back, clock stays).
+
+### Files
+
+- `src/utils/islandState.js` — `getAmbientRollItems` (pure)
+- `src/components/Island.jsx` — roll segment (AnimatePresence vertical roll), 4 s rotation, icons
+
 ## Version 1.1.2173 - 2026-07-21
 
 **Title:** 🌙 Island phase 2c — the night face (quiet hours dim the resting capsule)
