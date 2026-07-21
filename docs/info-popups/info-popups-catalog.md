@@ -695,6 +695,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Meldung** – Warnungen orange, Infos blau; mehrere stapeln sich zu „N Mitteilungen". Kritisches erscheint zusätzlich als roter Banner.
 > - **Live-Aktivität** – laufender Timer (Countdown), Sauger, Rollo, Medien … Bei mehreren: die wichtigste plus „+N".
 > - **Ruhe** – Uhr, Wetter, Presence-Punkt (grau = nichts wartet).
+> - **Nachts** – in den Ruhezeiten dimmt das Ruhegesicht auf „nur Uhr"; Meldungen und Live bleiben sichtbar.
 >
 > Tippen öffnet die passende Ansicht: Meldungen → Mitteilungen-Center, Live → Geräte-Detail.
 >
@@ -708,6 +709,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Alert** – warnings orange, infos blue; several stack into "N notifications". Critical additionally raises the red banner.
 > - **Live activity** – a running timer (countdown), vacuum, cover, media … With several: the most important plus "+N".
 > - **Rest** – clock, weather, presence dot (gray = nothing waiting).
+> - **At night** – during quiet hours the resting face dims to clock-only; alerts and live stay visible.
 >
 > Tapping opens the fitting view: alerts → notification center, live → the device's detail view.
 >

@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2173 - 2026-07-21
+
+**Title:** 🌙 Island phase 2c — the night face (quiet hours dim the resting capsule)
+
+- **During quiet hours (v2169) the island's resting face dims to clock-only** — no weather, no presence dot, clock
+  at 55% opacity. A bedroom/hallway wall tablet stops glowing at night. **Alerts and live activities stay fully
+  visible** — they're standing states, not pop-ups, and safety beats silence.
+- No new setting: quiet hours themselves are the switch (Settings → Benachrichtigungen → Ruhezeiten). The island
+  info popup documents the behavior (catalog updated).
+- Verified in the dev harness: quiet window active → ambient shows only the dimmed clock (no dot); a warning pushed
+  during the window shows at full strength; disabling quiet hours restores the normal resting face live.
+
+### Files
+
+- `src/components/Island.jsx` — night-face detection (`isWithinQuietWindow` + `toastSettingsChanged` listener), dimmed ambient variant
+- `src/utils/translations/languages/{de,en}.js` + `docs/info-popups/info-popups-catalog.md` — night line in the island popup
+
 ## Version 1.1.2172 - 2026-07-21
 
 **Title:** 🏝️ Island phase 2b — settings rebuilt, 2,072 LOC of orphaned StatsBar machinery removed
