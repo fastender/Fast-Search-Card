@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2171 - 2026-07-21
+
+**Title:** 🏝️ Island phase 2a — the strip merges into the capsule, the island lives on the Bento start screen
+
+- **The LiveActivityStrip (v2161) is gone; the Island took its job.** On the Bento start screen the capsule is now
+  visible (the old `visibility:hidden` gate on the StatsBar slot is lifted) — the wall tablet gets its resting face:
+  ambient clock at rest, live activities in the capsule when something runs, alerts tinting it. One floating element
+  instead of strip + bar.
+- What the strip had that the capsule doesn't (yet): the 2-second "fertig" hold after an activity ends — the island
+  simply morphs on. Noted as possible polish.
+- Verified in the dev harness: bento start (not expanded) → island visible in the slot (`visibility: visible`),
+  live timer ticking in the capsule, no strip markup left.
+
+### Files
+
+- `src/components/SearchField.jsx` — strip mount removed, bento visibility gate lifted
+- `src/components/LiveActivityStrip.jsx` — DELETED (merged into the Island)
+
 ## Version 1.1.2170 - 2026-07-21
 
 **Title:** 🏝️ The Island (phase 1) — the StatsBar becomes a morphing capsule
