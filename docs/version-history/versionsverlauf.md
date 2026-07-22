@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2194 - 2026-07-23
+
+**Title:** 🫀 The heart of the DataProvider moves out — 1419 → 730 lines, all 26 tests green
+
+- **`hooks/useEntityStream.js` (267 lines).** The running operation: the `state_changed` subscription from
+  Home Assistant, the rAF batching that turns N events per frame into a single `setEntities`, and the central
+  update function. Everything that stands between HA and the visible entity list.
+
+- **This was the piece that was deliberately postponed for months.** Its timing is performance-critical and no
+  build ever notices when it breaks — which is exactly why the test suite came first. It moved with the suite
+  green before and after.
+
+- **The call site is annotated, not just moved.** It sits exactly where the subscription effect used to be,
+  because effects run in call order and the alert lane seeds directly above it. A comment now says so, so the
+  next person to tidy up does not quietly reintroduce the bug that release 2192 caught.
+
+- **The DataProvider is down from 1419 to 730 lines across three releases** and is now what it should be:
+  wiring. What remains is favorites, settings, search, suggestions, action tracking, and the context memo —
+  which stays in the provider, because its reference stability is the whole point.
+
 ## Version 1.1.2193 - 2026-07-23
 
 **Title:** 🧬 The full HA load run moves out — DataProvider 1096 → 937 lines
