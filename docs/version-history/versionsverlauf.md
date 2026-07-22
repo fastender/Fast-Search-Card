@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2184 - 2026-07-22
+
+**Title:** 🧱 General settings split — one option picker replaces four views
+
+- **A second shell shape turned out to be the dominant one.** The big settings tabs don't use the sub-view frame
+  from v2183 — they use an `AnimatePresence` **pager**, where the motion element *is* the wrapper and carries the
+  slide variants (7 branches in General, 10 in Appearance, plus calendar/todos/integration). So `IosSubView` gained
+  a sibling, `IosPagerView`; both share their inner half (navbar, scroll area, scrollbar, overlay) and differ only
+  in the outer frame, which genuinely is different.
+- **Four of the six inline views were the same option picker** — navbar, one card of options, checkmark on the
+  active one, tap selects and closes. They became a single `SettingsOptionPicker` with four short call sites
+  instead of four near-identical files. Its options stay open where the views genuinely differ: per-option
+  subtitles (only the time format uses them), `closeDelayMs={0}` for the learning speed (a sub-page of
+  suggestions, so it deliberately stays open), and a custom check icon — the learning speed uses a plain blue
+  check without a circle, and swapping it for the shared one would have been a silent visual change.
+- TTS moved into its own file (its list is built from `hass.services.tts` and it has an empty state).
+  **`GeneralSettingsTab`: 1132 → 895 lines.**
+- Verified in the harness: language, currency, time format and TTS all render with the right title, options and
+  checkmark; selecting a currency persists it; the learning speed page shows its custom check, stores the choice
+  and stays open as before.
+- ⚠️ Deliberately left inline: the `suggestions` view (219 lines). It is genuinely entangled — six local state
+  values, three throttled setters and a reset handler — and extracting it means a state hook, not a moved block.
+  Forcing it through props would have been the kind of migration this codebase has learned to avoid.
+
+### Files
+
+- `src/components/common/IosSubView.jsx` — `IosPagerView` added, inner half factored into a shared `ViewBody`
+- `src/components/tabs/SettingsTab/components/general/SettingsOptionPicker.jsx` — NEW
+- `src/components/tabs/SettingsTab/components/general/TtsSettingsView.jsx` — NEW
+- `src/components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` — 5 branches replaced
+
 ## Version 1.1.2183 - 2026-07-22
 
 **Title:** 🧱 Shared iOS sub-view shell — the foundation the settings split was missing
