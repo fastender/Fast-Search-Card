@@ -78,11 +78,28 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
   await page.waitForFunction(() => !!window.FastSearchCardApp, null, { timeout: 20000 });
 
   await page.evaluate(({ hassPatch, language }) => {
+    window.__serviceCalls = [];
     window.__mkConnection = () => ({
       subscribeMessage: () => Promise.resolve(() => {}),
       subscribeEvents: () => Promise.resolve(() => {}),
       sendMessagePromise: () => Promise.resolve([]),
     });
+    const AREAS = [
+      { area_id: 'wohnzimmer', name: 'Wohnzimmer' },
+      { area_id: 'kueche', name: 'Küche' },
+      { area_id: 'garten', name: 'Garten' },
+    ];
+    const ENTITY_REG = [
+      { entity_id: 'light.wohnzimmer', area_id: 'wohnzimmer', device_id: null },
+      { entity_id: 'light.kueche', area_id: 'kueche', device_id: null },
+      { entity_id: 'switch.terrasse', area_id: 'garten', device_id: null },
+      { entity_id: 'sensor.bad_hum', area_id: 'kueche', device_id: null },
+      { entity_id: 'timer.pizza', area_id: 'kueche', device_id: null },
+      { entity_id: 'binary_sensor.fenster', area_id: 'wohnzimmer', device_id: null },
+      { entity_id: 'media_player.wohnzimmer', area_id: 'wohnzimmer', device_id: null },
+      { entity_id: 'climate.heizung', area_id: 'wohnzimmer', device_id: null },
+      { entity_id: 'cover.rolladen', area_id: 'wohnzimmer', device_id: null },
+    ];
     const iso = new Date().toISOString();
     const entity = (entity_id, friendly_name, state = 'on', attributes = {}) => ({
       entity_id, state, last_changed: iso, last_updated: iso,
@@ -90,17 +107,47 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
     });
     const base = {
       states: {
-        'light.wohnzimmer': entity('light.wohnzimmer', 'Wohnzimmer Licht'),
+        'light.wohnzimmer': entity('light.wohnzimmer', 'Wohnzimmer Licht', 'on', { brightness: 180 }),
         'light.kueche': entity('light.kueche', 'Küche Licht', 'off'),
         'switch.terrasse': entity('switch.terrasse', 'Terrasse Steckdose'),
         'weather.home': entity('weather.home', 'Wetter', 'sunny', { temperature: 21 }),
+        // 🔑 PAUSIERT, nicht spielend: ein spielender Lautsprecher ist eine
+        // Live-Aktivität und verdrängt das Ruhegesicht der Insel. Das Grundhaus
+        // muss still sein — wer „spielt" braucht, setzt es im Test selbst.
+        'media_player.wohnzimmer': entity('media_player.wohnzimmer', 'Wohnzimmer Box', 'paused', {
+          media_title: 'Testlied', media_artist: 'Testband', volume_level: 0.4,
+          supported_features: 84381,
+        }),
+        'climate.heizung': entity('climate.heizung', 'Heizung', 'heat', {
+          current_temperature: 20.5, temperature: 22, hvac_modes: ['off', 'heat'],
+        }),
+        'cover.rolladen': entity('cover.rolladen', 'Rolladen', 'open', { current_position: 70 }),
       },
       services: { tts: { google_translate_say: {} } },
       language: 'de', locale: { language: 'de' },
-      areas: {}, devices: {}, entities: {},
+      areas: {
+        wohnzimmer: { area_id: 'wohnzimmer', name: 'Wohnzimmer' },
+        kueche: { area_id: 'kueche', name: 'Küche' },
+        garten: { area_id: 'garten', name: 'Garten' },
+      },
+      devices: {}, entities: {},
       user: { id: 'test-user', name: 'Tester' },
-      callService: () => Promise.resolve(),
-      callWS: () => Promise.resolve([]),
+      // Dienstaufrufe mitschreiben: nur so lässt sich prüfen, dass ein Tipper
+      // auf einen Schalter wirklich bei Home Assistant ankommt — die Karte
+      // aktualisiert die Anzeige nicht optimistisch, sondern wartet auf HA.
+      callService: (domain, service, data) => {
+        window.__serviceCalls.push({ domain, service, data });
+        return Promise.resolve();
+      },
+      // 🔑 Die Registry-Antworten sind NICHT optional. Der Ladelauf behält nur
+      // Entities MIT Bereich (`entity.area != null`) — antwortet callWS überall
+      // mit [], hat das Testhaus überhaupt keine Geräte und alles, was hinter
+      // der Suche liegt (Detail-Ansicht, Karten, Steuerung), ist untestbar.
+      callWS: ({ type } = {}) => {
+        if (type === 'config/area_registry/list') return Promise.resolve(AREAS);
+        if (type === 'config/entity_registry/list') return Promise.resolve(ENTITY_REG);
+        return Promise.resolve([]);   // device_registry: Zuordnung läuft hier direkt über die Entity-Registry
+      },
       callApi: () => Promise.resolve({}),
     };
     const hass = { ...base, language, locale: { language }, ...hassPatch, connection: window.__mkConnection() };
@@ -174,4 +221,32 @@ export function viewByTitle(root, title) {
   return root.locator('.ios-view-wrapper').filter({
     has: root.page().locator('.ios-navbar-title', { hasText: title }),
   }).last();
+}
+
+/** Alle bisher an Home Assistant geschickten Dienstaufrufe. */
+export function serviceCalls(page) {
+  return page.evaluate(() => window.__serviceCalls || []);
+}
+
+/** Protokoll der Dienstaufrufe leeren (z. B. nach dem Öffnen einer Ansicht). */
+export function clearServiceCalls(page) {
+  return page.evaluate(() => { window.__serviceCalls = []; });
+}
+
+/**
+ * Öffnet die Detail-Ansicht eines Geräts über die Suche.
+ * @returns {Promise<import('@playwright/test').Locator>} die Detail-Tafel
+ */
+export async function openDevice(root, page, query, name) {
+  const input = root.locator('input.search-input');
+  await input.click();
+  await input.fill(query);
+  const card = name
+    ? root.locator('.device-name', { hasText: name }).first()
+    : root.locator('.device-name').first();
+  await card.waitFor({ timeout: 15000 });
+  await card.click();
+  const panel = root.locator('.detail-panel').first();
+  await panel.waitFor({ timeout: 15000 });
+  return panel;
 }

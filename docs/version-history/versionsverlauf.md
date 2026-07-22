@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2195 - 2026-07-23
+
+**Title:** 🏠 The test house gets furniture — and that immediately uncovered a two-year-old label bug
+
+- **Bug fix: the detail view's tab tooltips showed raw translation keys.** Hovering a tab in any device detail
+  view displayed `ui.tooltips.controlsTab` instead of "Controls". Version 1.1.1723 had removed eight `*Tab`
+  tooltips from both language files as "unreferenced" — but `DetailView/TabNavigation` reads them, and has
+  read them the whole time. All eight are restored in German and English, and a test now pins them so the
+  same cleanup cannot happen twice.
+
+- **The test house now has rooms and devices.** Until now the mocked registry answered every request with an
+  empty list, and the load run only keeps entities that have an area — so the test house had no devices at
+  all, and everything behind the search box was untestable. It now has three rooms and a media player,
+  thermostat and cover alongside the lights. That is what surfaced the tooltip bug within minutes.
+
+- **Seven new tests for the detail view** (33 total): it opens with the right name, room and state; each
+  domain gets its own set of controls; a tap on a control genuinely reaches Home Assistant; a reply from HA
+  changes what is on screen; tabs switch. Service calls are now recorded by the harness, so "the button
+  works" is checked by what arrives at HA rather than by what the screen does.
+
+- One deliberate detail: the mocked speaker starts **paused**, not playing. A playing speaker is a live
+  activity and would push the island off its quiet face — the base house has to be quiet.
+
 ## Version 1.1.2194 - 2026-07-23
 
 **Title:** 🫀 The heart of the DataProvider moves out — 1419 → 730 lines, all 26 tests green
