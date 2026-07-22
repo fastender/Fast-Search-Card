@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2180 - 2026-07-22
+
+**Title:** ⚡ Performance — the island stops burning CPU on every HA tick
+
+- **Audit finding (two read-only agents): the freshly built island was hotspot #1.** `hass` gets a new object
+  identity on every HA tick (~6×/s), so every memo with `hass` in its deps recomputed — the island scanned the
+  **entire** entity tree twice per tick (live activities + ambient roll) and re-rendered along with it. It did so
+  even while invisible, because the `show` guard sat *after* all hooks.
+- **Four fixes:**
+  - **Conditional mount** — the parent now mounts the island only when it's actually shown; an invisible island no
+    longer keeps its whole hook apparatus alive just to render `null`. The Bento space-reserve wrapper stays.
+  - **One 1-second driver replaces the `useHass()` subscription** — it reads the store via `getHass()`, computes the
+    snapshots once per second and only commits state when a signature actually changed. Result: 1 scan/s instead of
+    6, and re-renders only when something visibly changes. Second-resolution still covers the countdowns; the clock
+    only commits on a minute change.
+  - **Ambient roll only in the resting face** — it was computed every tick even in alert/live mood, where it is
+    never displayed.
+  - **`BentoWidget` memoised** with a precise comparator — four rich widgets re-rendered 6×/s on the Bento start
+    screen. `hass` is compared only through the single slice actually read below the component (BentoRichWeather;
+    the other rich widgets don't read `hass.states`, DeviceCard brings its own comparator).
+- **Measured in the harness:** 20 HA ticks in ~1 s now produce **0 DOM mutations** in the island (previously a
+  re-render per tick). Regression pass green: ambient clock + rolling line, live timer picked up within a second
+  and counting down, green "fertig" moment, alert mood, master toggle unmounts and restores cleanly, no console
+  errors.
+
+### Files
+
+- `src/components/Island.jsx` — 1 s driver with change detection, `useHass`/`useMemo` removed, roll gated to ambient
+- `src/components/SearchField.jsx` — island mounted conditionally
+- `src/components/bento/BentoWidget.jsx` — `memo` + `bentoWidgetPropsAreEqual`
+
 ## Version 1.1.2179 - 2026-07-22
 
 **Title:** 🏝️ Hero-transition fix — glass veil instead of a dark slab (user report)
