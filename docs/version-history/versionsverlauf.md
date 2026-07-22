@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2183 - 2026-07-22
+
+**Title:** 🧱 Shared iOS sub-view shell — the foundation the settings split was missing
+
+- **The refactor audit's finding #1:** the sub-page frame — slide-in container, hover wrapper, `ios-navbar` with
+  back button and title, scroll container with the fade mask, custom scrollbar — sat **byte-identical in about 30
+  files**. `SettingsScrollView` (v1983) deliberately covers only the *top-level tab* shape, so every sub-page
+  hand-rolled its own frame.
+- **Two new shared pieces:** `IosNavbar` (back button + title + optional right action, usable on its own for
+  dialogs) and `IosSubView` (the full sub-page shell). Deliberately configurable rather than rigid, following the
+  hard-won lesson that nuances must not be forced into a helper: `scrollDeps` for views that remount their scroll
+  container per sub-page, `scrollbar` to opt out, and an `overlay` slot rendered above content **and** scrollbar
+  for modals.
+- **Five sub-views migrated** as the proving set: Island 129→100, Live activities 134→104, Toasts 385→352,
+  Bento widgets 353→322, Sidebar items 389→355. Net about 155 lines of duplication removed against 124 lines of
+  new shared code — and every further sub-page now costs a wrapper instead of a frame.
+- Verified in the harness: all five render with the correct navbar title, 20 px scroll padding and content;
+  the Bento widget picker keeps its **dynamic title and conditional back** (slot picker returns to the slot list,
+  not to the menu); toggling and persisting still work; back navigation works.
+- ⚠️ Honest gap: the sidebar-items **overlay** path could not be triggered in the harness (no registry item
+  carries an info text there), so that slot is structurally wired and compiled but not exercised end-to-end.
+
+### Files
+
+- `src/components/common/IosNavbar.jsx` — NEW
+- `src/components/common/IosSubView.jsx` — NEW
+- `src/components/tabs/SettingsTab/components/{IslandSettingsTab,LiveActivitiesSettingsTab,ToastSettingsTab,StartScreenSettingsTab,SidebarItemsSettingsTab}.jsx` — migrated
+
 ## Version 1.1.2182 - 2026-07-22
 
 **Title:** ⚡ Performance (P6) — the tab navigation stops polling, the views report in
