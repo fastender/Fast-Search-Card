@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2182 - 2026-07-22
+
+**Title:** ⚡ Performance (P6) — the tab navigation stops polling, the views report in
+
+- **The last permanent poll is gone.** `TabNavigation` mirrored the active action button of a system-entity view by
+  polling `getActiveButton()` — originally at 60 Hz via rAF, reduced to 10 Hz in v1988 — continuously, for as long
+  as a system-entity detail was open, for a value that almost never changes.
+- **Why polling was needed at all:** `useRegisterViewRef` registers a *stable proxy* that reads from a ref, so the
+  `viewRefs` map never changes identity when a view's internal state changes. There was no signal to listen to.
+- **Now there is one.** The view-ref context gained a revision signal: every render of a registered view — the only
+  moment a derived value like `getActiveButton()` can have changed — notifies subscribers, and the navigation reads
+  once. Idle costs nothing. No loop risk: registering views don't subscribe to the revision.
+- **Verified with an isolated probe:** 2 seconds idle produce **0 notifications** (previously 20 polls), a state
+  change in the view produces exactly **1** notification and the new value arrives immediately; switching back
+  works too.
+- ⚠️ Honest limitation: the full in-app path could not be driven in the dev harness (lazy system-entity views don't
+  finish loading in a hidden preview tab), so the mechanism was verified in isolation; the integration itself is a
+  small diff.
+
+### Files
+
+- `src/contexts/ViewRefContext.jsx` — revision signal (`subscribeViewRefRevision`) + bump on every registered render
+- `src/components/DetailView/TabNavigation.jsx` — event-driven instead of `setInterval`
+
 ## Version 1.1.2181 - 2026-07-22
 
 **Title:** ⚡ Performance (P5) — the controls tab stops reconciling on every HA push
