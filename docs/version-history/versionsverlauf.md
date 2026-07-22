@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2181 - 2026-07-22
+
+**Title:** ⚡ Performance (P5) — the controls tab stops reconciling on every HA push
+
+- **`UniversalControlsTab` is the largest surface in the detail subtree** (circular rings with drop-shadow SVGs,
+  sliders, control lists) and it subscribed to raw `hass` pushes. Since `setHass` notifies **unthrottled** and HA
+  can burst — the data provider's own comment cites up to 60 events/s from energy sensors and automations — that
+  tab could reconcile dozens of times per second while a device detail was open.
+- **New reusable selector `useHassThrottled(ms)`** next to `useHass`: at most one commit per interval, but always
+  with a **trailing commit**, so the latest state is guaranteed to land. There is no staleness, only a latency
+  ceiling (250 ms here). Sparse updates still commit immediately (leading edge), and drag/tap keep using
+  optimistic local state plus the pending lock, so input feel is untouched.
+- **Measured with an isolated probe:** a real burst of 60 pushes in 491 ms produced **3 commits instead of 60**
+  (20× fewer renders) with the final value landing; a single push after a quiet period committed in 19 ms.
+
+### Files
+
+- `src/providers/dataSelectors.js` — `useHassThrottled` (leading + trailing throttle)
+- `src/providers/DataProvider.jsx` — re-export
+- `src/components/tabs/UniversalControlsTab.jsx` — uses the throttled selector
+
 ## Version 1.1.2180 - 2026-07-22
 
 **Title:** ⚡ Performance — the island stops burning CPU on every HA tick
