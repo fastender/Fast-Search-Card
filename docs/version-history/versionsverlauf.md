@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2187 - 2026-07-22
+
+**Title:** 🧱 Appearance settings on the shared shell — 1881 → 1336 lines
+
+- **All ten views now use `IosPagerView`**, including the main menu (which simply passes no back handler, so no
+  navbar renders). With the frame gone the tab lost its shared `scrollRef` and hover state — every view brings its
+  own — and with it the last four orphaned imports.
+- Together with v2185 (persistence) and v2186 (small components) the codebase's largest file is down **545 lines**
+  and is now purely a view state machine.
+- **Verified by rendering the tab itself and walking all nine sub-views**, since neither the build nor the settings
+  route in the dev harness can check appearance: every sub-view shows its title and back button, keeps its
+  padding-free scroll area exactly as before, and renders its content (28 rows in liquid glass, 17 in quick
+  control). Functionally too — picking a dark mode calls the handler and returns to the menu, picking a grid
+  column count persists it.
+- One honest note on the mechanics: a scripted migration matched 7 of 10 frames and replaced **10** closing
+  blocks, briefly leaving three views inconsistent. The two missed sub-views differed only by a single-line title,
+  and the main view has no navbar at all; all three were then migrated deliberately rather than by pattern.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — 10 frames → `IosPagerView`, dead scroll/hover state and orphaned imports removed
+
 ## Version 1.1.2186 - 2026-07-22
 
 **Title:** 🧱 Appearance settings — the small components move out (1881 → 1504 lines)
