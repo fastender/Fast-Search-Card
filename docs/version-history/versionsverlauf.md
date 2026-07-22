@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2189 - 2026-07-22
+
+**Title:** 🧱 SearchField — settings sync and result derivation become hooks (1305 → 1158 lines)
+
+- **`useSearchFieldSettings`** owns the six settings that follow one pattern: read from storage on mount, then
+  listen for a window event and re-read. It was a closed unit already — **not one of its setters left the block**,
+  the component only consumes values — so it moved without threading anything back. The v1.1.1433 rule survives
+  explicitly in the hook's comments: the event is a **bell, not a payload carrier**; storage is the single truth,
+  because some dispatchers send only a subset and blindly taking `event.detail` would wipe a setting.
+- **`useSearchResults`** bundles the five derived lists (filtered devices, both groupings, favourites, the weather
+  entity that feeds the island). Pure derivation, no state, no effects — the filter logic itself stays in
+  `utils/searchFilters`.
+- Verified against the running card: toggling the island through its event works in both directions, enabling the
+  Bento start screen works through the bell-plus-storage path, and searching narrows correctly — "Einstell" finds
+  the settings entity, "Kalend" the calendar, nonsense finds nothing.
+- ⚠️ **The AI block was deliberately left in place.** It is only ~45 lines but would need eight setters threaded
+  into a hook, and `sendToAI` is still a mock with hardcoded responses. Extracting placeholder code at that price
+  buys nothing; it belongs in the pass that makes the AI real.
+
+### Files
+
+- `src/components/SearchField/hooks/useSearchFieldSettings.js` — NEW (103 lines)
+- `src/components/SearchField/hooks/useSearchResults.js` — NEW (81 lines)
+- `src/components/SearchField.jsx` — both blocks replaced, orphaned imports cleaned
+
 ## Version 1.1.2188 - 2026-07-22
 
 **Title:** 🧱 Calendar and todo settings on the shared shell — 21 more frames
