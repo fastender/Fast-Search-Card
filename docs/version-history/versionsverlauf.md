@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2190 - 2026-07-22
+
+**Title:** 🐛 Task due dates showed the wrong day west of Greenwich
+
+- **A real defect, found while auditing duplication.** `formatDateDisplay` existed twice, and the todo version
+  parsed its input with `new Date(str)`. Per the language spec a **date-only** string is parsed as UTC midnight
+  (a string *with* a time is parsed as local) — so `new Date('2026-07-22')` becomes `2026-07-22T00:00:00Z`, which
+  renders as **21 July** in New York, Los Angeles and Honolulu. Every user west of Greenwich saw their task due
+  dates one day early. The calendar was never affected: it built the date by hand and was always correct.
+- **One shared implementation now**, in `utils/timeFormatters.js`: a date-only string is constructed as **local**
+  midnight (the calendar's proven approach), values with a time part go to the constructor unchanged.
+- The two surfaces keep their different looks, which is intentional design rather than drift: the calendar shows
+  the weekday (useful for appointments) via `DATE_DISPLAY_WITH_WEEKDAY`, the task list does not.
+- Verified across five timezones — Berlin, New York, Los Angeles, Honolulu, Tokyo — all now render the 22nd, with
+  both styles intact, plus empty/invalid input and both languages.
+
+### Files
+
+- `src/utils/timeFormatters.js` — shared, timezone-safe `formatDateDisplay` + `DATE_DISPLAY_WITH_WEEKDAY`
+- `src/system-entities/entities/todos/utils/dueDateHelpers.js` — buggy implementation replaced by a re-export
+- `src/system-entities/entities/calendar/components/CalendarEventDialog.jsx` — local copy removed
+
 ## Version 1.1.2189 - 2026-07-22
 
 **Title:** 🧱 SearchField — settings sync and result derivation become hooks (1305 → 1158 lines)
