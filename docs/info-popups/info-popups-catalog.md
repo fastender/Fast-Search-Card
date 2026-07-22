@@ -165,7 +165,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **App-Sprache** – Sprache der Oberfläche (Menüs, Beschriftungen, Datums- und Wochentagsnamen). Unabhängig von der Sprache deines Home Assistant.
 > - **Währung** – Symbol und Format für alle Geldbeträge (z. B. Energiekosten, Tarife).
-> - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM). Betrifft alle Uhrzeiten in Charts, Aktivitäten, Zeitplänen und der Status-Leiste.
+> - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM). Betrifft alle Uhrzeiten in Charts, Aktivitäten, Zeitplänen und der Insel.
 >
 > *Warum wichtig:* Sprache und Zeitformat sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist – die Währung wird für Energie- und Kosten-Widgets gebraucht.
 
@@ -176,31 +176,33 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **App Language** – language of the interface (menus, labels, date and weekday names). Independent of your Home Assistant's language.
 > - **Currency** – symbol and format for all money values (e.g. energy costs, tariffs).
-> - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM). Affects every time shown in charts, activities, schedules and the status bar.
+> - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM). Affects every time shown in charts, activities, schedules and the island.
 >
 > *Why it matters:* language and time format make everything read the way you're used to – the currency is needed for energy and cost widgets.
 
 ## statusGreetings
 
+> v1.1.2178: StatsBar-Beschreibung → Insel (die StatsBar ist seit v2170 die Insel).
+
 **DE**
 > ## Status & Begrüßung
 >
-> Die zwei Leisten ganz oben in der Karte.
+> Die zwei Elemente ganz oben in der Karte.
 >
-> - **Status-Leiste (StatsBar)** – kompakte Widget-Zeile mit Live-Werten wie Wetter, Stromnetz, Solar oder Uhrzeit. Tippe darauf, um zu wählen welche Widgets erscheinen und woher sie ihre Daten beziehen.
+> - **Insel** – die morphende Glas-Kapsel: Uhr & Wetter in Ruhe, Live-Aktivitäten (Timer, Sauger, Medien …) wenn etwas läuft, Meldungen wenn etwas wartet. Details im ⓘ der Insel-Einstellungen.
 > - **Begrüßungs-Leiste (GreetingsBar)** – zeigt eine tageszeitabhängige Begrüßung. Rein dekorativ, jederzeit ein- und ausschaltbar.
 >
-> *Warum wichtig:* Die Status-Leiste bringt die wichtigsten Werte auf einen Blick nach oben.
+> *Warum wichtig:* Die Insel bringt das Wichtigste auf einen Blick nach oben.
 
 **EN**
 > ## Status & Greetings
 >
-> The two bars at the very top of the card.
+> The two elements at the very top of the card.
 >
-> - **Status bar (StatsBar)** – a compact widget row with live values like weather, grid power, solar or clock. Tap it to choose which widgets appear and where they pull their data from.
+> - **Island** – the morphing glass capsule: clock & weather at rest, live activities (timers, vacuums, media …) when something runs, alerts when something waits. Details in the island settings' ⓘ.
 > - **Greetings bar (GreetingsBar)** – shows a time-of-day greeting. Purely decorative, toggle on or off anytime.
 >
-> *Why it matters:* the status bar surfaces your most important values at a glance.
+> *Why it matters:* the island surfaces what matters most at a glance.
 
 ## mobile
 

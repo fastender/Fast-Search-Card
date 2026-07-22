@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2178 - 2026-07-22
+
+**Title:** 🧹 Island aftermath — residual-code sweep (dead keys, orphaned service, stale user-facing texts)
+
+- **Audit after the StatsBar→Island transition (v2170–77), everything found is now gone:**
+  - `src/services/userService.js` DELETED — `getUserProfilePicture` (the old avatar) had zero consumers.
+  - **~120 dead translation lines removed** (de+en): the entire StatsBar-settings block (widget names, footers),
+    the data-sources/auto-detection block (sensor labels, energy price, detection states) and the "StatsBar detail
+    view" block. Kept only `settings`, `solar`, `battery` — still used elsewhere. All 22+ suspect keys were
+    grep-verified dead before deletion.
+  - **User-facing texts still describing the StatsBar rewritten:** the `statusGreetings` ⓘ-popup now describes the
+    Island (de+en), and the `general` popup's time-format line says "…and the island" — catalog synced (hard rule).
+  - Stale code comment in `Island.jsx` (referred to merging that already happened) updated.
+- **Verified clean:** deleted modules unreferenced, dead events (`statsBarWidgetsChanged`,
+  `energySensorConfigChanged`, `energyPriceChanged`) have zero senders/listeners, no `StatsBar` left in any UI
+  text, CSS holds only the living `statsbar-bento-wrapper` space-reserve. Build green; harness E2E: island ambient
+  intact, Settings → General shows the "Insel" row and no "StatsBar" anywhere.
+
+### Files
+
+- `src/services/userService.js` — DELETED
+- `src/utils/translations/languages/{de,en}.js` — dead StatsBar/data-source keys removed; `statusGreetings` +
+  `general` popups rewritten for the Island
+- `docs/info-popups/info-popups-catalog.md` — synced
+- `src/components/Island.jsx` — stale comment fixed
+
 ## Version 1.1.2177 - 2026-07-21
 
 **Title:** 🏝️ Island phase 3d — the hero transition: the capsule morphs into the view (both directions)
