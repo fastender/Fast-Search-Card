@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2188 - 2026-07-22
+
+**Title:** 🧱 Calendar and todo settings on the shared shell — 21 more frames
+
+- The shell reached the system entities: **all 21 pager frames** in the calendar and todo settings now use
+  `IosPagerView`. Todos 1238 → 1044 lines; calendar 1088 → 1054 (its win is smaller because a local `viewProps`
+  helper had already deduplicated the frame — that helper is now gone too, in favour of the app-wide one).
+- **The shell grew three genuinely general props**, because these views speak a second pager dialect: they are
+  **direction-aware** (`custom` drives the slide direction, the main view starts with `initial={false}`) and they
+  spring with `SPRING_SMOOTH` instead of a fixed duration. `IosNavbar` also learned that `onBack` is optional —
+  the todo settings' main view carries a title without a back button.
+- Verified by rendering both views and walking their sub-views: calendar shows its two test calendars and every
+  picker (default range, sorting, week start, time format) with title, back button and options; the todo main view
+  correctly has **a navbar without a back button**, its sub-views all have one, and returning lands back on main.
+
+### Files
+
+- `src/components/common/IosSubView.jsx` — `custom` / `initial` / `transition` / `backIcon` passthrough, navbar also without back
+- `src/components/common/IosNavbar.jsx` — optional `onBack`, custom `backIcon`
+- `src/system-entities/entities/calendar/components/CalendarSettingsView.jsx` — 10 frames, `viewProps` helper removed
+- `src/system-entities/entities/todos/components/TodosSettingsView.jsx` — 11 frames
+
 ## Version 1.1.2187 - 2026-07-22
 
 **Title:** 🧱 Appearance settings on the shared shell — 1881 → 1336 lines
