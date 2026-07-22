@@ -24,6 +24,16 @@
 !scripts/
 !scripts/**
 
+# Except the test harness (Roadmap #36) — Regressionsnetz gehört ins Repo,
+# sonst schützt es niemanden außer dem Rechner, auf dem es entstand.
+!tests/
+!tests/**
+!playwright.config.js
+
+# Playwright-Artefakte bleiben draußen (werden pro Lauf neu erzeugt).
+test-results/
+playwright-report/
+
 # Except media folder — committed demo videos plus README.
 # Keep individual clips small (target <2 MB, hard ceiling 5 MB) so
 # the repo stays HACS-friendly. Large or personal libraries should

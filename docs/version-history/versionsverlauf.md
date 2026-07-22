@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2191 - 2026-07-22
+
+**Title:** 🧪 A real test harness — 20 tests covering what the build never could (roadmap #36)
+
+- **The card finally has automated tests.** Everything before this was verified through an in-app preview tab
+  that runs in the background, where the browser throttles rAF and timers, framer's exit nodes linger and lazy
+  system-entity views never finish loading. Every check needed hand-rolled workarounds. Playwright gives a real
+  foreground page: animations complete, lazy imports arrive, and those workarounds simply disappear.
+- **`tests/harness/card.js`** carries the project-specific knowledge so no test has to rediscover it: `connection`
+  needs a fresh identity per update (the provider seeds only on connection change), `updateHass` takes **two**
+  arguments, and the language must be pinned — see below.
+- **20 tests, green in ~1.2 minutes.** The island's promise per situation (resting face, running timer with a
+  ticking countdown, alert beating live, the collection roll-up, the master toggle actually unmounting, and both
+  tap targets) and every settings sub-view touched by the shell refactor (right title, back button, content —
+  plus back navigation, a picker that saves and closes, and a toggle reaching the card).
+- Two findings worth keeping: the suite runs **serially on purpose** — four workers made a single dev server the
+  bottleneck, pushing each test from ~5 s to 20–60 s and making failures wander between runs; and the harness
+  **pins the language**, because clearing storage left the card racing between German and English, which is
+  exactly why early runs found "Währung" once and "Currency" the next time.
+- `npm test` runs it (the script and the dev dependency live locally — `package.json` is not versioned in this
+  repo); the tests themselves are, via a `.gitignore` exception.
+
+### Files
+
+- `tests/harness/card.js`, `tests/island.spec.js`, `tests/settings.spec.js` — NEW
+- `playwright.config.js` — NEW (starts the dev server itself, serial, chromium)
+- `.gitignore` — test harness excepted from the blanket ignore
+
 ## Version 1.1.2190 - 2026-07-22
 
 **Title:** 🐛 Task due dates showed the wrong day west of Greenwich
