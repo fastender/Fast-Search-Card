@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2186 - 2026-07-22
+
+**Title:** 🧱 Appearance settings — the small components move out (1881 → 1504 lines)
+
+- Second cut on the codebase's largest file: the style constants, label helpers and small components now live in
+  `appearance/components.jsx` — the quick-control segment styles, `getDarkModeDisplay` / `getSquircleLabel`,
+  the wallpaper input style, `LiquidGlassSliderSection` (used 12×), `SettingsCheckOption` (used 10×) and the
+  asynchronous `WallpaperGallery`.
+- Together with v2185's persistence layer the tab is down **377 lines** and now contains what it actually is:
+  the view state machine and its sub-views.
+- Verified by rendering the extracted components rather than trusting the build: both option rows appear with
+  subtitle and checkmark, a click is passed through to the parent, and the slider section shows its label, its
+  value and a working range input. All 11 exports resolve with the expected types.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/appearance/components.jsx` — NEW (228 lines, 11 exports)
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — components removed, imports cleaned
+
 ## Version 1.1.2185 - 2026-07-22
 
 **Title:** 🧱 Appearance settings — the persistence layer moves out (1881 → 1697 lines)
