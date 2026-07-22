@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2193 - 2026-07-23
+
+**Title:** 🧬 The full HA load run moves out — DataProvider 1096 → 937 lines
+
+- **`providers/entitiesLoader.js` (203 lines).** The complete load run from Home Assistant: fetch the area,
+  device and entity registries, transform entities, enrich them with areas, score them, filter out the
+  unavailable and excluded ones, persist, render, write the boot snapshot and build the search index in the
+  background. It sat in the provider as a plain async function.
+
+- **Deliberately a plain module, not a hook.** There is nothing to subscribe to and nothing to schedule here,
+  so there is no effect order that could break when it moves — which is exactly the trap that bit the previous
+  release. The provider hands in its refs and setters and keeps four lines of wiring.
+
+- Eight now-dead imports removed from the provider along with it. All 26 tests green.
+
 ## Version 1.1.2192 - 2026-07-23
 
 **Title:** 🧬 The DataProvider, opened up — 1419 → 1096 lines, with a safety net that caught a real break
