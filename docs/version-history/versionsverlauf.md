@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2185 - 2026-07-22
+
+**Title:** 🧱 Appearance settings — the persistence layer moves out (1881 → 1697 lines)
+
+- **The biggest file in the codebase gets its first cut.** All 22 pure load/save/apply functions of the appearance
+  settings — background filters, wallpaper, video, liquid glass, grid columns, squircle, filter toggles, time
+  sorting, kiosk UI — now live in `appearance/settingsStorage.js`, mirroring the existing
+  `general/settingsStorage.js`. No JSX, no component state moved; the sub-views come in a later pass.
+- Verified by exercising every moved path directly rather than trusting the build: background round-trip plus its
+  `--background-blur` CSS variable, grid columns, squircle, wallpaper, video, filter toggles, time sorting — and
+  the liquid-glass throttle still coalesces 10 rapid writes into **1** broadcast per frame, as designed.
+- **Two real defects the test caught** that a green build had hidden: four module-level `let` variables (the
+  debounce and rAF-throttle state belonging to the moved save functions) stayed behind, and three imports the
+  moved code needs (`getSquircleClipPath`, `applyKioskMode`, `persistLiquidGlassSettings`) were missing — they had
+  looked orphaned in the original file precisely because their users had just left it.
+
+### Files
+
+- `src/components/tabs/SettingsTab/components/appearance/settingsStorage.js` — NEW (246 lines, 22 exports)
+- `src/components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx` — persistence removed, imports cleaned
+
 ## Version 1.1.2184 - 2026-07-22
 
 **Title:** 🧱 General settings split — one option picker replaces four views
