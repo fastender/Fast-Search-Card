@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2179 - 2026-07-22
+
+**Title:** 🏝️ Hero-transition fix — glass veil instead of a dark slab (user report)
+
+- **User report with screenshots: the hero clone covered the opening view as a near-opaque dark plate** — "the view
+  appears underneath" was invisible, the morph read as pill → black slab → view. Two causes: the clone's material
+  was far darker/more opaque than the real glass panel (0.88 alpha), and its fade only started *after* landing.
+- **Fix — the clone is now a translucent glass veil that dissolves while landing:** start `rgba(30,31,37,0.55)`
+  (pill-like), morphs to `0.3` (the mounting view shimmers through), fade begins at 320 ms and completes right at
+  touchdown (~580 ms); softer shadow; removal at 700 ms. The reverse flight got the symmetric values
+  (0.3 → 0.55 + mood border).
+- Verified in the harness: spawn at the pill with 0.55/999px, flight target 0.3/35px grown to panel size, clone
+  gone at landing; the no-view fallback still dissolves cleanly.
+
+### Files
+
+- `src/utils/heroTransition.js` — veil alphas, fade-during-landing timing, softer shadow
+- `src/components/Island.jsx` — reverse-flight material values matched
+
 ## Version 1.1.2178 - 2026-07-22
 
 **Title:** 🧹 Island aftermath — residual-code sweep (dead keys, orphaned service, stale user-facing texts)
