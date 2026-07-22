@@ -50,22 +50,34 @@ export function makeHass(patch = {}) {
  * DataProvider seedet Notifications und Watches nur bei Verbindungswechsel,
  * und im Test feuert nie ein echtes `state_changed`.
  */
-export async function mountCard(page, { hass = {}, settings = {}, lang = 'de' } = {}) {
+export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', storage = {} } = {}) {
+  // 🔑 Storage VOR dem Laden der Seite setzen — mit addInitScript, nicht mit
+  // evaluate(). Die Karte hat Modul-Level-Stores (watchStore, notificationState,
+  // langStore), die localStorage beim IMPORT lesen; der passiert schon während
+  // `goto`. Wer erst danach schreibt, ändert für sie nichts mehr — genau daran
+  // ist der erste Watch-Test gescheitert.
+  //
+  // Die Sprache gehört aus demselben Grund hierher: ohne festen Wert entscheidet
+  // ein Rennen zwischen langStore-Default und hass, ob die Karte deutsch oder
+  // englisch rendert — und Tests, die deutsche Labels suchen, scheitern dann
+  // sporadisch.
+  await page.addInitScript(({ settingsPatch, language, storagePatch }) => {
+    try {
+      localStorage.clear();
+      localStorage.setItem('userLanguage', language);
+      if (settingsPatch && Object.keys(settingsPatch).length) {
+        localStorage.setItem('systemSettings', JSON.stringify(settingsPatch));
+      }
+      for (const [k, v] of Object.entries(storagePatch || {})) {
+        localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
+      }
+    } catch (_) { /* erster Aufruf kann vor der Origin liegen */ }
+  }, { settingsPatch: settings, language: lang, storagePatch: storage });
+
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => !!window.FastSearchCardApp, null, { timeout: 20000 });
 
-  await page.evaluate(({ hassPatch, settingsPatch, language }) => {
-    // Sauberer Storage-Start: Tests dürfen sich nicht gegenseitig beeinflussen.
-    localStorage.clear();
-    // 🔑 Sprache FESTNAGELN. `localStorage.clear()` löscht auch die Sprachwahl,
-    // und ohne sie entscheidet ein Rennen zwischen langStore-Default und dem
-    // hass-Objekt, ob die Karte deutsch oder englisch rendert. Genau daran sind
-    // die ersten Testläufe gescheitert — mal fanden sie „Währung", mal stand
-    // dort „Currency", und die Fehlschläge wanderten zwischen den Läufen.
-    localStorage.setItem('userLanguage', language);
-    if (settingsPatch && Object.keys(settingsPatch).length) {
-      localStorage.setItem('systemSettings', JSON.stringify(settingsPatch));
-    }
+  await page.evaluate(({ hassPatch, language }) => {
     window.__mkConnection = () => ({
       subscribeMessage: () => Promise.resolve(() => {}),
       subscribeEvents: () => Promise.resolve(() => {}),
@@ -101,7 +113,7 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de' } 
 
     window.__fsc = { container, hass };
     window.FastSearchCardApp.mount(container, hass, {});
-  }, { hassPatch: hass, settingsPatch: settings, language: lang });
+  }, { hassPatch: hass, language: lang });
 
   await page.waitForSelector('#fsc-test-root #fast-search-card-root', { timeout: 20000 });
   return page.locator('#fsc-test-root #fast-search-card-root');

@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2192 - 2026-07-23
+
+**Title:** 🧬 The DataProvider, opened up — 1419 → 1096 lines, with a safety net that caught a real break
+
+- **The safety net came first.** The DataProvider is the one refactoring item that was deliberately postponed:
+  its ref choreography (hassRef, load mutex, rAF flush timing) and reference-stable context memos are
+  performance-critical, and no build ever notices when they break. So before a single line was moved, six new
+  tests pinned down what the provider *promises* rather than how it works — entities load and are findable,
+  a `state_changed` reaches the screen, HA messages arrive in the alert lane, a watch that trips becomes a
+  message, favorites survive a restart, a setting is written and takes effect.
+
+- **Three slices carved out.**
+  - `providers/devTestPatterns.js` — the 78-line generator that seeds thirty days of invented click history.
+    Pure development code that was sitting in the shipped provider and needed none of its machinery.
+  - `hooks/useDataProviderEvents.js` — everything that nudges the entity list from *outside*: window events,
+    the system registry, and the five-second reconciliation sweep. Six effects that were wedged between the
+    notification wiring and initialization, related to neither.
+  - `hooks/useNotificationLane.js` — the alert lane in one piece: collecting messages, showing a toast only for
+    genuinely new ones, evaluating watches. It had been spread over two hundred lines — refs at the top,
+    callbacks in the middle, three effects a hundred lines further down.
+
+- **The tests earned their keep immediately.** Moving the notification lane put its seed effect *above* the
+  effect that syncs `hassRef` — and effects run in call order, so the lane seeded against the previous hass
+  state and the first message never arrived. Six tests went red and named the subsystem precisely. The fix is
+  one line of placement, now guarded by a comment explaining why the call belongs where it does. Without the
+  suite this would have shipped, and it would have shown up as "notifications sometimes don't appear after a
+  reconnect" — the kind of report that costs days.
+
+- **Test harness improvement:** storage and language are now seeded via `addInitScript`, before the page
+  script runs. The card has module-level stores that read localStorage at *import* time, which happens during
+  navigation — writing afterwards changed nothing for them. This is what made the watch test fail, and it
+  turned a 12-second timeout into a 1.5-second pass.
+
 ## Version 1.1.2191 - 2026-07-22
 
 **Title:** 🧪 A real test harness — 20 tests covering what the build never could (roadmap #36)

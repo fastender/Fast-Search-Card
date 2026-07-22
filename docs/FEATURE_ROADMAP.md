@@ -73,26 +73,122 @@ What got built instead between May and June: **Quick Control** (issue #10), **cu
 
 ---
 
-### 3. Notification Center as a system entity
+### 3. Notification Center — a three-lane attention model *(worked-out design, 2026-07-12)*
 
-**Pitch:** Toasts vanish in 3 s with no trace. A real system entity (mirroring News/Todos) with notification history.
+**Pitch:** Toasts vanish in 3 s with no trace. Build a real attention surface — but not one big "notifications" bucket. Split everything the home surfaces into **three lanes** by intent, so the card stays a *reader* of Home Assistant instead of turning into a second rules engine.
 
-**Status quo:** Toast system exists (`toastNotification.js`), HA `persistent_notifications` are extracted in `dataNotifications.js`. No history, no center, no bulk actions.
+This is the fully-designed version of the original stub. The design was worked out against a competitor (djdevil's AlertTicker-Card) and stress-tested with 20 scenarios (appendix below). The guiding constraint: **Apple-simple to set up, and no condition/rule authoring in YAML.**
 
-**What ships:**
-- System entity `notifications` with its own custom view (mirroring Todos/News).
-- Filter: error / warning / info.
-- Quick actions: "Dismiss all", "Snooze 1 h".
-- Bento widget: top 3 unread + badge count.
-- Sidebar item with live badge.
-- Sources: HA `persistent_notifications` + own toast history + optionally `mobile_app` notifications.
+#### The three lanes
 
-**Effort:** Medium. Persistence layer (IndexedDB store for toast history) + view. Toast pipeline already exists.
+| Lane | Answers | Lifecycle | Interaction | Surfaces |
+|---|---|---|---|---|
+| **Alert** | "what needs my attention?" | stays until acknowledged **or** resolved in HA | snooze / dismiss / acknowledge, has severity + history | Center + badge + (critical) banner |
+| **Live Activity** | "what's happening right now?" | self-resolves when the state ends | tap → detail; **no dismiss**, no badge, no history | strip above the grid |
+| **Watch** | "tell me when a value crosses a line" | fires on threshold crossing (with hysteresis) | set up once in-card, then behaves as an Alert | Center |
+
+**The lane is decided by the entity's current *state*, not its type.** The same device moves between lanes at lifecycle boundaries: a washing machine *running* is a Live Activity → *finished* is an Alert; a vacuum *cleaning* is a Live Activity → *stuck* is an Alert; a timer *counting down* is a Live Activity → *done* is an Alert. This is the core insight — don't classify by domain, classify by state.
+
+#### Status quo (what exists today)
+
+- `src/providers/dataNotifications.js` (29 lines) — extracts `persistent_notification.*` from `hass.states` only.
+- `src/components/NotificationsPanel.jsx` (125 lines) — a StatsBar popover listing them, with `persistent_notification.dismiss`.
+- Toasts (`toastNotification.js`) are ephemeral — **not persisted**, lost after 3 s.
+- No severity, no history, no badge center, no `alert.*` handling (only an icon for the domain at `iconRegistry.js:756`), no Live Activity strip.
+
+#### Alert lane — three sources, no rules engine
+
+1. **`persistent_notification.*`** — from `hass.states` (today). Dismiss = real `persistent_notification.dismiss`.
+2. **`alert.*`** — HA's native alert integration produces `alert.foo` entities (on/off). This is the clean home for condition-based alerts the user (or an HA automation) already defined. Dismiss = *acknowledge* locally; it truly clears only when HA flips it off.
+3. **Danger `device_class` whitelist** — a fixed, semantically-unambiguous set the card surfaces **with zero configuration**: `moisture` (leak), `smoke`, `gas`, `carbon_monoxide`, `safety` → Critical; `battery`, `problem` → Warning. No thresholds, no operators — HA defines the semantics; the card just mirrors "on = danger."
+
+The card **never evaluates a condition of its own** on the Alert lane. If a user wants "battery < 20 %" or "humidity > 65 %", that's either an HA `alert:` (→ source 2) or an in-card Watch (below) — never a rule the card invents.
+
+#### Severity model (1–4)
+
+HA carries no native severity, so it's derived per source with sensible defaults + an optional per-item override in settings:
+
+- **1 Critical** — danger device_classes; `alert.*` marked critical. → red, banner, optional sound.
+- **2 Warning** — low battery, door/garage open too long, appliance stuck, high CO₂, Watch warnings.
+- **3 Info** — appliance finished, package delivered, humidity high, default for a bare `persistent_notification`.
+- **4 Low** — firmware updates, minor notices (collapsed/grouped).
+
+Filter chips in the Center: All · Critical · Warning · Info. Sort by severity, then time.
+
+#### Watch lane — in-card threshold, no backend
+
+The friction we're removing: forcing users into `configuration.yaml` breaks the card's whole "configure in-card, no YAML" promise. So numeric thresholds are authored **in the card** and evaluated **client-side** on the `state_changed` stream the DataProvider already subscribes to (event-driven, so it works even in a backgrounded tab as long as the socket lives), stored in IndexedDB, with hysteresis against flapping.
+
+**The one honest limitation:** an in-card Watch only evaluates while a dashboard is open, and can't push to a closed phone. For the card's primary audience — **always-on wall tablets** (the Quick Control / Ambient-mode use case) — "only while open" is effectively "always." Safety-critical items never rely on this: they ride `binary_sensor` states HA maintains 24/7 regardless of any open dashboard.
+
+**Escalation (optional, later):** users who want 24/7 background evaluation + push-when-closed for comfort thresholds get an opt-in "also create as an HA alert / push" path — which is exactly the companion-integration territory of [#22](#22-companion-integration-long-term). Default stays fully in-card.
+
+#### Apple-simple setup (the UX that makes or breaks it)
+
+No blank rule form ever. Five principles: **defaults over decisions · suggestions not forms · reads as a sentence · one tactile control · progressive disclosure.** The entry point is **context-local** — you add a hint on the entity's own detail view ("＋ hint"), never in a central rule editor.
+
+A tiered ladder:
+- **Tier 0 — automatic (nothing to set):** danger device_classes and Live Activities. A one-time friendly explainer, then it just works.
+- **Tier 1 — tap a suggestion:** per-`device_class` chips with a smart default pre-filled (humidity → "too humid / too dry" at 65 % / 30 %; temperature → "getting cold / hot / frost risk").
+- **Tier 2 — nudge the number:** a sentence with one inline value on the existing wheel picker, live value shown as anchor ("*tell me when the bathroom gets more humid than ⟨65 %⟩ · now: 58 %*").
+- **Tier 3 — more options (collapsed, pre-defaulted):** severity, quiet hours ("don't disturb at night"), which surface (Center only / also banner), snooze default.
+
+Nobody ever sees the word "condition" or an operator dropdown. An interactive mockup of this across Climate / Temperature / Vacuum / Media / Presence exists (session 2026-07-12).
+
+#### Live Activity lane (shared with #29)
+
+The strip is [#29 Live Activities](#29-live-activities-strip) — this design formally routes "playing / cleaning / counting / running / opening / doorbell-live / irrigating" states there instead of into the Center. One glass-capsule strip component, shared. A Live Activity is **not** something you configure — at most a global "show live activities" toggle.
+
+#### Surfaces (all one data source, different windows)
+
+- **StatsBar badge** (exists) — count of active, unread, non-snoozed.
+- **Popover** (exists) — grows to show severity colors + snooze.
+- **Notification Center** (new system entity, mirrors News/Todos) — filter + history tab + sidebar item with live badge.
+- **Bento widget** (new) — top-3 unread + count.
+- **Critical banner** — highest active Critical item only, **not** an auto-cycling ticker (that's AlertTicker's identity, deliberately not ours). Shares the liquid-glass banner layer with [#28 Severe Weather Banner](#28-severe-weather-banner). Tap → opens Center.
+
+#### Persistence
+
+- **Live / authoritative** from `hass.states`, re-derived each load: `persistent_notification.*` + `alert.*` + danger `binary_sensor` states.
+- **Persisted** (IndexedDB/localStorage — the card has no backend): toast history + local read/snooze/acknowledge state + Watch definitions. History capped (~100 entries).
+
+#### Explicit boundary (what we deliberately do NOT build)
+
+- **No condition/rules engine** — no Jinja2, no AND/OR multi-entity, no operator matrix, no `device_class` auto-discovery beyond the fixed danger whitelist. That's AlertTicker's core and HA's `alert`/automation territory.
+- **No 50-theme / 3D / vinyl-player styling** — we use our own visionOS/liquid-glass language.
+- **No card-authored server-side automations** (AlertTicker creates them via REST for TTS/push) — invasive; belongs to #22.
+- **No `mobile_app` push history** — fire-and-forget `notify.*` isn't an entity; can't be read without a backend (#22).
+
+#### What splits into its own roadmap slot
+
+The in-card **Watch authoring** (threshold + hysteresis + the suggestion engine) is meaty enough to be its own sub-feature, not smuggled into the Center. Keep #3 = the inbox + lanes + surfaces; make "in-card Watches" its explicit companion so the threshold-authoring decision stays conscious.
+
+#### Open design questions
+
+- **Climate is dual-natured** (actively heating = Live Activity *and* eligible for a "runs too long" hint) — is showing both on one detail view right, or too busy?
+- **Presence "welcome home"** — does it belong in the notification hints, or is it really [#17 Welcome home animation](#17-welcome-home-animation)? Lean: security-presence → Alert lane here; greeting → #17.
+
+#### Effort
+
+Medium–large, best shipped in slices: (a) Alert lane = `alert.*` + danger whitelist + severity + persisted history + grown-up Center (medium); (b) Live Activity strip = shared with #29; (c) in-card Watch = its own slot; (d) banner = shared with #28. Toast pipeline, popover, dismiss, and the `state_changed` stream already exist.
 
 **Files (estimate):**
-- `src/system-entities/entities/notifications/` (new, mirrors `news/`)
-- IndexedDB store schema update
-- `dataNotifications.js` extended with a persist layer
+- `src/system-entities/entities/notifications/` (new, mirrors `news/`) — Center view, action buttons, header info via `viewRefs`
+- `src/providers/dataNotifications.js` — extended: normalize the 3 sources into one `{ id, source, severity, title, message, created_at, entity_id?, read, snoozed_until?, dismissed }` list
+- `src/utils/notificationSources.js` (new) — danger `device_class` whitelist + severity derivation
+- `src/utils/watches.js` (new) — in-card Watch store + `state_changed` evaluation + hysteresis
+- IndexedDB store schema: toast history + local state + Watch defs
+- Shared strip/banner components with #29 / #28; deep-link via [#38](#38-deep-link-addressing-layer-consolidate-the-scattered-seams)
+
+#### Appendix — 20 scenarios (design evidence)
+
+*Alert:* leak under the dishwasher (Critical, auto) · kitchen smoke (Critical, auto) · CO in the boiler room (Critical, auto) · freezer door open 6 min (Warning, one-tap) · garage open since midnight (Warning, one-tap) · door-lock battery 12 % (Warning, one-tap) · washing machine finished (Info, from `alert.*`) · package in the box (Info, auto) · unusual night water use (Warning, one-tap) · updates for 3 devices (Low, auto/grouped).
+
+*Live Activity:* Sonos playing (none) · vacuum cleaning 45 % (none) · egg timer 4:12 (none) · wash cycle 38 min left (none) · shutters closing (none) · doorbell camera live (none) · garden irrigation zone 2 (none).
+
+*Watch:* bathroom humidity > 68 % (Info, wheel) · office CO₂ > 1000 ppm (Warning, wheel) · pool water < 24 °C (Info, wheel).
+
+Distribution: 6× zero-config, 5× one-tap, 3× wheel, rest arrives ready from HA — and 4 are lane-switchers (freezer/vacuum/timer/washer), proving the lane follows state, not device type.
 
 ---
 
@@ -208,27 +304,82 @@ What got built instead between May and June: **Quick Control** (issue #10), **cu
 
 ---
 
-### 9. Standby / ambient mode for wall tablets
+### 9. Ambient mode — a fifth *state* of Bento, not a new view *(worked-out design, 2026-07-12)*
 
-**Pitch:** After X min idle, switch to ambient — big clock, weather, today's calendar, notification count.
+**Pitch:** After X min idle, a wall tablet drifts into a calm, glanceable ambient face — big clock, a few quiet tiles, the one live activity, a notification count — and wakes on touch.
 
-**Status quo:** `kioskMode.js` exists (rudimentary hide-UI), no full ambient layer. Many users run the card as an always-on display on iPads or wall tablets.
+**The core reframe (confirmed by code analysis):** ambient is **not a new subsystem or a parallel view.** It is a **state of the existing Bento start view.** The widgets, the slot layout, the auto-slider rotation, and all the data reuse *as-is*. The only thing we build is the **mechanism that flips Bento into the ambient state and back.** An earlier standalone-mockup pass rebuilt Bento from scratch before this was noticed — this entry supersedes any "separate `AmbientMode.jsx` view" idea.
 
-**What ships:**
-- Idle detection (mouse/touch idle > X min, configurable).
-- Wake on touch.
-- Optional time-of-day layouts (day / night variant).
-- Burn-in protection: subtle drift animation every 30 s.
-- Settings toggle: "Activate after 5/10/30 min".
+#### Status quo — what Bento already provides (reuse, do not rebuild)
 
-**Hook in:** Bento architecture fits perfectly — ambient mode would be a fifth layout alongside Desktop/Mobile/DetailView/Search.
+- `src/components/BentoStartView.jsx` (204 LOC) — the widget composition over the wallpaper. This *is* the ambient canvas.
+- `src/components/bento/` — the widget vocabulary: `BentoRichWeather / Todos / News / Calendar / Versions` (`richRouter.jsx`) plus integration-hub, all-schedules, energy.
+- **4 configurable slots** (`SLOT_KEYS` w1 large / w2 / w3 / w4 in `bento/constants.js`), user-configurable via `widgetStorage.js`.
+- **An auto-slider that already rotates content** (`SLIDER_DOMAIN_ORDER` weather→news→todos→calendar, 10 s autoplay, pause-on-hover, page dots) — effectively an ambient rotation already.
+- Per-domain colored skins (`SLIDER_GRADIENTS` — weather blue, todos orange, news red, energy yellow).
+- `src/utils/kioskMode.js` — rudimentary hide-UI, to align/extend.
+- The **module-level store pattern** (`hassStore` / `isMobileStore` / `langStore`, see `memory/pattern_module_level_stores.md`) — the established idiom for the ambient flag.
 
-**Effort:** Medium. Idle detection + view composition from existing widgets.
+#### The mechanism — the only new code (four small parts, zero widget changes)
+
+1. **`src/utils/ambientStore.js` (new)** — a module-level `isAmbient` boolean + `useAmbient()` subscriber, following the established store pattern. Single source of truth that everything gates on.
+2. **`src/hooks/useIdleDetection.js` (new)** — resets a timer on `pointerdown / pointermove / keydown` (and HA interaction); after `idleAfterMs` → `setAmbient(true)`; any input → `setAmbient(false)` + reset. Duration from settings (5 / 10 / 30 min / off). **This is the only genuinely new mechanism.** Caveat from dev-mode testing (`memory/project_dev_mode_testing.md`): use event-driven timers, not rAF (rAF freezes in a backgrounded tab); a hidden tab must not falsely trip ambient — on an always-on wall tablet it's foregrounded, so this is a phone edge case.
+3. **Gating in `BentoStartView.jsx` (edit)** — when `isAmbient`, the existing tree gets `data-ambient` and:
+   - hides the chrome (search row, sidebar, favorites) via the show/hide conditions already present,
+   - mounts a **clock overlay**,
+   - dims + drifts via CSS,
+   - picks day/night from the hour. **No widget is touched.**
+4. **Settings toggle (edit)** — "Ambient after 5 / 10 / 30 min / off" + "day/night" + burn-in on/off, via the existing `broadcastSetting` / `useSettingBroadcast` plumbing.
+
+That's the whole feature: **idle trigger → one boolean → a few CSS/composition transforms on the existing Bento + wake.**
+
+#### Day / night
+
+Derived from the local hour by default (optionally bind to an ambient-light or `sun.sun` entity if the user maps one). Night = dimmer, warmer, fewer tiles, clock as hero. Day = brighter, higher contrast, the full tile set.
+
+#### Burn-in protection
+
+A subtle slow drift transform on the whole ambient cluster (CSS keyframe, ~20–30 s) plus overall dimming — LCD/OLED longevity on always-on displays.
+
+#### Optional Phase 2 — the calm glass skin (the one thing that touches widgets)
+
+Today the tiles are **vivid colored** (`SLIDER_GRADIENTS`). To get the Apple-glass calm look (rather than a merely *dimmed* dashboard), the widgets need a skin mode: a `variant="ambient"` / `data-skin` on the `BentoRich*` components that renders them as unified frosted glass instead of blue/orange/yellow. **Not required for v1** — v1 can just dim the existing vivid tiles. This is the only part that edits widget styling, and it **couples cleanly to [#35](#35-liquid-glass--global-surface-system)** (Liquid Glass on more surfaces).
+
+#### Three ambient-native widgets (new, small — the only new render pieces)
+
+Bento has no clock/live-activity/notification widgets because it's a device dashboard. Ambient adds three, each tying to an already-designed feature:
+- **Hero clock** (big time + date) — the ambient centerpiece.
+- **Live Activity capsule** — shares the strip component from [#29](#29-live-activities-strip) (media playing, vacuum, timer).
+- **Notification badge** — shares the badge from [#3](#3-notification-center--a-three-lane-attention-model-worked-out-design-2026-07-12) (count + severity dots, tap → Center).
+
+#### What we deliberately do NOT build
+
+- **No separate ambient view/subsystem** — it's a *state* of Bento, not a parallel component tree. Supersedes the old `AmbientMode.jsx` estimate.
+- **No new widget engine** — reuse `BentoRich*` + slots + auto-slider.
+- **No new data plumbing** — same DataProvider / hass.
+- **No always-on background process** — idle detection is event-driven and lives only while the card is mounted.
+
+#### Open questions
+
+- **v1 skin:** reuse the vivid tiles dimmed (fastest, ships the mechanism alone) vs. ship the glass variant immediately (nicer, more work — Phase 2 up front)?
+- **Ambient composition:** keep all 4 configured slots, or reduce to a curated calm set (clock + weather + climate + live-activity + notification)?
+- **Day/night source:** hour-only, or bind to an ambient-light / `sun.sun` entity?
+- **On wake:** return to the last view, or always to the Bento start?
+
+#### Effort
+
+Small–medium, in slices: **(1)** `ambientStore` + `useIdleDetection` + `data-ambient` gating + clock overlay + dim — the MVP mechanism, small, no widget changes; **(2)** day/night + drift; **(3)** glass skin variant (couples to #35); **(4)** live-activity + notification tiles (couple to #29 / #3).
 
 **Files (estimate):**
-- `src/components/AmbientMode.jsx` (new)
-- `src/hooks/useIdleDetection.js` (new)
-- `src/utils/kioskMode.js` (extend)
+- `src/utils/ambientStore.js` (new) — `isAmbient` flag + `useAmbient()`
+- `src/hooks/useIdleDetection.js` (new) — idle/wake, settings-driven
+- `src/components/BentoStartView.jsx` (edit) — `data-ambient` gating + clock overlay mount
+- `src/components/AmbientClock.jsx` (new) — hero clock/date overlay
+- `src/components/BentoStartView.css` (edit) — ambient dim / drift / day-night rules
+- `src/utils/kioskMode.js` (extend/align)
+- Settings tab (edit) — ambient section (interval, day/night, burn-in)
+- *Phase 2:* `variant` prop on `bento/widgets/BentoRich*` (glass skin) — couples to #35
+- Cross-refs: #3 (notification badge), #29 (live-activity capsule), #35 (glass skin)
 
 ---
 
@@ -785,14 +936,101 @@ Ideas that came up but didn't make either batch:
 
 ---
 
+## Part six — 2026-07-11 momentum-driven additions (#35–#43)
+
+A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan, GitHub-issue sweep, docs reconciliation) after the Liquid-Glass sprint and Perf-Batch-5. Unlike #1–#34 (feature acquisition), most of these **continue existing momentum or activate mechanisms already half-built in the code** — cheaper and lower-risk than net-new subsystems. Each has a verified hook.
+
+### 35. Liquid Glass → global surface system
+
+**Pitch:** Extend the glass material past the one mobile bottom-sheet it lives on today. Desktop detail panel, `SearchSidebar` popup, `StatsBar`, Bento widget chrome.
+
+**Hook (verified):** v2086 built `useLiquidGlassSettings` *explicitly* "reusable if more surfaces get glass later"; today only `DetailRightSheet.jsx` renders `<Glass>`. The versionsverlauf names this as the literal next step. `LIQUID_GLASS_DEFAULTS.enabled = true` already, so the toggle plumbing is done.
+
+**Effort:** Medium. **Caveat:** every new surface needs the browser-matrix check (see #36) — glass quirks are the #1 historical bug source.
+
+### 36. Playwright-WebKit smoke + visual-regression harness (closes QUALITY Gap 1)
+
+**Pitch:** Turn the ad-hoc WebKit tooling into a committed test suite. Boot the card with a mock hass, open the detail view per domain, screenshot across Chromium+WebKit, assert the known glass regressions ("blur flat during transform", "nested backdrop-filter", "url() filter WebKit-only") don't reappear.
+
+**Hook (verified):** `playwright ^1.61.1` is already in devDependencies (added for the v2091 WebKit refraction verification) but there is **no committed `tests/` dir** — it's thrown away after each use. The dev-mode mock-hass harness (v2082) is the fixture. This is the *only* idea that closes **QUALITY.md Gap 1** (automated tests — the single blocker for Bronze/Silver/Gold-equivalent) **and** the recurring glass-QA pain in one move.
+
+**Effort:** Medium (4–8 h for the first critical-path + visual suite, per QUALITY.md's own estimate). **Highest strategic leverage on the list.**
+
+### 37. Glass-capability probe + central degradation
+
+**Pitch:** One feature-probe utility (`glassCapabilities.js`) the whole codebase reads from, instead of re-discovering browser limits live.
+
+**Hook (verified):** the recurring saga — v2026–2041 (nested blur impossible in Chromium), v2054 (opacity over backdrop-filter), v2057 (`will-change` kills rounded clip), v2064 (blur dies during transform), v2089 (WebKit no `url()` filter). `supportsLiveBend` in `liquidGlassSettings.js` is the seed — generalize it.
+
+**Effort:** Small.
+
+### 38. Deep-link addressing layer (consolidate the scattered seams)
+
+**Pitch:** One `deepLink.js` that owns view addressing, replacing three one-off mechanisms.
+
+**Hook (verified):** `initialTabName`/`onInitialTabConsumed` (v2082, DetailView) has exactly **one caller** and no source that passes a tab; `window.__pendingSettingsTab` (`SearchField.jsx:365`) and the `window.__pendingNewsArticleId` pattern are parallel ad-hoc deep-links. Unifying them is the internal-seam groundwork for #33 (hash routing) — but grounded in code that already exists.
+
+**Effort:** Medium.
+
+### 39. Context-aware auto-tab (activates the dormant #38 seam)
+
+**Pitch:** Open a playing `media_player` → land on Controls; a `sensor` → land on History; a device with an active schedule → hint Schedule.
+
+**Hook (verified):** `initialTabName` is fully wired end-to-end (v2082) but **has no live caller**. This gives it one, for real daily value, at tiny cost.
+
+**Effort:** Small.
+
+### 40. Glass presets (Frosted / Clear / Vibrant)
+
+**Pitch:** Named one-tap presets that set all glass sliders at once.
+
+**Hook (verified):** v2092 shipped bend/sheen/glow/brightness + tint + refraction — 6+ manual controls — and v2093 was already "settings polish" chasing the tuning friction. Presets are the antidote.
+
+**Effort:** Small.
+
+### 41. Video-background seam beyond the detail view
+
+**Pitch:** Reuse the domain-video-loop pipeline (incl. Safari refract) on Bento hero widgets / active-device tiles.
+
+**Hook (verified):** `getEntityVideoUrl` (`utils/videoHelpers.js`) is a complete pipeline consumed at exactly **one** site (`DetailView.jsx`). No Bento/card consumer.
+
+**Effort:** Small to medium.
+
+### 42. Fix `DeviceCard.isEntityActive(device)` always-false bug
+
+**Pitch:** Not a feature — a verified latent bug worth a slot per the "cleanups find real bugs" pattern (SolarCarousel, initialTabName, dev-mode blank).
+
+**Hook (verified):** `DeviceCard.jsx:210` passes the whole `device` object where the util expects `(state, domain, attributes)` → `"[object Object]"` never matches → always false. The other three callers (`SubcategoryBar`, `GroupedDeviceList`, `entityScoring`) call it correctly. The v1704 fix was reverted in v1705 because surrounding code leaned on the buggy result — so this needs the per-domain visual test that block implies.
+
+**Effort:** Small fix, medium verification.
+
+### 43. Generic settings-bus consolidation
+
+**Pitch:** Collapse ~24 per-event `broadcastSetting('xxxChanged')` duplications onto the generic `settingChanged` bus that already exists.
+
+**Hook (verified):** `broadcastSetting('settingChanged', {key,value})` has **one producer** (`system-entities/entities/settings/index.js:85`) and **no dedicated listener** — every consumer subscribes to a specific event name instead. The generic bus is built but verpufft.
+
+**Effort:** Medium (touches many consumers — do incrementally).
+
+### Recommended next three (momentum-aware)
+
+1. **#36 Playwright harness** — closes the single biggest quality gap *and* the recurring glass-QA cost; the tool is already installed. Do this before widening glass (#35).
+2. **#35 Liquid Glass global surfaces** — the natural continuation of the last 11 releases; gated behind #36's browser matrix.
+3. **#39 auto-tab** (+ **#38** groundwork) — tiny, activates a dead-but-wired mechanism, immediate daily payoff.
+
+Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fastender/Fast-Search-Card/issues/10) (Quick-Toggle) is de-facto delivered in v1907 but never closed; [#8](https://github.com/fastender/Fast-Search-Card/issues/8) is blocked ~3 weeks on the reporter (kiosk-browser brightness detail).
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **32 feature ideas + 2 parallel/long-term tracks** = 34 entries total.
+- The roadmap covers **41 feature ideas + 2 parallel/long-term tracks** = 43 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — June 2026 competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes, and the Apple Home ecosystem. Each idea links a specific source.
+  - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
