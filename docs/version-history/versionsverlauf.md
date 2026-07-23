@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2203 - 2026-07-24
+
+**Title:** 🏝️ The island grows and lifts off the wallpaper
+
+First of three steps on the island redesign — material and proportions.
+
+- **Bigger**: 52 px tall instead of 44, 22 px of inner padding instead of 18, 14 px type instead of 13
+  (48 / 19 / 13 on phones). About 18 % more presence — noticeable, not bloated. It still fits the 60 px
+  header the detail view measures against, so nothing shifts underneath it.
+
+- **Lighter**: the island had been borrowing the search panel's tint, which is tuned for a large surface
+  sitting against the card. The island floats free over the wallpaper and nearly vanished on dark ones. It
+  now carries its own, lighter glass with a stronger highlight along the top edge — that highlight is what
+  makes the shape read as a physical object. The resting border went from 0.12 to 0.2 alpha for the same
+  reason; the coloured alert and live borders are unchanged.
+
+- User settings for blur, saturation, brightness and contrast still apply — only the tint was overridden,
+  not the filter chain.
+
+- **The measurements now live in one place.** Every size used to be its own `isMobile` ternary scattered
+  across nine spots in the tree; anyone wanting a bigger island had to find them all. They are CSS variables
+  on the pill now, and the contents inherit them.
+
 ## Version 1.1.2202 - 2026-07-23
 
 **Title:** 🔔 The notifications tile had no icon, an untranslated name and said "General"
