@@ -84,6 +84,23 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
       subscribeEvents: () => Promise.resolve(() => {}),
       sendMessagePromise: () => Promise.resolve([]),
     });
+    // Aufgaben und Termine des Testhauses. Bewusst mit RELATIVEN Daten, damit
+    // „heute" und „überfällig" auch morgen noch stimmen.
+    const __d = (offsetDays, hhmm = '10:00:00') => {
+      const d = new Date(); d.setDate(d.getDate() + offsetDays);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${hhmm}`;
+    };
+    const TODO_ITEMS = {
+      'todo.haushalt': [
+        { uid: 't1', summary: 'Spülmaschine ausräumen', status: 'needs_action', due: __d(0).slice(0,10) },
+        { uid: 't2', summary: 'Rechnung zahlen', status: 'needs_action', due: __d(-2).slice(0,10) },
+        { uid: 't3', summary: 'Müll rausbringen', status: 'completed' },
+      ],
+    };
+    const CAL_EVENTS = [
+      { uid: 'e1', summary: 'Zahnarzt', start: { dateTime: __d(0, '10:00:00') }, end: { dateTime: __d(0, '11:00:00') } },
+      { uid: 'e2', summary: 'Elternabend', start: { dateTime: __d(2, '19:00:00') }, end: { dateTime: __d(2, '21:00:00') } },
+    ];
     const AREAS = [
       { area_id: 'wohnzimmer', name: 'Wohnzimmer' },
       { area_id: 'kueche', name: 'Küche' },
@@ -99,6 +116,8 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
       { entity_id: 'media_player.wohnzimmer', area_id: 'wohnzimmer', device_id: null },
       { entity_id: 'climate.heizung', area_id: 'wohnzimmer', device_id: null },
       { entity_id: 'cover.rolladen', area_id: 'wohnzimmer', device_id: null },
+      { entity_id: 'todo.haushalt', area_id: 'kueche', device_id: null },
+      { entity_id: 'calendar.familie', area_id: 'wohnzimmer', device_id: null },
     ];
     const iso = new Date().toISOString();
     const entity = (entity_id, friendly_name, state = 'on', attributes = {}) => ({
@@ -126,6 +145,8 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
         'sensor.bad_hum': entity('sensor.bad_hum', 'Luftfeuchte', '50', {
           unit_of_measurement: '%', device_class: 'humidity', state_class: 'measurement',
         }),
+        'todo.haushalt': entity('todo.haushalt', 'Haushalt', '2'),
+        'calendar.familie': entity('calendar.familie', 'Familie', 'on'),
       },
       services: { tts: { google_translate_say: {} } },
       language: 'de', locale: { language: 'de' },
@@ -147,12 +168,19 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
       // Entities MIT Bereich (`entity.area != null`) — antwortet callWS überall
       // mit [], hat das Testhaus überhaupt keine Geräte und alles, was hinter
       // der Suche liegt (Detail-Ansicht, Karten, Steuerung), ist untestbar.
-      callWS: ({ type } = {}) => {
+      callWS: ({ type, entity_id } = {}) => {
         if (type === 'config/area_registry/list') return Promise.resolve(AREAS);
         if (type === 'config/entity_registry/list') return Promise.resolve(ENTITY_REG);
+        // Aufgaben holen ihre Einträge separat — ohne diese Antwort steht die
+        // Ansicht auf „Keine Aufgaben", egal was in `states` liegt.
+        if (type === 'todo/item/list') return Promise.resolve({ items: TODO_ITEMS[entity_id] || [] });
         return Promise.resolve([]);   // device_registry: Zuordnung läuft hier direkt über die Entity-Registry
       },
-      callApi: () => Promise.resolve({}),
+      // Termine kommen über die REST-Schnittstelle, nicht über WebSocket.
+      callApi: (method, path) => {
+        if (String(path || '').startsWith('calendars/')) return Promise.resolve(CAL_EVENTS);
+        return Promise.resolve({});
+      },
     };
     const hass = { ...base, language, locale: { language }, ...hassPatch, connection: window.__mkConnection() };
     if (hassPatch && hassPatch.states) hass.states = { ...base.states, ...hassPatch.states };

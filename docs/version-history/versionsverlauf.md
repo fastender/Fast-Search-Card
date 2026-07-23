@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2200 - 2026-07-23
+
+**Title:** 📅 Calendar and to-dos covered — the last major gap in the suite closes, 62 tests
+
+- **Seven tests for to-dos and the calendar**, the last untested system views. Both pull their entries not
+  from `hass.states` but through their own calls — to-dos over WebSocket (`todo/item/list`), events over the
+  REST endpoint (`calendars/{id}`) — so the test house now answers both. Without those answers the views sit
+  on "no tasks" and "no events" no matter what else is present, which is exactly why they were never covered.
+
+- **The due-date tests use dates relative to today** (today, two days ago, in two days), so they check real
+  arithmetic rather than a frozen date — and keep covering the timezone trap from 1.1.2190, where due dates
+  west of Greenwich slipped by a day. "Overdue by 2 days" has to actually be two.
+
+- Ticking a task and switching calendar views are checked against what reaches Home Assistant and what the
+  grid actually shows. No production code changed in this release; it is coverage for what was already there.
+
 ## Version 1.1.2199 - 2026-07-23
 
 **Title:** 🔔 The Notification Center says how many notifications there are — it used to say "Active"
