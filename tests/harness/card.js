@@ -122,6 +122,10 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
           current_temperature: 20.5, temperature: 22, hvac_modes: ['off', 'heat'],
         }),
         'cover.rolladen': entity('cover.rolladen', 'Rolladen', 'open', { current_position: 70 }),
+        // Messwert-Gerät: Grundlage für Schwellwert-Wächter und Verlaufs-Diagramme.
+        'sensor.bad_hum': entity('sensor.bad_hum', 'Luftfeuchte', '50', {
+          unit_of_measurement: '%', device_class: 'humidity', state_class: 'measurement',
+        }),
       },
       services: { tts: { google_translate_say: {} } },
       language: 'de', locale: { language: 'de' },

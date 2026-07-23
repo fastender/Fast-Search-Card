@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2196 - 2026-07-23
+
+**Title:** 🏷️ Sensors had their tabs mislabelled — and the hint flow is now covered end to end
+
+- **Bug fix: on a sensor, the context tab was called "History" and the history tab "Schedule".** Sensors have
+  no schedule tab, so they render three tabs — but the tooltips were pulled from a fixed four-entry list *by
+  position*, which shifted every label after the first. Nobody could see it before 1.1.2195, because until
+  then the tooltip showed a raw translation key either way.
+
+- **The domain rule now lives in one place.** `utils/detailTabs.js` answers "which tabs does this device
+  have", and the tab names, the tab icons and the tooltips all derive from it. The rule used to be written
+  out three times, and the third copy — the tooltips — did not know about the sensor exception.
+
+- **Seven new tests for hints and quiet hours** (40 total). They walk the path a user actually takes: open a
+  device, go to Context, switch to Hints, tap a suggestion, activate it. Then the value is pushed past the
+  threshold and the hint has to reach the island. Creating, firing and deleting are each checked against
+  what is actually stored, not just against what is on screen.
+
+- One thing worth writing down: the hint list and the authoring sheet live on **two different stages** — the
+  list inside the right pane, the sheet portalled onto the detail panel so it floats above the cover.
+
 ## Version 1.1.2195 - 2026-07-23
 
 **Title:** 🏠 The test house gets furniture — and that immediately uncovered a two-year-old label bug
