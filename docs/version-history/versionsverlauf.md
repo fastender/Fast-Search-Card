@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2201 - 2026-07-23
+
+**Title:** ✈️ The hero transition covered — the last roadmap item, 68 tests
+
+- **Six tests for the hero transition**, where the island morphs into the target view on tap and back on
+  close. Testing an animation is delicate — pixels and timings are brittle and change with every bit of
+  polish — so these check the two promises that actually matter rather than how the clone flies: the clone is
+  born, moves toward its target, and **cleans itself up**; and if the transition fails because the target
+  never mounts, nothing is left behind either. "Worst case it looks like before, never broken" is the real
+  design promise, and it is now pinned.
+
+- The pure DOM mechanics (`createHeroClone`, `flyTo`, `dissolve`, `waitForElement`) are exercised directly by
+  importing the module by its dev-server URL into the page; the wiring is exercised through a real tap on the
+  island. `waitForElement` is checked on both paths that matter: it finds an element that appears late, and
+  it gives up after its budget instead of hanging forever.
+
+- No production code changed. With this the test suite covers every visible surface of the card, and the
+  feature roadmap's open items are done.
+
 ## Version 1.1.2200 - 2026-07-23
 
 **Title:** 📅 Calendar and to-dos covered — the last major gap in the suite closes, 62 tests
