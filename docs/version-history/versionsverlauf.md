@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2202 - 2026-07-23
+
+**Title:** 🔔 The notifications tile had no icon, an untranslated name and said "General"
+
+Three separate faults on one tile, all reported from a screenshot:
+
+- **No icon.** The notifications entity carries an SVG of its own, but the bento tile resolves icons through
+  a domain map in `DeviceCardIntegration` — and `notifications` was never added to it. Every other system
+  entity had its symbol; this one rendered blank. There is now a proper icon component for it.
+
+- **"Mitteilungen" in an English interface.** System entities carry hardcoded German names and are translated
+  through the `deviceNames` block. The notifications entity arrived later, with the notification centre work,
+  and was never added there — exactly the gap that release 1.1.1612 fixed for the other entities, with the
+  same consequence. It now reads "Notifications" in English and "Mitteilungen" in German.
+
+- **"General" on the label line.** That was the generic "no room" fallback showing through, because the tile
+  had no branch of its own. Every other system entity puts something real there — Integration shows
+  "3 Devices", Schedules shows "Overview". **The tile now shows the live count**: "2 new" when something is
+  waiting, "All clear" when nothing is. The number matches what the centre shows, so acknowledging or
+  snoozing updates the tile immediately.
+
+- The count is mirrored into the entity's attributes from the notification lane, the same path Integration
+  uses for its device count — with a signature guard, because `updateAttributes` fires a window event and
+  writing on every render would loop.
+
+- Four new tests (70 total): the tile in both languages, and one fix to the suite itself — the bento helper
+  waited for "no longer the placeholder", which an **empty** tile also satisfies. It now waits for real text.
+
 ## Version 1.1.2201 - 2026-07-23
 
 **Title:** ✈️ The hero transition covered — the last roadmap item, 68 tests

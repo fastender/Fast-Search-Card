@@ -23,12 +23,20 @@ const widgets = (root) => root.locator('.bento-widget');
  * bevor die System-Registry geladen ist. Wer direkt danach den Text prüft,
  * liest „Widget nicht konfiguriert" und bekommt einen Fehlschlag, der je nach
  * Maschinenlaune kommt und geht.
+ *
+ * 🔑 Und die Kachel ist zwischendurch schlicht LEER. Nur auf „enthält den
+ * Platzhalter nicht" zu prüfen reicht deshalb nicht — ein leerer String erfüllt
+ * das auch. Unter Volllast (ganze Suite) rutschte genau so ein Fehlschlag durch.
+ * Also: erst wenn wirklich Text dasteht.
  */
 async function waitForBento(root, page, slot = 0) {
   await expect(widgets(root)).toHaveCount(4, { timeout: 15000 });
   await expect
-    .poll(async () => (await widgets(root).allInnerTexts())[slot], { timeout: 15000 })
-    .not.toContain('nicht konfiguriert');
+    .poll(async () => {
+      const text = (await widgets(root).allInnerTexts())[slot] || '';
+      return text.trim().length > 0 && !text.includes('nicht konfiguriert');
+    }, { timeout: 15000 })
+    .toBe(true);
 }
 
 test.describe('Bento-Startseite', () => {
@@ -96,6 +104,47 @@ test.describe('Bento-Startseite', () => {
     await expect
       .poll(async () => (await widgets(root).allInnerTexts())[0], { timeout: 10000 })
       .toContain('Aus');
+  });
+
+  test('die Mitteilungs-Kachel zeigt Symbol, übersetzten Namen und die Lage', async ({ page }) => {
+    // v1.1.2202: Die Kachel hatte kein Symbol (fehlte in der iconMap), zeigte
+    // den hart deutschen Entity-Namen „Mitteilungen" auch auf Englisch, und in
+    // der Zeile darüber stand „General" — der generische „kein Raum"-Rückfall.
+    const settings = {
+      ...BENTO_ON,
+      startScreen: { bento: true, widgets: ['settings', 'notifications', 'todos', 'news'] },
+    };
+    const root = await mountCard(page, { lang: 'en', settings });
+    await waitForBento(root, page);
+    const tile = widgets(root).nth(1);
+
+    await expect(tile.locator('svg')).toHaveCount(1);
+    await expect(tile).toContainText('Notifications');
+    await expect(tile).not.toContainText('Mitteilungen');
+    // Ohne Meldungen: eine Aussage, kein „General".
+    await expect(tile).toContainText('All clear');
+    await expect(tile).not.toContainText('General');
+
+    // Mit Meldungen zählt die Kachel live mit.
+    await updateHass(page, (states, entity) => {
+      states['persistent_notification.a'] = entity('persistent_notification.a', 'A', 'notifying',
+        { title: 'Waschmaschine fertig', message: 'x' });
+      states['alert.fenster'] = entity('alert.fenster', 'Fenster offen', 'on');
+    });
+    await expect(tile).toContainText('2 new', { timeout: 10000 });
+  });
+
+  test('auf Deutsch heißt dieselbe Kachel „Mitteilungen"', async ({ page }) => {
+    const settings = {
+      ...BENTO_ON,
+      startScreen: { bento: true, widgets: ['settings', 'notifications', 'todos', 'news'] },
+    };
+    const root = await mountCard(page, { lang: 'de', settings });
+    await waitForBento(root, page);
+    const tile = widgets(root).nth(1);
+
+    await expect(tile).toContainText('Mitteilungen');
+    await expect(tile).toContainText('Alles ruhig');
   });
 
   test('ohne Bento startet die Karte ohne Grid', async ({ page }) => {
