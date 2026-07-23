@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2197 - 2026-07-23
+
+**Title:** 🍱 The start screen gets covered — 47 tests
+
+- **Seven tests for the Bento start screen**, the first thing anyone sees when they open the card and until
+  now completely uncovered: four tiles in the configured order, a changed layout actually taking effect, a
+  malformed layout falling back instead of leaving half the screen blank, a tap opening the right view, and
+  the tiles stacking on a phone.
+
+- **One test earns its keep more than the others**: a tile can point straight at a device, and it has to
+  follow Home Assistant rather than freeze at whatever the value was on load. That is the entity stream seen
+  from the outside — the chain that the provider split could have broken silently.
+
+- One trap worth recording: `toHaveCount(4)` is satisfied instantly, because the grid puts four placeholders
+  down before the registry has loaded. Checking the text right after that reads "widget not configured" and
+  produces a failure that comes and goes with machine load. The suite now waits for content, not for space.
+
 ## Version 1.1.2196 - 2026-07-23
 
 **Title:** 🏷️ Sensors had their tabs mislabelled — and the hint flow is now covered end to end
