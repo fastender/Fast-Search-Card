@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2199 - 2026-07-23
+
+**Title:** 🔔 The Notification Center says how many notifications there are — it used to say "Active"
+
+- **Bug fix: the Center's detail header showed the raw system-entity state.** Every other system entity puts
+  something meaningful and translated there — "2 Incomplete", "July 2026", "0 New Articles". The
+  notifications Center had no branch of its own, so it fell through to the base class and displayed
+  "Active": untranslated English in a German interface. It now reads "2 Mitteilungen / 1 ungelesen", and
+  "0 entries / History" on the history tab.
+
+- **Eight tests for the Center** (55 total), which had been built but never verified. They pin the promise
+  the design makes: acknowledging an `alert.*` and snoozing are **local** and must not touch Home Assistant,
+  while dismissing a real HA notification must call the service. Both are checked against what actually
+  arrives at HA, not against what the screen does.
+
+- Worth recording, because it nearly shipped: wiring the header counts through the view-ref with
+  `[tab, notifications, history]` as dependencies **froze the card completely**. Those two are fresh arrays
+  on every render, so the effect fired every render, raised the view-ref revision, made the header re-read
+  and re-render — the revision mechanism from 1.1.2182 turned into an endless loop. The dependencies are
+  plain numbers now.
+
 ## Version 1.1.2198 - 2026-07-23
 
 **Title:** 🧪 A developer button could appear on real installations — plus an honest bundle measurement
