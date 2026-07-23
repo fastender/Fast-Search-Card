@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2198 - 2026-07-23
+
+**Title:** 🧪 A developer button could appear on real installations — plus an honest bundle measurement
+
+- **Bug fix: the "Generate Test Patterns" panel was gated on `hostname === 'localhost'`.** That is not a
+  developer test. Anyone running Home Assistant on the same machine and opening it via `localhost:8123` got a
+  floating developer button over their card — and one tap wrote thirty days of invented click history into
+  their pattern database. The gate is now `import.meta.env.DEV`, a build-time constant, so the panel and its
+  generator are removed from the shipped file entirely rather than merely hidden.
+
+- **Bundle measured, not guessed** (505 KB gzip shipped). Roughly a quarter is dependencies and three
+  quarters is our own code:
+
+  | | gzip | share |
+  |---|---|---|
+  | chart.js | 60 KB | 12% |
+  | liquid-glass | 16 KB | 3% |
+  | framer-motion + motion-dom | ~55 KB | 11% |
+  | own code (system entities lead with 22% of raw size) | rest | |
+
+  Both dependency figures were measured by building with the package stubbed out, not estimated.
+
+- **What this means, stated plainly:** the two removable dependencies are each tied to a feature that is on
+  by default (charts in the history tab, the glass material on the detail sheet). Cutting them means either
+  dropping the feature or loading it on demand — and loading on demand means shipping more than one file,
+  which changes how the card is distributed. That is a product decision, not a cleanup, so nothing here was
+  cut. This release keeps the measurement and fixes the one thing that was unambiguously wrong.
+
 ## Version 1.1.2197 - 2026-07-23
 
 **Title:** 🍱 The start screen gets covered — 47 tests
