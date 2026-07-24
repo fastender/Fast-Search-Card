@@ -78,6 +78,19 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
   await page.waitForFunction(() => !!window.FastSearchCardApp, null, { timeout: 20000 });
 
   await page.evaluate(({ hassPatch, language }) => {
+    // 🔑 Die Dev-Seite mountet die Karte SELBST in #app (Vorschau mit Mock-
+    // hass). Der Harness mountet eine ZWEITE Instanz — zwei komplette Apps auf
+    // einer Seite. Solange die Insel keinen z-index trug, lag die Dev-Instanz
+    // unsichtbar hinter dem deckenden Test-Container; mit z-index (v2206)
+    // malte und KLICKTE sie plötzlich darüber: Doppelbilder in Screenshots,
+    // rohe Mausklicks trafen die falsche Insel, deren Zustand sich änderte,
+    // während die sichtbare stumm blieb. Tagelange Geisterjagd. Deshalb: die
+    // Dev-Instanz wird hart stillgelegt, bevor der Harness mountet.
+    const devApp = document.getElementById('app');
+    if (devApp) {
+      devApp.style.display = 'none';
+      devApp.style.pointerEvents = 'none';
+    }
     window.__serviceCalls = [];
     window.__mkConnection = () => ({
       subscribeMessage: () => Promise.resolve(() => {}),

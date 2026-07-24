@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2208 - 2026-07-24
+
+**Title:** 🧷 Closing the island no longer moves the search panel — and a two-app mystery solved
+
+- **The report:** collapsing the island made the whole search panel slide up from below. The cause was the
+  overlay construction from 1.1.2206: expanded, the island sat outside the layout flow; the moment it
+  collapsed it re-entered the flow while its list was still 460 ms from finished shrinking — so the still-tall
+  pill pushed everything down, and the page rode back up with the shrink.
+
+- **The fix is simpler than the overlay was:** the island's slot keeps a fixed height (the collapsed pill)
+  and the expanded pill simply **overflows downward** past it. No absolute positioning, no stacking
+  choreography — the expansion never participates in layout at all, so nothing below moves when it opens,
+  while it closes, or at any point in between. Verified with raw pointer input: open, tap a row, collapse —
+  zero movement.
+
+- **The mystery worth recording:** while verifying this, raw clicks kept toggling an island whose state
+  changed while the visible one stayed still — and screenshots showed doubled UI. Days of ghost-hunting
+  ended with a banal answer: the dev page mounts the card itself, the test harness mounts a **second** one,
+  and the moment the island gained a z-index the invisible dev instance started painting and receiving
+  clicks **above** the test container. Two whole apps on one page. The harness now switches the dev instance
+  off before mounting; the "compositor ghosts" dismissed earlier were this all along.
+
+- No behaviour change beyond the fix; 78 tests green, now running against a single app instance.
+
 ## Version 1.1.2207 - 2026-07-24
 
 **Title:** 🏝️ The island works inside Home Assistant, not just in the dev harness
