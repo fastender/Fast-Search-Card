@@ -42,21 +42,24 @@ test.describe('DataProvider — beobachtbare Zusagen', () => {
   });
 
   test('ein state_changed erreicht die Oberfläche', async ({ page }) => {
+    // v1.1.2212: der Insel-Roll rotiert durch 5 Kategorien (20-s-Zyklus) —
+    // jede Zusicherung muss einen vollen Umlauf abwarten dürfen.
+    test.setTimeout(120000);
     await mountCard(page, { settings: BENTO_ON });
     // Ausgangslage: ein Licht an (das zweite ist aus).
-    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('1 Licht an');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Licht an');
 
     // Zweites Licht an → der Entity-Strom muss die Zählung bewegen.
     await updateHass(page, (states, entity) => {
       states['light.kueche'] = entity('light.kueche', 'Küche Licht', 'on');
     });
-    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('2 Lichter an');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('2 Lichter an');
 
     // …und wieder zurück.
     await updateHass(page, (states, entity) => {
       states['light.kueche'] = entity('light.kueche', 'Küche Licht', 'off');
     });
-    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('1 Licht an');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Licht an');
   });
 
   test('HA-Meldungen landen in der Alert-Lane', async ({ page }) => {

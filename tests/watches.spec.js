@@ -141,7 +141,7 @@ test.describe('Ruhezeiten', () => {
         toasts: { quietHours: { enabled: false, from: '00:00', to: '23:59', allowCritical: true } },
       },
     });
-    await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('1 Licht an');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Licht an');
     await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('1,2 kW');
   });
 });

@@ -41,19 +41,22 @@ test.describe('Insel', () => {
     // im Testhaus der 1234-W-Sensor als „1,2 kW" — daneben der Fakten-Roll.
     await mountCard(page, { settings: BENTO_ON });
     await expect.poll(() => islandText(page)).toContain('1,2 kW');
-    await expect.poll(() => islandText(page)).toContain('1 Licht an');
+    // v1.1.2212: der Roll läuft jetzt durch ALLE aktiven Kategorien der
+    // Leiste (5 im Testhaus, 4-s-Takt) — ein voller Zyklus dauert 20 s.
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Licht an');
   });
 
-  test('Ambient-Zeile zählt mehrere Lichter und offene Fenster', async ({ page }) => {
+  test('der Roll zeigt die Aktiv-Zahlen der Kategorieleiste', async ({ page }) => {
+    // v1.1.2212: der Roll zählt aus der KURATIERTEN Geräteliste mit den
+    // Leisten-Regeln — vorher zählte er rohe States („9 lights on" vs.
+    // „Lights 6" in der Leiste). Fenster/Türen sind raus: sie sind keine
+    // Leisten-Kategorie.
     await mountCard(page, { settings: BENTO_ON });
     await updateHass(page, (states, entity) => {
       states['light.kueche'] = entity('light.kueche', 'Küche Licht', 'on');
-      states['binary_sensor.fenster'] = entity('binary_sensor.fenster', 'Fenster', 'on', { device_class: 'window' });
     });
-    // Ab zwei Einträgen rotiert die Zeile alle 4 s — beide müssen vorkommen.
-    // Großzügiges Fenster: der Roll wartet zusätzlich auf den 1-s-Treiber.
-    await expect.poll(() => islandText(page), { timeout: 15000 }).toContain('2 Lichter an');
-    await expect.poll(() => islandText(page), { timeout: 15000 }).toContain('1 Fenster offen');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('2 Lichter an');
+    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Schalter an');
   });
 
   test('laufender Timer verdrängt das Ruhegesicht und zählt herunter', async ({ page }) => {

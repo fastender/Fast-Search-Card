@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2212 - 2026-07-24
+
+**Title:** 🔗 The rest face links everywhere — and its numbers now match the category bar
+
+- **The facts roll shows exactly the category bar's numbers.** The island used to count raw states
+  ("9 lights on") while the bar counted active devices from the curated list ("Lights 6") — the card filters
+  out entities without an area, the island didn't. Both now share one module (`utils/subcategoryMap.js`):
+  same device base, same domain table, same active rule. The roll cycles through every active category —
+  lights, switches, climate, covers, media, cleaning, security — in the bar's order.
+
+- **Everything in the rest face is a target now.** A roll entry opens the device list filtered to exactly
+  the subcategory whose number it shows; the weather value opens its weather entity; the power value opens
+  the energy dashboard (falling back to the sensor itself).
+
+- **The long-runner chip tiles sit side by side** instead of overlapping — the overlap read as mush with the
+  new category tints (tablet report). Small gap, clean edges.
+
+- An honest note: while removing the now-orphaned roll icons, the cut took the digit-roll component with it —
+  and since `src/` is not under version control, it was reconstructed from its observable behaviour, now on
+  the grid-stack pattern instead of `popLayout` (same lesson as the roll flash fix). Second cut accident this
+  week; block boundaries get grep-checked from now on.
+
 ## Version 1.1.2211 - 2026-07-24
 
 **Title:** 📜 The expanded island scrolls — and three polish items from the tablet
