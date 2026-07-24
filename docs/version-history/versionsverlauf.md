@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2210 - 2026-07-24
+
+**Title:** 🩹 The facts roll no longer flashes in from the right
+
+- **Bug fix (tablet report):** when the house-facts roll switched entries, the new text appeared displaced to
+  the right for a single frame and then slid left into place. Cause: with framer's `popLayout`, the outgoing
+  and incoming entries both sat in the layout flow for one frame — the newcomer got pushed aside before the
+  old one was lifted out.
+
+- The two entries now overlap in the **same grid cell** (the exact construction the mockup already used), so
+  nothing is ever displaced sideways. Verified frame by frame: across multiple switches the text's left edge
+  stayed on the same pixel the entire time.
+
 ## Version 1.1.2209 - 2026-07-24
 
 **Title:** 🪐 The island becomes one capsule — takeover, chips, condensation, new rest face
