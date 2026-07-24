@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2206 - 2026-07-24
+
+**Title:** 🐛 Four island bugs from the tablet — layout, gesture, brightness, translation
+
+Reported from real use, each fixed and verified.
+
+- **The expanded island no longer pushes the page down, and now floats over the detail view.** It grows as an
+  overlay (absolute, above the detail view's stacking context) instead of in flow, so the bento grid stays
+  put and the list is no longer trapped behind an open detail view. The empty area around the pill passes
+  clicks through — only the pill itself is a target — so it never blocks the controls beneath it, and a
+  collapsed island over an open detail view is a passenger, not a wall.
+
+- **Click opens the list; the long-press is gone.** A tap on a live island with several activities expands
+  it; a tap on a single one opens that device directly. No more holding.
+
+- **The island follows the Background Mode.** Its glass tint now darkens in Dark mode and lightens in Light
+  mode, driven by the same setting as the wallpaper overlay, instead of a fixed grey.
+
+- **"Mitteilungen" reads "Notifications" in English.** The notifications entity was missing from the detail
+  header's translated-domain list — the same gap that release 1.1.1612 closed for the other system entities.
+
+- Under the hood, the morph moved off framer's `layout` onto a CSS grid-rows reveal — `layout` projection
+  fought the overlay's position switch and left paint ghosts. Island tests now drive the click gesture; three
+  new checks and two hardened races keep the suite at 77 green.
+
 ## Version 1.1.2205 - 2026-07-24
 
 **Title:** ⚡ The notification centre gets a Live tab — and the island head links straight to it

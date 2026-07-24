@@ -15,18 +15,24 @@ import { mountCard, updateHass, broadcast, islandText } from './harness/card.js'
 const BENTO_ON = { startScreen: { bento: true }, appearance: { statsBarEnabled: true } };
 
 /**
- * Langdrücken — klappt die Insel auf.
- *
- * 🔑 Erst `hover()`, dann drücken. Ein blankes `mouse.move` + sofortiges
- * `mouse.down` traf beim Bauen dieser Tests daneben: die Insel rendert im
- * Sekundentakt neu, und der Druck landete zwischen zwei Ständen. `hover()`
- * wartet, bis das Ziel ruhig liegt.
+ * v1.1.2206: Aufklappen geschieht per KLICK (der Langdruck wurde entfernt).
+ * Aufgeklappt wird nur bei MEHREREN Live-Aktivitäten — eine einzelne öffnet
+ * beim Klick direkt ihr Gerät.
  */
-async function longPress(locator, page, ms = 700) {
-  await locator.hover();
-  await page.mouse.down();
-  await page.waitForTimeout(ms);
-  await page.mouse.up();
+async function expandIsland(root) {
+  await root.locator('.island-head').click();
+}
+
+/** Zwei laufende Aktivitäten setzen (Voraussetzung fürs Aufklappen). */
+async function seedTwoLive(page) {
+  await updateHass(page, (states, entity) => {
+    states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+      duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+    });
+    states['media_player.wohnzimmer'] = entity('media_player.wohnzimmer', 'Box', 'playing', {
+      media_title: 'Lied', volume_level: 0.4, supported_features: 84381,
+    });
+  });
 }
 
 test.describe('Insel', () => {
@@ -138,31 +144,28 @@ test.describe('Insel', () => {
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
   });
 
-  test('Langdrücken klappt die Insel zu EINER Form auf', async ({ page }) => {
+  test('ein Klick klappt die Insel zu EINER Form auf', async ({ page }) => {
     // v1.1.2204: Die Liste ist kein zweites Panel mehr, sondern Teil derselben
     // Form. Geprüft wird genau das: die Pille selbst wächst, ihr Radius geht
     // von der Kapsel auf weich-eckig, und die Zeilen stecken IN ihr.
+    // v1.1.2206: per KLICK, nicht mehr per Langdruck.
     const root = await mountCard(page, { settings: BENTO_ON });
-    await updateHass(page, (states, entity) => {
-      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
-        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
-      });
-      states['media_player.wohnzimmer'] = entity('media_player.wohnzimmer', 'Box', 'playing', {
-        media_title: 'Lied', volume_level: 0.4, supported_features: 84381,
-      });
-    });
+    await seedTwoLive(page);
     await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
 
     const pill = root.locator('.island-pill');
     const zuHoehe = await pill.evaluate(el => el.offsetHeight);
     await expect(pill).toHaveAttribute('data-expanded', 'false');
 
-    await longPress(root.locator('.island-head'), page);
+    await expandIsland(root);
 
     await expect(pill).toHaveAttribute('data-expanded', 'true', { timeout: 5000 });
     // Die Zeilen sind Kinder DER PILLE, nicht eines Nachbarn.
     await expect(pill.locator('.island-row')).toHaveCount(2);
-    expect(await pill.evaluate(el => el.offsetHeight)).toBeGreaterThan(zuHoehe);
+    // Höhe wächst über die grid-rows-Animation (460 ms) — darauf pollen, nicht
+    // einmal mitten im Aufklappen messen.
+    await expect.poll(() => pill.evaluate(el => el.offsetHeight), { timeout: 5000 })
+      .toBeGreaterThan(zuHoehe);
 
     // Kapsel → weich-eckig. Der Radius federt über 480 ms dorthin, also auf
     // den Endwert warten statt einmal mittendrin zu messen.
@@ -173,27 +176,19 @@ test.describe('Insel', () => {
 
   test('aufgeklappt wird der Kopf zur Überschrift', async ({ page }) => {
     const root = await mountCard(page, { settings: BENTO_ON });
-    await updateHass(page, (states, entity) => {
-      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
-        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
-      });
-    });
+    await seedTwoLive(page);
     await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
 
-    await longPress(root.locator('.island-head'), page);
+    await expandIsland(root);
     // Nach dem Überblenden steht dort die Überschrift — nicht mehr das Gerät.
     await expect.poll(() => islandText(page), { timeout: 6000 }).toContain('Live-Aktivitäten');
   });
 
   test('eine Zeile öffnet ihr Gerät und die Insel geht zurück in Ruhe', async ({ page }) => {
     const root = await mountCard(page, { settings: BENTO_ON });
-    await updateHass(page, (states, entity) => {
-      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
-        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
-      });
-    });
+    await seedTwoLive(page);
     await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
-    await longPress(root.locator('.island-head'), page);
+    await expandIsland(root);
     await expect(root.locator('.island-row').first()).toBeVisible({ timeout: 5000 });
 
     await page.evaluate(() => {

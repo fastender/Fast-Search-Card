@@ -60,7 +60,11 @@ test.describe('Bento-Startseite', () => {
         startScreen: { bento: true, widgets: ['__favorites__', 'todos', 'news', 'integration'] },
       },
     });
-    await waitForBento(root, page);
+    // 🔑 Auf DEN Slot warten, den der Test prüft (3), nicht nur auf Slot 0.
+    // „integration" lädt seine Geräte-Zahl asynchron und zeigt kurz den
+    // Platzhalter — waitForBento(slot 0) sagt darüber nichts.
+    await waitForBento(root, page, 0);
+    await waitForBento(root, page, 3);
 
     const texts = await widgets(root).allInnerTexts();
     expect(texts[0]).toContain('Favoriten');
