@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2209 - 2026-07-24
+
+**Title:** 🪐 The island becomes one capsule — takeover, chips, condensation, new rest face
+
+The full redesign frozen in the mockup sessions, in one piece.
+
+- **Notifications no longer displace anything.** A *new* warning or info takes the capsule over for six
+  seconds — severity-coloured border, title, a small time ring counting down — and then condenses into a
+  quiet chip on the capsule's right edge. The live activity or rest face returns; the chip carries the colour
+  of the highest waiting severity and a count when there are several. Tapping it opens the notification
+  centre. Existing notifications at page load dock silently — a reload announces nothing.
+
+- **Long-runners condense.** Steady activities (music, vacuum, charging) keep the capsule for 90 seconds and
+  then move into a second chip with overlapping icon tiles (the two newest, "+n" beyond that), letting the
+  rest face return. Countdowns — timers — never condense: they are the now. Tapping the chip expands the
+  island's live list, which still shows everything.
+
+- **The new rest face: no clock.** Left the persistent values — weather, and a power reading picked by a
+  zero-config heuristic (the largest `power`-class sensor is almost always the house total; a settings picker
+  can follow) — then the house-facts roll with the refined transition (9 px travel, slight blur, unhurried),
+  and the presence dot, which now steps aside whenever the alert chip is present instead of doubling it.
+
+- **Fixed width.** 440 px on desktop, the form no longer breathes with its content; long labels ellipsise.
+
+- The old "collection" face and the alert mood are gone; chips count instead. Tests were rewritten to the
+  new semantics — takeover, boot grace, chip counts, partition rule — 80 green, including a pure-module check
+  that timers never condense and steady activities do so exactly after their hold time.
+
 ## Version 1.1.2208 - 2026-07-24
 
 **Title:** 🧷 Closing the island no longer moves the search panel — and a two-app mystery solved

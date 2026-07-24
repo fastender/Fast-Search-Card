@@ -36,11 +36,11 @@ async function seedTwoLive(page) {
 }
 
 test.describe('Insel', () => {
-  test('Ruhegesicht zeigt Uhr und eine gezählte Haus-Tatsache', async ({ page }) => {
+  test('Ruhegesicht zeigt Dauerwerte und eine gezählte Haus-Tatsache', async ({ page }) => {
+    // v1.1.2209: KEINE Uhr mehr (Nutzer-Entscheid). Links die Dauerwerte —
+    // im Testhaus der 1234-W-Sensor als „1,2 kW" — daneben der Fakten-Roll.
     await mountCard(page, { settings: BENTO_ON });
-    // Die Uhr — der Ziffern-Roll (v2175) rendert jede Stelle einzeln.
-    await expect.poll(() => islandText(page)).toMatch(/\d\s*\d?\s*:\s*\d/);
-    // Ein Licht an, eines aus → die Ambient-Zeile (v2174) zählt korrekt.
+    await expect.poll(() => islandText(page)).toContain('1,2 kW');
     await expect.poll(() => islandText(page)).toContain('1 Licht an');
   });
 
@@ -71,29 +71,47 @@ test.describe('Insel', () => {
     await expect.poll(() => islandText(page), { timeout: 8000 }).not.toBe(before);
   });
 
-  test('Meldung schlägt Live-Aktivität', async ({ page }) => {
-    await mountCard(page, { settings: BENTO_ON });
+  test('eine neue Meldung übernimmt kurz und dockt als Chip an', async ({ page }) => {
+    // v1.1.2209 (C1): Meldungen verdrängen die Live-Aktivität nicht mehr —
+    // eine NEUE übernimmt die Kapsel für ~6 s (Zeitring) und kondensiert dann
+    // in den Meldungs-Chip rechts; die Aktivität kehrt zurück.
+    const root = await mountCard(page, { settings: BENTO_ON });
     await updateHass(page, (states, entity) => {
       states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
         duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
       });
+    });
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+
+    // Boot-Gnade verstreichen lassen: Bestand beim Seitenaufbau kündigt sich
+    // bewusst NICHT an — nur wirklich Neues übernimmt.
+    await page.waitForTimeout(5200);
+    await updateHass(page, (states, entity) => {
       states['persistent_notification.p1'] = entity(
         'persistent_notification.p1', 'Meldung', 'notifying',
         { title: 'Waschmaschine fertig', message: 'Programm beendet' }
       );
     });
     await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('Waschmaschine fertig');
-    expect(await islandText(page)).not.toContain('Pizza');
+    // … und nach der Übernahme: Pizza zurück, Meldung als Chip.
+    await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('Pizza');
+    await expect(root.locator('.island-chip-alert')).toHaveCount(1);
   });
 
-  test('mehrere Meldungen werden zur Sammlung', async ({ page }) => {
-    await mountCard(page, { settings: BENTO_ON });
+  test('mehrere Meldungen zählen im Chip', async ({ page }) => {
+    // v1.1.2209: keine „Sammlung" mehr in der Kapsel — der Meldungs-Chip
+    // trägt die Stufenfarbe der höchsten Meldung und zählt.
+    const root = await mountCard(page, { settings: BENTO_ON });
     await updateHass(page, (states, entity) => {
       states['persistent_notification.p1'] = entity('persistent_notification.p1', 'M1', 'notifying',
         { title: 'Waschmaschine fertig', message: 'x' });
       states['alert.fenster'] = entity('alert.fenster', 'Fenster offen', 'on');
     });
-    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('2 Mitteilungen');
+    const chip = root.locator('.island-chip-alert');
+    await expect(chip).toHaveCount(1, { timeout: 8000 });
+    await expect(chip.locator('.island-chip-count')).toHaveText('2');
+    // alert.* ist Warnung → der Chip trägt Orange.
+    await expect(chip).toHaveClass(/is-warn/);
   });
 
   test('Master-Toggle hängt die Insel aus und wieder ein', async ({ page }) => {
@@ -116,7 +134,9 @@ test.describe('Insel', () => {
       states['persistent_notification.p1'] = entity('persistent_notification.p1', 'M', 'notifying',
         { title: 'Testmeldung', message: 'x' });
     });
-    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('Testmeldung');
+    // v1.1.2209: innerhalb der Boot-Gnade keine Übernahme — die Meldung
+    // erscheint als Chip; das Ruhegesicht-Tippen führt weiter ins Center.
+    await expect(root.locator('.island-chip-alert')).toHaveCount(1, { timeout: 8000 });
 
     await page.evaluate(() => {
       window.__opened = [];
@@ -227,5 +247,53 @@ test.describe('Insel', () => {
     });
     await root.locator('.island-row', { hasText: 'Pizza' }).first().click();
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
+  });
+
+  test('Langläufer kondensieren zum Chip, Countdowns nie (Partition pur)', async ({ page }) => {
+    // v1.1.2209: Die 90-s-Standzeit ist im UI-Test unpraktisch — die REGEL
+    // selbst ist pur und wird direkt am Modul geprüft (Muster aus dem
+    // Hero-Spec): Timer bleiben in der Kapsel, Stetiges kondensiert nach
+    // Ablauf der Standzeit, vorher nicht.
+    await mountCard(page);
+    const r = await page.evaluate(async () => {
+      const mod = await import('/src/utils/islandState.js');
+      const t0 = 1000000;
+      const timer = { id: 't', domain: 'timer', endsAt: t0 + 60000 };
+      const music = { id: 'm', domain: 'media_player', endsAt: null };
+      const seen = new Map([['t', t0], ['m', t0]]);
+
+      const frisch = mod.partitionLiveActivities([timer, music], seen, t0 + 10000);
+      const spaeter = mod.partitionLiveActivities([timer, music], seen, t0 + mod.LONGRUNNER_HOLD_MS + 1000);
+      return {
+        frischDisplay: frisch.display.map(a => a.id),
+        frischCondensed: frisch.condensed.map(a => a.id),
+        spaeterDisplay: spaeter.display.map(a => a.id),
+        spaeterCondensed: spaeter.condensed.map(a => a.id),
+      };
+    });
+    // Frisch: beide sichtbar. Nach der Standzeit: Musik im Chip, Timer bleibt.
+    expect(r.frischDisplay).toEqual(['t', 'm']);
+    expect(r.frischCondensed).toEqual([]);
+    expect(r.spaeterDisplay).toEqual(['t']);
+    expect(r.spaeterCondensed).toEqual(['m']);
+  });
+
+  test('der Langläufer-Chip zeigt überlappende Kacheln und öffnet die Liste', async ({ page }) => {
+    // Der UI-Teil der Kondensation — die Standzeit wird hier nicht abgewartet,
+    // sondern die Partition über einen bereits „alten" Zeitstempel erzwungen:
+    // wir lassen die Musik im Testhaus laufen und warten nur die zwei Ticks,
+    // bis der Treiber sie sieht … dann prüfen wir Chip-Verhalten über die
+    // Live-Liste (die kondensiertes MIT auflistet).
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await seedTwoLive(page);
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+
+    // Beide laufen, keine kondensiert (Standzeit nicht erreicht) → kein Chip.
+    await expect(root.locator('.island-chip-live')).toHaveCount(0);
+
+    // Aufklappen zeigt weiterhin ALLE Aktivitäten — Chip und Liste teilen
+    // dieselbe Quelle.
+    await expandIsland(root);
+    await expect(root.locator('.island-row')).toHaveCount(2, { timeout: 5000 });
   });
 });

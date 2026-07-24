@@ -60,16 +60,18 @@ test.describe('DataProvider — beobachtbare Zusagen', () => {
   });
 
   test('HA-Meldungen landen in der Alert-Lane', async ({ page }) => {
-    await mountCard(page, { settings: BENTO_ON });
+    // v1.1.2209: Meldungen erscheinen als Chip an der Insel (innerhalb der
+    // Boot-Gnade ohne Übernahme) und verschwinden mit der Quelle.
+    const root = await mountCard(page, { settings: BENTO_ON });
     await updateHass(page, (states, entity) => {
       states['persistent_notification.abc'] = entity('persistent_notification.abc', 'N', 'notifying',
         { title: 'Backofen vorgeheizt', message: 'x' });
     });
-    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Backofen vorgeheizt');
+    await expect(root.locator('.island-chip-alert')).toHaveCount(1, { timeout: 10000 });
 
-    // Auflösen in HA → die Meldung verschwindet wieder.
+    // Auflösen in HA → der Chip verschwindet wieder.
     await updateHass(page, (states) => { delete states['persistent_notification.abc']; });
-    await expect.poll(() => islandText(page), { timeout: 10000 }).not.toContain('Backofen vorgeheizt');
+    await expect(root.locator('.island-chip-alert')).toHaveCount(0, { timeout: 10000 });
   });
 
   test('ein reißender Schwellwert wird zur Meldung', async ({ page }) => {
@@ -98,7 +100,10 @@ test.describe('DataProvider — beobachtbare Zusagen', () => {
       states['sensor.bad_hum'] = entity('sensor.bad_hum', 'Bad Luftfeuchte', '80',
         { unit_of_measurement: '%', device_class: 'humidity' });
     });
-    await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('Bad Luftfeuchte');
+    // v1.1.2209: der gefeuerte Wächter erscheint als Meldungs-Chip an der
+    // Insel (Warnstufe → Orange).
+    const root2 = page.locator('#fsc-test-root #fast-search-card-root');
+    await expect(root2.locator('.island-chip-alert')).toHaveCount(1, { timeout: 12000 });
   });
 
   test('Favoriten lassen sich setzen und überleben einen Neustart', async ({ page }) => {

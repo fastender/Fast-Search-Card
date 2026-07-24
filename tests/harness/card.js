@@ -158,6 +158,10 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
         'sensor.bad_hum': entity('sensor.bad_hum', 'Luftfeuchte', '50', {
           unit_of_measurement: '%', device_class: 'humidity', state_class: 'measurement',
         }),
+        // Energie-Dauerwert der Insel (v2209): größter power-Sensor gewinnt.
+        'sensor.hausverbrauch': entity('sensor.hausverbrauch', 'Hausverbrauch', '1234', {
+          unit_of_measurement: 'W', device_class: 'power', state_class: 'measurement',
+        }),
         'todo.haushalt': entity('todo.haushalt', 'Haushalt', '2'),
         'calendar.familie': entity('calendar.familie', 'Familie', 'on'),
       },

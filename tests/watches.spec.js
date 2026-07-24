@@ -86,12 +86,14 @@ test.describe('Hinweise (Wächter)', () => {
     await expect(list).not.toContainText('Noch kein Hinweis', { timeout: 10000 });
 
     // Wert über die Grenze schieben — der Hinweis muss die Insel erreichen.
+    // v1.1.2209: als Meldungs-Chip (die Übernahme läuft nur, wenn die
+    // Boot-Gnade schon vorbei ist — der Chip kommt IMMER).
     await updateHass(page, (states, entity) => {
       states['sensor.bad_hum'] = entity('sensor.bad_hum', 'Luftfeuchte', '80', {
         unit_of_measurement: '%', device_class: 'humidity', state_class: 'measurement',
       });
     });
-    await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('Luftfeuchte');
+    await expect(root.locator('.island-chip-alert')).toHaveCount(1, { timeout: 12000 });
   });
 
   test('ein Hinweis lässt sich löschen', async ({ page }) => {
@@ -126,9 +128,10 @@ test.describe('Ruhezeiten', () => {
         toasts: { quietHours: { enabled: true, from: '00:00', to: '23:59', allowCritical: true } },
       },
     });
-    // Die Uhr bleibt, die gezählte Haus-Tatsache verschwindet.
-    await expect.poll(() => islandText(page), { timeout: 10000 }).toMatch(/\d\s*\d?\s*:\s*\d/);
+    // v1.1.2209: Nachtgesicht = nur der (gedimmte) Wetterwert — Energie und
+    // Haus-Roll treten ab. Ohne Wetter-Entity (Testhaus) bleibt es leer.
     await expect.poll(() => islandText(page), { timeout: 10000 }).not.toContain('Licht an');
+    await expect.poll(() => islandText(page), { timeout: 10000 }).not.toContain('kW');
   });
 
   test('außerhalb des Ruhefensters läuft die Haus-Zeile normal', async ({ page }) => {
@@ -139,5 +142,6 @@ test.describe('Ruhezeiten', () => {
       },
     });
     await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('1 Licht an');
+    await expect.poll(() => islandText(page), { timeout: 12000 }).toContain('1,2 kW');
   });
 });
