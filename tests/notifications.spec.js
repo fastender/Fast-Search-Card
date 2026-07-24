@@ -143,4 +143,75 @@ test.describe('Mitteilungs-Center', () => {
       .toContainText('Waschmaschine', { timeout: 10000 });
     await expect(root.locator('.detail-header-name').first()).toContainText('Einträge');
   });
+
+  test('hat drei Reiter — Übersicht, Live, Verlauf', async ({ page }) => {
+    const root = await mountCard(page);
+    await seed(page);
+    await openCenter(root, page);
+    const titles = await root.locator('.detail-tab').evaluateAll(
+      els => els.map(e => e.getAttribute('title'))
+    );
+    expect(titles).toEqual(['Übersicht', 'Live', 'Verlauf']);
+  });
+
+  test('der Live-Reiter zeigt laufende Aktivitäten — ohne Verwerfen/Schlummern', async ({ page }) => {
+    const root = await mountCard(page);
+    await seed(page);
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    await openCenter(root, page);
+
+    // Auf Übersicht filtern die Chips — auf Live gibt es keine.
+    await expect(root.locator('.notif-chip')).toHaveCount(4);
+    await root.locator('.detail-tab[title="Live"]').click();
+    await expect(root.locator('.notif-chip')).toHaveCount(0);
+
+    const live = root.locator('.notif-live-btn');
+    await expect(live).toHaveCount(1);
+    await expect(live.first()).toContainText('Pizza');
+    // Live-Aktivitäten räumen sich selbst weg — keine Aktions-Knöpfe.
+    await expect(root.locator('.notif-live-btn .notif-action-btn')).toHaveCount(0);
+  });
+
+  test('eine Live-Zeile öffnet ihr Gerät', async ({ page }) => {
+    const root = await mountCard(page);
+    await seed(page);
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    await openCenter(root, page);
+    await root.locator('.detail-tab[title="Live"]').click();
+
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.addEventListener('fsc-open-entity', (e) => window.__opened.push(e.detail.entityId));
+    });
+    await root.locator('.notif-live-btn').first().click();
+    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
+  });
+
+  test('der Insel-Kopf springt direkt auf den Live-Reiter', async ({ page }) => {
+    // Der Deep-Link: fsc-open-notifications mit tab=live. Der Wunsch wird VOR
+    // dem Mount abgelegt und übersteht den Doppel-Mount der View.
+    const root = await mountCard(page);
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    // Der Deep-Link IST das Event mit tab=live — keine Insel nötig, um ihn zu prüfen.
+    await page.evaluate(() => window.dispatchEvent(
+      new CustomEvent('fsc-open-notifications', { detail: { tab: 'live' } })));
+
+    await root.locator('.notifications-view-container').waitFor({ timeout: 15000 });
+    // Beweis über den Body, nicht die Kopf-Optik: die Live-Zeile erscheint nur,
+    // wenn der Reiter wirklich auf „live" steht.
+    await expect(root.locator('.notif-live-btn').first()).toBeVisible({ timeout: 8000 });
+    await expect(root.locator('.notif-live-btn').first()).toContainText('Pizza');
+  });
 });

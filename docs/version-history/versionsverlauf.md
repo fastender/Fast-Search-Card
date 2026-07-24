@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2205 - 2026-07-24
+
+**Title:** ⚡ The notification centre gets a Live tab — and the island head links straight to it
+
+Third and last step of the island redesign.
+
+- **Übersicht | Live | Verlauf.** Live activities (timers, media, charging …) are their own tab now, not a
+  fifth filter chip. The chips filter the *same* alert list by urgency — "All" is the union of Critical,
+  Warning and Info. Live activities are a different lane: they cannot be dismissed or snoozed, they clear
+  themselves. So the tabs say *what* you are looking at, the chips say *how strictly* it is filtered, and each
+  row stays about one thing. The chips only appear on Übersicht, because that is the only tab they mean
+  anything on.
+
+- **Live rows have no action buttons** — nothing to dismiss, nothing to snooze. Each row opens its device.
+
+- **The open island head links directly to the Live tab.** Tapping the heading fires
+  `fsc-open-notifications` with `tab: 'live'`, and the centre opens there.
+
+- The trickiest part was making that deep-link stick. The centre view mounts **twice** on open (a throwaway
+  mount, then the real one), and a consume-and-clear read let the dead first mount swallow the value — the
+  real one got nothing and stayed on Übersicht. It is a non-destructive read plus a subscription now, and the
+  sender clears the request a beat later, so a later open via search does not inherit it.
+
+- Four new tests (77 total): the three tabs, the live body without action buttons, a row opening its device,
+  and the deep-link landing on Live.
+
 ## Version 1.1.2204 - 2026-07-24
 
 **Title:** 🫧 The island expands instead of pushing out a second panel
