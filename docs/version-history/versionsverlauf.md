@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2204 - 2026-07-24
+
+**Title:** 🫧 The island expands instead of pushing out a second panel
+
+Second of three steps on the island redesign — the structural one.
+
+- **One shape, not two.** Long-pressing used to make a separate panel appear 8 px below the pill: a different
+  material, a different radius, a visible gap. It never looked like it belonged. The list now lives **inside**
+  the pill, which grows downward — same glass, same border, nothing in between — and the radius springs from
+  capsule to soft-cornered on the way.
+
+- **The head becomes a heading.** Collapsed it shows the one device; expanded it reads "Live activities" with
+  the total, and that device takes its normal place as the first row. Otherwise it stood there twice. The two
+  head contents are stacked in the same grid cell and cross-fade with a blur, so the width does not jump
+  mid-morph.
+
+- **Every row is a target.** Tapping one opens that device and the island returns to rest. The pill is no
+  longer a button but a container holding a head button and row buttons — nested buttons are invalid markup,
+  and the rows needed to be their own targets.
+
+- The expanded head leads to the notification centre; collapsing happens by tapping beside the island, the
+  same as the old peek.
+
+- Three new tests (73 total) pin the promise: one shape that grows, the head that turns into a heading, and a
+  row that opens its device.
+
 ## Version 1.1.2203 - 2026-07-24
 
 **Title:** 🏝️ The island grows and lifts off the wallpaper

@@ -243,8 +243,13 @@ export async function islandText(page) {
   return page.evaluate(() => {
     const pill = document.querySelector('#fsc-test-root .island-pill');
     if (!pill) return null;
-    const content = [...pill.children].filter(c => (c.getAttribute('style') || '').includes('position: relative'));
-    return content.map(c => c.innerText.replace(/\s+/g, ' ').trim()).join(' | ');
+    // v1.1.2204: Der Kopf trägt den Text. Vorher stand die Inhalts-Ebene als
+    // DIREKTES Kind der Pille, und der Helfer fischte sie über ihr Inline-
+    // `position: relative` heraus. Seit die Pille ein Behälter ist (Kopfknopf +
+    // Zeilen), steckt sie eine Ebene tiefer — der alte Griff fand nichts mehr
+    // und lieferte stumm einen leeren String. Elf Tests fielen daran.
+    const head = pill.querySelector('.island-head') || pill;
+    return head.innerText.replace(/\s+/g, ' ').trim();
   });
 }
 

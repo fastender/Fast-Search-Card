@@ -14,6 +14,21 @@ import { mountCard, updateHass, broadcast, islandText } from './harness/card.js'
 // Die Insel erscheint nur, wenn Suche offen ODER Bento aktiv ODER Detail offen.
 const BENTO_ON = { startScreen: { bento: true }, appearance: { statsBarEnabled: true } };
 
+/**
+ * Langdrücken — klappt die Insel auf.
+ *
+ * 🔑 Erst `hover()`, dann drücken. Ein blankes `mouse.move` + sofortiges
+ * `mouse.down` traf beim Bauen dieser Tests daneben: die Insel rendert im
+ * Sekundentakt neu, und der Druck landete zwischen zwei Ständen. `hover()`
+ * wartet, bis das Ziel ruhig liegt.
+ */
+async function longPress(locator, page, ms = 700) {
+  await locator.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(ms);
+  await page.mouse.up();
+}
+
 test.describe('Insel', () => {
   test('Ruhegesicht zeigt Uhr und eine gezählte Haus-Tatsache', async ({ page }) => {
     await mountCard(page, { settings: BENTO_ON });
@@ -121,5 +136,76 @@ test.describe('Insel', () => {
     });
     await root.locator('.island-pill').click();
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
+  });
+
+  test('Langdrücken klappt die Insel zu EINER Form auf', async ({ page }) => {
+    // v1.1.2204: Die Liste ist kein zweites Panel mehr, sondern Teil derselben
+    // Form. Geprüft wird genau das: die Pille selbst wächst, ihr Radius geht
+    // von der Kapsel auf weich-eckig, und die Zeilen stecken IN ihr.
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+      states['media_player.wohnzimmer'] = entity('media_player.wohnzimmer', 'Box', 'playing', {
+        media_title: 'Lied', volume_level: 0.4, supported_features: 84381,
+      });
+    });
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+
+    const pill = root.locator('.island-pill');
+    const zuHoehe = await pill.evaluate(el => el.offsetHeight);
+    await expect(pill).toHaveAttribute('data-expanded', 'false');
+
+    await longPress(root.locator('.island-head'), page);
+
+    await expect(pill).toHaveAttribute('data-expanded', 'true', { timeout: 5000 });
+    // Die Zeilen sind Kinder DER PILLE, nicht eines Nachbarn.
+    await expect(pill.locator('.island-row')).toHaveCount(2);
+    expect(await pill.evaluate(el => el.offsetHeight)).toBeGreaterThan(zuHoehe);
+
+    // Kapsel → weich-eckig. Der Radius federt über 480 ms dorthin, also auf
+    // den Endwert warten statt einmal mittendrin zu messen.
+    await expect
+      .poll(() => pill.evaluate(el => parseFloat(getComputedStyle(el).borderRadius)), { timeout: 5000 })
+      .toBeLessThan(60);
+  });
+
+  test('aufgeklappt wird der Kopf zur Überschrift', async ({ page }) => {
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+
+    await longPress(root.locator('.island-head'), page);
+    // Nach dem Überblenden steht dort die Überschrift — nicht mehr das Gerät.
+    await expect.poll(() => islandText(page), { timeout: 6000 }).toContain('Live-Aktivitäten');
+  });
+
+  test('eine Zeile öffnet ihr Gerät und die Insel geht zurück in Ruhe', async ({ page }) => {
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+    await longPress(root.locator('.island-head'), page);
+    await expect(root.locator('.island-row').first()).toBeVisible({ timeout: 5000 });
+
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.addEventListener('fsc-open-entity', (e) => window.__opened.push(e.detail.entityId));
+    });
+    await root.locator('.island-row').first().click();
+
+    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
+    // Und klappt danach zu: der Nutzer verlässt die Insel, sie kehrt in ihren
+    // Ruhezustand zurück. (Im Mockup hatte ich das Gegenteil vermutet — dort
+    // öffnete sich aber keine Detailansicht, die die Insel ohnehin verdeckt.)
+    await expect(root.locator('.island-pill')).toHaveAttribute('data-expanded', 'false', { timeout: 5000 });
   });
 });
