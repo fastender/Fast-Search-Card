@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2211 - 2026-07-24
+
+**Title:** 📜 The expanded island scrolls — and three polish items from the tablet
+
+- **Fixed height with the card's own scrollbar.** With fourteen lights as live activities the expanded
+  island grew taller than the screen. The list is now capped at 330 px and scrolls inside the capsule,
+  using the same CustomScrollbar as the notification centre (native bars hidden). Measured: 16 rows,
+  606 px of content inside a 384 px island.
+
+- **Tapping the "Live activities" heading closes the list.** It used to deep-link into the notification
+  centre; closing is what one expects from a header tap. The centre remains reachable through the alert
+  chip and its own Live tab.
+
+- **The long-runner chip tiles are tinted by category.** Instead of a uniform dark ground, each tile now
+  carries a whitish tint in its domain's hue — warm yellow for lights, blue for switches, violet for
+  covers, red-orange for climate and so on — translucent enough that the line icons stay readable, distinct
+  enough to tell at a glance what is waiting.
+
 ## Version 1.1.2210 - 2026-07-24
 
 **Title:** 🩹 The facts roll no longer flashes in from the right
