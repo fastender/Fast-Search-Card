@@ -102,7 +102,10 @@ test.describe('DataProvider — beobachtbare Zusagen', () => {
   });
 
   test('Favoriten lassen sich setzen und überleben einen Neustart', async ({ page }) => {
-    const root = await mountCard(page);
+    // Insel aus: sie ist hier nicht Gegenstand, und im schmalen Test-Viewport
+    // überlappt die (bewusst bedienbare, v1.1.2207) Pille sonst den
+    // Favoriten-Knopf im Detail-Kopf.
+    const root = await mountCard(page, { settings: { appearance: { statsBarEnabled: false } } });
     const input = root.locator('input.search-input');
     await input.click();
     await input.fill('Einstell');

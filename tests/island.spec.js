@@ -203,4 +203,29 @@ test.describe('Insel', () => {
     // öffnete sich aber keine Detailansicht, die die Insel ohnehin verdeckt.)
     await expect(root.locator('.island-pill')).toHaveAttribute('data-expanded', 'false', { timeout: 5000 });
   });
+
+  test('bleibt bei offener Detail-View bedienbar', async ({ page }) => {
+    // v1.1.2207 (Tablet-Report): Mit offener Detail-View war die Insel tot —
+    // ein pointer-events-Riegel aus v2206 hatte sie zum Passagier erklärt.
+    // Sie muss sich auch dann aufklappen und ihre Zeilen müssen ziehen.
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await seedTwoLive(page);
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+
+    // Detail-View öffnen (fremd, nicht über die Insel).
+    await page.evaluate(() => window.dispatchEvent(
+      new CustomEvent('fsc-open-entity', { detail: { entityId: 'media_player.wohnzimmer' } })));
+    await root.locator('.detail-panel').first().waitFor({ timeout: 15000 });
+
+    await expandIsland(root);
+    await expect(root.locator('.island-pill')).toHaveAttribute('data-expanded', 'true', { timeout: 5000 });
+    await expect(root.locator('.island-row').first()).toBeVisible();
+
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.addEventListener('fsc-open-entity', (e) => window.__opened.push(e.detail.entityId));
+    });
+    await root.locator('.island-row', { hasText: 'Pizza' }).first().click();
+    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
+  });
 });

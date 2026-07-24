@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2207 - 2026-07-24
+
+**Title:** 🏝️ The island works inside Home Assistant, not just in the dev harness
+
+Three tablet reports, three causes — two of them mine from yesterday.
+
+- **The island is clickable again while a detail view is open.** Yesterday's fix declared the collapsed pill
+  a "passenger" over an open view and switched its pointer events off. That was the wrong call — the pill is
+  a control, not a decoration. The gate is gone; the empty area around the pill still passes clicks through.
+
+- **The expanded rows respond now — the real Home Assistant bug of the day.** The card lives inside a shadow
+  root in HA. The island's collapse-on-outside-tap listener sat on the document, where events are retargeted
+  to the card's host element — so `pill.contains(target)` was *always* false in HA, and every tap collapsed
+  the island, including taps on its own rows. The dev harness mounts without a shadow root, which is exactly
+  why every test passed while the tablet failed. The check now walks `composedPath()`, which crosses open
+  shadow boundaries, and listens on `pointerdown`.
+
+- **Video stutter: the collapsed pill no longer runs a live blur over a playing video.** Since the island
+  floats above the detail view, its `backdrop-filter` forced the browser to pull every video frame through
+  the blur. While collapsed over an open view it now wears a denser, still glass — no per-frame filtering —
+  and the real glass returns the moment it expands. Verified: blur on normally, off when parked over the
+  view, on again when expanded.
+
+- One new test pins the report: with a detail view open, the island expands and its rows open their device
+  (78 total).
+
 ## Version 1.1.2206 - 2026-07-24
 
 **Title:** 🐛 Four island bugs from the tablet — layout, gesture, brightness, translation
