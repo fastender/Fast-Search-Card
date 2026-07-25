@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2217 - 2026-07-25
+
+**Title:** 🩹 Zen start: centred on the phone, and scrolling the island no longer flips the screen
+
+- **Scrolling inside the island used to reveal the dashboard.** Since the gesture listens on the whole card —
+  it has to, because the island sits in the middle of the resting screen and is a sibling of the view, not a
+  child — it also caught wheel and swipe events meant for the island's own live-activity list. Now the handler
+  walks up from the event's target and stands aside whenever the gesture starts inside anything scrollable.
+  The path is read through `composedPath()`, since the card lives in a shadow root where `target` is rewritten
+  at the boundary.
+
+- **The phone screen was centred in the wrong box.** The curtain spans the whole card, and on a phone the
+  stacked grid is over 1400 px tall — so the clock and greeting centred in the middle of *that*, far below the
+  visible screen. In the resting state the invisible grid now takes no space at all, leaving the curtain exactly
+  one screen to centre in. The tiles keep their fade: they are clipped, not unmounted.
+
+- Two more tests: one scrolls the island's list and demands the start screen stays at rest, one checks that
+  clock, greeting and island sit fully inside the visible card on a phone. All 98 pass.
+
 ## Version 1.1.2216 - 2026-07-25
 
 **Title:** 🩹 Zen start: the revealed screen is the classic one again, pixel for pixel
