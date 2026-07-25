@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2216 - 2026-07-25
+
+**Title:** 🩹 Zen start: the revealed screen is the classic one again, pixel for pixel
+
+- **One line too many.** The Zen layout forced `height: 576px` onto the grid. On a desktop that happens to be
+  the correct value, so it went unnoticed; on a phone it crushed the four stacked tiles from their 1412 px into
+  a desktop height — the revealed screen looked nothing like the Classic one. The override is gone entirely:
+  the grid is the same grid and brings its own geometry along, and the Zen layout now touches only what the
+  reveal actually needs — opacity, blur and the staggered delays.
+
+- **Pinned by comparison, not by eye.** A new test mounts the Classic start screen, records the position and
+  size of the grid, all three cells and the search row, then mounts Zen, reveals it and demands the exact same
+  numbers — at 1400 px and at 390 px. Both now match to the pixel: desktop grid 1200 × 576 at y 156, phone grid
+  350 × 1412 at y 141, search row identical in both.
+
 ## Version 1.1.2215 - 2026-07-25
 
 **Title:** 🌙 Zen start, corrected: no invented search bar, and the island moves under the greeting

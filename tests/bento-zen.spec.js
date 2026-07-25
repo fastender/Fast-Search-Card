@@ -127,23 +127,46 @@ test.describe('Zen-Startseite', () => {
     expect(await visible(root, '.bento-zen-curtain')).toBe(false);
   });
 
-  test('die Geometrie ist die der klassischen Startseite', async ({ page }) => {
-    // 🔑 Aufgedeckt IST der Zen-Start die klassische Ansicht: Suchzeile und
-    // Raster stehen an genau denselben Stellen. Und weil die Suchzeile auch in
-    // der Ruhe ihren Platz behält (nur unsichtbar), springt beim Aufdecken
-    // nichts — das prüft der Vergleich der beiden Zustände.
-    const root = await mountCard(page, { settings: ZEN_ON });
-    await waitForZen(root);
-    const rasterOben = () => root.locator('.bento-zen .bento-grid').evaluate(
-      el => Math.round(el.getBoundingClientRect().top - el.closest('.main-container').getBoundingClientRect().top)
-    );
-    const ruhe = await rasterOben();
-    await root.locator('.main-container').hover();
-    await page.mouse.wheel(0, 120);
-    await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
-    expect(await rasterOben()).toBe(ruhe);
+  test('aufgedeckt ist es Pixel für Pixel die klassische Startseite', async ({ page }) => {
+    // 🔑 DIE Zusage dieser Ansicht: nach der Animation darf sich nichts anders
+    // anfühlen als vorher. Deshalb wird hier nicht „ungefähr gleich" geprüft,
+    // sondern die Lage und Größe von Raster, allen drei Zellen UND der Suchzeile
+    // gegen einen frischen klassischen Aufbau gestellt — auf beiden Größen.
+    //
+    // Anlass: v1.1.2215 hatte dem Raster `height: 576px` aufgezwungen. Auf dem
+    // Desktop fiel das nicht auf (dort stimmt der Wert), auf dem Telefon quetschte
+    // es die vier gestapelten Kacheln aus 1412 px in 576 px.
+    const geo = (root) => root.locator('.main-container').evaluate((c) => {
+      const cb = c.getBoundingClientRect();
+      const m = (sel) => {
+        const e = c.querySelector(sel);
+        if (!e) return null;
+        const b = e.getBoundingClientRect();
+        return [Math.round(b.left - cb.left), Math.round(b.top - cb.top),
+                Math.round(b.width), Math.round(b.height)];
+      };
+      return { grid: m('.bento-grid'), w1: m('.bento-cell--w1'), w2: m('.bento-cell--w2'),
+               w34: m('.bento-cell--w34'), row: m('.search-row') };
+    });
 
-    const h = await root.locator('.bento-zen .bento-grid').evaluate(el => el.offsetHeight);
-    expect(h).toBe(576);
+    for (const [breite, hoehe] of [[1400, 900], [390, 844]]) {
+      await page.setViewportSize({ width: breite, height: hoehe });
+
+      let root = await mountCard(page, {
+        settings: { startScreen: { bento: true }, appearance: { statsBarEnabled: true } },
+      });
+      await expect(root.locator('.bento-grid')).toHaveCount(1, { timeout: 15000 });
+      await page.waitForTimeout(1500);
+      const klassisch = await geo(root);
+
+      root = await mountCard(page, { settings: ZEN_ON });
+      await waitForZen(root);
+      await root.locator('.main-container').hover();
+      await page.mouse.wheel(0, 120);
+      await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
+      await page.waitForTimeout(400);
+
+      expect(await geo(root), `Breite ${breite}`).toEqual(klassisch);
+    }
   });
 });
