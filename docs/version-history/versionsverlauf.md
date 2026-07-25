@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2215 - 2026-07-25
+
+**Title:** 🌙 Zen start, corrected: no invented search bar, and the island moves under the greeting
+
+Four corrections from the tablet, all in the resting state of the Zen layout shipped yesterday.
+
+- **The search bar was mine, not the card's.** v1.1.2214 drew its own bar that merely *looked* like the real
+  one — tapping it swapped you onto a different element. It is gone. The revealed state now carries the card's
+  unchanged `.search-row`, at exactly the position it occupies in the Classic layout, and the resting state
+  simply hides it while keeping its space, so nothing jumps when the reveal runs. A test compares the grid's
+  position across both states to keep it that way.
+
+- **The island moved under the greeting.** In the resting state it now sits below the greeting instead of
+  staying in its slot at the top, where it lingered as a blurred shape. Its position is measured, not guessed —
+  the block's height depends on the greeting's length — and it travels back up when you reveal. It stays
+  tappable there.
+
+- **Notification cards and the sparkle are gone.** The lock-screen stack under the search bar and the star in
+  front of the greeting are both removed; the resting state is now clock, greeting, island, grip and nothing else.
+
+- **Gestures now listen on the whole card**, not just on the view. In the resting state the island sits in the
+  middle of the screen and it is a sibling of the view, not a child — a wheel over it used to do nothing at all.
+
+- Two measuring lessons, both found by tests rather than by eye: the card scales from 0.95 to 1 during its boot
+  reveal, so anything measured in the first moments is off by five percent — the island's placement re-measures
+  until the card stands still, and the tests wait for it. All 96 pass.
+
 ## Version 1.1.2214 - 2026-07-25
 
 **Title:** 🌙 A third start screen: the Zen start — clock, greeting and search, everything else on one gesture
