@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2214 - 2026-07-25
+
+**Title:** 🌙 A third start screen: the Zen start — clock, greeting and search, everything else on one gesture
+
+- **A calm start.** Settings → General → Home Screen → Layout gains a third option next to *Classic* and
+  *Panel*: **Zen**. The card opens showing four things and nothing else — the date, a large clock, the greeting
+  (by name where Home Assistant knows one) and the search bar, with waiting alerts stacked beneath it like on
+  a lock screen. No island, no sidebar, no tiles.
+
+- **One gesture is enough.** A single wheel notch, upward swipe or arrow key runs the whole reveal by itself —
+  no scrubbing, nothing to get stuck halfway through. Clock, greeting and alerts step aside, the search bar
+  travels from the centre to the top and becomes the toolbar it already is elsewhere, then the island settles
+  above it, the sidebar slides in from the left, and the four tiles arrive one after another, largest first.
+  One gesture downward returns to rest, the same staircase in reverse and a touch faster.
+
+- **The entry animation moves nothing.** Clock, greeting, bar and alerts are in place from the first frame and
+  only resolve from blur to sharp, after which a single highlight sweeps across the glass of the search bar.
+  Deliberately without any scale animation: on a wall tablet a motionless sharpening reads calmer, and a
+  transform on first paint would fight the card's own boot reveal.
+
+- **The alerts are real** — the same ones the notification centre and the island's chip work from. Tapping one
+  opens the centre. They do not vanish into nothing when you reveal: the island above takes over their duty,
+  which is exactly why it fades in only after the bar has reached its place.
+
+- The whole choreography lives in staggered CSS transition delays on one state attribute, not in a JavaScript
+  timeline — it survives every re-render, runs on the compositor and needs no cleanup. Island and sidebar are
+  siblings of the view rather than children, so they follow along through a small shared store
+  (`utils/zenStore.js`). Height stays at 672 px like the other two layouts, so the sidebar stays centred and
+  the detail overlay stays aligned. Eight new tests; all 98 pass.
+
 ## Version 1.1.2213 - 2026-07-25
 
 **Title:** 🪟 A second Bento start screen: header and tiles in one glass surface
