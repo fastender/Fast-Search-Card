@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2213 - 2026-07-25
+
+**Title:** 🪟 A second Bento start screen: header and tiles in one glass surface
+
+- **New layout option "Panel".** Settings → General → Home Screen → Layout switches between *Classic*
+  (today's free-standing tiles below the search bar, still the default — nothing changes for anyone who
+  doesn't switch) and *Panel*, where a header row and the four tiles live inside a single glass surface.
+  Both layouts share the same slot configuration, the same widgets and the same data; only the frame differs.
+
+- **The header replaces the search bar.** On the left the greeting — the same time-of-day phrases the
+  greetings bar uses, addressed by name when Home Assistant knows one. On the right the time above the date,
+  then the tools: notifications and search share one capsule (fewer edges than three separate circles), with
+  the profile picture beside it — because a profile is a place, not a tool. Search opens the search panel,
+  the bell opens the notification centre, the avatar opens Settings. A waiting warning puts a badge on the bell.
+
+- **The height stays at 672 px** — deliberately, not by accident. The whole page geometry hangs off that
+  number: the container reserves 732 px (60 island + 672) and the sidebar is pinned to top 396 px
+  (= 60 + 672/2). A taller or shorter panel would push the sidebar off centre and break the detail overlay's
+  alignment with the search panel. The frame costs 32 px of tile area against the classic layout; a test
+  pins both numbers so a future header tweak can't silently eat the tiles.
+
+- **On the phone the header rearranges itself.** Greeting and tools share the first line, date and time move
+  into a subline below ("Saturday, 25 July · 16:55"), and a long greeting wraps to at most two lines instead
+  of pushing the tools around. The two small tiles now sit side by side rather than stacked — two squares use
+  a 390 px screen considerably better than two bands.
+
+- Under the hood the slot resolution and the square-bottom-row calculation moved into one shared hook
+  (`bento/useBentoSlots.js`) instead of being copied into the new view. Copied tables drift — that is exactly
+  how the island's roll numbers came apart two releases ago. Ten new tests cover the panel; all 90 pass.
+
 ## Version 1.1.2212 - 2026-07-24
 
 **Title:** 🔗 The rest face links everywhere — and its numbers now match the category bar
