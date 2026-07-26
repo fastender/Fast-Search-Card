@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2220 - 2026-07-26
+
+**Title:** 🔓 Zen start: using the card counts as unlocking, and an open island keeps the wheel
+
+- **Opening a device straight from the island now counts as unlocking.** v1.1.2219 kept the revealed state
+  across excursions, but only for those who had actually revealed. Tapping the island on the lock screen and
+  picking an entry from its list never set that state, so coming back from the device dropped you onto the lock
+  screen again. Leaving the view at all — search, detail, anything — now marks the card as unlocked: whoever
+  got that far has used it.
+
+- **An open island swallows the wheel again.** The previous guard stood aside only when the pointer sat in
+  something that genuinely scrolls. With six entries the island's list fits entirely and does not scroll, so a
+  wheel tick over it still flipped the card into the Bento. The rule no longer asks whether the list overflows
+  but whether the island is open at all — that is what the gesture belongs to. Arrow keys are covered too.
+
+- Two more tests, both walking the reported path: one opens a device from the island and demands the Bento
+  after tapping back, one opens a short, non-scrolling island list and demands that the wheel changes nothing.
+  All 102 pass.
+
 ## Version 1.1.2219 - 2026-07-25
 
 **Title:** 🔙 Zen start: coming back from the search lands in the Bento, not on the lock screen

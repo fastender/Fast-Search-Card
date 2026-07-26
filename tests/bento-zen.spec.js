@@ -140,6 +140,71 @@ test.describe('Zen-Startseite', () => {
     expect(await visible(root, '.bento-zen-curtain')).toBe(false);
   });
 
+  test('aus der Insel ein Gerät öffnen zählt als Entsperren', async ({ page }) => {
+    // 🔑 Wer im Sperrbildschirm die Insel antippt und dort ein Gerät wählt, hat
+    // die Karte benutzt — auch ohne je aufgedeckt zu haben. Zurück gehört er ins
+    // Bento, nicht erneut vor den Sperrbildschirm.
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    // 🔑 Ein Timer taugt hier NICHT: er ist zwar eine Live-Aktivität, steht aber
+    // nicht in der kuratierten Geräteliste — der Deep-Link fände nichts und die
+    // Detail-Ansicht bliebe zu. Der spielende Lautsprecher des Testhauses ist
+    // beides: Live-Aktivität UND echtes Gerät.
+    await updateHass(page, (states) => {
+      states['media_player.wohnzimmer'] = {
+        ...states['media_player.wohnzimmer'],
+        state: 'playing',
+        last_changed: new Date().toISOString(),
+        last_updated: new Date().toISOString(),
+      };
+    });
+    await page.waitForTimeout(2500);
+
+    // Insel antippen → Detail-Ansicht; die Startseite hängt aus.
+    await root.locator('.island-pill').click({ timeout: 15000 });
+    await expect(root.locator('.detail-panel')).toHaveCount(1, { timeout: 15000 });
+    await expect(root.locator('.bento-zen')).toHaveCount(0);
+
+    // Zurück → Bento, nicht Ruhelage.
+    await root.locator('.back-button').first().click();
+    await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 15000 });
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'true');
+    expect(await visible(root, '.bento-zen-curtain')).toBe(false);
+  });
+
+  test('bei aufgeklappter Insel schaltet das Rad nichts um', async ({ page }) => {
+    // 🔑 Auf Scrollbarkeit zu prüfen reicht NICHT: mit wenigen Einträgen passt
+    // die Liste ganz hinein und scrollt nicht — die Geste gehört ihr trotzdem.
+    // Deshalb entscheidet der Zustand der Insel, nicht ihre Überlänge.
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    await updateHass(page, (states, entity) => {
+      for (let i = 0; i < 3; i++) {
+        states[`timer.k${i}`] = entity(`timer.k${i}`, `Timer ${i}`, 'active', {
+          duration: '0:15:00',
+          finishes_at: new Date(Date.now() + 400000 + i * 1000).toISOString(),
+        });
+      }
+    });
+    await page.waitForTimeout(2500);
+    await root.locator('.island-pill').click({ timeout: 15000 });
+    await expect(root.locator('.island-anchor[data-expanded="true"]')).toHaveCount(1, { timeout: 15000 });
+    await page.waitForTimeout(1200);
+
+    // Kurze Liste — sie scrollt nicht.
+    const scrollbar = await root.locator('.island-list').evaluate(
+      (el) => el.scrollHeight > el.clientHeight + 1,
+    );
+    expect(scrollbar).toBe(false);
+
+    const kasten = await root.locator('.island-list').boundingBox();
+    await page.mouse.move(kasten.x + kasten.width / 2, kasten.y + kasten.height / 2);
+    await page.mouse.wheel(0, 120);
+    await page.waitForTimeout(1500);
+
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'false');
+  });
+
   test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
     // 🔑 Ein `filter` auf einem Vorfahren — auch `blur(0px)` — macht ihn zur
     // „backdrop root": jedes `backdrop-filter` darunter sieht dann nur noch den
