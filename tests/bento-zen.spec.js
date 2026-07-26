@@ -100,7 +100,10 @@ test.describe('Zen-Startseite', () => {
     expect(inselOben).toBeLessThan(suchOben);
   });
 
-  test('eine Bewegung zurück führt in die Ruhe', async ({ page }) => {
+  test('zurück ist nicht mehr möglich — der Weg ist einbahnig', async ({ page }) => {
+    // 🔑 Wer aufgedeckt hat, ist im Bento und bleibt dort. Sonst könnte ein
+    // Scrollen nach oben in der fertigen Ansicht versehentlich wieder im
+    // Sperrbildschirm landen. Zurück führt nur das Verlassen der Ansicht.
     const root = await mountCard(page, { settings: ZEN_ON });
     await waitForZen(root);
     await root.locator('.main-container').hover();
@@ -108,9 +111,36 @@ test.describe('Zen-Startseite', () => {
     await page.mouse.wheel(0, 120);
     await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
 
-    await page.mouse.wheel(0, -120);
-    await expect.poll(() => visible(root, '.bento-zen-curtain'), { timeout: 15000 }).toBe(true);
-    expect(await visible(root, '.bento-cell--w1')).toBe(false);
+    await page.mouse.wheel(0, -200);
+    await page.waitForTimeout(1600);
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'true');
+    expect(await visible(root, '.bento-cell--w1')).toBe(true);
+    expect(await visible(root, '.bento-zen-curtain')).toBe(false);
+  });
+
+  test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
+    // 🔑 Ein `filter` auf einem Vorfahren — auch `blur(0px)` — macht ihn zur
+    // „backdrop root": jedes `backdrop-filter` darunter sieht dann nur noch den
+    // Inhalt dieses Vorfahren statt der Wand dahinter. Genau daran verlor
+    // Kachel 2 ihre Unschärfe gegenüber der klassischen Startseite (v1.1.2217).
+    // Deshalb wird hier die ganze Kette geprüft, nicht das Aussehen.
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    await root.locator('.main-container').hover();
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
+
+    const filterKette = await root.locator('.bento-cell--w2').evaluate((el) => {
+      const treffer = [];
+      let node = el;
+      while (node && node.nodeType === 1) {
+        const f = getComputedStyle(node).filter;
+        if (f && f !== 'none') treffer.push(`${node.className || node.tagName}: ${f}`);
+        node = node.parentElement || node.getRootNode()?.host;
+      }
+      return treffer;
+    });
+    expect(filterKette).toEqual([]);
   });
 
   test('der Nachlauf eines Trackpads wirft nichts um', async ({ page }) => {

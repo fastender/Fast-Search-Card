@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2218 - 2026-07-25
+
+**Title:** 🔒 Zen start: the reveal is one-way, and the tiles keep their glass
+
+- **Once revealed, it stays revealed.** Scrolling back no longer returns to the lock screen. Inside the
+  dashboard the card now behaves exactly like the Classic start screen — you can scroll without the fear of
+  accidentally landing back in the resting state. The way back is the natural one: leave the view (open a
+  device, use the search) and come back, which resets it.
+
+- **Tile 2 lost its glass — an invisible `filter` was the cause.** The reveal faded the tiles in with a blur,
+  which left `filter: blur(0px)` on them afterwards. Any filter other than `none` turns an element into a
+  *backdrop root*: every `backdrop-filter` beneath it then samples only that element's own content instead of
+  the wall behind the card. The tiles therefore rendered flat compared to the Classic layout, most visibly on
+  the medium one. Blurring is gone from anything that carries glass — tiles, island, sidebar all fade by
+  opacity alone. Side by side, the tile now renders identically to Classic.
+
+- Two more tests: one wheels backwards after revealing and demands nothing changes, one walks the whole
+  ancestor chain above tile 2 and requires every computed `filter` to be `none` — checking the cause, not the
+  appearance. All 99 pass.
+
 ## Version 1.1.2217 - 2026-07-25
 
 **Title:** 🩹 Zen start: centred on the phone, and scrolling the island no longer flips the screen
