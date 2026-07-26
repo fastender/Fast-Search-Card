@@ -210,21 +210,23 @@ test.describe('Zen-Startseite', () => {
     await waitForZen(root);
     await expect(root.locator('.bento-zen-search')).toHaveCount(1);
 
-    // Takt 3 s — in 14 Stichproben à 800 ms müssen alle vier vorkommen.
+    // Standzeit 3,5 s, dazwischen wird getippt — deshalb nur die VOLLEN
+    // Beschriftungen sammeln; „Ger" ist ein Zwischenstand, kein Ergebnis.
+    const ziel = ['Aktionen', 'Benutzerdefiniert', 'Geräte', 'Sensoren'];
     const gesehen = new Set();
-    for (let i = 0; i < 14; i++) {
-      gesehen.add((await root.locator('.bento-zen-cat-label').innerText()).trim());
-      await page.waitForTimeout(800);
+    for (let i = 0; i < 40; i++) {
+      const t = (await root.locator('.bento-zen-cat-label').innerText()).trim();
+      if (ziel.includes(t)) gesehen.add(t);
+      if (gesehen.size === 4) break;
+      await page.waitForTimeout(500);
     }
-    expect([...gesehen].sort()).toEqual(['Aktionen', 'Benutzerdefiniert', 'Geräte', 'Sensoren']);
+    expect([...gesehen].sort()).toEqual(ziel);
 
-    // 🔑 Immer nur EINE Zeile. Hinge das Aufräumen am Ende der Animation,
-    // stapelten sich in einem Hintergrund-Tab alle vier übereinander — im
-    // Mockup ist genau das passiert.
-    await expect(root.locator('.bento-zen-cat-inner')).toHaveCount(1);
+    // Der Schreibbalken blinkt durchgehend — er verschwindet nie.
+    await expect(root.locator('.bento-zen-caret')).toHaveCount(1);
   });
 
-  test('die Leiste hat feste Breite und springt beim Wechsel nicht', async ({ page }) => {
+  test('die Leiste hat feste Breite und springt beim Tippen nicht', async ({ page }) => {
     // 🔑 Sie sitzt in einer Spalte, deren Breite der GRUSS bestimmt. Mit
     // `width: 100%` wäre sie je nach Spruch mal 537, mal 610 px breit — und
     // spränge bei jedem Kategoriewechsel.
@@ -239,21 +241,49 @@ test.describe('Zen-Startseite', () => {
     expect(vorher).toBe(560);
   });
 
-  test('ein Tipper springt direkt in diese Kategorie — ohne Bento', async ({ page }) => {
+  test('ein Tipper öffnet die ZULETZT gewählte Kategorie, nicht die gezeigte', async ({ page }) => {
+    // 🔑 Die Leiste zeigt reihum alle vier — sie ist eine Anzeige, kein
+    // Umschalter. Geöffnet wird, wo der Nutzer zuletzt war; beim ersten Start
+    // ist das die Vorgabe der Suche (Geräte).
     const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
     await waitForZen(root);
 
-    const kategorie = (await root.locator('.bento-zen-cat-label').innerText()).trim();
-    await root.locator('.bento-zen-search').click();
+    // Warten, bis die Leiste NICHT mehr auf „Geräte" steht — dann ist gezeigt
+    // und zuletzt-gewählt garantiert verschieden.
+    await expect
+      .poll(async () => (await root.locator('.bento-zen-cat-label').innerText()).trim(),
+        { timeout: 20000 })
+      .toMatch(/^(Sensoren|Aktionen|Benutzerdefiniert)$/);
 
-    // Das Suchpanel ist offen, in genau dieser Kategorie (der Platzhalter des
-    // Eingabefelds trägt ihren Namen) …
+    await root.locator('.bento-zen-search').click();
     const feld = root.locator('input.search-input');
     await expect(feld).toBeVisible({ timeout: 10000 });
-    await expect(feld).toHaveAttribute('placeholder', new RegExp(kategorie, 'i'));
-    // … und das Bento wurde übersprungen.
+    // Geöffnet ist „Geräte" — die zuletzt gewählte, nicht die angezeigte.
+    await expect(feld).toHaveAttribute('placeholder', /Geräte/i);
+    // Und das Bento wurde übersprungen.
     await expect(root.locator('.bento-zen')).toHaveCount(0);
     await expect(root.locator('.bento-cell--w1')).toHaveCount(0);
+  });
+
+  test('die Leiste trägt das Glas aus den Einstellungen', async ({ page }) => {
+    // 🔑 Über `glass-panel` — dieselbe Kette wie das Suchpanel, damit Blur und
+    // Sättigung aus dem Aussehen-Bereich automatisch greifen. Eine eigene,
+    // fest verdrahtete `backdrop-filter` würde die Einstellungen ignorieren.
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    const leiste = root.locator('.bento-zen-search');
+    expect(await leiste.evaluate((el) => el.classList.contains('glass-panel'))).toBe(true);
+    const kette = await leiste.evaluate((el) => getComputedStyle(el, '::before').backdropFilter);
+    expect(kette).toContain('blur(');
+    expect(kette).toContain('saturate(');
+    // Maße 1:1 aus der echten eingeklappten Leiste.
+    expect(await leiste.evaluate((el) => el.offsetHeight)).toBe(72);
+    expect(await leiste.evaluate((el) => getComputedStyle(el).borderRadius)).toBe('35px');
+    const label = await root.locator('.bento-zen-cat-label').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return `${cs.fontSize}/${cs.fontWeight}`;
+    });
+    expect(label).toBe('24px/400');
   });
 
   test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
@@ -339,36 +369,52 @@ test.describe('Zen-Startseite', () => {
     await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'false');
   });
 
-  test('auf dem Telefon steht die Ruhelage mittig im Bild', async ({ page }) => {
-    // 🔑 Der Vorhang liegt über der GANZEN Karte. Auf dem Telefon ist das Raster
-    // gestapelt über 1400 px hoch — läge es in der Ruhe im Fluss, zentrierte
-    // sich der Vorhang in dessen Mitte und stünde weit unter dem Bildrand.
+  test('auf dem Telefon steht alles im Bild und in der richtigen Ordnung', async ({ page }) => {
+    // 🔑 Seit v1.1.2222 ist der Aufbau von OBEN verankert statt als Gruppe
+    // mittig: Uhr und Datum oben, der Gruß dicht über der Leiste (er gehört
+    // inhaltlich zu ihr), die Insel mit Abstand darunter, der Griff am Rand.
+    // Geprüft wird deshalb die Reihenfolge und dass nichts aus dem Bild ragt —
+    // nicht mehr eine Mitte.
     await page.setViewportSize({ width: 390, height: 844 });
     const root = await mountCard(page, { settings: ZEN_ON });
     await waitForZen(root);
 
-    const rasterHoehe = await root.locator('.bento-zen .bento-grid').evaluate(
+    expect(await root.locator('.bento-zen .bento-grid').evaluate(
       (el) => Math.round(el.getBoundingClientRect().height),
-    );
-    expect(rasterHoehe).toBe(0);
+    )).toBe(0);
 
-    // Uhr, Gruß und Insel liegen vollständig im sichtbaren Bereich der Karte.
     const lage = await root.locator('.main-container').evaluate((c) => {
       const cb = c.getBoundingClientRect();
-      const a = c.querySelector('.bento-zen-above').getBoundingClientRect();
-      const i = c.querySelector('.island-holder').getBoundingClientRect();
+      const y = (s, kante = 'top') => {
+        const e = c.querySelector(s);
+        return Math.round(e.getBoundingClientRect()[kante] - cb.top);
+      };
       return {
-        oben: Math.round(a.top - cb.top),
-        unten: Math.round(i.bottom - cb.top),
+        datum: y('.bento-zen-date'),
+        uhr: y('.bento-zen-time'),
+        gruss: y('.bento-zen-greet'),
+        leiste: y('.bento-zen-search'),
+        leisteUnten: y('.bento-zen-search', 'bottom'),
+        insel: y('.island-holder'),
+        inselUnten: y('.island-holder', 'bottom'),
+        griff: y('.bento-zen-grip'),
         karte: Math.round(cb.height),
+        leisteBreit: Math.round(c.querySelector('.bento-zen-search').getBoundingClientRect().width),
+        karteBreit: Math.round(cb.width),
       };
     });
-    expect(lage.oben).toBeGreaterThan(0);
-    expect(lage.unten).toBeLessThan(lage.karte);
-    // Und die Gruppe sitzt ungefähr mittig (Toleranz: der Griff unten zieht
-    // sie ein Stück nach oben).
-    const mitte = (lage.oben + lage.unten) / 2;
-    expect(Math.abs(mitte - lage.karte / 2)).toBeLessThan(70);
+
+    // Reihenfolge von oben nach unten.
+    expect(lage.datum).toBeLessThan(lage.uhr);
+    expect(lage.uhr).toBeLessThan(lage.gruss);
+    expect(lage.gruss).toBeLessThan(lage.leiste);
+    expect(lage.leisteUnten).toBeLessThan(lage.insel);
+    expect(lage.inselUnten).toBeLessThan(lage.griff);
+    // Nichts ragt heraus …
+    expect(lage.datum).toBeGreaterThan(0);
+    expect(lage.griff).toBeLessThan(lage.karte);
+    // … und der Randabstand der Leiste beträgt 16 px auf jeder Seite.
+    expect(lage.karteBreit - lage.leisteBreit).toBe(32);
   });
 
   test('aufgedeckt ist es Pixel für Pixel die klassische Startseite', async ({ page }) => {

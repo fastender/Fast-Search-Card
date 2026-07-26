@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2222 - 2026-07-26
+
+**Title:** ⌨️ Zen start refined: typewriter categories, real glass, and a top-anchored composition
+
+- **The bar now carries the card's own glass.** It uses `glass-panel`, the same chain the search panel itself
+  uses, so the blur and saturation from Appearance apply automatically. Its measurements are 1:1 with the real
+  collapsed search bar — measured, not guessed: 72 px high, radius 35, symbol 24 px at x=21, label 24 px in
+  weight 400 at x=57. The filter button on the right is gone.
+
+- **The categories type themselves.** The old label is deleted character by character (25 ms each), the symbol
+  swaps in the gap where the line is empty, then the new one types itself (75 ms each) with a highlight sweeping
+  across the glass. The caret blinks continuously and never disappears. Dwell time 3.5 s.
+
+- **A tap opens the LAST chosen category, not the one on display.** The bar shows in turn what there is; where
+  it takes you is where you were. On a fresh card that is the search's own default.
+
+- **The composition is anchored at the top** instead of centred as a group: date and clock 16 px from the top,
+  then 120 px of air, the greeting (45 px, and the name now in the same weight as the phrase — it read like two
+  different typefaces before) sitting just 10 px above the bar because it belongs to it, the island 90 px
+  below, the grip 8 px off the bottom edge. On a phone the same order with tighter values and a 16 px inset on
+  each side of the bar.
+
+- **Everything appears in sequence**, visionOS style: date, clock and greeting arrive from depth with blur,
+  110 ms apart; bar, island and grip follow with a clear lag and **through opacity alone** — neither `filter`
+  nor `transform` on a glass surface, since both turn it into a backdrop root and would flatten its own glass
+  for the duration, exactly as the tiles lost theirs in v1.1.2217.
+
+- Two new tests: the bar carries `glass-panel` with a live blur chain and the 1:1 measurements; a tap lands in
+  the last chosen category while a different one is on display. All 106 pass.
+
 ## Version 1.1.2221 - 2026-07-26
 
 **Title:** 🔎 Zen start: the search bar joins the lock screen and cycles through the four categories
