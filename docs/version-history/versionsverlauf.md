@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2224 - 2026-07-26
+
+**Title:** 🎨 The favourites tile gets its colour
+
+- **The favourites tile now carries an Apple-red gradient** instead of grey glass — the same system red its heart
+  icon and its `brandColor` already use. It was the last large surface without a colour of its own while the
+  weather, calendar, todo and news tiles all wear theirs. The suggestions tile stays glass; the tint is keyed to
+  the favourites *widget*, not to the slot, so the colour follows the tile if it is moved.
+
+- **The obvious implementation did not work, and the reason is worth writing down.** The tint belongs on
+  `--glass-tint-bg`, the variable the glass `::before` paints — that would have kept the appearance blur chain
+  intact. The computed value contained the gradient; nothing was painted. That pseudo-element carries
+  `z-index: -1` and finds no stacking context above it, so it lands in a layer the wallpaper covers again.
+  Measured at the pixel: through the variable the tile centre stayed rgb(22,33,61), on the tile's own
+  `background` it becomes rgb(189,57,48). So the gradient sits on the tile and nearly covers — the blur behind
+  now only carries the edge.
+
+- **The footer line "Favourites" was raised in contrast** on the coloured tile only. It runs at an effective
+  0.49 white, which reads fine on grey glass and disappeared on the brighter red.
+
+- A test asserts the colour on the favourites tile and its absence on the suggestions tile, in both the classic
+  and the panel start screen — the tint hangs on a `data-widget-id` attribute in the JSX, and if that attribute
+  is ever dropped the gradient would vanish silently with a green build.
+
 ## Version 1.1.2223 - 2026-07-26
 
 **Title:** ✨ Zen start: island closer to the bar, a hover that lifts, and a highlight on the real search bar

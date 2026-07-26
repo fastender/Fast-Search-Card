@@ -81,6 +81,41 @@ test.describe('Bento-Startseite', () => {
     expect((await widgets(root).allInnerTexts())[0]).toContain('Integration');
   });
 
+  test('die Favoriten-Kachel trägt ihre Farbe, die Vorschläge nicht', async ({ page }) => {
+    // v1.1.2224: Die Farbe hängt an `data-widget-id="__favorites__"` — fällt das
+    // Attribut im JSX weg, verschwindet der Verlauf lautlos und kein Build merkt
+    // es. Geprüft wird deshalb der berechnete Hintergrund, und zwar in beiden
+    // Startseiten-Varianten: die Regel darf nicht an einem Layout hängen.
+    for (const layout of ['classic', 'panel']) {
+      const root = await mountCard(page, {
+        settings: {
+          ...BENTO_ON,
+          startScreen: {
+            bento: true,
+            bentoLayout: layout,
+            widgets: ['__favorites__', 'todos', '__suggestions__', 'news'],
+          },
+        },
+      });
+      await waitForBento(root, page, 0);
+
+      const farben = await page.evaluate(() => {
+        const behaelter = document.querySelectorAll('.main-container');
+        const c = behaelter[behaelter.length - 1];
+        const lies = (id) => {
+          const el = c.querySelector(`.bento-widget[data-widget-id="${id}"]`);
+          return el ? getComputedStyle(el).backgroundImage : null;
+        };
+        return { fav: lies('__favorites__'), sug: lies('__suggestions__') };
+      });
+
+      expect(farben.fav, `Layout ${layout}`).toContain('rgba(255, 69, 58');
+      // Die Vorschläge bleiben Glas — die Regel darf nicht über
+      // `.bento-widget--carousel` auf sie überschwappen.
+      expect(farben.sug || '', `Layout ${layout}`).not.toContain('rgba(255, 69, 58');
+    }
+  });
+
   test('ein Tipper auf eine Kachel öffnet ihre Ansicht', async ({ page }) => {
     const root = await mountCard(page, { settings: BENTO_ON });
     await waitForBento(root, page);
