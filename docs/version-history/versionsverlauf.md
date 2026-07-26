@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.2226 - 2026-07-26
+
+**Title:** 🔍 Four agents audited the card — three real bugs and the start screen's tick load
+
+An audit by four parallel agents (dead code, render paths, timers, refactoring). Every finding below was
+re-verified by hand before anything was touched; the reports also contained claims that did not survive that
+check.
+
+- **The shipped card was missing the tile size rules — and had been for a long time.** PurgeCSS keeps only the
+  classes it finds as literals in the source, but the tile size is assembled: `bento-widget--${size}`. The
+  extractor sees the fragment `bento-widget--` and never the finished name, so `--large`, `--medium` and
+  `--small` were dropped from the production CSS. All four tiles fell back to the base 16 px padding and 24 px
+  radius instead of their intended sizes. In development the CSS is not purged, which is exactly why this never
+  showed up in any screenshot. Proven against the built bundle: those three classes appear zero times, while
+  statically written neighbours like `bento-widget--carousel` appear four times. `/^bento/` is now on the
+  safelist.
+
+- **A hook sat behind an early return.** In `UniversalControlsTab` the `useRef` that stabilises the ring
+  configuration stood 160 lines below the early return for energy devices, so it was never called for that
+  domain. Harmless while an instance keeps its domain — but if the detail view switches from an energy device to
+  another device at the same tree position, the hook order shifts and Preact assigns state to the wrong hooks.
+
+- **`initialTab` never came out of its hook.** The state was declared, but instead of being returned it had
+  landed as extra arguments inside the `useState` call for the language, complete with a leftover note to
+  "add a comma if needed". `useState` ignores extra arguments silently, so everything kept building, and
+  `SearchField` destructured two `undefined`s. Consequence: tapping an action in a device's context tab hit
+  `setInitialTab(...)` and threw, so the two lines below it — open the detail view, record the action — never
+  ran. The test house has no scenes or scripts, which is why no test caught it.
+
+- **The notification centre closed on every click.** It decided "click was outside" with `contains(e.target)`.
+  Inside a shadow root the browser rewrites `e.target` for document-level listeners to the card host, so that
+  test is always true — including for clicks on the panel's own rows. The same mistake the island fixed in
+  v1.1.2207, and the harness cannot catch it because it mounts without a shadow root.
+
+- **The start screen was the only view riding the raw tick.** It re-rendered on every `setHass` — bursts of up
+  to 60 per second — although it never reads `hass` itself and only passes it to the tiles. Now throttled to one
+  second. Measured: 20 ticks produce 5 DOM mutations instead of one per tick. The remaining five come from the
+  tiles, whose comparator still tests `devices` by identity; that change carries more risk and is not in this
+  release.
+
+- **Two smaller ones on the same screen.** The reveal listeners ran their expensive check — a `querySelector`
+  plus a walk up the ancestors reading `getComputedStyle` and `scrollHeight`, which forces layout — on every
+  wheel tick, and only afterwards asked whether there was anything left to reveal. While scrolling the device
+  list that is 60–120 forced layouts a second for a foregone answer; measured after the fix: zero. And the clock
+  no longer ticks once the curtain is invisible.
+
+- **The search results pipeline no longer runs behind the closed curtain.** Two full clone passes over every
+  device were built on each entity batch for the category bar — which is not rendered at all until the panel is
+  expanded.
+
+- **252 lines of dead CSS removed**, all of it predating today: a generic rich-widget base layer no widget ever
+  used, plus a few orphaned news and calendar rules. Every class was checked individually against the source
+  before cutting — and the first attempt did cut too much, taking the tail of a live rule with it. That is what
+  the snapshot was for.
+
 ## Version 1.1.2225 - 2026-07-26
 
 **Title:** 🧹 One start screen: classic and panel removed
