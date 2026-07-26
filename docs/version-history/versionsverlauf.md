@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2221 - 2026-07-26
+
+**Title:** 🔎 Zen start: the search bar joins the lock screen and cycles through the four categories
+
+- **The real collapsed search bar now sits above the island** — same 72 px height, same glass, category symbol
+  on the left, filter button on the right. It cycles on its own through **Devices · Sensors · Actions ·
+  Custom**, one every three seconds. The old line sinks away, the new one arrives from above, and a highlight
+  sweeps across the glass as it lands.
+
+- **Tapping it jumps straight into that category.** The search panel opens with the shown category active and
+  its subcategory chips ready; the Bento is skipped entirely. Only on the way back does the dashboard appear.
+
+- Two lessons went straight from the mock-up into the code. The change is driven by CSS transitions and a
+  keyed remount, **never by waiting for an animation to finish** — in a background tab animations never
+  complete, and a cleanup hanging off them piles every label on top of the previous one, which is exactly what
+  the mock-up did. And the bar carries a fixed 560 px width instead of `100%`: it lives in a column sized by
+  the greeting, so a percentage width would make it 537 px for one phrase and 610 px for the next, jumping at
+  every change. On a phone it takes the full card width instead.
+
+- Three new tests: all four categories appear within one cycle and only ever one label exists; the width does
+  not move across a change; a tap opens the panel in that category with no Bento in sight. All 105 pass.
+
 ## Version 1.1.2220 - 2026-07-26
 
 **Title:** 🔓 Zen start: using the card counts as unlocking, and an open island keeps the wheel

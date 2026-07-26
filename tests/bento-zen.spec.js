@@ -205,6 +205,57 @@ test.describe('Zen-Startseite', () => {
     await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'false');
   });
 
+  test('die Suchleiste wechselt durch alle vier Kategorien', async ({ page }) => {
+    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
+    await waitForZen(root);
+    await expect(root.locator('.bento-zen-search')).toHaveCount(1);
+
+    // Takt 3 s — in 14 Stichproben à 800 ms müssen alle vier vorkommen.
+    const gesehen = new Set();
+    for (let i = 0; i < 14; i++) {
+      gesehen.add((await root.locator('.bento-zen-cat-label').innerText()).trim());
+      await page.waitForTimeout(800);
+    }
+    expect([...gesehen].sort()).toEqual(['Aktionen', 'Benutzerdefiniert', 'Geräte', 'Sensoren']);
+
+    // 🔑 Immer nur EINE Zeile. Hinge das Aufräumen am Ende der Animation,
+    // stapelten sich in einem Hintergrund-Tab alle vier übereinander — im
+    // Mockup ist genau das passiert.
+    await expect(root.locator('.bento-zen-cat-inner')).toHaveCount(1);
+  });
+
+  test('die Leiste hat feste Breite und springt beim Wechsel nicht', async ({ page }) => {
+    // 🔑 Sie sitzt in einer Spalte, deren Breite der GRUSS bestimmt. Mit
+    // `width: 100%` wäre sie je nach Spruch mal 537, mal 610 px breit — und
+    // spränge bei jedem Kategoriewechsel.
+    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
+    await waitForZen(root);
+    const messe = () => root.locator('.bento-zen-search').evaluate(
+      (el) => Math.round(el.getBoundingClientRect().width),
+    );
+    const vorher = await messe();
+    await page.waitForTimeout(3400);   // mindestens ein Wechsel
+    expect(await messe()).toBe(vorher);
+    expect(vorher).toBe(560);
+  });
+
+  test('ein Tipper springt direkt in diese Kategorie — ohne Bento', async ({ page }) => {
+    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
+    await waitForZen(root);
+
+    const kategorie = (await root.locator('.bento-zen-cat-label').innerText()).trim();
+    await root.locator('.bento-zen-search').click();
+
+    // Das Suchpanel ist offen, in genau dieser Kategorie (der Platzhalter des
+    // Eingabefelds trägt ihren Namen) …
+    const feld = root.locator('input.search-input');
+    await expect(feld).toBeVisible({ timeout: 10000 });
+    await expect(feld).toHaveAttribute('placeholder', new RegExp(kategorie, 'i'));
+    // … und das Bento wurde übersprungen.
+    await expect(root.locator('.bento-zen')).toHaveCount(0);
+    await expect(root.locator('.bento-cell--w1')).toHaveCount(0);
+  });
+
   test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
     // 🔑 Ein `filter` auf einem Vorfahren — auch `blur(0px)` — macht ihn zur
     // „backdrop root": jedes `backdrop-filter` darunter sieht dann nur noch den
@@ -275,8 +326,12 @@ test.describe('Zen-Startseite', () => {
     // Kein `hover()`: Playwright wartet dort auf eine Ruhe, die eine tickende
     // Insel nicht bietet. Die Maus direkt hinfahren ist ohnehin näher an dem,
     // was geprüft werden soll — ein Rad an genau dieser Stelle.
+    // 🔑 Nicht in die MITTE der Liste zielen: seit die Suchleiste dazugekommen
+    // ist, sitzt die Insel tiefer, und bei 720 px Fensterhöhe ragt die
+    // aufgeklappte Liste unten heraus — der Zeiger landete außerhalb des
+    // Fensters und das Rad ging ins Leere. Der obere Bereich ist immer sichtbar.
     const kasten = await liste.boundingBox();
-    await page.mouse.move(kasten.x + kasten.width / 2, kasten.y + kasten.height / 2);
+    await page.mouse.move(kasten.x + kasten.width / 2, kasten.y + 40);
     await page.mouse.wheel(0, 120);
     await page.waitForTimeout(1200);
 
