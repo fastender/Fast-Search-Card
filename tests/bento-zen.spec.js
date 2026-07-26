@@ -118,6 +118,28 @@ test.describe('Zen-Startseite', () => {
     expect(await visible(root, '.bento-zen-curtain')).toBe(false);
   });
 
+  test('aus der Suche zurück landet man im Bento, nicht im Sperrbildschirm', async ({ page }) => {
+    // 🔑 Die Ansicht hängt bei jedem Ausflug aus — Suche auf, Gerät öffnen. Setzte
+    // sie sich dabei zurück, müsste man nach jedem Zurück erneut aufdecken. Genau
+    // das passierte bis v1.1.2218 (`resetZen` beim Aushängen).
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    await root.locator('.main-container').hover();
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
+
+    // Suche öffnen — die Startseite hängt aus …
+    await root.locator('input.search-input').click();
+    await expect(root.locator('.bento-zen')).toHaveCount(0, { timeout: 10000 });
+
+    // … und beim Zurück steht wieder das Bento, nicht die Ruhelage.
+    await root.locator('.category-icon').click();
+    await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 10000 });
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'true');
+    await expect.poll(() => visible(root, '.bento-cell--w1'), { timeout: 10000 }).toBe(true);
+    expect(await visible(root, '.bento-zen-curtain')).toBe(false);
+  });
+
   test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
     // 🔑 Ein `filter` auf einem Vorfahren — auch `blur(0px)` — macht ihn zur
     // „backdrop root": jedes `backdrop-filter` darunter sieht dann nur noch den

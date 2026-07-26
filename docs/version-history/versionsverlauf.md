@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2219 - 2026-07-25
+
+**Title:** 🔙 Zen start: coming back from the search lands in the Bento, not on the lock screen
+
+- **Revealing now holds for the session.** The Zen view unmounts on every excursion — opening the search,
+  looking at a device — and it used to reset itself while doing so. Tapping back therefore dropped you onto the
+  lock screen again and you had to reveal a second time. It no longer resets: once revealed, the card stays in
+  the Bento until it is loaded afresh.
+
+- That makes the resting state what it should be — the screen you meet when the card loads, not something you
+  keep bumping into. If it should also return after a while of nobody touching the tablet, that is the idle
+  fallback of the Ambient mode (roadmap #9); the store keeps its `resetZen` entry point ready for it.
+
+- A new test reveals, opens the search, taps back and demands the Bento — tiles visible, curtain gone,
+  state still revealed. All 100 pass.
+
 ## Version 1.1.2218 - 2026-07-25
 
 **Title:** 🔒 Zen start: the reveal is one-way, and the tiles keep their glass
