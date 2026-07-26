@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2223 - 2026-07-26
+
+**Title:** ✨ Zen start: island closer to the bar, a hover that lifts, and a highlight on the real search bar
+
+- **The island moved up.** 90 px below the bar left it drifting in empty space; at 44 px it reads as belonging
+  to the bar without being glued to it.
+
+- **Hovering the bar lifts it slightly** — 1.5 % scale on a long visionOS curve, no colour change. Deliberately
+  a `transform` and not an `opacity`: any opacity below 1 turns the element into a *backdrop root*, and its own
+  glass would then sample only itself instead of the wall behind the card. Verified by measurement — the glass
+  chain is byte-identical before and during hover. The press state moved from opacity to a 0.995 scale for the
+  same reason.
+
+- **A highlight sweeps the real search bar** as it appears during the reveal, the same signature the lock
+  screen uses on every category change. Implemented as a `::after` that only comes into being with the state
+  change, so its animation runs exactly once and needs no cleanup.
+
 ## Version 1.1.2222 - 2026-07-26
 
 **Title:** ⌨️ Zen start refined: typewriter categories, real glass, and a top-anchored composition
