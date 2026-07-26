@@ -10,9 +10,9 @@
 //      hängenbleiben kann — und ein zweiter Radstoß direkt danach darf nichts
 //      umwerfen (Trackpad-Nachlauf).
 //   3. Zurück führt zurück.
-//   4. Aufgedeckt ist es die KLASSISCHE Startseite: dieselbe echte `.search-row`
-//      an derselben Stelle, dasselbe Raster. Nichts springt dabei.
-//   5. Die Vorgabe ist unverändert klassisch.
+//   4. Aufgedeckt steht alles auf den Maßen der früheren klassischen Startseite:
+//      dieselbe echte `.search-row` an derselben Stelle, dasselbe Raster.
+//   5. Es ist die Startseite — ohne jede Umstellung.
 //
 // ⚠️ Zeiten: die Treppe läuft bis ~1580 ms (Kacheln zuletzt). Die Polls hier
 // warten großzügig — lieber langsam grün als knapp rot.
@@ -20,8 +20,9 @@
 import { test, expect } from '@playwright/test';
 import { mountCard, updateHass } from './harness/card.js';
 
+// v1.1.2225: kein `bentoLayout` mehr — der Zen-Start IST die Startseite.
 const ZEN_ON = {
-  startScreen: { bento: true, bentoLayout: 'zen' },
+  startScreen: { bento: true },
   appearance: { statsBarEnabled: true },
 };
 
@@ -45,13 +46,15 @@ async function waitForZen(root) {
 }
 
 test.describe('Zen-Startseite', () => {
-  test('ohne Umstellung bleibt es bei der klassischen Ansicht', async ({ page }) => {
+  test('mit eingeschaltetem Bento ist es der Zen-Start — ohne jede Umstellung', async ({ page }) => {
+    // v1.1.2225: Vorher war das der Nachweis, dass die Vorgabe klassisch bleibt.
+    // Die Wahl ist weg, also ist es jetzt der Nachweis, dass es keine mehr gibt:
+    // ein gespeichertes `bentoLayout` darf nichts bewirken.
     const root = await mountCard(page, {
-      settings: { startScreen: { bento: true }, appearance: { statsBarEnabled: true } },
+      settings: { startScreen: { bento: true, bentoLayout: 'classic' }, appearance: { statsBarEnabled: true } },
     });
-    await expect(root.locator('.bento-grid--desktop')).toHaveCount(1, { timeout: 15000 });
-    await expect(root.locator('.bento-zen')).toHaveCount(0);
-    await expect(root.locator('input.search-input')).toBeVisible();
+    await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 15000 });
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'false');
   });
 
   test('die Ruhelage zeigt Uhr, Gruß und die Insel — sonst nichts', async ({ page }) => {
@@ -417,15 +420,38 @@ test.describe('Zen-Startseite', () => {
     expect(lage.karteBreit - lage.leisteBreit).toBe(32);
   });
 
-  test('aufgedeckt ist es Pixel für Pixel die klassische Startseite', async ({ page }) => {
+  test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {
     // 🔑 DIE Zusage dieser Ansicht: nach der Animation darf sich nichts anders
-    // anfühlen als vorher. Deshalb wird hier nicht „ungefähr gleich" geprüft,
-    // sondern die Lage und Größe von Raster, allen drei Zellen UND der Suchzeile
-    // gegen einen frischen klassischen Aufbau gestellt — auf beiden Größen.
+    // anfühlen als vorher. Geprüft wird nicht „ungefähr gleich", sondern Lage und
+    // Größe von Raster, allen drei Zellen UND der Suchzeile — auf beiden Größen.
     //
     // Anlass: v1.1.2215 hatte dem Raster `height: 576px` aufgezwungen. Auf dem
     // Desktop fiel das nicht auf (dort stimmt der Wert), auf dem Telefon quetschte
     // es die vier gestapelten Kacheln aus 1412 px in 576 px.
+    //
+    // v1.1.2225: Bis hierher stellte der Test einen frischen KLASSISCHEN Aufbau
+    // daneben. Den gibt es nicht mehr, also stehen die Maße jetzt fest. Es sind
+    // genau die klassischen: dieselbe Prüfung war in v1.1.2224 gegen die echte
+    // klassische Ansicht grün, und die Kette rechnet auf 156 = 60 (Insel-Platz)
+    // + 72 (Suchzeile) + 24 (Abstand) auf. Ändert sich eine Zahl, muss jemand
+    // begründen, warum — nicht ein Vergleichspartner mitwandern.
+    const ERWARTET = {
+      1400: {
+        grid: [0, 156, 1200, 576],
+        w1:   [0, 156, 681, 576],
+        w2:   [697, 156, 503, 316],
+        w34:  [697, 488, 503, 244],
+        row:  [0, 60, 1200, 72],
+      },
+      390: {
+        grid: [0, 141, 350, 1412],
+        w1:   [0, 141, 350, 422],
+        w2:   [0, 575, 350, 422],
+        w34:  [0, 1009, 350, 434],
+        row:  [0, 60, 350, 57],
+      },
+    };
+
     const geo = (root) => root.locator('.main-container').evaluate((c) => {
       const cb = c.getBoundingClientRect();
       const m = (sel) => {
@@ -439,24 +465,16 @@ test.describe('Zen-Startseite', () => {
                w34: m('.bento-cell--w34'), row: m('.search-row') };
     });
 
-    for (const [breite, hoehe] of [[1400, 900], [390, 844]]) {
-      await page.setViewportSize({ width: breite, height: hoehe });
-
-      let root = await mountCard(page, {
-        settings: { startScreen: { bento: true }, appearance: { statsBarEnabled: true } },
-      });
-      await expect(root.locator('.bento-grid')).toHaveCount(1, { timeout: 15000 });
-      await page.waitForTimeout(1500);
-      const klassisch = await geo(root);
-
-      root = await mountCard(page, { settings: ZEN_ON });
+    for (const breite of [1400, 390]) {
+      await page.setViewportSize({ width: breite, height: breite === 1400 ? 900 : 844 });
+      const root = await mountCard(page, { settings: ZEN_ON });
       await waitForZen(root);
       await root.locator('.main-container').hover();
       await page.mouse.wheel(0, 120);
       await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
       await page.waitForTimeout(400);
 
-      expect(await geo(root), `Breite ${breite}`).toEqual(klassisch);
+      expect(await geo(root), `Breite ${breite}`).toEqual(ERWARTET[breite]);
     }
   });
 });

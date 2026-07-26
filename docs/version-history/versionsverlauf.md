@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2225 - 2026-07-26
+
+**Title:** 🧹 One start screen: classic and panel removed
+
+- **The Zen start is now the only start screen.** The classic layout and the panel layout are gone, along with
+  the "Layout" row in the settings that chose between them. Anyone who had classic selected now opens on the
+  Zen start — that is the point of the change, but it is worth saying plainly: the tiles are one gesture away
+  where they used to be immediately visible. The bento switch itself is untouched; turned off, the card still
+  opens straight into the search list.
+
+- **A stored `startScreen.bentoLayout` is ignored rather than migrated.** It stays in local storage doing
+  nothing, so a downgrade loses no setting.
+
+- **What was deleted and what deliberately survived.** `BentoStartView.jsx`, `BentoPanelView.jsx/.css` and
+  `BentoPanelHead.jsx` are gone. The classic view's stylesheet is NOT — it carries the grid, the cells, the
+  carousel and the tile colours that the Zen start uses for exactly the same markup. It moved to
+  `bento/BentoGrid.css` and is now pulled in by the view that actually needs it; deleting it along with its
+  component would have stripped every tile of its styling while the build stayed green.
+
+- **The pixel-parity test lost its reference and got absolute numbers instead.** It used to mount a fresh
+  classic start screen and compare the revealed Zen against it. Those measurements are now frozen in the test —
+  they are the classic ones, since the same comparison was green in v1.1.2224, and the chain still adds up:
+  156 = 60 (island slot) + 72 (search row) + 24 (gap), 576 tall on the desktop and 1412 stacked on the phone.
+
+- **The test harness learned to unlock.** Tests that reach the card through the search bar were clicking a
+  field the Zen curtain covers — and because the curtain reports the field as visible, that surfaced as a
+  timeout rather than a clear failure. A shared `revealIfLocked` helper performs the one gesture first, and
+  only when the resting state is actually present, so tests that run without the start screen are unaffected.
+
 ## Version 1.1.2224 - 2026-07-26
 
 **Title:** 🎨 The favourites tile gets its colour

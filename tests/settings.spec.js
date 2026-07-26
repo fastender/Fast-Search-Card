@@ -10,7 +10,7 @@
 // richtiger Titel, ein Zurück-Button, und Inhalt ist da.
 
 import { test, expect } from '@playwright/test';
-import { mountCard } from './harness/card.js';
+import { mountCard, revealIfLocked } from './harness/card.js';
 
 /**
  * Öffnet die Einstellungen über die Suche (System-Entities sind auffindbar).
@@ -20,6 +20,11 @@ import { mountCard } from './harness/card.js';
  * wird auf den INHALT gewartet (mehrere Menüzeilen), nicht auf eine feste Zeit.
  */
 async function openSettings(page, root) {
+  // v1.1.2225: Bei eingeschalteter Startseite liegt die Suche hinter EINER
+  // Bewegung — sonst fängt der Zen-Vorhang den Klick ab (er meldet das Feld als
+  // sichtbar, deshalb lief der Test in einen Timeout statt in einen klaren
+  // Fehler). Tests ohne Startseite bleiben unberührt.
+  await revealIfLocked(page, root);
   const input = root.locator('input.search-input');
   await input.click();
   await input.fill('Einstellungen');

@@ -14,6 +14,9 @@
 // alle dieser Sonderbehandlungen weg — der Rest steckt hier in Helfern, damit
 // er nicht in jeden Test kopiert wird.
 
+// `expect` wird hier für die Warte-Zusagen der Helfer gebraucht (revealStart).
+import { expect } from '@playwright/test';
+
 const BASE = process.env.FSC_BASE_URL || 'http://localhost:5173';
 
 /** Minimales, aber vollständiges hass-Objekt. Ergänzungen via `patch`. */
@@ -270,6 +273,37 @@ export async function islandText(page) {
   });
 }
 
+/**
+ * Deckt die Startseite auf: EINE Bewegung nach unten, dann warten bis die
+ * Kacheln wirklich anfassbar sind.
+ *
+ * v1.1.2225: Seit der Zen-Start die einzige Startseite ist, liegen die Kacheln
+ * beim Mounten im Ruhezustand — im DOM, aber mit `opacity: 0` und
+ * `pointer-events: none`. Wer sie ohne Aufdecken anklickt, trifft nichts; wer
+ * ihre Geometrie misst, misst auf dem Telefon eine Höhe von 0. Textprüfungen
+ * gingen auch ohne, sagen dann aber nichts über das, was der Nutzer sieht.
+ *
+ * 🔑 Die Treppe läuft bis ~1580 ms (die große Kachel zuletzt). Deshalb wird auf
+ * die ZUSAGE gewartet — anfassbar — und nicht auf eine Zeit.
+ */
+export async function revealIfLocked(page, root) {
+  if (await root.locator('.bento-zen[data-revealed="false"]').count()) {
+    await revealStart(page, root);
+  }
+}
+
+export async function revealStart(page, root) {
+  await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 15000 });
+  // In die Mitte fahren, damit das Rad nicht in der Insel-Liste landet.
+  const box = await root.locator('.bento-zen').boundingBox();
+  if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.75);
+  await page.mouse.wheel(0, 120);
+  await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'true', { timeout: 15000 });
+  await expect.poll(() => root.locator('.bento-cell--w1').evaluate(
+    (el) => getComputedStyle(el).pointerEvents !== 'none' && parseFloat(getComputedStyle(el).opacity) > 0.9,
+  ), { timeout: 15000 }).toBe(true);
+}
+
 /** Die Sub-View mit diesem Navbar-Titel (robust gegen Exit-Geister). */
 export function viewByTitle(root, title) {
   return root.locator('.ios-view-wrapper').filter({
@@ -292,6 +326,11 @@ export function clearServiceCalls(page) {
  * @returns {Promise<import('@playwright/test').Locator>} die Detail-Tafel
  */
 export async function openDevice(root, page, query, name) {
+  // v1.1.2225: Mit dem Zen-Start liegt die Suchzeile hinter EINER Bewegung. Wer
+  // ein Gerät „über die Suche" öffnet, muss also erst aufdecken — sonst fängt
+  // der Vorhang den Klick ab. Nur wenn die Ruhelage wirklich da ist, damit Tests
+  // ohne Startseite unberührt bleiben.
+  await revealIfLocked(page, root);
   const input = root.locator('input.search-input');
   await input.click();
   await input.fill(query);

@@ -1,7 +1,11 @@
 // tests/bento.spec.js
 //
-// v1.1.2197: Die Bento-Startseite — der Bildschirm, den der Nutzer beim Öffnen
-// der Karte als Erstes sieht, und bis hierher ungedeckt.
+// v1.1.2197: Die Bento-Kacheln — der Inhalt der Startseite.
+//
+// v1.1.2225: Seit die Startseite der Zen-Start ist, liegen die Kacheln beim
+// Öffnen im Ruhezustand. Jeder Test deckt deshalb zuerst auf (`revealStart`) und
+// prüft danach — sonst prüft er Kacheln, die der Nutzer noch nicht sieht. Die
+// Choreografie des Aufdeckens selbst steht in bento-zen.spec.js.
 //
 // Geprüft wird, was den Bildschirm ausmacht: dass vier Kacheln in der
 // eingestellten Reihenfolge erscheinen, dass eine geänderte Belegung wirklich
@@ -9,7 +13,7 @@
 // Kacheln sich mit Home Assistant mitbewegen statt beim Startwert zu stehen.
 
 import { test, expect } from '@playwright/test';
-import { mountCard, updateHass } from './harness/card.js';
+import { mountCard, updateHass, revealStart } from './harness/card.js';
 
 const BENTO_ON = { startScreen: { bento: true }, appearance: { statsBarEnabled: true } };
 
@@ -31,6 +35,7 @@ const widgets = (root) => root.locator('.bento-widget');
  */
 async function waitForBento(root, page, slot = 0) {
   await expect(widgets(root)).toHaveCount(4, { timeout: 15000 });
+  await revealStart(page, root);
   await expect
     .poll(async () => {
       const text = (await widgets(root).allInnerTexts())[slot] || '';
@@ -84,36 +89,29 @@ test.describe('Bento-Startseite', () => {
   test('die Favoriten-Kachel trägt ihre Farbe, die Vorschläge nicht', async ({ page }) => {
     // v1.1.2224: Die Farbe hängt an `data-widget-id="__favorites__"` — fällt das
     // Attribut im JSX weg, verschwindet der Verlauf lautlos und kein Build merkt
-    // es. Geprüft wird deshalb der berechnete Hintergrund, und zwar in beiden
-    // Startseiten-Varianten: die Regel darf nicht an einem Layout hängen.
-    for (const layout of ['classic', 'panel']) {
-      const root = await mountCard(page, {
-        settings: {
-          ...BENTO_ON,
-          startScreen: {
-            bento: true,
-            bentoLayout: layout,
-            widgets: ['__favorites__', 'todos', '__suggestions__', 'news'],
-          },
-        },
-      });
-      await waitForBento(root, page, 0);
+    // es. Geprüft wird deshalb der berechnete Hintergrund.
+    const root = await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: { bento: true, widgets: ['__favorites__', 'todos', '__suggestions__', 'news'] },
+      },
+    });
+    await waitForBento(root, page, 0);
 
-      const farben = await page.evaluate(() => {
-        const behaelter = document.querySelectorAll('.main-container');
-        const c = behaelter[behaelter.length - 1];
-        const lies = (id) => {
-          const el = c.querySelector(`.bento-widget[data-widget-id="${id}"]`);
-          return el ? getComputedStyle(el).backgroundImage : null;
-        };
-        return { fav: lies('__favorites__'), sug: lies('__suggestions__') };
-      });
+    const farben = await page.evaluate(() => {
+      const behaelter = document.querySelectorAll('.main-container');
+      const c = behaelter[behaelter.length - 1];
+      const lies = (id) => {
+        const el = c.querySelector(`.bento-widget[data-widget-id="${id}"]`);
+        return el ? getComputedStyle(el).backgroundImage : null;
+      };
+      return { fav: lies('__favorites__'), sug: lies('__suggestions__') };
+    });
 
-      expect(farben.fav, `Layout ${layout}`).toContain('rgba(255, 69, 58');
-      // Die Vorschläge bleiben Glas — die Regel darf nicht über
-      // `.bento-widget--carousel` auf sie überschwappen.
-      expect(farben.sug || '', `Layout ${layout}`).not.toContain('rgba(255, 69, 58');
-    }
+    expect(farben.fav).toContain('rgba(255, 69, 58');
+    // Die Vorschläge bleiben Glas — die Regel darf nicht über
+    // `.bento-widget--carousel` auf sie überschwappen.
+    expect(farben.sug || '').not.toContain('rgba(255, 69, 58');
   });
 
   test('ein Tipper auf eine Kachel öffnet ihre Ansicht', async ({ page }) => {
@@ -190,6 +188,9 @@ test.describe('Bento-Startseite', () => {
     const root = await mountCard(page, { settings: { startScreen: { bento: false } } });
     await expect(root.locator('input.search-input')).toBeVisible();
     await expect(root.locator('.bento-grid')).toHaveCount(0);
+    // v1.1.2225: und ohne Startseite auch ohne deren Ruhelage — der Schalter
+    // muss die ganze Zen-Ansicht aushängen, nicht nur das Raster.
+    await expect(root.locator('.bento-zen')).toHaveCount(0);
   });
 
   test('auf dem Telefon stapeln sich die Kacheln', async ({ page }) => {
