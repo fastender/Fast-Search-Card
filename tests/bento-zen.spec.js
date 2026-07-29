@@ -63,7 +63,11 @@ test.describe('Zen-Startseite', () => {
 
     // Uhr als hh:mm, Datum mit ausgeschriebenem Wochentag, ein Gruß.
     await expect(root.locator('.bento-zen-time')).toHaveText(/^\d{1,2}:\d{2}$/);
-    await expect(root.locator('.bento-zen-date')).toHaveText(/tag,/);
+    // 🔑 NICHT /tag,/ — alle deutschen Wochentage enden auf „-tag" außer
+    // Mittwoch. Die Prüfung war sechs von sieben Tagen grün und fiel jeden
+    // Mittwoch um. Also den Wochentag ausrechnen, den die Karte zeigen MUSS.
+    const wochentag = new Date().toLocaleDateString('de-DE', { weekday: 'long' });
+    await expect(root.locator('.bento-zen-date')).toContainText(`${wochentag},`);
     await expect(root.locator('.bento-zen-greet')).not.toBeEmpty();
 
     // Kein Sternchen mehr vor dem Gruß, und KEINE selbstgebaute Suchleiste:
@@ -476,5 +480,42 @@ test.describe('Zen-Startseite', () => {
 
       expect(await geo(root), `Breite ${breite}`).toEqual(ERWARTET[breite]);
     }
+  });
+});
+
+// ── Am Finger ────────────────────────────────────────────────────────────────
+// v1.1.2227: Der einzige Blick, der den touch-action-Fehler je fangen konnte.
+// `touch-action: none` lag auf der GANZEN Zen-Ansicht statt nur auf der
+// verriegelten — der Browser pannte auf dem Telefon nirgendwo mehr, während
+// das Mausrad (davon unberührt) normal lief. Jeder Rad-Test war deshalb grün.
+test.describe('Zen-Startseite am Finger', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+
+  test('der Wisch deckt auf — danach gehört der Finger dem Scrollen', async ({ page }) => {
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+
+    const scroller = () => page.evaluate(() => {
+      const div = [...document.querySelectorAll('div')].find((d) =>
+        d.scrollHeight > d.clientHeight + 20 && ['auto', 'scroll'].includes(getComputedStyle(d).overflowY));
+      return div ? div.scrollTop : -1;
+    });
+    const wisch = async (cdp, weit) => cdp.send('Input.synthesizeScrollGesture', {
+      x: 195, y: 500, xDistance: 0, yDistance: -weit, speed: 800,
+      gestureSourceType: 'touch',
+    });
+    const cdp = await page.context().newCDPSession(page);
+
+    // Verriegelt: der Wisch nach oben ist die Aufdeck-Geste, kein Scroll.
+    await wisch(cdp, 300);
+    await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'true', { timeout: 8000 });
+
+    // Aufgedeckt: derselbe Wisch MUSS jetzt scrollen. Mit `touch-action: none`
+    // auf der Ansicht bleibt das Delta exakt 0 — genau der gemeldete Fehler.
+    await expect.poll(() => root.locator('.bento-cell--w1').evaluate(
+      (el) => getComputedStyle(el).pointerEvents !== 'none'), { timeout: 15000 }).toBe(true);
+    const vorher = await scroller();
+    await wisch(cdp, 400);
+    await expect.poll(scroller, { timeout: 5000 }).toBeGreaterThan(vorher + 100);
   });
 });

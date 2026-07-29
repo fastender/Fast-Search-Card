@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2227 - 2026-07-29
+
+**Title:** 📱 Touch scrolling on the start screen works again
+
+- **The start screen was practically unscrollable by finger.** `touch-action: none` sat on the whole Zen view —
+  correct while locked, where the upward swipe belongs to the reveal gesture (without it the page scroll steals
+  the swipe and the pointerup arrives as a pointercancel). But after the reveal the entire stacked grid lives
+  inside that same view, and with `touch-action: none` the browser is not allowed to pan at all, wherever the
+  finger lands. The rule is now scoped to the locked state.
+
+- **Why no one saw it earlier:** the mouse wheel is unaffected by `touch-action`, so the desktop always
+  scrolled fine — and the test harness drove everything with wheel and mouse. Proven with a synthesized real
+  touch gesture: before the fix the swipe moved the page by exactly 0 px while the wheel moved 400 px;
+  after it, the same swipe scrolls 401 px and the locked-state swipe still reveals.
+
+- **A touch test now stands guard** — the only kind of test that could ever have caught this class of bug:
+  phone viewport with a real touch context, one swipe must reveal, the next one must scroll.
+
+- **A calendar bug in the test suite, found by the calendar itself:** the resting-state test asserted the date
+  matches `/tag,/` — and every German weekday ends in "-tag" except Mittwoch. The assertion was green six days
+  a week and failed every Wednesday; today is the first Wednesday it ran. It now computes the weekday the card
+  must show.
+
 ## Version 1.1.2226 - 2026-07-26
 
 **Title:** 🔍 Four agents audited the card — three real bugs and the start screen's tick load
