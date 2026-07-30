@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2235 - 2026-07-30
+
+**Title:** 🌐 Notifications finally speaks English — the third aborted session, salvaged
+
+- **English users saw German for the Notification Center in two places.** The sidebar label map and the
+  detail-header "System" whitelist each list every system entity — except `notifications`, the entry added
+  after both maps were written. The sidebar showed the hardcoded German name ("Mitteilungen"), and the detail
+  header's subtitle fell back to a room name for an entity that has none. Same class of gap as v1.1.1612 and
+  v1.1.2202: the late-added entity misses the maps. Both lists now carry all nine registry domains.
+
+- **This completes the salvage of the third aborted background session.** Its fix was lost in the wildest way
+  of the three: its restore-after-red-proof silently missed, because a concurrently running session had
+  already rewritten the very strings it tried to patch — leaving the detail header HALF-fixed (one of two
+  domain lists) and the sidebar not at all. Its two regression tests were stranded in a git worktree and never
+  reached the main checkout. They were recovered from there, run against today's tree (both red — live proof
+  the bug still existed), then the fixes applied and everything went green. The four abandoned session
+  worktrees are removed.
+
+- The "26 failures" and OOM kill that session chased at the end were the three concurrent Playwright suites
+  and dev servers starving the machine — every failing test passed in isolation then, and the full suite is
+  green now on a quiet machine.
+
 ## Version 1.1.2234 - 2026-07-30
 
 **Title:** 🧩 Two silent bugs fixed: the missing Schedules entry and the empty Air Quality chip

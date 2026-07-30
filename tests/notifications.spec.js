@@ -215,3 +215,35 @@ test.describe('Mitteilungs-Center', () => {
     await expect(root.locator('.notif-live-btn').first()).toContainText('Pizza');
   });
 });
+
+// v1.1.2234: Das Center trug seinen hardcoded DE-Namen („Mitteilungen") an zwei
+// Stellen bis zum englischen Nutzer durch, weil es in zwei Domain-Listen fehlte,
+// in denen JEDE andere System-Entity steht: der Label-Map der Sidebar und der
+// System-Whitelist des Detail-Kopfs. Dieselbe Lücke wie v1.1.1612 und v1.1.2202
+// — jedes Mal beim NACHTRÄGLICH ergänzten Eintrag. Deshalb hier festgenagelt.
+test.describe('Mitteilungs-Center auf Englisch', () => {
+  test('die Sidebar nennt es „Notifications", nicht „Mitteilungen"', async ({ page }) => {
+    const root = await mountCard(page, {
+      lang: 'en',
+      // alwaysVisible, damit die Leiste ohne Aufdecken hängt; das Center ist
+      // NICHT in DEFAULT_SHORTCUT_IDS, muss also ausdrücklich dazu.
+      settings: { sidebar: { enabled: true, alwaysVisible: true, items: ['__home__', 'notifications'] } },
+    });
+
+    await expect(root.locator('.vpm-label', { hasText: 'Notifications' })).toHaveCount(1, { timeout: 15000 });
+    await expect(root.locator('.vpm-label', { hasText: 'Mitteilungen' })).toHaveCount(0);
+  });
+
+  test('der Detail-Kopf sagt „System" statt eines Raumnamens', async ({ page }) => {
+    const root = await mountCard(page, { lang: 'en' });
+    await seed(page);
+    await page.evaluate(() => window.dispatchEvent(
+      new CustomEvent('fsc-open-notifications', { detail: {} })));
+    await root.locator('.notifications-view-container').waitFor({ timeout: 15000 });
+
+    // Der Titel las sich schon richtig (die Liste oben trug `notifications`);
+    // gefehlt hat der Untertitel — er fiel auf Raum/„No room" zurück.
+    await expect(root.locator('.detail-left-title-name').first()).toHaveText('Notifications');
+    await expect(root.locator('.detail-left-title-area').first()).toHaveText('System');
+  });
+});
