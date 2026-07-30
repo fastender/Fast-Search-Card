@@ -587,16 +587,34 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
       expect(ergb[0] < 150 || ergb[1] > 80, `Ecke ${ex},${ey} zeigt das Bild: ${ergb}`).toBe(true);
     }
 
-    // v1.1.2231: Die Liste beginnt mittig — das Bild bekommt die obere Hälfte.
-    const listeOben = await page.evaluate(() => {
+    // v1.1.2232: Die Zeilen BEGINNEN mittig (Startversatz als mitscrollendes
+    // Polster), können aber bis ganz nach oben fahren — auch bei EINER Zeile,
+    // weil unten exakt der fehlende Rest als Boden angehängt wird.
+    const start = await page.evaluate(() => {
       const alle = [...document.querySelectorAll('.main-container')];
       const c = alle[alle.length - 1];
       const fav = c.querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
-      const l = c.querySelector('.bento-carousel-list-wrap').getBoundingClientRect();
-      return (l.top - fav.top) / fav.height;
+      const zeile = c.querySelector('.bento-carousel-list-row').getBoundingClientRect();
+      return (zeile.top - fav.top) / fav.height;
     });
-    expect(listeOben).toBeGreaterThan(0.4);
-    expect(listeOben).toBeLessThan(0.55);
+    expect(start).toBeGreaterThan(0.38);
+    expect(start).toBeLessThan(0.55);
+
+    const obenAngekommen = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const liste = c.querySelector('.bento-carousel-list');
+      liste.scrollTop = liste.scrollHeight;
+      liste.dispatchEvent(new Event('scroll'));
+      const fav = c.querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
+      const zeile = c.querySelector('.bento-carousel-list-row').getBoundingClientRect();
+      return {
+        anteil: (zeile.top - fav.top) / fav.height,
+        bild: parseFloat(c.querySelector('.bento-widget-bild').style.opacity || '1'),
+      };
+    });
+    expect(obenAngekommen.anteil).toBeLessThan(0.15);
+    expect(obenAngekommen.bild).toBeLessThan(0.1);
   });
 
   test('frei: die Kapsel geht beim Klick in die Breite auf', async ({ page }) => {

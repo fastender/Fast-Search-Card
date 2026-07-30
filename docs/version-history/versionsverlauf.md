@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2232 - 2026-07-30
+
+**Title:** 🖼️ Free layout: rows travel to the top, corners hardened for real Chrome
+
+- **The favourites rows still start at mid-tile, but now they can travel all the way up.** v1.1.2231 had locked
+  the list into the bottom half — a fixed-height container, so the rows could never rise. The offset is now a
+  scrolling inner allowance instead: at rest the first row sits at ~47 %, scrolled it rides over the (fading)
+  image right to the tile's edge. Measured: first row from 47 % to 11 % at full scroll, image at 0.
+
+- **Guaranteed even with a single favourite.** So the scroll room always covers the start offset, the exact
+  missing remainder is appended as a computed floor. Two traps sat in that computation and are documented in
+  the code: `scrollHeight` is clamped to the viewport when content is short — precisely when the floor is
+  needed — so the rows are measured directly; and the floor must be a CHILD, not padding — padding belongs to
+  the box, and when the padding sum exceeds the height the box grows instead of scrolling, which the
+  ResizeObserver then fed as an endless loop. A `::after` spacer driven by one CSS variable does it correctly.
+
+- **Corners, second attempt — the user's Chrome disagreed with my headless one.** The v1.1.2231 self-rounding
+  of the image layer was verified in headless Chromium, whose compositing does not match real Chrome; the user
+  still saw square corners. Now three independent defenses: the image layer rounds itself, the tile's glass
+  `::before` gets its own radius too (backdrop-filter is always composited and escaped identically — that was
+  the GREY square corner), and the tile itself becomes a compositor layer (`translateZ(0)`), so Chrome executes
+  the rounded clip on the layer instead of losing it on promoted children. `transform` is safe here: it does
+  not create a backdrop root (only filter/opacity do), and framer sets no inline transform on this element.
+
 ## Version 1.1.2231 - 2026-07-30
 
 **Title:** 🖼️ Free layout polish: round corners, image gets the upper half, gallery picker
