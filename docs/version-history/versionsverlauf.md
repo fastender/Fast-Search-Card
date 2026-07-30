@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2228 - 2026-07-30
+
+**Title:** 🪟 The start screen becomes one panel
+
+- **Everything now lives in a single glass surface** — mockup-approved redesign of the revealed start screen.
+  One panel at exactly the detail view's measurements (672 high, radius 35, the same appearance glass chain)
+  carries the search capsule and the tile grid; the island keeps its own slot above. Island slot 60 + panel 672
+  = 732: the card's outer height is unchanged to the pixel.
+
+- **The search capsule replaces the free-standing search bar** in the revealed state. It is a button, not an
+  input: one tap opens the search panel in the last chosen category — the same contract as the lock screen's
+  bar, whose typography it shares (24 px icon, 24 px/400 text). The real search row takes over only when the
+  panel expands; while the start screen shows, it is fully unmounted from layout (`display: none`). The one-shot
+  sheen from v1.1.2223 moved from the real bar onto the capsule — it is now the thing that appears on reveal.
+
+- **The approved mockup values, verbatim:** inner padding 24, capsule 64, both gaps 24, tile radius 24
+  (uniform — large tiles were 28), tint 0.40 (the glass chain's default). Tile area comes out at 534 px —
+  the exact number the mockup showed. On the phone the panel grows with the stacked content instead of
+  clipping at 672; edge padding is 16 there, like the lock screen bar, so tiles keep their width.
+
+- **No nested glass, by design.** The capsule and the tiles are fills ON the panel's glass — nested
+  backdrop-filter is dead in the browser (the detail-sheet lesson). The coloured tiles never had their own
+  glass anyway; the panel now provides the blur for everything at once.
+
+- **The pixel-parity test carries the new contract:** panel [0, 60, 1200, 672], capsule [25, 85, 1150, 64],
+  grid [25, 173, 1150, 534] — the odd 25s are the panel's 1 px border, frozen deliberately. The `visible()`
+  helper also learned that `display: none` keeps its specified opacity of 1 — it used to mistake the unmounted
+  search row for a visible one. Harness paths that enter the card through search now go through the capsule.
+
 ## Version 1.1.2227 - 2026-07-29
 
 **Title:** 📱 Touch scrolling on the start screen works again

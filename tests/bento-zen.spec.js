@@ -26,10 +26,12 @@ const ZEN_ON = {
   appearance: { statsBarEnabled: true },
 };
 
-/** Sichtbarkeit im Sinne des Nutzers: da UND anfassbar. */
+/** Sichtbarkeit im Sinne des Nutzers: da UND anfassbar. `display: none`
+    behält die spezifizierte Deckkraft (1!) — wer nur opacity liest, hält
+    eine ausgehängte Suchzeile für sichtbar. */
 const visible = (root, sel) => root.locator(sel).evaluate((el) => {
   const cs = getComputedStyle(el);
-  return parseFloat(cs.opacity) > 0.5 && cs.pointerEvents !== 'none';
+  return cs.display !== 'none' && parseFloat(cs.opacity) > 0.5 && cs.pointerEvents !== 'none';
 });
 
 async function waitForZen(root) {
@@ -97,14 +99,16 @@ test.describe('Zen-Startseite', () => {
     await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
     expect(await visible(root, '.bento-cell--w1')).toBe(true);
     expect(await visible(root, '.bento-cell--w2')).toBe(true);
-    // Uhr und Gruß haben abgetreten; die ECHTE Suchzeile ist da.
+    // Uhr und Gruß haben abgetreten; das PANEL trägt jetzt alles (v2228):
+    // die Kapsel öffnet die Suche, ein Eingabefeld gibt es hier nicht mehr.
     expect(await visible(root, '.bento-zen-curtain')).toBe(false);
-    expect(await visible(root, '.search-row')).toBe(true);
-    await expect(root.locator('input.search-input')).toBeVisible();
-    // Und die Insel ist an ihren Platz oben zurückgewandert.
+    expect(await visible(root, '.bento-zen-panel')).toBe(true);
+    await expect(root.locator('.bento-zen-panel-search')).toBeVisible();
+    expect(await visible(root, '.search-row')).toBe(false);
+    // Und die Insel steht ÜBER dem Panel — so war die Mockup-Entscheidung.
     const inselOben = await root.locator('.island-holder').evaluate(el => el.getBoundingClientRect().top);
-    const suchOben = await root.locator('.search-row').evaluate(el => el.getBoundingClientRect().top);
-    expect(inselOben).toBeLessThan(suchOben);
+    const panelOben = await root.locator('.bento-zen-panel').evaluate(el => el.getBoundingClientRect().top);
+    expect(inselOben).toBeLessThan(panelOben);
   });
 
   test('zurück ist nicht mehr möglich — der Weg ist einbahnig', async ({ page }) => {
@@ -135,8 +139,8 @@ test.describe('Zen-Startseite', () => {
     await page.mouse.wheel(0, 120);
     await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
 
-    // Suche öffnen — die Startseite hängt aus …
-    await root.locator('input.search-input').click();
+    // Suche öffnen (v2228: über die Kapsel im Panel) — die Startseite hängt aus …
+    await root.locator('.bento-zen-panel-search').click();
     await expect(root.locator('.bento-zen')).toHaveCount(0, { timeout: 10000 });
 
     // … und beim Zurück steht wieder das Bento, nicht die Ruhelage.
@@ -386,7 +390,8 @@ test.describe('Zen-Startseite', () => {
     const root = await mountCard(page, { settings: ZEN_ON });
     await waitForZen(root);
 
-    expect(await root.locator('.bento-zen .bento-grid').evaluate(
+    // v2228: In der Ruhe kollabiert das PANEL (das Raster steckt darin).
+    expect(await root.locator('.bento-zen-panel').evaluate(
       (el) => Math.round(el.getBoundingClientRect().height),
     )).toBe(0);
 
@@ -425,38 +430,26 @@ test.describe('Zen-Startseite', () => {
   });
 
   test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {
-    // 🔑 DIE Zusage dieser Ansicht: nach der Animation darf sich nichts anders
-    // anfühlen als vorher. Geprüft wird nicht „ungefähr gleich", sondern Lage und
-    // Größe von Raster, allen drei Zellen UND der Suchzeile — auf beiden Größen.
-    //
-    // Anlass: v1.1.2215 hatte dem Raster `height: 576px` aufgezwungen. Auf dem
-    // Desktop fiel das nicht auf (dort stimmt der Wert), auf dem Telefon quetschte
-    // es die vier gestapelten Kacheln aus 1412 px in 576 px.
-    //
-    // v1.1.2225: Bis hierher stellte der Test einen frischen KLASSISCHEN Aufbau
-    // daneben. Den gibt es nicht mehr, also stehen die Maße jetzt fest. Es sind
-    // genau die klassischen: dieselbe Prüfung war in v1.1.2224 gegen die echte
-    // klassische Ansicht grün, und die Kette rechnet auf 156 = 60 (Insel-Platz)
-    // + 72 (Suchzeile) + 24 (Abstand) auf. Ändert sich eine Zahl, muss jemand
-    // begründen, warum — nicht ein Vergleichspartner mitwandern.
+    // 🔑 Der Vertrag seit v1.1.2228 (Mockup-Beschluss): EIN Panel auf
+    // DetailView-Höhe trägt Kapsel und Raster. Insel-Platz 60 + Panel 672
+    // = 732 — die Kartenhöhe ist exakt die alte. Innen: Rand 24, Kapsel 64,
+    // Abstände 24 → Kachelfläche 534 (der Wert aus dem freigegebenen Mockup).
+    // Die krummen 25/85/1150 sind kein Zufall, sondern der 1-px-Panelrand.
     const ERWARTET = {
-      1400: {
-        grid: [0, 156, 1200, 576],
-        w1:   [0, 156, 681, 576],
-        w2:   [697, 156, 503, 316],
-        w34:  [697, 488, 503, 244],
-        row:  [0, 60, 1200, 72],
-      },
-      390: {
-        grid: [0, 141, 350, 1412],
-        w1:   [0, 141, 350, 422],
-        w2:   [0, 575, 350, 422],
-        w34:  [0, 1009, 350, 434],
-        row:  [0, 60, 350, 57],
-      },
+      panel:  [0, 60, 1200, 672],
+      kapsel: [25, 85, 1150, 64],
+      grid:   [25, 173, 1150, 534],
     };
 
-    const geo = (root) => root.locator('.main-container').evaluate((c) => {
+    await page.setViewportSize({ width: 1400, height: 900 });
+    const root = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root);
+    await root.locator('.main-container').hover();
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
+    await page.waitForTimeout(400);
+
+    const desktop = await root.locator('.main-container').evaluate((c) => {
       const cb = c.getBoundingClientRect();
       const m = (sel) => {
         const e = c.querySelector(sel);
@@ -465,21 +458,36 @@ test.describe('Zen-Startseite', () => {
         return [Math.round(b.left - cb.left), Math.round(b.top - cb.top),
                 Math.round(b.width), Math.round(b.height)];
       };
-      return { grid: m('.bento-grid'), w1: m('.bento-cell--w1'), w2: m('.bento-cell--w2'),
-               w34: m('.bento-cell--w34'), row: m('.search-row') };
+      return { panel: m('.bento-zen-panel'), kapsel: m('.bento-zen-panel-search'),
+               grid: m('.bento-zen-panel .bento-grid') };
     });
+    expect(desktop).toEqual(ERWARTET);
 
-    for (const breite of [1400, 390]) {
-      await page.setViewportSize({ width: breite, height: breite === 1400 ? 900 : 844 });
-      const root = await mountCard(page, { settings: ZEN_ON });
-      await waitForZen(root);
-      await root.locator('.main-container').hover();
-      await page.mouse.wheel(0, 120);
-      await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
-      await page.waitForTimeout(400);
+    // Telefon: das Panel wächst mit dem Inhalt — geprüft werden die festen
+    // Größen (Breite 350 wie früher das Raster, Rand 16, Kapsel 56) und dass
+    // es wirklich wächst statt bei 672 abzuschneiden.
+    await page.setViewportSize({ width: 390, height: 844 });
+    const root2 = await mountCard(page, { settings: ZEN_ON });
+    await waitForZen(root2);
+    await root2.locator('.main-container').hover();
+    await page.mouse.wheel(0, 120);
+    await expect.poll(() => visible(root2, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
+    await page.waitForTimeout(400);
 
-      expect(await geo(root), `Breite ${breite}`).toEqual(ERWARTET[breite]);
-    }
+    const telefon = await root2.locator('.main-container').evaluate((c) => {
+      const p = c.querySelector('.bento-zen-panel').getBoundingClientRect();
+      const k = c.querySelector('.bento-zen-panel-search').getBoundingClientRect();
+      return {
+        breite: Math.round(p.width),
+        rand: Math.round(k.left - p.left),
+        kapsel: Math.round(k.height),
+        hoehe: Math.round(p.height),
+      };
+    });
+    expect(telefon.breite).toBe(350);
+    expect(telefon.rand).toBe(17);        // 16 + 1 px Panelrand
+    expect(telefon.kapsel).toBe(56);
+    expect(telefon.hoehe).toBeGreaterThan(1000);
   });
 });
 
