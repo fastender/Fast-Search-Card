@@ -72,6 +72,16 @@ test.describe('Zen-Startseite', () => {
     await expect(root.locator('.bento-zen-date')).toContainText(`${wochentag},`);
     await expect(root.locator('.bento-zen-greet')).not.toBeEmpty();
 
+    // v2238: Uhr dicker und größer (82/500, iOS-Vorbild), und direkt darunter
+    // die Statuszeile — Wetter/Leistung aus den Insel-Quellen. Die Leistung
+    // ist im Testhaus deterministisch (sensor.hausverbrauch → „1,2 kW").
+    const uhrStil = await root.locator('.bento-zen-time').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return `${cs.fontSize}/${cs.fontWeight}`;
+    });
+    expect(uhrStil).toBe('82px/500');
+    await expect(root.locator('.bento-zen-status')).toContainText('kW');
+
     // Kein Sternchen mehr vor dem Gruß, und KEINE selbstgebaute Suchleiste:
     // die Suche ist die echte `.search-row` und schweigt in der Ruhe.
     await expect(root.locator('.bento-zen-mark')).toHaveCount(0);
@@ -659,6 +669,42 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     });
     expect(gitterMass.wrapperHoehe).toBeGreaterThan(100);
     expect(gitterMass.kanten).toBe(2);
+
+    // v2238: Nach Ansichtswechseln muss der Wrapper auf KARTENHÖHE bleiben —
+    // WebKit löste die Wrapper-aspect-ratio am recycelten Element gegen die
+    // Containerbreite auf (Replik-Beweis); seit dem ::before-Polster sind
+    // beide Engines deterministisch. Hier läuft die Chromium-Seite davon.
+    await root.locator('.bento-carousel-viewtoggle-btn').nth(1).click();
+    await page.waitForTimeout(250);
+    await root.locator('.bento-carousel-viewtoggle-btn').first().click();
+    await page.waitForTimeout(400);
+    const stabil = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const w = alle[alle.length - 1].querySelector('.bento-carousel-gitter .bento-widget-card-wrapper');
+      return {
+        wrapper: Math.round(w.getBoundingClientRect().height),
+        karte: Math.round(w.querySelector('.device-card').getBoundingClientRect().height),
+      };
+    });
+    expect(Math.abs(stabil.wrapper - stabil.karte)).toBeLessThanOrEqual(2);
+
+    // v2238: Die Scroll-Fläche liegt EXAKT zwischen Haarlinie und Kachelrahmen
+    // (zurück in die Listenansicht, dort wurde es gemeldet).
+    await root.locator('.bento-carousel-viewtoggle-btn').nth(1).click();
+    await page.waitForTimeout(300);
+    const kantenGeo = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const kachel = c.querySelector('.bento-widget--mit-reitern').getBoundingClientRect();
+      const kopf = c.querySelector('.bento-carousel-header').getBoundingClientRect();
+      const wrap = c.querySelector('.bento-carousel-list-wrap').getBoundingClientRect();
+      return {
+        oben: Math.round(wrap.top - kopf.bottom),
+        unten: Math.round(kachel.bottom - wrap.bottom),
+      };
+    });
+    expect(kantenGeo.oben).toBeLessThanOrEqual(1);
+    expect(kantenGeo.unten).toBeLessThanOrEqual(2);
     await reiter.nth(1).click();
     await expect(root.locator('.bento-widget[data-widget-id="__suggestions__"]')).toBeVisible({ timeout: 5000 });
     await expect(root.locator('.bento-carousel-tab')).toHaveCount(2);

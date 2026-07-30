@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2238 - 2026-07-30
+
+**Title:** ⏰ Lock-screen clock with live status, exact clipping edges, and a real Safari fix
+
+- **The Safari overlap had a reproducible mechanism.** Switching list ↔ grid recycles the scroller element
+  (only classes change), and WebKit then resolves the wrapper's `aspect-ratio` against the CONTAINER width —
+  wrapper 620 px instead of 193, cards overlapping. Proven in a minimal replica in real WebKit (Chromium stays
+  correct; initial layout is correct in both — only the recycled element breaks). The wrapper now sizes itself
+  via a `::before` padding spacer with the card filling absolutely — deterministic in both engines, verified
+  through seven view switches. Playwright's WebKit is installed for exactly this class of question.
+
+- **The scroll area now runs exactly from the hairline to the tile frame.** Rows clip and frost precisely at
+  the line under the tabs (0 px gap) and at the widget's bottom edge (the rounded corners do the clipping) —
+  previously they vanished well before both. Header and items also moved closer to the edges, matching
+  widget 2's padding (16 instead of 28).
+
+- **The lock screen clock follows the iOS reference:** bolder and bigger (82 px/500, date 17 px), and directly
+  beneath it a small status line with the island's resting-face values — weather temperature and current power
+  draw — where iOS shows battery and Wi-Fi. Same sources as the island (the first weather entity and the
+  strongest power sensor), throttled to the card's 1-second tick, one line of markup in the curtain.
+
+- The geometry contracts are pinned in the suite: clock typography, status line presence, scroll-area edges,
+  and wrapper-equals-card height across view switches.
+
 ## Version 1.1.2237 - 2026-07-30
 
 **Title:** 🃏 Grid rows no longer collapse, edge fades return as frost, tabs truly 1:1
