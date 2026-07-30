@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2234 - 2026-07-30
+
+**Title:** 🧩 Two silent bugs fixed: the missing Schedules entry and the empty Air Quality chip
+
+This release completes work three background sessions had started; the user aborted them mid-flight, one of
+them right after deliberately re-breaking the code to prove its test goes red — its restore then failed. The
+tree was left half-patched (the alias table existed but was EMPTY, one default list still carried the broken
+value). Everything below was re-verified from scratch before shipping.
+
+- **On every fresh install, "Schedules Overview" was silently missing from the sidebar.** The default list
+  carried the entity's FOLDER name (`all-schedules`, hyphen) instead of its registered id (`all_schedules`,
+  underscore). The registry lookup returns `undefined` for unknown strings and the loop skips them without a
+  sound — four icons looked intentional for months. The same folder-name-as-id sat in the Bento defaults: the
+  W2 slot resolved to null and showed "Widget not configured" on fresh installs.
+
+- **Fixed self-healingly, not just in the defaults.** Both settings tabs seed from the default list and write
+  the WHOLE list back as soon as any toggle is touched — so existing users carry the broken string in
+  localStorage, where a default fix never reaches. A small alias table now translates legacy ids at read time;
+  the next settings change persists the cleaned list. Deliberately two variants: order-lists (sidebar)
+  deduplicate — users who re-added the seemingly missing entry hold both spellings; position-lists (Bento
+  slots) must NOT deduplicate, or a slot would silently vanish.
+
+- **The "Air Quality" sensor chip always showed an empty list.** Two lists must agree: `getSensorCategory()`
+  assigns categories, `knownSensorCategories` decides what counts as one. `air_quality` was missing from the
+  second — the filter then treated it as a ROOM name and matched `device.area === 'air_quality'`, which is
+  never true. The new test derives the category list from the real module instead of copying it, so any future
+  category added to one list without the other fails the suite.
+
+- **Test harness:** `mountCard` accepts a `registry` option for furnishing extra test-house entities (the
+  loader keeps only entities with an area — without a registry entry a state simply does not exist in tests).
+  Seven inherited tests were adopted after verifying they go red on the pre-fix code.
+
 ## Version 1.1.2233 - 2026-07-30
 
 **Title:** 🗂️ Free layout: favourites and suggestions become tabs, cards get real glass

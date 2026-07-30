@@ -53,7 +53,15 @@ export function makeHass(patch = {}) {
  * DataProvider seedet Notifications und Watches nur bei Verbindungswechsel,
  * und im Test feuert nie ein echtes `state_changed`.
  */
-export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', storage = {} } = {}) {
+/**
+ * `registry`: zusätzliche Einträge für die Entity-Registry des Testhauses.
+ * Wer eigene Entities über `hass.states` einzieht, MUSS sie hier auch
+ * möblieren — der Ladelauf behält nur Entities mit Bereich (entitiesLoader.js
+ * Z. 133), und der Bereich kommt ausschließlich aus der Registry. Ohne
+ * Eintrag ist die Entity im Testhaus schlicht nicht vorhanden.
+ * Rein additiv: ohne das Feld bleibt das Testhaus wie es war.
+ */
+export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', storage = {}, registry = [] } = {}) {
   // 🔑 Storage VOR dem Laden der Seite setzen — mit addInitScript, nicht mit
   // evaluate(). Die Karte hat Modul-Level-Stores (watchStore, notificationState,
   // langStore), die localStorage beim IMPORT lesen; der passiert schon während
@@ -80,7 +88,7 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => !!window.FastSearchCardApp, null, { timeout: 20000 });
 
-  await page.evaluate(({ hassPatch, language }) => {
+  await page.evaluate(({ hassPatch, language, registryExtra }) => {
     // 🔑 Die Dev-Seite mountet die Karte SELBST in #app (Vorschau mit Mock-
     // hass). Der Harness mountet eine ZWEITE Instanz — zwei komplette Apps auf
     // einer Seite. Solange die Insel keinen z-index trug, lag die Dev-Instanz
@@ -134,6 +142,7 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
       { entity_id: 'cover.rolladen', area_id: 'wohnzimmer', device_id: null },
       { entity_id: 'todo.haushalt', area_id: 'kueche', device_id: null },
       { entity_id: 'calendar.familie', area_id: 'wohnzimmer', device_id: null },
+      ...(registryExtra || []),
     ];
     const iso = new Date().toISOString();
     const entity = (entity_id, friendly_name, state = 'on', attributes = {}) => ({
@@ -212,7 +221,7 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
 
     window.__fsc = { container, hass };
     window.FastSearchCardApp.mount(container, hass, {});
-  }, { hassPatch: hass, language: lang });
+  }, { hassPatch: hass, language: lang, registryExtra: registry });
 
   await page.waitForSelector('#fsc-test-root #fast-search-card-root', { timeout: 20000 });
   return page.locator('#fsc-test-root #fast-search-card-root');
