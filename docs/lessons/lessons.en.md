@@ -1,6 +1,6 @@
 # Tips — Questions & Answers
 
-The most important questions about the card, each with an answer that fits on one screen. From "How do I open search?" to "What is Liquid Glass?".
+The most important questions about the card, each with a thorough answer. From "What am I looking at?" through the Island and the Notification Center to building your own device views.
 
 <!--
 AUTHORING NOTE (ignored by the parser):
@@ -22,9 +22,12 @@ Rules:
   lessons.de.md and lessons.en.md (deep-link parity).
 - Category: short, shown as a group in the UI.
 - Title: phrase it as a question — that's the concept of this book.
-- Answer: 3–6 lines. One thing per tip. Apple-Tips style.
-- Add new tips at the end of the matching category. Content source is
-  docs/info-popups/info-popups-catalog.md.
+- Answer: direct answer first (1-2 sentences), then `###` sub-sections for
+  steps, background and edge cases.
+- ⚠️ NEVER use `---` inside a tip — it terminates the entry early. Use `###`
+  headings for structure instead.
+- Add new tips at the end of the matching category. Fact sources are
+  docs/info-popups/info-popups-catalog.md and the version history.
 -->
 
 ---
@@ -35,21 +38,68 @@ Rules:
 **Hero:** none
 **Tags:** Start, Overview
 
-More than search. The card is a complete dashboard: find and control devices, a start screen with live widgets, calendar, tasks, news, schedules, energy overview — all in one card, all local on your Home Assistant.
+More than search. The card is a complete dashboard inside a single Lovelace card.
 
-These tips walk you through every area, one at a time.
+### What's inside
+- **Search and control** for every device in your Home Assistant
+- **A start screen** with clock, greeting and live tiles
+- **The Island** — a capsule up top that shows whatever matters right now
+- **Notification Center** with history, severity levels and quiet hours
+- **Apps**: calendar, tasks, news, schedules, tips, changelog
+- **Energy dashboard** and a builder for your own device views
+
+### Where it all lives
+Everything runs locally in your browser and talks straight to your Home Assistant. No cloud service, no account, no telemetry.
+
+### How to get going
+These tips are grouped by area and build on each other. If you just installed the card, work through "First Steps" in order.
 
 ---
 
-## Tipp suche-oeffnen - First Steps
+## Tipp zen-start - First Steps
 
-**Title:** How do I open search?
+**Title:** What am I looking at when the card opens?
 **Hero:** none
-**Tags:** Start, Search
+**Tags:** Start, Zen
 
-Tap the search bar. The card expands downward and shows your devices, grouped by room.
+A calm start screen: the date, a large clock, your greeting and the search bar. Everything else is one gesture away.
 
-To close: swipe down or tap outside.
+### What's on it
+- **Date and clock** — large, undistracted
+- **Greeting** — with your name where Home Assistant knows one
+- **Search bar** — centred, ready to tap
+- **Waiting alerts** — stacked beneath, like a lock screen
+
+### Why so little
+On a wall tablet the card often runs all day. A screen showing only the time and what matters reads better in passing than a full dashboard. Anyone who wants more takes it with one gesture.
+
+### Good to know
+The entry animation moves nothing — clock, greeting and bar are in place from the first frame and only resolve from blurred to sharp. After that a single highlight sweeps across the glass of the search bar.
+
+---
+
+## Tipp zen-aufdecken - First Steps
+
+**Title:** How do I get from the start screen to my devices?
+**Hero:** none
+**Tags:** Start, Gestures
+
+One gesture is enough: swipe up, one notch of the mouse wheel, or the up arrow key.
+
+### What happens then
+The reveal runs by itself — nothing gets stuck halfway:
+
+1. Clock, greeting and alerts step aside
+2. The search bar travels from the centre to the top and becomes the toolbar
+3. The island settles above it
+4. The sidebar slides in from the left
+5. The four tiles arrive one after another — largest first
+
+### Back to rest
+One gesture downward folds it all back — the same staircase in reverse, a touch faster.
+
+### Good to know
+Once you actually use the card (search, open a device), it stays revealed. The resting state only returns when you ask for it.
 
 ---
 
@@ -59,9 +109,18 @@ To close: swipe down or tap outside.
 **Hero:** none
 **Tags:** Start, Control
 
-Tap a device in the list — the detail view opens with all its controls: sliders for brightness, dials for temperature, buttons for covers.
+Tap a device in the list — the detail view opens with all its controls.
 
-There's an even faster way: Quick Control — see the "Quick Control" category.
+### What you'll find
+- **A circular slider** for anything with a value: brightness, temperature, position
+- **Mode buttons** below it: colour temperature, effects, heat/cool
+- **Tabs** across the top: Controls, Context, History, Schedule, Settings
+
+### The faster route
+For light on/off you don't need the detail view at all — with Quick Control the device icon itself becomes the switch. See the "Quick Control" category.
+
+### Good to know
+Which controls appear is decided by device type. A cover gets position and tilt, a media player gets volume and queue, a thermostat gets target temperature and modes.
 
 ---
 
@@ -71,21 +130,233 @@ There's an even faster way: Quick Control — see the "Quick Control" category.
 **Hero:** none
 **Tags:** Start, Navigation
 
-There's always a back arrow at the top left. On the phone, a right-swipe works too.
+There's always a back arrow at the top left. On the phone a right-swipe works too.
 
-The card remembers where you were — after a device you land back in your search list, not at the start.
+### The card remembers the path
+After a device you land back in your search list — same filter, same scroll position. Not at the start.
+
+### Inside the apps
+Calendar, tasks and news have their own back and overview buttons top left. From a detail view the first tap returns to the list, the second to the card.
 
 ---
 
 ## Tipp startseite-verstehen - First Steps
 
-**Title:** What does the start screen show me?
+**Title:** What do the tiles show me?
 **Hero:** none
 **Tags:** Start, Bento
 
-The start screen is made of tiles ("Bento widgets"): favorites, weather, appointments, tasks, news, tips, and the changelog. Everything live, everything tappable.
+Four tiles ("Bento widgets") with your most important live information. All real, all tappable.
 
-On the phone, swipe sideways through the large widgets.
+### The four slots
+- **W1** — large, on the left: usually favorites or suggestions
+- **W2** — top right: a carousel of weather, calendar, tasks and news
+- **W3 / W4** — split along the bottom: tips and changelog, for example
+
+### What a tap does
+Tapping a tile opens the matching detail view directly — the weather widget goes to weather, an appointment to the calendar, a device in favorites to that exact device.
+
+### Good to know
+Which app sits in which slot is up to you: Settings → General → Home Screen.
+
+---
+
+## Tipp insel-was - The Island
+
+**Title:** What is the capsule at the top?
+**Hero:** none
+**Tags:** Island, Overview
+
+The Island — a glass capsule that always shows exactly **one** thing: whichever matters most.
+
+### The priority order
+1. **Alert** — warnings orange, infos blue. Several stack into "N notifications".
+2. **Live activity** — a running timer with countdown, the vacuum, a moving cover, playing media. With several: the most important plus "+N".
+3. **Rest** — clock, weather and a presence dot. Grey means nothing is waiting.
+
+### The resting face rolls
+When nothing is going on, the island cycles through the facts of your home: weather, how many lights are on, how many windows are open. Every number is tappable and leads exactly there.
+
+### Why one instead of many
+A calm capsule that only speaks up when there's something to say — instead of a bar full of widgets competing for attention all day.
+
+---
+
+## Tipp insel-tippen - The Island
+
+**Title:** What happens when I tap the island?
+**Hero:** none
+**Tags:** Island, Interaction
+
+A short tap opens the view that fits whatever it's currently showing.
+
+### Where it goes
+- **On an alert** → the Notification Center
+- **On a live activity** → the detail view of the running device
+- **At rest** → the area the currently shown number refers to (weather, lights, windows)
+
+### The transition
+The capsule morphs into the target view — it grows into the full view from where it stands, instead of a new panel dropping over it. Closing runs the same thing backwards.
+
+---
+
+## Tipp insel-halten - The Island
+
+**Title:** What's the preview when I hold the island down?
+**Hero:** none
+**Tags:** Island, Gestures
+
+Press and hold the capsule for about half a second — a preview opens without leaving the screen.
+
+### What you see
+- **On alerts** — the notification panel docks under the capsule. Acknowledge, snooze and mark-as-read work right there.
+- **On live activities** — a glass list of **all** running things. Tapping a row opens that device.
+
+### Short or long
+The short tap stays the fast path — it opens the fitting view immediately. After a long press the release-click is swallowed, so you don't land somewhere by accident.
+
+### Good to know
+The live preview closes itself as soon as nothing is running anymore.
+
+---
+
+## Tipp insel-nachts - The Island
+
+**Title:** Why does the island only show the clock at night?
+**Hero:** none
+**Tags:** Island, Quiet Hours
+
+Because during your quiet hours it puts on its night face: dimmed, reduced to the time.
+
+### What goes quiet
+The resting face — weather, readings, rolling facts. On a wall tablet in the hallway or bedroom, no ticker should glow at night.
+
+### What still gets through
+Alerts and live activities stay visible. A running timer or a warning doesn't disappear just because it's late.
+
+### Where to set it
+Settings → General → Toasts → Quiet hours. Set the window there — wrapping past midnight (say 22:00–07:00) is handled correctly.
+
+---
+
+## Tipp mitteilungen-center - Notifications
+
+**Title:** Where do I find all my alerts in one place?
+**Hero:** none
+**Tags:** Notifications, Center
+
+In the Notification Center — search for "Notifications" or tap the island while it's showing an alert.
+
+### What flows together
+Three sources in one place:
+- **Home Assistant** — persistent notifications
+- **Alert entities** — smoke, leak, gas and other detectors
+- **The card itself** — feedback on actions
+
+### How it's ordered
+By severity. Critical at the top, then warnings, then infos. Three tabs separate **Overview**, **Live** and **History** — nothing disappears; acknowledged items stay readable in the history.
+
+### Good to know
+The counter in the header tells you how many notifications there really are. The number on the island and the one in the Center come from the same source.
+
+---
+
+## Tipp mitteilungen-quittieren - Notifications
+
+**Title:** How do I get rid of a notification?
+**Hero:** none
+**Tags:** Notifications, Actions
+
+Three ways, depending on how final it should be.
+
+### The three actions
+- **Mark as read** — leaves the overview, stays in the history
+- **Snooze (1 hour)** — for repeat offenders that aren't relevant right now
+- **Acknowledge** — confirms the notification for good
+
+### Where they are
+Right in the preview when you hold the island — or in the Notification Center on every row.
+
+### What happens behind the scenes
+For real Home Assistant notifications the card calls the matching service, so they disappear in HA too. For alert entities only a local acknowledgement happens — the sensor itself is left alone, because only the underlying cause can reset it.
+
+---
+
+## Tipp kritische-meldung - Notifications
+
+**Title:** What's the red bar at the very top?
+**Hero:** none
+**Tags:** Notifications, Critical
+
+The critical banner. It only appears for the highest severity — water leak, smoke, gas.
+
+### Why it's separate
+Those must not get lost in a list. The banner lays itself over the head of the card and stays until you react.
+
+### At night too
+The banner is the one alert type that breaks through quiet hours — by default at least. The "always allow critical" switch sits in the quiet-hours settings and is on out of the box.
+
+---
+
+## Tipp ruhezeiten - Notifications
+
+**Title:** How do I stop pop-ups at night?
+**Hero:** none
+**Tags:** Notifications, Quiet Hours
+
+With quiet hours: Settings → General → Toasts → Quiet hours.
+
+### What goes silent
+- Toasts (the short pop-ins)
+- The red critical banner — if you turn off the exception
+- The island's resting face dims to clock-only
+
+### What isn't lost
+The notifications are still created. The counter fills up, the Center collects everything. Nothing is gone in the morning — it just didn't wake you.
+
+### Past midnight
+A window like 22:00–07:00 is handled correctly. You don't have to split it in two.
+
+---
+
+## Tipp live-was - Live Activities
+
+**Title:** What counts as a "live activity"?
+**Hero:** none
+**Tags:** Live, Overview
+
+Anything that's running right now and will end by itself.
+
+### On by default
+- **Timers** with countdown
+- **Vacuums** while cleaning or returning to base
+- **Covers** while moving
+- **Media** while playing
+- **Scripts and automations** while running
+
+### Off by default
+Lights, switches and climate. Those are continuous states — a light is "on" for hours, that isn't an activity. If you want them anyway, enable them deliberately.
+
+### Why this is useful
+Running things are otherwise invisible until you happen to open their detail view. The island shows them while they run — and clears itself when they're done.
+
+---
+
+## Tipp live-anpassen - Live Activities
+
+**Title:** Can I choose what shows up as a live activity?
+**Hero:** none
+**Tags:** Live, Settings
+
+Yes — Settings → General → Home Screen → Live activities.
+
+### What's there
+- **A master switch** for the whole feature
+- **One toggle per source** — timers, vacuums, covers, media, scripts, automations
+- **Opt-in for continuous states** — lights, switches, climate
+
+### A word on dosage
+Enabling lights sounds tempting but means the island practically never comes to rest. Try it, but expect to switch it back off.
 
 ---
 
@@ -95,9 +366,19 @@ On the phone, swipe sideways through the large widgets.
 **Hero:** none
 **Tags:** Search, Fuzzy
 
-No. Search forgives typos — "ligth" still finds your light. Partial words work too: "bed lamp" finds the "Bedroom Bed Lamp".
+No. Search forgives typos and finds partial words too.
 
-Two or three letters are usually enough for the right match to surface.
+### What works
+- **Typos** — "ligth" finds your light
+- **Partial words** — "bed lamp" finds the "Bedroom Bed Lamp"
+- **Two words** — "living room light" is read as room plus device type
+- **Both languages** — "Lampe" and "light" reach the same target
+
+### How much you have to type
+Two or three letters usually surface the right match. The card searches device names, room names and entity IDs at once.
+
+### If nothing shows up
+Check whether the device is excluded by a pattern (Settings → General → Filter) or whether a limit is capping what gets loaded.
 
 ---
 
@@ -107,36 +388,56 @@ Two or three letters are usually enough for the right match to surface.
 **Hero:** none
 **Tags:** Search, Filter
 
-Type the room name into the search field. When the suggestion appears as ghost text, confirm with Tab (desktop) or tap the suggestion (phone) — the room becomes a blue chip and the list narrows to that room.
+Type the room name into the search field — the card offers it as ghost text.
 
-Chips combine: first "Kids' room", then "lamp".
+### Accepting the suggestion
+- **Desktop** — Tab key or right arrow
+- **Phone** — tap the suggestion or the confirm button on the right of the field
+
+The room becomes a blue chip and the list narrows to that room.
+
+### Combining
+Chips stack: first "Kids' room", then "lamp" — what's left are the lamps in the kids' room. The card switches to the matching category on its own.
+
+### The other way
+The filter bar under the search field offers the same filters to tap, without typing.
 
 ---
 
 ## Tipp chips-verstehen - Search
 
-**Title:** What do the colored chips in the search field mean?
+**Title:** What do the coloured chips in the search field mean?
 **Hero:** none
 **Tags:** Search, Chips
 
-Chips are active filters. Blue = room, purple = device type, green = sensor type.
+Chips are active filters. The colour tells you the kind.
 
-One tap selects a chip, a second tap removes it — like recipients in iOS Mail.
+### The three colours
+- **Blue** — a room (kitchen, bath, living room)
+- **Purple** — a device type (light, switch, climate)
+- **Green** — a sensor type (temperature, motion, energy)
+
+### Removing
+One tap selects the chip, a second removes it — the same pattern as recipients in iOS Mail. On the desktop, backspace works too when the field is empty.
 
 ---
 
 ## Tipp kategorien - Search
 
-**Title:** What are Devices, Sensors, Actions, and Custom?
+**Title:** What are Devices, Sensors, Actions and Custom?
 **Hero:** none
 **Tags:** Search, Categories
 
-Four sections, four views on your home:
+Four sections, four views on your home.
 
-- **Devices** — everything you can switch: lights, switches, climate, covers.
-- **Sensors** — everything that measures: temperature, motion, energy.
-- **Actions** — scenes, scripts, automations.
-- **Custom** — the built-in apps: calendar, tasks, news, settings.
+### What goes where
+- **Devices** — everything you can switch: lights, switches, climate, covers, media players, locks, vacuums
+- **Sensors** — everything that measures: temperature, humidity, motion, energy, door contacts
+- **Actions** — scenes, scripts, automations
+- **Custom** — the built-in apps: calendar, tasks, news, schedules, settings, and your own device views
+
+### Automatic switching
+Create a sensor chip while you're in "Devices" and the card jumps to "Sensors" by itself — otherwise the list would be empty.
 
 ---
 
@@ -146,9 +447,14 @@ Four sections, four views on your home:
 **Hero:** none
 **Tags:** Search, View
 
-Use the symbol next to the search field. Grid shows large tiles, list shows compact rows with more devices at a glance.
+Use the symbol next to the search field.
 
-Your choice is saved — even after a reload.
+### The difference
+- **Grid** — large tiles with icon, name and state. Calmer, good for tapping.
+- **List** — compact rows, more devices at a glance, with a switch and a "⋯" button right in the row.
+
+### Good to know
+Your choice is saved and survives a reload. How many tiles fit side by side is set under Settings → Appearance → Columns (4, 5 or 6).
 
 ---
 
@@ -158,9 +464,17 @@ Your choice is saved — even after a reload.
 **Hero:** none
 **Tags:** Search, Favorites
 
-In a device's detail view: tap the heart at the top right. The device now appears in the Favorites tab and in the Favorites widget on the start screen.
+Open a device and tap the **♥ heart** at the top right of the detail header.
 
-Same path to remove it.
+### Where they show up
+- In the **Favorites filter** in search
+- In the **Favorites widget** on the start screen
+
+### Removing
+Same path — tap the heart again.
+
+### Why it's worth it
+The handful of devices you genuinely use daily are then always one tap away, instead of buried in the full list.
 
 ---
 
@@ -170,9 +484,44 @@ Same path to remove it.
 **Hero:** none
 **Tags:** Search, Suggestions
 
-The card learns from your taps — locally, no cloud. What you use often moves up. What you ignore loses weight. Old patterns fade on their own over time.
+Because it learns from your taps — locally in your browser, without anything leaving the device.
 
-Reset anytime: Settings → Suggestions → Clear learning data.
+### How it learns
+- What you use often moves up
+- What you see and ignore loses weight
+- Old patterns fade on their own over time
+
+### Learning speed
+Settings → General → Suggestions. Three steps set how quickly suggestions adapt — from "slow but steady" to "reacts immediately".
+
+### Resetting
+Same place: "Reset learning data" clears every learned pattern and tells you how much was deleted.
+
+---
+
+## Tipp zeit-sortierung - Search
+
+**Title:** Can I see what changed in the house most recently?
+**Hero:** none
+**Tags:** Search, Sorting
+
+Yes — with time sorting. It adds a clock button to the toolbar.
+
+### What it does
+When active it groups the device list by **recent activity** instead of by room. Whatever was switched last sits on top.
+
+### Three profiles
+- **Fine** — Just now · Last 15 min · Last 30 min · Last hour
+- **Standard** — Last 15 min · Last hour · Today
+- **Coarse** — Last hour · Last 6 hours · Last 12 hours
+
+Everything beyond the last window falls into "Today" or "Older".
+
+### Combines with the rest
+Time sorting works on top of the category and area filters. "Lights, by activity" is possible.
+
+### Turning it on
+Settings → General → Filter → Sort by time.
 
 ---
 
@@ -182,9 +531,20 @@ Reset anytime: Settings → Suggestions → Clear learning data.
 **Hero:** none
 **Tags:** Quick Control, Light
 
-Enable Quick Control: Settings → Appearance → Quick Control. From then on, the device icon itself is the switch — tap the lamp icon, lamp on. No detail view needed.
+With Quick Control the device icon on the card becomes the switch itself.
 
-Tapping next to the icon (on the rest of the card) still opens the detail view.
+### Turning it on
+Settings → General → Quick Control. It's off out of the box — it noticeably changes what tapping does, so the choice is yours.
+
+### After that
+- **Tap the icon** — switches immediately
+- **Tap the card next to it** — still opens the detail view
+
+### Feedback
+On the phone there's a short haptic pulse. A ring appears around the icon while it's working.
+
+### Good to know
+System entities like news or weather are unaffected — a tap always opens their view.
 
 ---
 
@@ -194,9 +554,17 @@ Tapping next to the icon (on the rest of the card) still opens the detail view.
 **Hero:** none
 **Tags:** Quick Control, Safety
 
-By design. A wrongly switched light is fixed in a second — an accidentally opened cover or lock isn't. So: risky direction = press and hold until the ring fills. Safe direction (close, lock) = single tap.
+By design. A wrongly switched light is fixed in a second — an accidentally opened cover or door lock isn't.
 
-Asymmetric, on purpose.
+### The rule
+- **Risky direction** (open, unlock) — hold for about a second. An amber ring fills as confirmation.
+- **Safe direction** (close, lock) — a simple tap.
+
+### Why asymmetric
+Because the cost of undoing a mistake is asymmetric. Closing takes a second. An unnoticed open garage door costs considerably more.
+
+### Cancelling
+Let go before the ring is full — nothing happens.
 
 ---
 
@@ -206,9 +574,18 @@ Asymmetric, on purpose.
 **Hero:** none
 **Tags:** Quick Control, Settings
 
-Yes. Settings → Appearance → Quick Control opens a list of all device types. Each type knows three modes: Off, Tap, or Hold.
+Yes, for each device type individually.
 
-Defaults: lights/switches/fans on Tap, covers/locks on Hold.
+### The three modes
+- **Off** — the icon opens the detail view as usual
+- **Tap** — one tap switches immediately
+- **Hold** — a tap isn't enough, it takes a sustained press
+
+### The defaults
+Lights, switches, fans, input booleans and media players are on **Tap**. Covers and locks on **Hold**. Climate devices and vacuums are selectable too.
+
+### Where
+Settings → General → Quick Control. The master switch at the top, the list of types below.
 
 ---
 
@@ -218,7 +595,17 @@ Defaults: lights/switches/fans on Tap, covers/locks on Hold.
 **Hero:** none
 **Tags:** Quick Control, List
 
-Tapping "⋯" expands the most important controls right under the row — brightness presets for lights, position for covers, mode for climate. The same controls as the detail view, just inline in the list.
+Tapping it expands the device's most important controls right under the row.
+
+### What appears
+- **Light** — brightness steps as a button row
+- **Cover** — open, stop, close plus position presets
+- **Climate** — operating modes
+
+They're exactly the same controls as the detail view, just inline in the list.
+
+### Why that's handy
+For "light at 30 %" you neither open the detail view nor have to hit a slider. Two taps, done.
 
 ---
 
@@ -228,21 +615,33 @@ Tapping "⋯" expands the most important controls right under the row — bright
 **Hero:** none
 **Tags:** Control, Light
 
-In the detail view: drag the circular slider. The value in the middle counts along live. Release to set.
+Drag the circular slider in the detail view. The value in the middle counts along live.
 
-The power button sits at the top of the circle and remembers the last brightness.
+### Handling
+- **Drag** — anywhere on the ring, not just the handle
+- **Release** — sets the value
+- **The power button** at the top of the circle — remembers the last brightness and restores it when you switch back on
+
+### On the phone
+The ring's hit area is deliberately generous. You don't have to be exactly on the line.
 
 ---
 
 ## Tipp farbtemperatur - Control
 
-**Title:** How do I change the light color?
+**Title:** How do I change the light colour?
 **Hero:** none
 **Tags:** Control, Light
 
-Below the brightness slider sit the mode buttons: Brightness, Color Temperature, Effects. Tap "Color Temperature" — the circle becomes a warm-to-cool dial.
+Via the mode buttons under the slider.
 
-If your light supports colors, a color wheel appears as well.
+### The modes
+- **Brightness** — the default
+- **Colour temperature** — the circle becomes a warm-to-cool dial with a matching gradient
+- **Effects** — if your light has any
+
+### For colour bulbs
+If the light supports real colours a colour wheel appears as well. The card asks the device what it can do and only shows what's actually supported.
 
 ---
 
@@ -252,7 +651,16 @@ If your light supports colors, a color wheel appears as well.
 **Hero:** none
 **Tags:** Control, Climate
 
-The circular slider sets the target temperature. Below it you pick the mode — heat, cool, auto, off. The bar at the bottom shows presets and fan speeds, if your device supports them.
+The circular slider sets the target temperature, the buttons below set the mode.
+
+### What you control
+- **Target temperature** — on the ring, in your device's step size
+- **Mode** — heat, cool, auto, off
+- **Presets** — eco, comfort, boost, where your thermostat reports them
+- **Fan speed and swing** — on air conditioners, expandable right in the row
+
+### Good to know
+The current room temperature sits in small type under the target. If your thermostat reports a restricted range, the card clamps the slider to what the device will accept.
 
 ---
 
@@ -262,9 +670,16 @@ The circular slider sets the target temperature. Below it you pick the mode — 
 **Hero:** none
 **Tags:** Control, Covers
 
-The circular slider sets the position in percent — 0 is closed, 100 is open. The buttons below open fully, stop, or close fully.
+The circular slider sets the position in percent — 0 is closed, 100 is open.
 
-Tilt slats (on blinds) get their own dial if your device reports them.
+### The buttons below
+Fully open, stop, fully closed. Stop takes effect immediately, even mid-travel.
+
+### On blinds
+If your device can tilt the slats it gets a second dial for that. Position and tilt are separate.
+
+### While it moves
+A moving cover appears as a live activity on the island — so you can see it's under way from the start screen too.
 
 ---
 
@@ -274,7 +689,16 @@ Tilt slats (on blinds) get their own dial if your device reports them.
 **Hero:** none
 **Tags:** Control, Scenes
 
-Second tab in the detail view ("Context"). The card collects every scene, script, and automation that touches this device — sorted by relevance. One tap runs it; a brief confirmation pops up.
+In the second tab of the detail view: "Context".
+
+### What's there
+Every scene, script and automation that touches this device — found automatically, sorted by relevance.
+
+### The filters
+Three tabs separate **Actions**, **Favorites** and **Surroundings**. "Surroundings" shows what happens in the same room even when it doesn't touch this device directly.
+
+### Running one
+One tap starts the scene. A brief pop-in confirms it worked — or reports the error if it didn't.
 
 ---
 
@@ -284,9 +708,19 @@ Second tab in the detail view ("Context"). The card collects every scene, script
 **Hero:** none
 **Tags:** Control, History
 
-Third tab in the detail view ("History"). Charts for 24 hours, 7 days, or 30 days, plus recent events as a list and statistics like on-time and change frequency.
+In the third tab of the detail view: "History".
 
-Works for every device — sensors included.
+### What's there
+- **Charts** for 24 hours, 7 days and 30 days
+- **Recent events** as a chronological list
+- **Statistics** — how often switched, how long active, average duration
+- **Time-of-day analysis** — when this device typically runs
+
+### For every device
+History works for all entity types, not just sensors. A switch gets its curve too.
+
+### Where the data comes from
+From the Home Assistant history. How far back depends on how long your HA keeps data.
 
 ---
 
@@ -296,9 +730,20 @@ Works for every device — sensors included.
 **Hero:** none
 **Tags:** Control, Music
 
-Open a media player. If Music Assistant is running, you get the full panel: queue, library search, speaker switching, text-to-speech. Volume and progress live on the circular slider.
+Open a media player. If Music Assistant is running you get the full panel.
 
-The current track's cover becomes the background.
+### What the panel does
+- **Queue** — view and clear
+- **Library search** — tracks, albums, artists
+- **Speaker switching** and grouping
+- **Text-to-speech** with engine and language selection
+- **Favorite** and **radio mode**
+
+### The dials
+Volume and playback position sit as two rings on the circular slider — both draggable.
+
+### The background
+The current track's cover becomes the background of the view.
 
 ---
 
@@ -308,29 +753,34 @@ The current track's cover becomes the background.
 **Hero:** none
 **Tags:** Home Screen, Bento
 
-Yes. Settings → General → Home Screen. Decide which widget sits in which of the four slots — or turn the start screen off entirely if you'd rather start in search.
+Yes — Settings → General → Home Screen.
+
+### What you decide
+- **Which app sits in which slot** (W1 large, W2 top right, W3/W4 split at the bottom)
+- **The layout** of the tile surface
+- **Whether there's a start screen at all** — switched off, the card opens straight into the search list
+
+### How to pick
+Tap a slot and choose the entity. The preview shows immediately how it looks.
 
 ---
 
 ## Tipp bento-slider - Home Screen
 
-**Title:** How do I switch between weather, news, and appointments?
+**Title:** How do I switch between weather, news and appointments?
 **Hero:** none
 **Tags:** Home Screen, Widgets
 
-The large right-hand widget is a carousel: it cycles automatically through weather, calendar, tasks, and news. Swipe to switch manually; the dots below show the position.
+The large widget at the top right is a carousel.
 
-The card remembers where you were — even after a trip into a detail view.
+### How it moves
+It cycles through weather, calendar, tasks and news on its own. Swiping switches immediately; the dots below show the position.
 
----
+### It remembers the spot
+Open a news article and come back and the carousel is still on news — not back at the beginning.
 
-## Tipp statsbar - Home Screen
-
-**Title:** What is the narrow bar at the very top?
-**Hero:** none
-**Tags:** Home Screen, StatsBar
-
-The status bar — live values at a glance: weather, clock, power draw, solar. Which widgets appear is up to you: Settings → General → Status & Greetings.
+### Jumping straight in
+Tapping an entry in the carousel takes you exactly there: an appointment into the calendar on that day, an article into the reader.
 
 ---
 
@@ -340,7 +790,13 @@ The status bar — live values at a glance: weather, clock, power draw, solar. W
 **Hero:** none
 **Tags:** Home Screen, Greeting
 
-Both. Settings → General → Status & Greetings. The greeting adapts to the time of day, knows your name, accepts custom texts — or switches off entirely.
+Both — Settings → General → Status & Greetings.
+
+### What it does
+The greeting adapts to the time of day and uses your name where Home Assistant knows it. Custom texts are possible.
+
+### Turning it off
+One switch. The greeting is purely decorative — nothing behaves differently without it.
 
 ---
 
@@ -350,9 +806,20 @@ Both. Settings → General → Status & Greetings. The greeting adapts to the ti
 **Hero:** none
 **Tags:** Calendar, Events
 
-Open the calendar (via search or sidebar) → plus button. Type a title or grab one of the quick chips (Appointment, Meeting, Doctor …), pick date and time on the wheels, save.
+Open the calendar — via search or the sidebar — then the plus button.
 
-The event lands directly in your Home Assistant calendar — no cloud in between.
+### The dialog
+- **Title** typed, or grab a quick chip (appointment, meeting, birthday, doctor, trip)
+- **Date and time** on the wheels
+- **All-day** as a switch
+- **Location** and **description** as their own sub-views
+- **Calendar** picker, if you have several
+
+### Where it lands
+Straight into your Home Assistant calendar, through the native interface. No middle service, no cloud of the card's own.
+
+### Editing and deleting
+Tap the appointment, change it, save. Deleting asks twice — the second tap confirms.
 
 ---
 
@@ -362,21 +829,32 @@ The event lands directly in your Home Assistant calendar — no cloud in between
 **Hero:** none
 **Tags:** Calendar, Recurrence
 
-While creating: tap the "Repeat" row. Five patterns are ready — daily, weekly, monthly, yearly, or never.
+Tap the "Repeat" row in the dialog.
 
-More complex rules (like "every second Friday") are displayed when they come from other calendars.
+### The patterns
+Never, daily, weekly, monthly, yearly.
+
+### For more complex rules
+Events from other calendars can carry more elaborate recurrences — "every second Friday" for instance. The card shows those as "Custom" and lets you edit the rest of the event without breaking the rule.
 
 ---
 
 ## Tipp kalender-ansichten - Calendar
 
-**Title:** How do I switch between day, week, month, and year?
+**Title:** How do I switch between day, week, month and year?
 **Hero:** none
 **Tags:** Calendar, Views
 
-Via the buttons at the top of the calendar. Month shows dots per event, week shows time blocks, year shows twelve mini-months.
+Via the buttons along the top.
 
-Which views are offered at all is configurable in the calendar settings.
+### What each shows
+- **Day** — hour grid with events as blocks
+- **Week** — seven columns, same logic
+- **Month** — a grid with dots per event, today as a red circle
+- **Year** — twelve mini-months to jump between
+
+### Hiding views
+Never use the year view? Hide it: Calendar → Settings → Visible views.
 
 ---
 
@@ -386,9 +864,16 @@ Which views are offered at all is configurable in the calendar settings.
 **Hero:** none
 **Tags:** Calendar, Sources
 
-Every calendar integration in your Home Assistant — CalDAV, Google, local calendars. The card finds them automatically and blends the events, color-coded by source.
+Every calendar integration in your Home Assistant — CalDAV, Google, local calendars.
 
-Individual calendars can be hidden in the calendar settings.
+### Found automatically
+The card collects all `calendar.*` entities by itself and blends the events, colour-coded by source.
+
+### Choosing
+Calendar → Settings → Calendars. Switch off individual sources you don't want in the card.
+
+### New events
+In those same settings you set which calendar a new event goes into by default.
 
 ---
 
@@ -398,7 +883,15 @@ Individual calendars can be hidden in the calendar settings.
 **Hero:** none
 **Tags:** Tasks, Create
 
-Open Tasks → plus button → type a title. Optionally: pick a list, set a due date, add a note — all in the same dialog, Reminders-style.
+Open Tasks, plus button, type a title.
+
+### In the same dialog
+- **Pick a list**
+- **Set a due date**
+- **Add a note** — with templates if you've set any up
+
+### Completing
+One tap on the circle at the left. The task gets struck through and leaves the list depending on your filter.
 
 ---
 
@@ -408,9 +901,14 @@ Open Tasks → plus button → type a title. Optionally: pick a list, set a due 
 **Hero:** none
 **Tags:** Tasks, Due Date
 
-While creating or editing: tap the "Due" row, set date and time on the wheels.
+Tap the "Due" row in the dialog and set date and time on the wheels.
 
-Overdue tasks turn red — impossible to miss, on purpose.
+### What happens then
+- **Due soon** — the task shows its time in the row
+- **Overdue** — the whole row turns red, with a note of how long
+
+### Why so loud
+Overdue things should stand out without you having to look for them. On the start screen the tasks widget shows the same colour.
 
 ---
 
@@ -420,9 +918,17 @@ Overdue tasks turn red — impossible to miss, on purpose.
 **Hero:** none
 **Tags:** Tasks, Lists
 
-Via the filter pills above the tasks. First row: status (open, done). Second row: your lists. Both filters combine — "open" plus "shopping list" shows exactly that.
+Via the filter pills above the tasks.
 
-The card automatically collects every task integration in your Home Assistant.
+### Two rows
+- **Top** — status: open, done, overdue
+- **Bottom** — your lists
+
+### They combine
+"Open" plus "shopping list" shows exactly the open items of that one list.
+
+### Where the lists come from
+The card automatically collects every task integration in your Home Assistant — local to-do lists as well as connected services.
 
 ---
 
@@ -432,9 +938,19 @@ The card automatically collects every task integration in your Home Assistant.
 **Hero:** none
 **Tags:** Schedules, Automation
 
-Open a device → "Schedule" tab → plus. Pick a time on the wheel, set the action (on, off, temperature …), tap the weekdays, save.
+Open the device, "Schedule" tab, plus button.
 
-Requires the Scheduler integration (nielsfaber/scheduler-component) in Home Assistant.
+### The editor
+- **Time** on the wheel
+- **Action** — on, off, brightness, temperature, position, depending on device type
+- **Weekdays** as a chip row
+- **Device settings** for details like colour or mode
+
+### Requirement
+The Scheduler integration (`nielsfaber/scheduler-component`) must be installed in Home Assistant. Without it the tab shows a note instead of the editor.
+
+### Editing
+Schedules expand and change right in the list — no sub-view needed.
 
 ---
 
@@ -444,7 +960,13 @@ Requires the Scheduler integration (nielsfaber/scheduler-component) in Home Assi
 **Hero:** none
 **Tags:** Schedules, Weekdays
 
-Create two schedules: one with Mon–Fri, one with Sat–Sun. The weekday chips in the editor make the selection a one-tap job.
+With two schedules: one for Mon–Fri, one for Sat–Sun.
+
+### The selection
+The weekday chips in the editor are individually tappable. One tap selects, a second deselects.
+
+### Pause instead of delete
+If you don't need a schedule for a while, switch it off rather than deleting it. It keeps all its settings.
 
 ---
 
@@ -454,7 +976,16 @@ Create two schedules: one with Mon–Fri, one with Sat–Sun. The weekday chips 
 **Hero:** none
 **Tags:** Schedules, Overview
 
-Search for "Schedules" or open the schedule overview from the sidebar. Every timer and schedule across all devices lives there — filterable, with a jump straight to each device.
+Search for "Schedules" or open the overview from the sidebar.
+
+### What's there
+Every timer and schedule across all devices, with domain badges, time and weekdays.
+
+### Filters
+All, timers only, schedules only.
+
+### Jumping
+Tapping an entry takes you to the device it belongs to.
 
 ---
 
@@ -464,9 +995,36 @@ Search for "Schedules" or open the schedule overview from the sidebar. Every tim
 **Hero:** none
 **Tags:** Energy, Setup
 
-Search "Add devices" → Energy Dashboard. The wizard pulls sensors from your Home Assistant energy configuration automatically; anything missing you pick by hand.
+Search "Add devices" and pick Energy Dashboard.
 
-Afterwards the dashboard appears as its own device in your search.
+### What the wizard does
+It reads your Home Assistant energy configuration and takes over whatever it finds — grid import, export, solar, battery, tariffs.
+
+### What you add
+Whatever HA doesn't know, you pick by hand. Every row opens a searchable sensor picker.
+
+### Afterwards
+The dashboard appears as its own device in your search and can be placed as a start-screen tile.
+
+---
+
+## Tipp energie-werte - Energy
+
+**Title:** What do "Auto" and "Manual" mean on the energy values?
+**Hero:** none
+**Tags:** Energy, Sensors
+
+They tell you where a sensor assignment came from.
+
+### The two pills
+- **Auto** — the sensor was taken automatically from your Home Assistant energy settings
+- **Manual** — you assigned it yourself
+
+### How the values are grouped
+By type: power (W/kW), energy (Wh/kWh), battery, tariffs, plus gas and water.
+
+### If a value looks wrong
+Tap the row and pick a different sensor. The ⓘ next to each value explains exactly what's meant to be measured — useful when several sensors have similar names.
 
 ---
 
@@ -476,7 +1034,97 @@ Afterwards the dashboard appears as its own device in your search.
 **Hero:** none
 **Tags:** Energy, Overview
 
-Each circle is an energy source or consumer: grid, solar, battery, home. The numbers are live. In the dashboard settings you decide which values appear in which circle.
+Each circle is an energy source or consumer: grid, solar, battery, home.
+
+### What you see
+The numbers are live. When power flows the circle shows the current draw; the direction tells you whether you're importing or exporting.
+
+### Adjusting
+In the dashboard's settings you decide which value sits in which circle.
+
+### The charts
+Below the circles are trend charts for day, week, month and year — from Home Assistant's long-term statistics, so gap-free even across months.
+
+---
+
+## Tipp geraete-bauen - Custom Devices
+
+**Title:** Can I build my own device views — without code?
+**Hero:** none
+**Tags:** Custom Devices, Builder
+
+Yes. Search "Add devices" and pick a type.
+
+### The types
+- **Energy Dashboard** — for power, solar, battery
+- **3D printer** — print status, filament, temperatures
+- **Weather station** — forecast and readings
+- **Universal** — for everything else
+
+### The flow
+Pick a type, assign sensors, name it, done. The card builds a complete detail view with hero, charts and sensor lists from that.
+
+### Editable anytime
+No YAML, no config file. Everything reachable again through the management screen in the Integration area.
+
+---
+
+## Tipp hero-anzeige - Custom Devices
+
+**Title:** What is the large display at the top of a self-built device?
+**Hero:** none
+**Tags:** Custom Devices, Hero
+
+The hero — the circle at the very top of the detail view, for the device's most important value.
+
+### What you choose
+Up to five values. Several rotate as a slideshow.
+
+### Pictures instead of numbers
+Entities with an image or camera badge render as a photo instead of a value. That's how a 3D printer gets its camera feed into the hero.
+
+### Order
+Use the ↑ and ↓ arrows on a selected row to set the order the slideshow runs in.
+
+---
+
+## Tipp charts-sensoren - Custom Devices
+
+**Title:** Why does the curve reach further back for some sensors than others?
+**Hero:** none
+**Tags:** Custom Devices, Charts
+
+Because there are two different data sources — and the card tells you by colour which one applies.
+
+### The three badges
+- **Cumulative (green)** — meter readings. Full statistics for day, week, month and year, straight from Home Assistant.
+- **Measurement (blue)** — readings like temperature. Full statistics too.
+- **History (orange)** — sensors without a `state_class`. They fall back to plain state history.
+
+### The practical difference
+Green and blue give gap-free long-term curves. Orange only reaches back as far as your Home Assistant keeps raw data — often ten days.
+
+### Where you see it
+When editing a Universal device under "Charts". The badge sits next to each sensor.
+
+---
+
+## Tipp sichtbare-entitaeten - Custom Devices
+
+**Title:** How do I hide individual values of a device?
+**Hero:** none
+**Tags:** Custom Devices, Visibility
+
+When editing the device under "Visible entities".
+
+### How it's laid out
+One toggle per entity, grouped into Controls, Sensors, Diagnostics and Misc. On large devices the search above helps.
+
+### What switching off means
+The entity disappears from the card — in Home Assistant it stays untouched. It's purely a display decision.
+
+### What it's good for
+A modern printer or inverter often brings thirty diagnostic values. Five of them interest you. The rest don't need to be visible.
 
 ---
 
@@ -486,9 +1134,17 @@ Each circle is an energy source or consumer: grid, solar, battery, home. The num
 **Hero:** none
 **Tags:** Appearance, Background
 
-Settings → Appearance → Wallpaper. Either enter an image URL or open the gallery and pick by thumbnail from your Home Assistant media folder.
+Settings → Appearance → Wallpaper.
 
-The image fills the entire view — not just the card.
+### How it normally looks
+Without a custom image, the card lets your **Home Assistant dashboard wallpaper** show through its glass panels. Enabling your own image replaces it.
+
+### Two routes
+- **Image URL** — put the file in `config/www/` and enter it as `/local/filename.jpg`. An `http(s)://…` URL works too.
+- **Gallery** — browse thumbnails from your Home Assistant media folder and tap one.
+
+### Good to know
+The appearance sliders (brightness, blur, contrast, saturation, grayscale) still apply — to your own image as well.
 
 ---
 
@@ -498,9 +1154,46 @@ The image fills the entire view — not just the card.
 **Hero:** none
 **Tags:** Appearance, Videos
 
-Drop MP4 files into `/config/www/fast-search-videos/` — named by the pattern `light on = light_on.mp4`. Open a light and the video plays looped and muted behind the controls.
+Put MP4 files named `{domain}_{state}.mp4` into your video folder.
 
-A starter pack with 30+ clips lives in the GitHub repo under `media/videos/`.
+### Examples
+- `light_on.mp4` and `light_off.mp4`
+- `cover_open.mp4` and `cover_closed.mp4`
+- `climate_on.mp4`, `fan_on.mp4`, `switch_on.mp4`
+
+### How it plays
+The video plays **once** when the detail view opens — after that the last frame stays. No permanent loop eating performance.
+
+### Placeholders
+Files named `default_1.mp4` through `default_10.mp4` are picked at random for devices without their own video.
+
+### Turning it on
+Settings → Appearance → Animations. Desktop and mobile switch separately — videos cost data and battery on the phone.
+
+### A starter pack
+Over thirty ready-made clips live in the GitHub repo under `media/videos/`.
+
+---
+
+## Tipp video-ordner - Appearance
+
+**Title:** Where exactly do the video files have to live?
+**Hero:** none
+**Tags:** Appearance, Videos
+
+In one of two places — the card checks both.
+
+### Option A — the www folder
+Path in settings: `/local/videos`. The files then live in `config/www/videos/`. (`/local/…` is Home Assistant's alias for `config/www/…`.)
+
+### Option B — the media folder
+Upload the videos through the Home Assistant media browser into a folder named exactly like the last part of your path — so `videos`. The card discovers it across your media sources, without needing `www` access.
+
+### The order
+The www path is checked first, then the media folder. Either works as long as the folder name matches.
+
+### If no video appears
+Almost always a typo in the filename. Only exactly-named files are found.
 
 ---
 
@@ -510,19 +1203,37 @@ A starter pack with 30+ clips lives in the GitHub repo under `media/videos/`.
 **Hero:** none
 **Tags:** Appearance, Design
 
-A glass effect for the controls: refraction, sheen, color fringe — as if real glass sat on top of the background. Settings → Appearance → Design → Liquid Glass.
+A glass effect for the controls: refraction, sheen and colour fringe, as if real glass sat over the background.
 
-Fourteen dials for connoisseurs. The default looks good without touching any of them.
+### Where
+Settings → Appearance → Design → Liquid Glass.
+
+### What's adjustable
+Fourteen dials — frost, refraction, colour fringe, tint, bend, sheen and sheen angle, specular, glow, brightness. Each with its own explanation behind the ⓘ.
+
+### For the impatient
+The default looks good without touching a single dial. The fourteen are there for fine-tuning, not as homework.
+
+### On Safari
+True refraction is a Chromium capability. On Safari and iOS a frost-and-tint mode takes over that comes very close.
 
 ---
 
 ## Tipp splashscreen - Appearance
 
-**Title:** Can I change the startup screen?
+**Title:** Can I change the loading screen?
 **Hero:** none
 **Tags:** Appearance, Start
 
-Yes, three options: Off (start instantly), progress bar (classic), or the handwritten "hello" animation. Settings → Appearance → Splashscreen.
+Yes, three options — Settings → Appearance → Splashscreen.
+
+### The options
+- **Off** — the card appears immediately
+- **Progress bar** — the classic loader
+- **Handwriting** — a "hello" gets drawn, in two strokes with a pause between
+
+### When it takes effect
+The change applies the next time the card loads, not immediately.
 
 ---
 
@@ -532,7 +1243,13 @@ Yes, three options: Off (start instantly), progress bar (classic), or the handwr
 **Hero:** none
 **Tags:** Appearance, Grid
 
-Settings → Appearance → Grid columns: 4, 5, or 6. Fewer columns = larger tiles, more columns = more overview.
+Settings → Appearance → Columns: four, five or six.
+
+### The trade-off
+Fewer columns means larger tiles and more calm. More columns means more overview when you have many devices.
+
+### On the phone
+There the screen width decides. The setting applies to tablet and desktop.
 
 ---
 
@@ -542,9 +1259,38 @@ Settings → Appearance → Grid columns: 4, 5, or 6. Fewer columns = larger til
 **Hero:** none
 **Tags:** Filter, Hide
 
-Settings → Filter → Excluded patterns. Enter patterns with wildcards — `sensor.*` hides all sensors, `*_unavailable` hides everything unreachable.
+Settings → General → Filter → Excluded patterns.
 
-The live preview shows instantly what a pattern would match. Ready-made templates are included.
+### The wildcards
+- `*` stands for any number of characters — `sensor.*` matches all sensors
+- `?` stands for exactly one character
+
+### Examples
+- `sensor.temp_*` — all temperature sensors with that prefix
+- `binary_sensor.motion_*` — all motion sensors
+- `*_unavailable` — anything ending in "_unavailable"
+
+### The live preview
+As you type, the card shows which entities the pattern would currently match. No flying blind.
+
+### Undoing
+Delete the pattern again, done. Sensible default patterns are pre-filled on first launch — those are just as changeable.
+
+---
+
+## Tipp schnellauswahl - Filter
+
+**Title:** Are there ready-made filter bundles?
+**Hero:** none
+**Tags:** Filter, Templates
+
+Yes — Quick Add, right below the excluded patterns.
+
+### How it works
+Tap a suggestion and its whole pattern set lands in your list. A **✓** shows a set is already active.
+
+### What it's for
+Typical clean-up cases — unavailable entities, diagnostic values, technical helper entities — in one tap instead of ten lines of manual work.
 
 ---
 
@@ -554,86 +1300,156 @@ The live preview shows instantly what a pattern would match. Ready-made template
 **Hero:** none
 **Tags:** Filter, Visibility
 
-By default the card respects what HA has hidden or disabled. If you want to see those entries anyway: Settings → Filter → Visibility — three toggles for hidden, disabled, and diagnostic entities.
+Settings → General → Filter → Visibility.
+
+### Three switches
+- **Hidden entities** — whatever is marked "hidden" in HA
+- **Disabled entities** — whatever is switched off in HA
+- **Diagnostic entities** — technical values HA normally tucks away
+
+### The default
+All three off. The card respects what you decided in Home Assistant — nothing slips through unasked.
+
+### When you need them
+When setting up a new device and a sensor stubbornly won't show. Switch on, find it, switch off again.
 
 ---
 
-## Tipp datenschutz - Filter
+## Tipp limits - Filter
+
+**Title:** The card loads slowly — what can I do?
+**Hero:** none
+**Tags:** Filter, Performance
+
+Settings → General → Filter → Limits. Two dials that help a lot on large installations.
+
+### Maximum number of entities
+Caps how many entities get loaded at all. `0` means unlimited. With several thousand entities a limit speeds up startup noticeably.
+
+### Load only entities with an area
+Hides everything not assigned to a room. In many installations that's exactly the technical entities you'd never search for anyway.
+
+### The side effect
+Fewer loaded entities means not just a faster start but less noise in search.
+
+---
+
+## Tipp filter-toolbar - Filter
+
+**Title:** Can I tidy up or hide the filter bar?
+**Hero:** none
+**Tags:** Filter, Toolbar
+
+Yes — Settings → General → Filter.
+
+### What you control
+- **Master switch** — the whole filter button on or off. Off means a tidy toolbar with no filter controls.
+- **By categories** and **By areas** — show or hide those two dimensions individually
+- **Active count** — a badge on each chip showing how many devices of that group are currently on ("Lights 4")
+
+### The counter in practice
+It answers "is a light still on somewhere?" without a single tap.
+
+---
+
+## Tipp datenschutz - Privacy
 
 **Title:** What does the card send to the internet?
 **Hero:** none
-**Tags:** Filter, Privacy
+**Tags:** Privacy, Security
 
-None of your data. No telemetry, no tracking, no cloud connection. The only external fetches are two markdown files from GitHub (the changelog and these tips) — no credentials, none of your content.
+None of your data.
 
-The full security report lives in the GitHub repo: `docs/SECURITY.md`.
+### What doesn't happen
+- No telemetry, no tracking, no analytics services
+- No cloud connection, no account
+- No credentials in browser storage
+
+### The only external fetches
+Two markdown files from GitHub — the changelog and these very tips. No credentials, none of your content.
+
+### Where your data lives
+Settings and learned patterns in your browser's local storage. Everything else in your Home Assistant.
+
+### To verify
+The card ships as a single file — you can grep it yourself. The full security report lives in the repo under `docs/SECURITY.md` and is re-checked for every release.
 
 ---
 
-## Tipp sprache - Pro Tips
+## Tipp sprache - Help
 
-**Title:** How do I switch the card to German or English?
+**Title:** How do I set the card's language?
 **Hero:** none
-**Tags:** Settings, Language
+**Tags:** Help, Language
 
-Settings → General → App language. The setting is independent of your Home Assistant's language — card in English, HA in German works fine.
+Settings → General → App language.
 
-More languages are in the works; Dutch is next.
+### Independent of Home Assistant
+The setting applies to the card only. Card in English with a German Home Assistant works fine.
+
+### What follows along
+Menus, labels, date and weekday names — and these tips.
+
+### What else lives there
+The same section sets **currency** (for energy costs) and **time format** (24 or 12 hours). Time format applies everywhere: charts, activities, schedules, the island.
+
+### More languages
+Currently German and English. Dutch is planned next.
 
 ---
 
-## Tipp cache-leeren - Pro Tips
+## Tipp cache-leeren - Help
 
 **Title:** The card shows stale data — what now?
 **Hero:** none
 **Tags:** Help, Cache
 
-Settings → About → Clear cache. That empties the search and suggestion caches; your settings and favorites stay.
+Settings → About → Clear cache.
 
-The big hammer next to it — "Reset all data" — really resets everything. Double confirmation, for good reason.
+### What that empties
+The caches for search and suggestions. Your settings, favorites and self-built devices stay.
+
+### The big hammer next to it
+"Reset all data" really deletes everything — settings, favorites, learned patterns, custom devices. Two confirmations, for good reason.
+
+### If that doesn't help
+Reload the page. Then check the Home Assistant connection — does HA itself still show current values?
 
 ---
 
-## Tipp changelog - Pro Tips
+## Tipp changelog - Help
 
 **Title:** Where do I see what changes with updates?
 **Hero:** none
 **Tags:** Help, Updates
 
-Search "Changelog" or tap the changelog widget on the start screen. Every version is documented — searchable and filterable by topic.
+Search for "Changelog" or tap the matching tile on the start screen.
+
+### What's there
+Every version with title, date and a thorough description of what changed — and often why.
+
+### Search and filter
+Full-text search across all entries, plus filters by topic tags.
+
+### Your version
+The currently installed version sits at the top and under Settings → About.
 
 ---
 
-## Tipp zeit-sortierung - Pro Tips
+## Tipp toasts - Help
 
-**Title:** Can the card show different devices in the morning than in the evening?
+**Title:** Can I customise the little confirmation pop-ins?
 **Hero:** none
-**Tags:** Pro, Sorting
+**Tags:** Help, Toasts
 
-Yes — time sorting learns which devices you use at which time of day and sorts the list accordingly. Coffee machine on top in the morning, living-room light in the evening.
+Yes — Settings → General → Toasts.
 
-Enable via the clock symbol in the toolbar or in the filter settings.
+### Three things
+- **When** — which events trigger a pop-in
+- **Position** — where on the screen
+- **Duration** — how long it stays
 
----
-
-## Tipp toasts - Pro Tips
-
-**Title:** Can I customize the little confirmation pop-ins?
-**Hero:** none
-**Tags:** Pro, Toasts
-
-Yes. Settings → General → Toasts. Decide which events trigger a pop-in, where it appears, and how long it stays.
-
----
-
-## Tipp geraete-bauen - Pro Tips
-
-**Title:** Can I build my own device views — without code?
-**Hero:** none
-**Tags:** Pro, Integration
-
-Yes. Search "Add devices" and pick a type: Energy Dashboard, 3D printer, weather station, or Universal. Select sensors, name them, done — the card builds the view.
-
-No YAML. Editable anytime.
+### And quiet hours
+The same section holds the nightly window in which nothing pops up at all. See the quiet-hours tip.
 
 ---

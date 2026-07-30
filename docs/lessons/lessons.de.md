@@ -1,6 +1,6 @@
 # Tipps — Fragen & Antworten
 
-Die wichtigsten Fragen zur Card, jede mit einer Antwort, die auf einen Bildschirm passt. Von „Wie öffne ich die Suche?" bis „Was ist Liquid Glass?".
+Die wichtigsten Fragen zur Card, jede mit einer ausführlichen Antwort. Von „Was sehe ich beim Öffnen?" über die Insel und das Mitteilungs-Center bis zu eigenen Geräte-Ansichten.
 
 <!--
 AUTOREN-HINWEIS (wird vom Parser ignoriert):
@@ -22,9 +22,12 @@ Regeln:
   lessons.de.md und lessons.en.md IDENTISCH sein (Deep-Link-Parität).
 - Kategorie: kurz, wird in der UI als Gruppe angezeigt.
 - Title: als Frage formulieren — das ist das Konzept dieses Buchs.
-- Antwort: 3–6 Zeilen. Eine Sache pro Tipp. Apple-Tips-Stil.
-- Neue Tipps am Ende der passenden Kategorie einfügen, Katalog-Quelle ist
-  docs/info-popups/info-popups-catalog.md.
+- Antwort: direkte Antwort zuerst (1–2 Sätze), dann `###`-Unterabschnitte für
+  Schritte, Hintergrund und Sonderfälle.
+- ⚠️ NIEMALS `---` innerhalb eines Tipps verwenden — das beendet den Eintrag
+  vorzeitig. Für Gliederung `###`-Überschriften nutzen.
+- Neue Tipps am Ende der passenden Kategorie einfügen. Faktenquelle ist
+  docs/info-popups/info-popups-catalog.md und der Versionsverlauf.
 -->
 
 ---
@@ -35,21 +38,68 @@ Regeln:
 **Hero:** none
 **Tags:** Start, Überblick
 
-Mehr als suchen. Die Card ist ein komplettes Dashboard: Geräte suchen und steuern, Startseite mit Live-Widgets, Kalender, Aufgaben, News, Zeitpläne, Energie-Übersicht — alles in einer Karte, alles lokal auf deinem Home Assistant.
+Mehr als suchen. Die Card ist ein vollständiges Dashboard in einer einzigen Lovelace-Karte.
 
-Diese Tipps führen dich der Reihe nach durch alle Bereiche.
+### Was drin steckt
+- **Suche & Steuerung** für alle Geräte deines Home Assistant
+- **Startseite** mit Uhr, Begrüßung und Live-Kacheln
+- **Die Insel** — eine Kapsel oben, die zeigt, was gerade wichtig ist
+- **Mitteilungs-Center** mit Verlauf, Schweregraden und Ruhezeiten
+- **Apps**: Kalender, Aufgaben, News, Zeitpläne, Tipps, Änderungsverlauf
+- **Energie-Dashboard** und ein Baukasten für eigene Geräte-Ansichten
+
+### Wo alles lebt
+Alles läuft lokal in deinem Browser und spricht direkt mit deinem Home Assistant. Kein Cloud-Dienst, kein Konto, keine Telemetrie.
+
+### Wie du weiterkommst
+Diese Tipps sind nach Bereichen sortiert und bauen aufeinander auf. Wenn du die Card gerade erst installiert hast, arbeite dich einfach der Reihe nach durch „Erste Schritte".
 
 ---
 
-## Tipp suche-oeffnen - Erste Schritte
+## Tipp zen-start - Erste Schritte
 
-**Title:** Wie öffne ich die Suche?
+**Title:** Was sehe ich, wenn die Card sich öffnet?
 **Hero:** none
-**Tags:** Start, Suche
+**Tags:** Start, Zen
 
-Tippe die Suchleiste an. Die Card klappt nach unten auf und zeigt deine Geräte, gruppiert nach Räumen.
+Einen ruhigen Startbildschirm: Datum, eine große Uhr, deine Begrüßung und die Suchleiste. Alles andere ist eine Geste entfernt.
 
-Zum Schließen: nach unten wischen oder daneben tippen.
+### Was dort steht
+- **Datum und Uhr** — groß, ohne Ablenkung
+- **Begrüßung** — mit deinem Namen, wenn Home Assistant ihn kennt
+- **Suchleiste** — mittig, bereit zum Antippen
+- **Wartende Meldungen** — darunter gestapelt, wie auf einem Sperrbildschirm
+
+### Warum so wenig
+Auf einem Wandtablet läuft die Card oft den ganzen Tag. Ein Bildschirm, der nur Uhrzeit und Wichtiges zeigt, ist im Vorbeigehen angenehmer als ein volles Dashboard. Wer mehr will, holt es sich mit einer Geste.
+
+### Gut zu wissen
+Die Einblendung bewegt nichts — Uhr, Begrüßung und Leiste sind vom ersten Bild an da und werden nur von unscharf zu scharf. Danach wandert ein Lichtschein einmal über das Glas der Suchleiste.
+
+---
+
+## Tipp zen-aufdecken - Erste Schritte
+
+**Title:** Wie komme ich vom Startbildschirm zu meinen Geräten?
+**Hero:** none
+**Tags:** Start, Gesten
+
+Eine Geste genügt: nach oben wischen, einmal am Mausrad drehen oder die Pfeiltaste nach oben drücken.
+
+### Was dann passiert
+Der Aufbau läuft von selbst durch, nichts bleibt auf halbem Weg stehen:
+
+1. Uhr, Begrüßung und Meldungen treten zur Seite
+2. Die Suchleiste wandert von der Mitte nach oben und wird zur Werkzeugleiste
+3. Die Insel setzt sich darüber
+4. Die Sidebar schiebt sich von links herein
+5. Die vier Kacheln kommen nacheinander — die größte zuerst
+
+### Zurück in die Ruhe
+Eine Geste nach unten fährt alles wieder zusammen — dieselbe Treppe rückwärts, eine Spur schneller.
+
+### Gut zu wissen
+Sobald du die Card wirklich benutzt (suchen, ein Gerät öffnen), bleibt sie aufgedeckt. Der Ruhezustand kommt erst zurück, wenn du ihn selbst wieder holst.
 
 ---
 
@@ -59,9 +109,18 @@ Zum Schließen: nach unten wischen oder daneben tippen.
 **Hero:** none
 **Tags:** Start, Steuerung
 
-Tippe ein Gerät in der Liste an — die Detailansicht öffnet sich mit allen Bedienelementen: Slider für Helligkeit, Regler für Temperatur, Knöpfe für Rollläden.
+Tippe ein Gerät in der Liste an — die Detailansicht öffnet sich mit allen Bedienelementen.
 
-Noch schneller geht es mit der Schnellsteuerung — siehe Kategorie „Schnellsteuerung".
+### Was dich erwartet
+- **Kreis-Slider** für alles mit einem Wert: Helligkeit, Temperatur, Position
+- **Modus-Knöpfe** darunter: Farbtemperatur, Effekte, Heizen/Kühlen
+- **Reiter** oben: Steuerung, Kontext, Verlauf, Zeitplan, Einstellungen
+
+### Der schnellere Weg
+Für Licht an/aus musst du die Detailansicht gar nicht öffnen — mit der Schnellsteuerung wird das Geräte-Icon selbst zum Schalter. Siehe die Kategorie „Schnellsteuerung".
+
+### Gut zu wissen
+Welche Bedienelemente erscheinen, entscheidet die Card anhand des Gerätetyps. Ein Rollladen bekommt Position und Lamellen, ein Media-Player Lautstärke und Warteschlange, ein Thermostat Zieltemperatur und Modi.
 
 ---
 
@@ -73,19 +132,231 @@ Noch schneller geht es mit der Schnellsteuerung — siehe Kategorie „Schnellst
 
 Oben links ist immer ein Zurück-Pfeil. Auf dem Handy funktioniert auch eine Wischgeste nach rechts.
 
-Die Card merkt sich, wo du warst — nach einem Gerät landest du wieder in deiner Suchliste, nicht am Anfang.
+### Die Card merkt sich den Weg
+Nach einem Gerät landest du wieder in deiner Suchliste — mit demselben Filter, derselben Scrollposition. Nicht am Anfang.
+
+### Bei den Apps
+Kalender, Aufgaben und News haben oben links eigene Zurück- und Übersichts-Knöpfe. Aus einer Detailansicht führt der erste Tipp zurück zur Liste, der zweite zur Card.
 
 ---
 
 ## Tipp startseite-verstehen - Erste Schritte
 
-**Title:** Was zeigt mir die Startseite?
+**Title:** Was zeigen mir die Kacheln?
 **Hero:** none
 **Tags:** Start, Bento
 
-Die Startseite besteht aus Kacheln („Bento-Widgets"): Favoriten, Wetter, Termine, Aufgaben, News, Tipps und Änderungsverlauf. Alles live, alles antippbar.
+Vier Kacheln („Bento-Widgets") mit deinen wichtigsten Live-Informationen. Alles echt, alles antippbar.
 
-Auf dem Handy wischst du seitlich durch die großen Widgets.
+### Die vier Plätze
+- **W1** — groß, links: meist Favoriten oder Vorschläge
+- **W2** — oben rechts: ein Karussell aus Wetter, Kalender, Aufgaben und News
+- **W3 / W4** — unten geteilt: zum Beispiel Tipps und Änderungsverlauf
+
+### Was ein Tipp bewirkt
+Ein Tipp auf eine Kachel öffnet direkt die passende Detailansicht — auf das Wetter-Widget zum Wetter, auf einen Termin zum Kalender, auf ein Gerät in den Favoriten zu genau diesem Gerät.
+
+### Gut zu wissen
+Welche App in welchem Platz sitzt, bestimmst du selbst: Einstellungen → Allgemein → Startseite.
+
+---
+
+## Tipp insel-was - Die Insel
+
+**Title:** Was ist die Kapsel oben in der Mitte?
+**Hero:** none
+**Tags:** Insel, Überblick
+
+Die Insel — eine Glas-Kapsel, die immer genau **eine** Sache zeigt: die gerade wichtigste.
+
+### Die Rangfolge
+1. **Meldung** — Warnungen orange, Infos blau. Mehrere stapeln sich zu „N Mitteilungen".
+2. **Live-Aktivität** — ein laufender Timer mit Countdown, der Sauger, ein fahrendes Rollo, spielende Medien. Bei mehreren: die wichtigste plus „+N".
+3. **Ruhe** — Uhr, Wetter und ein Presence-Punkt. Grau heißt: nichts wartet.
+
+### Das Ruhegesicht rollt
+Ist nichts los, wechselt die Insel im Takt durch die Fakten deines Zuhauses: Wetter, wie viele Lichter an sind, wie viele Fenster offen stehen. Jede Zahl ist antippbar und führt genau dorthin.
+
+### Warum eine statt vieler
+Eine ruhige Kapsel, die sich nur meldet, wenn es etwas zu sagen gibt — statt einer Leiste voller Widgets, die permanent um Aufmerksamkeit konkurrieren.
+
+---
+
+## Tipp insel-tippen - Die Insel
+
+**Title:** Was passiert, wenn ich die Insel antippe?
+**Hero:** none
+**Tags:** Insel, Interaktion
+
+Ein kurzer Tipp öffnet die Ansicht, die zum aktuellen Inhalt passt.
+
+### Wohin es geht
+- **Bei einer Meldung** → ins Mitteilungs-Center
+- **Bei einer Live-Aktivität** → in die Detailansicht des laufenden Geräts
+- **Im Ruhezustand** → zu dem Bereich, den die gerade gezeigte Zahl betrifft (Wetter, Lichter, Fenster)
+
+### Der Übergang
+Die Kapsel morpht in die Zielansicht hinein — sie wächst an ihrer Stelle zur vollen Ansicht auf, statt dass ein neues Fenster darüberklappt. Beim Schließen läuft dasselbe rückwärts.
+
+---
+
+## Tipp insel-halten - Die Insel
+
+**Title:** Was ist die Vorschau, wenn ich die Insel gedrückt halte?
+**Hero:** none
+**Tags:** Insel, Gesten
+
+Halte die Kapsel etwa eine halbe Sekunde gedrückt — es öffnet sich eine Vorschau, ohne dass du den Bildschirm verlässt.
+
+### Was du siehst
+- **Bei Meldungen** — das Mitteilungs-Panel dockt unter der Kapsel an. Quittieren, stummschalten und als gelesen markieren geht direkt dort.
+- **Bei Live-Aktivitäten** — eine Glasliste **aller** laufenden Vorgänge. Ein Tipp auf eine Zeile öffnet das jeweilige Gerät.
+
+### Kurz oder lang
+Der kurze Tipp bleibt der schnelle Weg — er öffnet sofort die passende Ansicht. Nach einem langen Druck wird der Loslass-Klick geschluckt, du landest also nicht versehentlich woanders.
+
+### Gut zu wissen
+Die Live-Vorschau schließt sich von selbst, sobald nichts mehr läuft.
+
+---
+
+## Tipp insel-nachts - Die Insel
+
+**Title:** Warum zeigt die Insel nachts nur die Uhr?
+**Hero:** none
+**Tags:** Insel, Ruhezeiten
+
+Weil sie in deinen Ruhezeiten das Nachtgesicht aufsetzt: gedimmt, reduziert auf die Uhrzeit.
+
+### Was still wird
+Das Ruhegesicht — Wetter, Zählerstände, rollende Fakten. Auf einem Wandtablet im Flur oder Schlafzimmer soll nachts kein Werteticker leuchten.
+
+### Was durchkommt
+Meldungen und Live-Aktivitäten bleiben sichtbar. Ein laufender Timer oder eine Warnung verschwindet nicht, nur weil es spät ist.
+
+### Wo du das einstellst
+Einstellungen → Allgemein → Toasts → Ruhezeiten. Dort legst du das Zeitfenster fest — über Mitternacht hinweg (etwa 22:00–07:00) wird korrekt behandelt.
+
+---
+
+## Tipp mitteilungen-center - Mitteilungen
+
+**Title:** Wo finde ich alle Meldungen an einem Ort?
+**Hero:** none
+**Tags:** Mitteilungen, Center
+
+Im Mitteilungs-Center — such nach „Mitteilungen" oder tippe die Insel an, wenn sie eine Meldung zeigt.
+
+### Was zusammenläuft
+Drei Quellen an einem Ort:
+- **Home Assistant** — persistente Benachrichtigungen
+- **Alarm-Entitäten** — Rauch, Leck, Gas und andere Warnmelder
+- **Die Card selbst** — Rückmeldungen zu Aktionen
+
+### Wie es sortiert ist
+Nach Schweregrad. Kritisches ganz oben, dann Warnungen, dann Infos. Drei Reiter trennen **Übersicht**, **Live** und **Verlauf** — nichts verschwindet, auch Quittiertes bleibt im Verlauf nachlesbar.
+
+### Gut zu wissen
+Der Zähler im Kopf sagt dir, wie viele Meldungen es wirklich sind. Die Zahl in der Insel und die im Center stammen aus derselben Quelle.
+
+---
+
+## Tipp mitteilungen-quittieren - Mitteilungen
+
+**Title:** Wie werde ich eine Meldung wieder los?
+**Hero:** none
+**Tags:** Mitteilungen, Aktionen
+
+Drei Wege, je nachdem wie endgültig es sein soll.
+
+### Die drei Aktionen
+- **Als gelesen markieren** — die Meldung verlässt die Übersicht, bleibt aber im Verlauf.
+- **Stummschalten (1 Stunde)** — für Wiederkehrer, die gerade nicht dran sind.
+- **Quittieren** — bestätigt die Meldung endgültig.
+
+### Wo du sie findest
+Direkt in der Vorschau, wenn du die Insel gedrückt hältst — oder im Mitteilungs-Center an jeder Zeile.
+
+### Was im Hintergrund passiert
+Bei echten Home-Assistant-Benachrichtigungen ruft die Card den passenden Dienst auf, sodass sie auch in HA verschwinden. Bei Alarm-Entitäten wird nur lokal quittiert — der Sensor selbst bleibt unangetastet, weil ihn nur die Ursache zurücksetzen kann.
+
+---
+
+## Tipp kritische-meldung - Mitteilungen
+
+**Title:** Was ist der rote Balken ganz oben?
+**Hero:** none
+**Tags:** Mitteilungen, Kritisch
+
+Der Kritisch-Banner. Er erscheint nur bei Meldungen der höchsten Stufe — Wasserleck, Rauch, Gas.
+
+### Warum extra
+Solche Meldungen dürfen nicht in einer Liste untergehen. Der Banner legt sich über den Kopf der Card und bleibt, bis du reagierst.
+
+### Auch nachts
+Der Banner ist die einzige Meldungsart, die die Ruhezeiten durchbricht — standardmäßig zumindest. Der Schalter „Kritisches immer durchlassen" steht in den Ruhezeiten-Einstellungen und ist ab Werk an.
+
+---
+
+## Tipp ruhezeiten - Mitteilungen
+
+**Title:** Wie verhindere ich Einblendungen in der Nacht?
+**Hero:** none
+**Tags:** Mitteilungen, Ruhezeiten
+
+Mit den Ruhezeiten: Einstellungen → Allgemein → Toasts → Ruhezeiten.
+
+### Was still wird
+- Toasts (die kurzen Einblendungen)
+- Der rote Kritisch-Banner — sofern du die Ausnahme abschaltest
+- Das Ruhegesicht der Insel dimmt auf „nur Uhr"
+
+### Was nicht verloren geht
+Die Meldungen entstehen trotzdem. Der Zähler füllt sich, das Center sammelt alles. Am Morgen ist nichts weg — es hat dich nur nicht geweckt.
+
+### Über Mitternacht
+Ein Fenster wie 22:00–07:00 wird korrekt behandelt. Du musst es nicht in zwei Teile zerlegen.
+
+---
+
+## Tipp live-was - Live-Aktivitäten
+
+**Title:** Was zählt als „Live-Aktivität"?
+**Hero:** none
+**Tags:** Live, Überblick
+
+Alles, was gerade läuft und irgendwann von selbst endet.
+
+### Standardmäßig dabei
+- **Timer** mit Countdown
+- **Staubsauger**, während er saugt oder zur Basis fährt
+- **Rollläden**, während sie fahren
+- **Medien**, während sie spielen
+- **Skripte und Automationen**, während sie laufen
+
+### Standardmäßig nicht dabei
+Lichter, Schalter und Klimageräte. Die sind Dauerzustände — ein Licht ist stundenlang „an", das ist keine Aktivität. Wer sie trotzdem sehen will, schaltet sie gezielt frei.
+
+### Warum das nützlich ist
+Laufende Vorgänge sind sonst unsichtbar, bis man zufällig die Detailansicht öffnet. Die Insel zeigt sie, solange sie laufen — und räumt sich weg, wenn sie fertig sind.
+
+---
+
+## Tipp live-anpassen - Live-Aktivitäten
+
+**Title:** Kann ich auswählen, was als Live-Aktivität erscheint?
+**Hero:** none
+**Tags:** Live, Einstellungen
+
+Ja — Einstellungen → Allgemein → Startseite → Live-Aktivitäten.
+
+### Was du dort hast
+- **Hauptschalter** für die ganze Funktion
+- **Ein Schalter je Quelle** — Timer, Sauger, Rollläden, Medien, Skripte, Automationen
+- **Opt-in für Dauerzustände** — Lichter, Schalter, Klima
+
+### Ein Rat zur Dosierung
+Lichter einzuschalten klingt verlockend, führt aber dazu, dass die Insel praktisch nie zur Ruhe kommt. Probier es aus, aber erwarte, dass du es wieder abschaltest.
 
 ---
 
@@ -95,9 +366,19 @@ Auf dem Handy wischst du seitlich durch die großen Widgets.
 **Hero:** none
 **Tags:** Suche, Fuzzy
 
-Nein. Die Suche verzeiht Tippfehler — „Lihct" findet trotzdem dein Licht. Auch Wortteile reichen: „bett lampe" findet die „Schlafzimmer-Bettlampe".
+Nein. Die Suche verzeiht Tippfehler und findet auch Wortteile.
 
-Meist genügen 2–3 Buchstaben, bis der richtige Treffer oben steht.
+### Was funktioniert
+- **Vertipper** — „Lihct" findet dein Licht
+- **Wortteile** — „bett lampe" findet die „Schlafzimmer-Bettlampe"
+- **Zwei Wörter** — „Wohnzimmer Licht" wird als Raum plus Gerätetyp verstanden
+- **Beide Sprachen** — „Lampe" und „light" führen zum selben Ziel
+
+### Wie viel du tippen musst
+Meist genügen zwei bis drei Buchstaben, bis der richtige Treffer oben steht. Die Card durchsucht Gerätenamen, Raumnamen und Entity-IDs gleichzeitig.
+
+### Wenn nichts kommt
+Prüfe, ob das Gerät durch ein Muster ausgeschlossen ist (Einstellungen → Allgemein → Filter) oder ob ein Limit die Ladung begrenzt.
 
 ---
 
@@ -107,9 +388,19 @@ Meist genügen 2–3 Buchstaben, bis der richtige Treffer oben steht.
 **Hero:** none
 **Tags:** Suche, Filter
 
-Tippe den Raumnamen ins Suchfeld. Sobald der Vorschlag als Geistertext erscheint, bestätige mit Tab (Desktop) oder Tipp auf den Vorschlag (Handy) — der Raum wird zum blauen Chip, die Liste zeigt nur noch diesen Raum.
+Tippe den Raumnamen ins Suchfeld — die Card schlägt ihn als Geistertext vor.
 
-Chips lassen sich kombinieren: erst „Kinderzimmer", dann „Lampe".
+### Vorschlag annehmen
+- **Desktop** — Tab-Taste oder Pfeil nach rechts
+- **Handy** — auf den Vorschlag tippen oder den Bestätigen-Knopf rechts im Feld
+
+Der Raum wird zu einem blauen Chip, die Liste zeigt nur noch diesen Raum.
+
+### Kombinieren
+Chips lassen sich stapeln: erst „Kinderzimmer", dann „Lampe" — übrig bleiben die Lampen im Kinderzimmer. Die Card wechselt dabei automatisch in die passende Kategorie.
+
+### Der andere Weg
+Über die Filter-Leiste unter dem Suchfeld gibt es dieselben Filter zum Antippen, ohne zu tippen.
 
 ---
 
@@ -119,9 +410,15 @@ Chips lassen sich kombinieren: erst „Kinderzimmer", dann „Lampe".
 **Hero:** none
 **Tags:** Suche, Chips
 
-Chips sind aktive Filter. Blau = Raum, Violett = Gerätetyp, Grün = Sensortyp.
+Chips sind aktive Filter. Die Farbe verrät die Art.
 
-Ein Tipp auf einen Chip wählt ihn aus, ein zweiter löscht ihn — wie bei iOS-Mail-Empfängern.
+### Die drei Farben
+- **Blau** — ein Raum (Küche, Bad, Wohnzimmer)
+- **Violett** — ein Gerätetyp (Licht, Schalter, Klima)
+- **Grün** — ein Sensortyp (Temperatur, Bewegung, Energie)
+
+### Löschen
+Ein Tipp wählt den Chip aus, ein zweiter löscht ihn — dasselbe Muster wie bei Empfängern in iOS-Mail. Auf dem Desktop geht auch die Rücktaste, wenn das Feld leer ist.
 
 ---
 
@@ -131,12 +428,16 @@ Ein Tipp auf einen Chip wählt ihn aus, ein zweiter löscht ihn — wie bei iOS-
 **Hero:** none
 **Tags:** Suche, Kategorien
 
-Vier Bereiche, vier Blickwinkel auf dein Zuhause:
+Vier Bereiche, vier Blickwinkel auf dein Zuhause.
 
-- **Geräte** — alles was du schalten kannst: Lichter, Schalter, Klima, Rollläden.
-- **Sensoren** — alles was misst: Temperatur, Bewegung, Energie.
-- **Aktionen** — Szenen, Skripte, Automationen.
-- **Custom** — die eingebauten Apps: Kalender, Aufgaben, News, Einstellungen.
+### Was wohin gehört
+- **Geräte** — alles, was du schalten kannst: Lichter, Schalter, Klima, Rollläden, Media-Player, Schlösser, Sauger
+- **Sensoren** — alles, was misst: Temperatur, Luftfeuchte, Bewegung, Energie, Türkontakte
+- **Aktionen** — Szenen, Skripte, Automationen
+- **Custom** — die eingebauten Apps: Kalender, Aufgaben, News, Zeitpläne, Einstellungen und deine eigenen Geräte-Ansichten
+
+### Automatischer Wechsel
+Erzeugst du einen Sensor-Chip, während du in „Geräte" bist, springt die Card selbstständig zu „Sensoren" — sonst wäre die Liste leer.
 
 ---
 
@@ -146,9 +447,14 @@ Vier Bereiche, vier Blickwinkel auf dein Zuhause:
 **Hero:** none
 **Tags:** Suche, Ansicht
 
-Über das Symbol neben dem Suchfeld. Gitter zeigt große Kacheln, Liste zeigt kompakte Zeilen mit mehr Geräten auf einen Blick.
+Über das Symbol neben dem Suchfeld.
 
-Die Wahl bleibt gespeichert — auch nach einem Neuladen.
+### Der Unterschied
+- **Gitter** — große Kacheln mit Icon, Name und Zustand. Ruhiger, gut zum Tippen.
+- **Liste** — kompakte Zeilen, mehr Geräte auf einen Blick, mit Schalter und „⋯"-Knopf direkt in der Zeile.
+
+### Gut zu wissen
+Deine Wahl wird gespeichert und übersteht ein Neuladen. Wie viele Kacheln nebeneinander passen, stellst du unter Einstellungen → Darstellung → Spalten ein (4, 5 oder 6).
 
 ---
 
@@ -158,9 +464,17 @@ Die Wahl bleibt gespeichert — auch nach einem Neuladen.
 **Hero:** none
 **Tags:** Suche, Favoriten
 
-In der Detailansicht eines Geräts: Tippe das Herz oben rechts. Das Gerät erscheint ab sofort im Favoriten-Tab und im Favoriten-Widget der Startseite.
+Öffne ein Gerät und tippe das **♥ Herz** oben rechts im Kopf der Detailansicht.
 
-Gleicher Weg zum Entfernen.
+### Wo sie danach auftauchen
+- Im **Favoriten-Filter** der Suche
+- Im **Favoriten-Widget** auf der Startseite
+
+### Entfernen
+Derselbe Weg — Herz nochmal antippen.
+
+### Warum das lohnt
+Die Handvoll Geräte, die du wirklich täglich benutzt, sind damit immer einen Tipp entfernt, statt in der vollen Liste zu liegen.
 
 ---
 
@@ -170,9 +484,44 @@ Gleicher Weg zum Entfernen.
 **Hero:** none
 **Tags:** Suche, Vorschläge
 
-Die Card lernt aus deinen Klicks — lokal, ohne Cloud. Was du oft benutzt, rückt nach oben. Was du ignorierst, verliert an Gewicht. Alte Muster verblassen mit der Zeit von selbst.
+Weil sie aus deinen Klicks lernt — lokal in deinem Browser, ohne dass etwas das Gerät verlässt.
 
-Zurücksetzen jederzeit: Einstellungen → Vorschläge → Lerndaten löschen.
+### Wie es lernt
+- Was du oft benutzt, rückt nach oben
+- Was du siehst und ignorierst, verliert an Gewicht
+- Alte Muster verblassen mit der Zeit von selbst
+
+### Die Lerngeschwindigkeit
+Einstellungen → Allgemein → Vorschläge. Drei Stufen bestimmen, wie schnell sich die Vorschläge anpassen — von „träge, dafür stabil" bis „reagiert sofort".
+
+### Zurücksetzen
+Im selben Bereich: „Lerndaten zurücksetzen" löscht alle gelernten Muster und zeigt dir, wie viel gelöscht wurde.
+
+---
+
+## Tipp zeit-sortierung - Suchen
+
+**Title:** Kann ich sehen, was sich zuletzt im Haus geändert hat?
+**Hero:** none
+**Tags:** Suche, Sortierung
+
+Ja — mit der Zeit-Sortierung. Sie fügt der Werkzeugleiste einen Uhr-Knopf hinzu.
+
+### Was sie tut
+Aktiv gruppiert sie die Geräteliste nach **letzter Aktivität** statt nach Raum. Das zuletzt Geschaltete steht oben.
+
+### Drei Profile
+- **Fein** — Gerade eben · Letzte 15 Min · Letzte 30 Min · Letzte Stunde
+- **Standard** — Letzte 15 Min · Letzte Stunde · Heute
+- **Grob** — Letzte Stunde · Letzte 6 Std · Letzte 12 Std
+
+Alles jenseits des letzten Fensters landet in „Heute" beziehungsweise „Älter".
+
+### Kombinierbar
+Die Zeit-Sortierung wirkt zusätzlich zum Kategorie- und Raumfilter. „Lichter, nach Aktivität" ist also möglich.
+
+### Einschalten
+Einstellungen → Allgemein → Filter → Nach Zeit sortieren.
 
 ---
 
@@ -182,9 +531,20 @@ Zurücksetzen jederzeit: Einstellungen → Vorschläge → Lerndaten löschen.
 **Hero:** none
 **Tags:** Schnellsteuerung, Licht
 
-Aktiviere die Schnellsteuerung: Einstellungen → Darstellung → Schnellsteuerung. Danach ist das Geräte-Icon selbst der Schalter — ein Tipp aufs Lampen-Icon, Lampe an. Kein Öffnen der Detailansicht mehr nötig.
+Mit der Schnellsteuerung wird das Geräte-Icon auf der Karte selbst zum Schalter.
 
-Ein Tipp daneben (auf den Kartenrest) öffnet weiterhin die Detailansicht.
+### Einschalten
+Einstellungen → Allgemein → Schnellsteuerung. Ab Werk ist die Funktion aus — sie verändert das Antippverhalten spürbar, deshalb entscheidest du.
+
+### Danach gilt
+- **Tipp aufs Icon** — schaltet sofort
+- **Tipp auf die Karte daneben** — öffnet weiterhin die Detailansicht
+
+### Rückmeldung
+Auf dem Handy gibt es ein kurzes haptisches Signal. Beim Fahren erscheint ein Ring um das Icon.
+
+### Gut zu wissen
+System-Entities wie News oder Wetter sind nicht betroffen — bei ihnen öffnet ein Tipp immer die Ansicht.
 
 ---
 
@@ -194,9 +554,17 @@ Ein Tipp daneben (auf den Kartenrest) öffnet weiterhin die Detailansicht.
 **Hero:** none
 **Tags:** Schnellsteuerung, Sicherheit
 
-Absicht. Ein falsch geschaltetes Licht ist in einer Sekunde korrigiert — ein versehentlich geöffnetes Rollo oder Schloss nicht. Deshalb: riskante Richtung = gedrückt halten, bis der Ring sich füllt. Sichere Richtung (schließen, abschließen) = einfacher Tipp.
+Absicht. Ein falsch geschaltetes Licht ist in einer Sekunde korrigiert — ein versehentlich geöffnetes Rollo oder Türschloss nicht.
 
-Asymmetrisch, mit System.
+### Die Regel
+- **Riskante Richtung** (öffnen, entriegeln) — etwa eine Sekunde halten. Ein amberfarbener Ring füllt sich als Bestätigung.
+- **Sichere Richtung** (schließen, verriegeln) — einfacher Tipp.
+
+### Warum asymmetrisch
+Weil der Aufwand, einen Fehler rückgängig zu machen, asymmetrisch ist. Schließen dauert eine Sekunde. Ein unbemerkt geöffnetes Garagentor kostet deutlich mehr.
+
+### Abbrechen
+Loslassen, bevor der Ring voll ist — es passiert nichts.
 
 ---
 
@@ -206,9 +574,18 @@ Asymmetrisch, mit System.
 **Hero:** none
 **Tags:** Schnellsteuerung, Einstellungen
 
-Ja. Einstellungen → Darstellung → Schnellsteuerung öffnet eine Liste aller Gerätetypen. Jeder Typ kennt drei Modi: Aus, Tippen oder Halten.
+Ja, für jeden Gerätetyp einzeln.
 
-Standard: Lichter/Schalter/Ventilatoren auf Tippen, Rollläden/Schlösser auf Halten.
+### Die drei Modi
+- **Aus** — das Icon öffnet wie gewohnt die Detailansicht
+- **Tippen** — ein Tipp schaltet sofort
+- **Halten** — ein Tipp reicht nicht, es braucht den gehaltenen Druck
+
+### Die Voreinstellung
+Lichter, Schalter, Ventilatoren, Eingabe-Schalter und Media-Player stehen auf **Tippen**. Rollläden und Schlösser auf **Halten**. Klimageräte und Sauger sind ebenfalls wählbar.
+
+### Wo
+Einstellungen → Allgemein → Schnellsteuerung. Der Hauptschalter oben, darunter die Liste der Typen.
 
 ---
 
@@ -218,7 +595,17 @@ Standard: Lichter/Schalter/Ventilatoren auf Tippen, Rollläden/Schlösser auf Ha
 **Hero:** none
 **Tags:** Schnellsteuerung, Liste
 
-Ein Tipp auf „⋯" klappt unter der Zeile die wichtigsten Regler aus — Helligkeits-Stufen beim Licht, Position beim Rollo, Modus bei der Klimaanlage. Dieselben Bedienelemente wie in der Detailansicht, nur direkt in der Liste.
+Ein Tipp darauf klappt unter der Zeile die wichtigsten Regler des Geräts aus.
+
+### Was erscheint
+- **Licht** — Helligkeitsstufen als Knopfreihe
+- **Rollladen** — Auf, Stopp, Zu und Positions-Voreinstellungen
+- **Klima** — Betriebsmodi
+
+Es sind exakt dieselben Bedienelemente wie in der Detailansicht, nur eben direkt in der Liste.
+
+### Warum das praktisch ist
+Für „Licht auf 30 %" musst du weder die Detailansicht öffnen noch einen Slider treffen. Zwei Tipps, fertig.
 
 ---
 
@@ -228,9 +615,15 @@ Ein Tipp auf „⋯" klappt unter der Zeile die wichtigsten Regler aus — Helli
 **Hero:** none
 **Tags:** Steuerung, Licht
 
-In der Detailansicht: Zieh am kreisrunden Slider. Der Wert in der Mitte zählt live mit. Loslassen setzt den Wert.
+Zieh am kreisrunden Slider in der Detailansicht. Der Wert in der Mitte zählt live mit.
 
-Der Ein/Aus-Knopf sitzt oben im Kreis und merkt sich die letzte Helligkeit.
+### Bedienung
+- **Ziehen** — überall auf dem Ring, nicht nur am Griff
+- **Loslassen** — setzt den Wert
+- **Ein/Aus-Knopf** oben im Kreis — merkt sich die letzte Helligkeit und stellt sie beim Einschalten wieder her
+
+### Auf dem Handy
+Der Ring ist bewusst großzügig getroffen. Du musst nicht exakt auf der Linie sein.
 
 ---
 
@@ -240,9 +633,15 @@ Der Ein/Aus-Knopf sitzt oben im Kreis und merkt sich die letzte Helligkeit.
 **Hero:** none
 **Tags:** Steuerung, Licht
 
-Unter dem Helligkeits-Slider sitzen die Modus-Knöpfe: Helligkeit, Farbtemperatur, Effekte. Tippe „Farbtemperatur" — der Kreis wird zum Warm-Kalt-Regler.
+Über die Modus-Knöpfe unter dem Slider.
 
-Unterstützt dein Licht Farben, erscheint zusätzlich ein Farbrad.
+### Die Modi
+- **Helligkeit** — der Standard
+- **Farbtemperatur** — der Kreis wird zum Warm-Kalt-Regler mit passendem Farbverlauf
+- **Effekte** — falls dein Licht welche kennt
+
+### Bei Farblampen
+Unterstützt das Licht echte Farben, erscheint zusätzlich ein Farbrad. Die Card fragt die Fähigkeiten beim Gerät ab und zeigt nur, was es wirklich kann.
 
 ---
 
@@ -252,7 +651,16 @@ Unterstützt dein Licht Farben, erscheint zusätzlich ein Farbrad.
 **Hero:** none
 **Tags:** Steuerung, Klima
 
-Der Kreis-Slider stellt die Zieltemperatur. Darunter wählst du den Modus — Heizen, Kühlen, Auto, Aus. Die Leiste unten zeigt Voreinstellungen und Lüfterstufen, falls dein Gerät sie kann.
+Der Kreis-Slider stellt die Zieltemperatur, die Knöpfe darunter den Modus.
+
+### Was du steuerst
+- **Zieltemperatur** — am Ring, in den Schritten deines Geräts
+- **Modus** — Heizen, Kühlen, Automatik, Aus
+- **Voreinstellungen** — Eco, Komfort, Boost, sofern dein Thermostat sie meldet
+- **Lüfterstufen und Schwenken** — bei Klimaanlagen, direkt in der Zeile ausklappbar
+
+### Gut zu wissen
+Die aktuelle Ist-Temperatur steht klein unter der Zielangabe. Weicht dein Thermostat vom erlaubten Bereich ab, begrenzt die Card den Slider auf das, was das Gerät akzeptiert.
 
 ---
 
@@ -262,9 +670,16 @@ Der Kreis-Slider stellt die Zieltemperatur. Darunter wählst du den Modus — He
 **Hero:** none
 **Tags:** Steuerung, Rollladen
 
-Der Kreis-Slider stellt die Position in Prozent — 0 ist zu, 100 ist offen. Die Knöpfe darunter fahren komplett auf, stoppen oder komplett zu.
+Der Kreis-Slider stellt die Position in Prozent — 0 ist zu, 100 ist offen.
 
-Kipp-Lamellen (bei Jalousien) haben einen eigenen Regler, wenn dein Gerät sie meldet.
+### Die Knöpfe darunter
+Komplett auf, Stopp, komplett zu. Stopp wirkt sofort, auch mitten in der Fahrt.
+
+### Bei Jalousien
+Kann dein Gerät die Lamellen kippen, bekommt es einen zweiten Regler dafür. Position und Neigung sind getrennt.
+
+### Während der Fahrt
+Ein fahrendes Rollo erscheint als Live-Aktivität in der Insel — du siehst also auch von der Startseite aus, dass es unterwegs ist.
 
 ---
 
@@ -274,7 +689,16 @@ Kipp-Lamellen (bei Jalousien) haben einen eigenen Regler, wenn dein Gerät sie m
 **Hero:** none
 **Tags:** Steuerung, Szenen
 
-Zweiter Tab in der Detailansicht („Kontext"). Dort sammelt die Card alle Szenen, Skripte und Automationen, die dieses Gerät betreffen — sortiert nach Relevanz. Ein Tipp führt sie aus, eine Bestätigung erscheint als kurze Einblendung.
+Im zweiten Reiter der Detailansicht: „Kontext".
+
+### Was dort steht
+Alle Szenen, Skripte und Automationen, die dieses Gerät betreffen — automatisch gefunden, nach Relevanz sortiert.
+
+### Die Filter
+Drei Reiter trennen **Aktionen**, **Favoriten** und **Umgebung**. „Umgebung" zeigt, was im selben Raum passiert, auch wenn es dieses Gerät nicht direkt anfasst.
+
+### Ausführen
+Ein Tipp startet die Szene. Eine kurze Einblendung bestätigt, dass es geklappt hat — oder meldet den Fehler, wenn nicht.
 
 ---
 
@@ -284,9 +708,19 @@ Zweiter Tab in der Detailansicht („Kontext"). Dort sammelt die Card alle Szene
 **Hero:** none
 **Tags:** Steuerung, Verlauf
 
-Dritter Tab in der Detailansicht („Verlauf"). Diagramme für 24 Stunden, 7 Tage oder 30 Tage, dazu die letzten Ereignisse als Liste und Statistiken wie Einschaltdauer und Änderungshäufigkeit.
+Im dritten Reiter der Detailansicht: „Verlauf".
 
-Funktioniert für jedes Gerät — auch für Sensoren.
+### Was dort ist
+- **Diagramme** für 24 Stunden, 7 Tage und 30 Tage
+- **Letzte Ereignisse** als chronologische Liste
+- **Statistiken** — wie oft geschaltet, wie lange aktiv, durchschnittliche Dauer
+- **Tageszeit-Analyse** — wann dieses Gerät typischerweise läuft
+
+### Für jedes Gerät
+Der Verlauf funktioniert für alle Entity-Typen, nicht nur für Sensoren. Auch ein Schalter bekommt seine Kurve.
+
+### Woher die Daten kommen
+Aus der Home-Assistant-Historie. Wie weit zurück, hängt davon ab, wie lange dein HA Daten aufbewahrt.
 
 ---
 
@@ -296,9 +730,20 @@ Funktioniert für jedes Gerät — auch für Sensoren.
 **Hero:** none
 **Tags:** Steuerung, Musik
 
-Öffne einen Media Player. Läuft Music Assistant, bekommst du das volle Panel: Warteschlange, Bibliothek durchsuchen, Lautsprecher wechseln, Text-zu-Sprache. Lautstärke und Fortschritt liegen auf dem Kreis-Slider.
+Öffne einen Media-Player. Läuft Music Assistant, bekommst du das volle Panel.
 
-Das Cover des laufenden Titels wird zum Hintergrund.
+### Was das Panel kann
+- **Warteschlange** ansehen und leeren
+- **Bibliothek durchsuchen** — Titel, Alben, Interpreten
+- **Lautsprecher wechseln** und gruppieren
+- **Text-zu-Sprache** mit Auswahl der Engine und Sprache
+- **Favorit** und **Radio-Modus**
+
+### Die Regler
+Lautstärke und Abspielposition liegen als zwei Ringe auf dem Kreis-Slider — beide ziehbar.
+
+### Der Hintergrund
+Das Cover des laufenden Titels wird zum Hintergrund der Ansicht.
 
 ---
 
@@ -308,7 +753,15 @@ Das Cover des laufenden Titels wird zum Hintergrund.
 **Hero:** none
 **Tags:** Startseite, Bento
 
-Ja. Einstellungen → Allgemein → Startseite. Dort bestimmst du, welches Widget in welchem der vier Plätze sitzt — oder schaltest die Startseite ganz aus, wenn du direkt in der Suche starten willst.
+Ja — Einstellungen → Allgemein → Startseite.
+
+### Was du bestimmst
+- **Welche App in welchem Platz** sitzt (W1 groß, W2 oben rechts, W3/W4 unten geteilt)
+- **Das Layout** der Kachelfläche
+- **Ob es die Startseite überhaupt gibt** — ausgeschaltet öffnet die Card direkt die Suchliste
+
+### So wählst du
+Tippe einen Slot an und such dir die Entity aus. Die Vorschau zeigt sofort, wie es aussieht.
 
 ---
 
@@ -318,19 +771,16 @@ Ja. Einstellungen → Allgemein → Startseite. Dort bestimmst du, welches Widge
 **Hero:** none
 **Tags:** Startseite, Widgets
 
-Das große rechte Widget ist ein Karussell: Es blättert automatisch durch Wetter, Kalender, Aufgaben und News. Wischen wechselt manuell, die Punkte unten zeigen die Position.
+Das große Widget oben rechts ist ein Karussell.
 
-Die Card merkt sich, wo du warst — auch nach einem Ausflug in die Detailansicht.
+### Wie es sich bewegt
+Es blättert von selbst durch Wetter, Kalender, Aufgaben und News. Wischen wechselt sofort, die Punkte unten zeigen die Position.
 
----
+### Es merkt sich die Stelle
+Öffnest du einen News-Artikel und kommst zurück, steht das Karussell noch auf News — nicht wieder am Anfang.
 
-## Tipp statsbar - Startseite
-
-**Title:** Was ist die schmale Leiste ganz oben?
-**Hero:** none
-**Tags:** Startseite, StatsBar
-
-Die Status-Leiste — Live-Werte auf einen Blick: Wetter, Uhrzeit, Stromverbrauch, Solar. Welche Widgets erscheinen, bestimmst du unter Einstellungen → Allgemein → Status & Begrüßung.
+### Direkt hineinspringen
+Ein Tipp auf einen Eintrag im Karussell führt genau dorthin: auf einen Termin in den Kalender an diesem Tag, auf einen Artikel in den Reader.
 
 ---
 
@@ -340,7 +790,13 @@ Die Status-Leiste — Live-Werte auf einen Blick: Wetter, Uhrzeit, Stromverbrauc
 **Hero:** none
 **Tags:** Startseite, Begrüßung
 
-Beides. Einstellungen → Allgemein → Status & Begrüßung. Die Begrüßung passt sich der Tageszeit an, kennt deinen Namen und lässt sich mit eigenen Texten füttern — oder komplett ausschalten.
+Beides — Einstellungen → Allgemein → Status & Begrüßung.
+
+### Was sie kann
+Die Begrüßung passt sich der Tageszeit an und nutzt deinen Namen, wenn Home Assistant ihn kennt. Eigene Texte sind möglich.
+
+### Abschalten
+Ein Schalter. Die Begrüßung ist rein dekorativ — ohne sie funktioniert nichts anders.
 
 ---
 
@@ -350,9 +806,20 @@ Beides. Einstellungen → Allgemein → Status & Begrüßung. Die Begrüßung pa
 **Hero:** none
 **Tags:** Kalender, Termine
 
-Kalender öffnen (über Suche oder Sidebar) → Plus-Knopf. Titel eintippen oder einen der Schnell-Chips nehmen (Termin, Meeting, Arzt …), Datum und Zeit über die Drehräder wählen, sichern.
+Kalender öffnen — über die Suche oder die Sidebar — dann den Plus-Knopf.
 
-Der Termin landet direkt in deinem Home-Assistant-Kalender — keine Cloud dazwischen.
+### Der Dialog
+- **Titel** eintippen oder einen Schnell-Chip nehmen (Termin, Meeting, Geburtstag, Arzt, Reise)
+- **Datum und Zeit** über die Drehräder
+- **Ganztägig** als Schalter
+- **Ort** und **Beschreibung** als eigene Unteransichten
+- **Kalender** auswählen, falls du mehrere hast
+
+### Wo er landet
+Direkt in deinem Home-Assistant-Kalender, über die native Schnittstelle. Kein Zwischendienst, keine Cloud der Card.
+
+### Bearbeiten und löschen
+Termin antippen, ändern, sichern. Löschen fragt zweimal — der zweite Tipp bestätigt.
 
 ---
 
@@ -362,9 +829,13 @@ Der Termin landet direkt in deinem Home-Assistant-Kalender — keine Cloud dazwi
 **Hero:** none
 **Tags:** Kalender, Wiederholung
 
-Beim Anlegen: Zeile „Wiederholen" antippen. Fünf Muster stehen bereit — täglich, wöchentlich, monatlich, jährlich oder nie.
+Im Dialog die Zeile „Wiederholen" antippen.
 
-Komplexere Regeln (etwa „jeden zweiten Freitag") zeigt die Card an, wenn sie aus anderen Kalendern kommen.
+### Die Muster
+Nie, täglich, wöchentlich, monatlich, jährlich.
+
+### Bei komplexeren Regeln
+Termine aus anderen Kalendern können ausgefeiltere Wiederholungen haben — „jeden zweiten Freitag" etwa. Die Card zeigt sie als „Benutzerdefiniert" an und lässt den Rest des Termins bearbeiten, ohne die Regel kaputtzumachen.
 
 ---
 
@@ -374,9 +845,16 @@ Komplexere Regeln (etwa „jeden zweiten Freitag") zeigt die Card an, wenn sie a
 **Hero:** none
 **Tags:** Kalender, Ansichten
 
-Über die Knöpfe am oberen Rand des Kalenders. Der Monat zeigt Punkte pro Termin, die Woche zeigt Zeitblöcke, das Jahr zeigt zwölf Mini-Monate.
+Über die Knöpfe am oberen Rand.
 
-Welche Ansichten überhaupt angeboten werden, stellst du in den Kalender-Einstellungen ein.
+### Was jede zeigt
+- **Tag** — Stundenraster mit den Terminen als Blöcke
+- **Woche** — sieben Spalten, gleiche Logik
+- **Monat** — Raster mit Punkten je Termin, heute als roter Kreis
+- **Jahr** — zwölf Mini-Monate zum Springen
+
+### Ansichten ausblenden
+Nutzt du die Jahresansicht nie, blende sie aus: Kalender → Einstellungen → Sichtbare Ansichten.
 
 ---
 
@@ -386,9 +864,16 @@ Welche Ansichten überhaupt angeboten werden, stellst du in den Kalender-Einstel
 **Hero:** none
 **Tags:** Kalender, Quellen
 
-Alle Kalender-Integrationen deines Home Assistant — CalDAV, Google, lokale Kalender. Die Card findet sie automatisch und mischt die Termine farblich getrennt.
+Alle Kalender-Integrationen deines Home Assistant — CalDAV, Google, lokale Kalender.
 
-Einzelne Kalender lassen sich in den Kalender-Einstellungen ausblenden.
+### Automatisch gefunden
+Die Card sucht sich alle `calendar.*`-Entitäten selbst zusammen und mischt die Termine, farblich nach Quelle getrennt.
+
+### Auswählen
+Kalender → Einstellungen → Kalender. Dort schaltest du einzelne Quellen ab, wenn du sie in der Card nicht sehen willst.
+
+### Neue Termine
+In denselben Einstellungen legst du fest, in welchem Kalender ein neuer Termin standardmäßig landet.
 
 ---
 
@@ -398,7 +883,15 @@ Einzelne Kalender lassen sich in den Kalender-Einstellungen ausblenden.
 **Hero:** none
 **Tags:** Aufgaben, Erstellen
 
-Aufgaben öffnen → Plus-Knopf → Titel eintippen. Optional: Liste wählen, Fälligkeit setzen, Notiz ergänzen — alles im selben Dialog, im Stil der Erinnerungen-App.
+Aufgaben öffnen, Plus-Knopf, Titel eintippen.
+
+### Im selben Dialog
+- **Liste** wählen
+- **Fälligkeit** setzen
+- **Notiz** ergänzen — mit Vorlagen, wenn du welche angelegt hast
+
+### Erledigen
+Ein Tipp auf den Kreis links. Die Aufgabe wird durchgestrichen und wandert je nach Filter aus der Liste.
 
 ---
 
@@ -408,9 +901,14 @@ Aufgaben öffnen → Plus-Knopf → Titel eintippen. Optional: Liste wählen, F�
 **Hero:** none
 **Tags:** Aufgaben, Fälligkeit
 
-Beim Anlegen oder Bearbeiten: Zeile „Fällig" antippen, Datum und Uhrzeit über die Drehräder einstellen.
+Im Dialog die Zeile „Fällig" antippen und Datum und Uhrzeit über die Drehräder einstellen.
 
-Überfällige Aufgaben färben sich rot — unübersehbar, mit Absicht.
+### Was danach passiert
+- **Bald fällig** — die Aufgabe zeigt ihren Zeitpunkt in der Zeile
+- **Überfällig** — die ganze Zeile wird rot, mit Angabe, seit wann
+
+### Warum so deutlich
+Überfälliges soll auffallen, ohne dass man danach suchen muss. Auf dem Startbildschirm zeigt das Aufgaben-Widget dieselbe Farbe.
 
 ---
 
@@ -420,9 +918,17 @@ Beim Anlegen oder Bearbeiten: Zeile „Fällig" antippen, Datum und Uhrzeit übe
 **Hero:** none
 **Tags:** Aufgaben, Listen
 
-Über die Filter-Pillen oberhalb der Aufgaben. Erste Reihe: Status (offen, erledigt). Zweite Reihe: deine Listen. Beide Filter kombinieren sich — „offen" plus „Einkaufsliste" zeigt genau das.
+Über die Filter-Pillen oberhalb der Aufgaben.
 
-Die Card sammelt automatisch alle Aufgaben-Integrationen deines Home Assistant ein.
+### Zwei Reihen
+- **Oben** — Status: offen, erledigt, überfällig
+- **Unten** — deine Listen
+
+### Sie kombinieren sich
+„Offen" plus „Einkaufsliste" zeigt genau die offenen Punkte dieser einen Liste.
+
+### Woher die Listen kommen
+Die Card sammelt automatisch alle Aufgaben-Integrationen deines Home Assistant ein — lokale To-do-Listen genauso wie angebundene Dienste.
 
 ---
 
@@ -432,9 +938,19 @@ Die Card sammelt automatisch alle Aufgaben-Integrationen deines Home Assistant e
 **Hero:** none
 **Tags:** Zeitpläne, Automatisierung
 
-Gerät öffnen → Tab „Zeitplan" → Plus. Uhrzeit über das Drehrad wählen, Aktion festlegen (an, aus, Temperatur …), Wochentage antippen, sichern.
+Gerät öffnen, Reiter „Zeitplan", Plus-Knopf.
 
-Braucht die Scheduler-Integration (nielsfaber/scheduler-component) in Home Assistant.
+### Der Editor
+- **Uhrzeit** über das Drehrad
+- **Aktion** — an, aus, Helligkeit, Temperatur, Position, je nach Gerätetyp
+- **Wochentage** als Chip-Reihe
+- **Geräte-Einstellungen** für Feinheiten wie Farbe oder Modus
+
+### Voraussetzung
+Die Scheduler-Integration (`nielsfaber/scheduler-component`) muss in Home Assistant installiert sein. Ohne sie zeigt der Reiter einen Hinweis statt des Editors.
+
+### Bearbeiten
+Zeitpläne lassen sich direkt in der Liste aufklappen und ändern — ohne Unteransicht.
 
 ---
 
@@ -444,7 +960,13 @@ Braucht die Scheduler-Integration (nielsfaber/scheduler-component) in Home Assis
 **Hero:** none
 **Tags:** Zeitpläne, Wochentage
 
-Zwei Zeitpläne anlegen: einer mit Mo–Fr, einer mit Sa–So. Die Wochentags-Chips im Editor machen die Auswahl zum Ein-Tipp-Spiel.
+Mit zwei Zeitplänen: einer für Mo–Fr, einer für Sa–So.
+
+### Die Auswahl
+Die Wochentags-Chips im Editor sind einzeln antippbar. Ein Tipp wählt aus, ein zweiter ab.
+
+### Pausieren statt löschen
+Brauchst du einen Zeitplan zeitweise nicht, schalte ihn ab, statt ihn zu löschen. Er bleibt mit allen Einstellungen liegen.
 
 ---
 
@@ -454,7 +976,16 @@ Zwei Zeitpläne anlegen: einer mit Mo–Fr, einer mit Sa–So. Die Wochentags-Ch
 **Hero:** none
 **Tags:** Zeitpläne, Übersicht
 
-Suche „Zeitpläne" oder öffne die Zeitplan-Übersicht aus der Sidebar. Dort stehen alle Timer und Zeitpläne aller Geräte — filterbar, mit Sprung direkt zum jeweiligen Gerät.
+Such nach „Zeitpläne" oder öffne die Übersicht aus der Sidebar.
+
+### Was dort steht
+Alle Timer und Zeitpläne aller Geräte, mit Domain-Kennzeichnung, Uhrzeit und Wochentagen.
+
+### Filter
+Alle, nur Timer, nur Zeitpläne.
+
+### Springen
+Ein Tipp auf einen Eintrag führt zum zugehörigen Gerät.
 
 ---
 
@@ -464,9 +995,36 @@ Suche „Zeitpläne" oder öffne die Zeitplan-Übersicht aus der Sidebar. Dort s
 **Hero:** none
 **Tags:** Energie, Einrichten
 
-Suche „Geräte hinzufügen" → Energie-Dashboard. Der Assistent zieht sich die Sensoren aus deiner Home-Assistant-Energiekonfiguration automatisch; was fehlt, wählst du von Hand nach.
+Such nach „Geräte hinzufügen" und wähle Energie-Dashboard.
 
-Danach taucht das Dashboard als eigenes Gerät in deiner Suche auf.
+### Was der Assistent macht
+Er liest deine Home-Assistant-Energiekonfiguration aus und übernimmt, was er findet — Netzbezug, Einspeisung, Solar, Batterie, Tarife.
+
+### Was du ergänzt
+Was HA nicht kennt, wählst du von Hand nach. Jede Zeile führt zu einer Sensor-Auswahl mit Suche.
+
+### Danach
+Das Dashboard erscheint als eigenes Gerät in deiner Suche und lässt sich auch als Startseiten-Kachel setzen.
+
+---
+
+## Tipp energie-werte - Energie
+
+**Title:** Was bedeuten „Auto" und „Manuell" bei den Energie-Werten?
+**Hero:** none
+**Tags:** Energie, Sensoren
+
+Sie sagen dir, woher die Zuordnung eines Sensors stammt.
+
+### Die zwei Pillen
+- **Auto** — der Sensor kam automatisch aus deinen Home-Assistant-Energie-Einstellungen
+- **Manuell** — du hast ihn selbst zugewiesen
+
+### Wie die Werte sortiert sind
+Nach Typ gruppiert: Leistung (W/kW), Energie (Wh/kWh), Batterie, Tarife sowie Gas und Wasser.
+
+### Wenn ein Wert nicht stimmt
+Tippe die Zeile an und wähle einen anderen Sensor. Das ⓘ neben jedem Wert erklärt, was genau gemessen werden soll — hilfreich, wenn mehrere Sensoren ähnlich heißen.
 
 ---
 
@@ -476,7 +1034,97 @@ Danach taucht das Dashboard als eigenes Gerät in deiner Suche auf.
 **Hero:** none
 **Tags:** Energie, Übersicht
 
-Jeder Kreis ist eine Energiequelle oder ein Verbraucher: Netz, Solar, Batterie, Haus. Die Zahlen sind live. In den Einstellungen des Dashboards bestimmst du, welche Werte in welchem Kreis stehen.
+Jeder Kreis ist eine Energiequelle oder ein Verbraucher: Netz, Solar, Batterie, Haus.
+
+### Was du siehst
+Die Zahlen sind live. Fließt Strom, zeigt der Kreis die aktuelle Leistung; die Richtung verrät, ob du beziehst oder einspeist.
+
+### Anpassen
+In den Einstellungen des Dashboards bestimmst du, welcher Wert in welchem Kreis steht.
+
+### Die Diagramme
+Unter den Kreisen liegen Verlaufsdiagramme für Tag, Woche, Monat und Jahr — aus den Langzeit-Statistiken von Home Assistant, also lückenlos auch über Monate.
+
+---
+
+## Tipp geraete-bauen - Eigene Geräte
+
+**Title:** Kann ich eigene Geräte-Ansichten bauen — ohne Code?
+**Hero:** none
+**Tags:** Eigene Geräte, Baukasten
+
+Ja. Such nach „Geräte hinzufügen" und wähle einen Typ.
+
+### Die Typen
+- **Energie-Dashboard** — für Strom, Solar, Batterie
+- **3D-Drucker** — Druckstatus, Filament, Temperaturen
+- **Wetterstation** — Vorhersage und Messwerte
+- **Universal** — für alles andere
+
+### Der Ablauf
+Typ wählen, Sensoren zuordnen, benennen, fertig. Die Card baut daraus eine vollständige Detailansicht mit Hero, Diagrammen und Sensor-Listen.
+
+### Jederzeit änderbar
+Kein YAML, keine Konfigurationsdatei. Alles über die Verwaltung im Integration-Bereich wieder aufrufbar.
+
+---
+
+## Tipp hero-anzeige - Eigene Geräte
+
+**Title:** Was ist die große Anzeige oben im selbstgebauten Gerät?
+**Hero:** none
+**Tags:** Eigene Geräte, Hero
+
+Der Hero — der Kreis ganz oben in der Detailansicht, für den wichtigsten Wert des Geräts.
+
+### Was du wählst
+Bis zu fünf Werte. Mehrere rotieren als Slideshow.
+
+### Bilder statt Zahlen
+Entitäten mit einem Bild- oder Kamera-Kennzeichen werden als Foto dargestellt statt als Wert. So bekommt ein 3D-Drucker die Kamera-Ansicht in den Hero.
+
+### Reihenfolge
+Über die Pfeile ↑ und ↓ an einer ausgewählten Zeile bestimmst du, in welcher Folge die Slideshow läuft.
+
+---
+
+## Tipp charts-sensoren - Eigene Geräte
+
+**Title:** Warum reicht bei manchen Sensoren die Kurve weiter zurück als bei anderen?
+**Hero:** none
+**Tags:** Eigene Geräte, Diagramme
+
+Weil es zwei verschiedene Datenquellen gibt — und die Card dir per Farbe sagt, welche greift.
+
+### Die drei Kennzeichen
+- **Kumulativ (grün)** — Zählerstände. Volle Statistik für Tag, Woche, Monat und Jahr, direkt aus Home Assistant.
+- **Momentan (blau)** — Messwerte wie Temperatur. Ebenfalls volle Statistik.
+- **History (orange)** — Sensoren ohne `state_class`. Sie fallen auf die reine Zustandshistorie zurück.
+
+### Der praktische Unterschied
+Grün und blau liefern lückenlose Langzeit-Kurven. Orange reicht nur so weit zurück, wie dein Home Assistant die Rohdaten aufbewahrt — oft zehn Tage.
+
+### Wo du das siehst
+Beim Bearbeiten eines Universal-Geräts unter „Charts". Das Badge steht neben jedem Sensor.
+
+---
+
+## Tipp sichtbare-entitaeten - Eigene Geräte
+
+**Title:** Wie blende ich einzelne Werte eines Geräts aus?
+**Hero:** none
+**Tags:** Eigene Geräte, Sichtbarkeit
+
+Beim Bearbeiten des Geräts unter „Sichtbare Entitäten".
+
+### Wie es aufgebaut ist
+Ein Schalter pro Entität, gruppiert nach Steuerung, Sensoren, Diagnose und Sonstiges. Bei großen Geräten hilft die Suche darüber.
+
+### Was Ausschalten bedeutet
+Die Entität verschwindet aus der Card — in Home Assistant bleibt sie unangetastet. Es ist eine reine Anzeige-Entscheidung.
+
+### Wofür das gut ist
+Ein moderner Drucker oder Wechselrichter bringt oft dreißig Diagnose-Werte mit. Fünf davon interessieren dich. Der Rest muss nicht sichtbar sein.
 
 ---
 
@@ -486,9 +1134,17 @@ Jeder Kreis ist eine Energiequelle oder ein Verbraucher: Netz, Solar, Batterie, 
 **Hero:** none
 **Tags:** Aussehen, Hintergrund
 
-Einstellungen → Darstellung → Hintergrundbild. Entweder eine Bild-URL eintragen oder die Galerie öffnen und per Vorschaubild aus deinem Home-Assistant-Medienordner wählen.
+Einstellungen → Darstellung → Hintergrundbild.
 
-Das Bild füllt die ganze Ansicht — nicht nur die Card.
+### Wie es normalerweise aussieht
+Ohne eigenes Bild lässt die Card die **Dashboard-Wallpaper deines Home Assistant** durch die Glas-Panels durchscheinen. Aktivierst du ein eigenes Bild, ersetzt es diese.
+
+### Zwei Wege
+- **Bild-URL** — Datei nach `config/www/` legen und als `/local/dateiname.jpg` eintragen. Auch `http(s)://…` funktioniert.
+- **Galerie** — Vorschaubilder aus deinem Home-Assistant-Medienordner durchblättern und antippen.
+
+### Gut zu wissen
+Die Darstellungs-Regler (Helligkeit, Unschärfe, Kontrast, Sättigung, Graustufen) wirken weiterhin — auch auf dein eigenes Bild.
 
 ---
 
@@ -498,9 +1154,46 @@ Das Bild füllt die ganze Ansicht — nicht nur die Card.
 **Hero:** none
 **Tags:** Aussehen, Videos
 
-Lege MP4-Dateien nach `/config/www/fast-search-videos/` — benannt nach dem Muster `licht an = light_on.mp4`. Öffnest du dann ein Licht, läuft das Video geloopt und stumm hinter den Reglern.
+Lege MP4-Dateien nach dem Namensschema `{domain}_{zustand}.mp4` in deinen Video-Ordner.
 
-Ein Starterpaket mit 30+ Clips liegt im GitHub-Repo unter `media/videos/`.
+### Beispiele
+- `light_on.mp4` und `light_off.mp4`
+- `cover_open.mp4` und `cover_closed.mp4`
+- `climate_on.mp4`, `fan_on.mp4`, `switch_on.mp4`
+
+### Wie es abläuft
+Das Video wird **einmal** abgespielt, wenn die Detailansicht sich öffnet — danach bleibt das letzte Bild stehen. Kein Dauerloop, der Rechenleistung frisst.
+
+### Platzhalter
+Dateien namens `default_1.mp4` bis `default_10.mp4` werden für Geräte ohne eigenes Video zufällig ausgewählt.
+
+### Einschalten
+Einstellungen → Darstellung → Animationen. Desktop und Mobilgeräte lassen sich getrennt schalten — Videos kosten auf dem Handy Daten und Akku.
+
+### Ein Starterpaket
+Über dreißig fertige Clips liegen im GitHub-Repo unter `media/videos/`.
+
+---
+
+## Tipp video-ordner - Aussehen
+
+**Title:** Wo genau müssen die Video-Dateien liegen?
+**Hero:** none
+**Tags:** Aussehen, Videos
+
+An einem von zwei Orten — die Card prüft beide.
+
+### Variante A — der www-Ordner
+Pfad in den Einstellungen: `/local/videos`. Die Dateien liegen dann in `config/www/videos/`. (`/local/…` ist die Home-Assistant-Verknüpfung zu `config/www/…`.)
+
+### Variante B — der Medien-Ordner
+Lade die Videos über den Home-Assistant-Medien-Browser in einen Ordner hoch, der genauso heißt wie das letzte Stück deines Pfads — also `videos`. Die Card findet ihn über deine Medienquellen, ohne Zugriff auf `www`.
+
+### Die Reihenfolge
+Erst wird der www-Pfad geprüft, dann der Medien-Ordner. Beide funktionieren, solange der Ordnername passt.
+
+### Wenn kein Video erscheint
+Fast immer ein Tippfehler im Dateinamen. Nur exakt benannte Dateien werden gefunden.
 
 ---
 
@@ -510,19 +1203,37 @@ Ein Starterpaket mit 30+ Clips liegt im GitHub-Repo unter `media/videos/`.
 **Hero:** none
 **Tags:** Aussehen, Design
 
-Ein Glas-Effekt für die Bedienelemente: Lichtbrechung, Glanz, Farbsaum — als läge echtes Glas über dem Hintergrund. Einstellungen → Darstellung → Design → Liquid Glass.
+Ein Glas-Effekt für die Bedienelemente: Lichtbrechung, Glanz und Farbsaum, als läge echtes Glas über dem Hintergrund.
 
-Vierzehn Regler für Feinschmecker. Die Voreinstellung sieht ohne Drehen gut aus.
+### Wo
+Einstellungen → Darstellung → Design → Liquid Glass.
+
+### Was sich einstellen lässt
+Vierzehn Regler — Frost, Brechung, Farbsaum, Tönung, Biegung, Glanz und Glanzwinkel, Glanzlicht, Glow, Helligkeit. Jeder mit eigener Erklärung hinter dem ⓘ.
+
+### Für Ungeduldige
+Die Voreinstellung sieht gut aus, ohne dass du einen Regler anfasst. Die vierzehn sind für den Feinschliff da, nicht als Pflichtprogramm.
+
+### Auf Safari
+Die echte Lichtbrechung ist eine Chromium-Fähigkeit. Auf Safari und iOS greift ein Frost-und-Tönungs-Modus, der dem sehr nahekommt.
 
 ---
 
 ## Tipp splashscreen - Aussehen
 
-**Title:** Kann ich den Startbildschirm ändern?
+**Title:** Kann ich den Startbildschirm beim Laden ändern?
 **Hero:** none
 **Tags:** Aussehen, Start
 
-Ja, drei Varianten: Aus (sofort loslegen), Ladebalken (klassisch) oder die handgeschriebene „hello"-Animation. Einstellungen → Darstellung → Splashscreen.
+Ja, drei Varianten — Einstellungen → Darstellung → Splashscreen.
+
+### Die Optionen
+- **Aus** — die Card erscheint sofort
+- **Ladebalken** — der klassische Fortschritt
+- **Handschrift** — ein „hello" wird gezeichnet, in zwei Zügen mit Pause dazwischen
+
+### Wann es greift
+Die Änderung wirkt beim nächsten Laden der Card, nicht sofort.
 
 ---
 
@@ -532,7 +1243,13 @@ Ja, drei Varianten: Aus (sofort loslegen), Ladebalken (klassisch) oder die handg
 **Hero:** none
 **Tags:** Aussehen, Raster
 
-Einstellungen → Darstellung → Rasterspalten: 4, 5 oder 6 Spalten. Weniger Spalten = größere Kacheln, mehr Spalten = mehr Übersicht.
+Einstellungen → Darstellung → Spalten: vier, fünf oder sechs.
+
+### Die Abwägung
+Weniger Spalten heißt größere Kacheln und mehr Ruhe. Mehr Spalten heißt mehr Übersicht bei vielen Geräten.
+
+### Auf dem Handy
+Dort entscheidet die Bildschirmbreite. Die Einstellung wirkt auf Tablet und Desktop.
 
 ---
 
@@ -542,9 +1259,38 @@ Einstellungen → Darstellung → Rasterspalten: 4, 5 oder 6 Spalten. Weniger Sp
 **Hero:** none
 **Tags:** Filter, Ausblenden
 
-Einstellungen → Filter → Ausgeschlossene Muster. Dort trägst du Muster mit Platzhaltern ein — `sensor.*` versteckt alle Sensoren, `*_unavailable` alles Nichterreichbare.
+Einstellungen → Allgemein → Filter → Ausgeschlossene Muster.
 
-Die Live-Vorschau zeigt sofort, was ein Muster treffen würde. Fertige Vorlagen gibt es auch.
+### Die Platzhalter
+- `*` steht für beliebig viele Zeichen — `sensor.*` trifft alle Sensoren
+- `?` steht für genau ein Zeichen
+
+### Beispiele
+- `sensor.temp_*` — alle Temperatursensoren mit diesem Präfix
+- `binary_sensor.motion_*` — alle Bewegungsmelder
+- `*_unavailable` — alles, was auf „_unavailable" endet
+
+### Die Live-Vorschau
+Während du tippst, zeigt die Card, welche Entitäten das Muster gerade treffen würde. Kein Blindflug.
+
+### Rückgängig
+Muster wieder löschen, fertig. Beim ersten Start sind sinnvolle Standard-Muster vorbelegt — die kannst du genauso ändern.
+
+---
+
+## Tipp schnellauswahl - Filter
+
+**Title:** Gibt es fertige Filter-Pakete?
+**Hero:** none
+**Tags:** Filter, Vorlagen
+
+Ja — die Schnellauswahl direkt unter den ausgeschlossenen Mustern.
+
+### Wie es geht
+Tippe einen Vorschlag an, und sein komplettes Muster-Set landet in deiner Liste. Ein **✓** zeigt, dass ein Set schon aktiv ist.
+
+### Wofür das gut ist
+Typische Aufräum-Fälle — nicht verfügbare Entitäten, Diagnose-Werte, technische Hilfsentitäten — mit einem Tipp statt zehn Zeilen Handarbeit.
 
 ---
 
@@ -554,86 +1300,156 @@ Die Live-Vorschau zeigt sofort, was ein Muster treffen würde. Fertige Vorlagen 
 **Hero:** none
 **Tags:** Filter, Sichtbarkeit
 
-Standardmäßig respektiert die Card, was HA versteckt oder deaktiviert hat. Willst du diese Einträge doch sehen: Einstellungen → Filter → Sichtbarkeit — drei Schalter für versteckte, deaktivierte und Diagnose-Entitäten.
+Einstellungen → Allgemein → Filter → Sichtbarkeit.
+
+### Drei Schalter
+- **Versteckte Entitäten** — was in HA auf „hidden" steht
+- **Deaktivierte Entitäten** — was in HA abgeschaltet ist
+- **Diagnose-Entitäten** — technische Werte, die HA normalerweise wegräumt
+
+### Die Voreinstellung
+Alle drei sind aus. Die Card respektiert, was du in Home Assistant entschieden hast — nichts rutscht ungefragt durch.
+
+### Wann du sie brauchst
+Beim Einrichten eines neuen Geräts, wenn ein Sensor partout nicht auftaucht. Einschalten, finden, wieder ausschalten.
 
 ---
 
-## Tipp datenschutz - Filter
+## Tipp limits - Filter
+
+**Title:** Die Card lädt langsam — was kann ich tun?
+**Hero:** none
+**Tags:** Filter, Leistung
+
+Einstellungen → Allgemein → Filter → Limits. Zwei Stellschrauben, die bei großen Installationen viel bringen.
+
+### Maximale Anzahl Entitäten
+Begrenzt, wie viele Entitäten überhaupt geladen werden. `0` heißt unbegrenzt. Bei mehreren tausend Entitäten beschleunigt ein Limit den Start deutlich.
+
+### Nur Entitäten mit Raum laden
+Blendet alles aus, was keinem Bereich zugewiesen ist. In vielen Installationen sind das genau die technischen Entitäten, die man ohnehin nie sucht.
+
+### Der Nebeneffekt
+Weniger geladene Entitäten heißt nicht nur schnellerer Start, sondern auch weniger Rauschen in der Suche.
+
+---
+
+## Tipp filter-toolbar - Filter
+
+**Title:** Kann ich die Filter-Leiste aufräumen oder ausblenden?
+**Hero:** none
+**Tags:** Filter, Werkzeugleiste
+
+Ja — Einstellungen → Allgemein → Filter.
+
+### Was du steuerst
+- **Hauptschalter** — der ganze Filter-Knopf an oder aus. Aus heißt: aufgeräumte Werkzeugleiste ohne Filter-Bedienelemente.
+- **Nach Kategorien** und **Nach Räumen** — die beiden Dimensionen einzeln ein- oder ausblenden
+- **Aktive Anzahl** — ein Zähler an jedem Chip, der zeigt, wie viele Geräte dieser Gruppe gerade eingeschaltet sind („Lichter 4")
+
+### Der Zähler in der Praxis
+Er beantwortet die Frage „brennt noch irgendwo Licht?" ohne einen einzigen Tipp.
+
+---
+
+## Tipp datenschutz - Datenschutz
 
 **Title:** Was sendet die Card ins Internet?
 **Hero:** none
-**Tags:** Filter, Datenschutz
+**Tags:** Datenschutz, Sicherheit
 
-Nichts von deinen Daten. Keine Telemetrie, kein Tracking, keine Cloud-Anbindung. Die einzigen externen Abrufe sind zwei Markdown-Dateien von GitHub (Änderungsverlauf und diese Tipps) — ohne Anmeldedaten, ohne Inhalte von dir.
+Nichts von deinen Daten.
 
-Der vollständige Sicherheits-Bericht liegt im GitHub-Repo: `docs/SECURITY.md`.
+### Was nicht passiert
+- Keine Telemetrie, kein Tracking, keine Analyse-Dienste
+- Keine Cloud-Anbindung, kein Konto
+- Keine Zugangsdaten im Browser-Speicher
+
+### Die einzigen externen Abrufe
+Zwei Markdown-Dateien von GitHub — der Änderungsverlauf und genau diese Tipps. Ohne Anmeldedaten, ohne Inhalte von dir.
+
+### Wo deine Daten liegen
+Einstellungen und gelernte Muster im lokalen Speicher deines Browsers. Alles andere in deinem Home Assistant.
+
+### Zum Nachprüfen
+Die Card wird als eine einzige Datei ausgeliefert — die kannst du selbst durchsuchen. Der vollständige Sicherheitsbericht liegt im Repo unter `docs/SECURITY.md` und wird zu jeder Version neu geprüft.
 
 ---
 
-## Tipp sprache - Profi-Tipps
+## Tipp sprache - Hilfe
 
-**Title:** Wie stelle ich die Card auf Deutsch oder Englisch?
+**Title:** Wie stelle ich die Sprache der Card ein?
 **Hero:** none
-**Tags:** Einstellungen, Sprache
+**Tags:** Hilfe, Sprache
 
-Einstellungen → Allgemein → App-Sprache. Die Einstellung ist unabhängig von der Sprache deines Home Assistant — Card auf Englisch, HA auf Deutsch geht also auch.
+Einstellungen → Allgemein → App-Sprache.
 
-Weitere Sprachen sind in Arbeit; Niederländisch kommt als nächstes.
+### Unabhängig von Home Assistant
+Die Einstellung gilt nur für die Card. Card auf Englisch bei deutschem Home Assistant funktioniert problemlos.
+
+### Was mitwandert
+Menüs, Beschriftungen, Datums- und Wochentagsnamen — und diese Tipps hier.
+
+### Was sonst noch dazugehört
+Im selben Bereich stellst du **Währung** (für Energiekosten) und **Zeitformat** (24 oder 12 Stunden) ein. Das Zeitformat wirkt überall: Diagramme, Aktivitäten, Zeitpläne, Insel.
+
+### Weitere Sprachen
+Aktuell Deutsch und Englisch. Niederländisch ist als nächstes geplant.
 
 ---
 
-## Tipp cache-leeren - Profi-Tipps
+## Tipp cache-leeren - Hilfe
 
 **Title:** Die Card zeigt alte Daten — was tun?
 **Hero:** none
 **Tags:** Hilfe, Cache
 
-Einstellungen → Über → Cache löschen. Das leert die Zwischenspeicher für Suche und Vorschläge; deine Einstellungen und Favoriten bleiben erhalten.
+Einstellungen → Über → Cache löschen.
 
-Der große Hammer daneben — „Alle Daten zurücksetzen" — setzt wirklich alles zurück. Doppelte Bestätigung, aus gutem Grund.
+### Was das leert
+Die Zwischenspeicher für Suche und Vorschläge. Deine Einstellungen, Favoriten und selbstgebauten Geräte bleiben.
+
+### Der große Hammer daneben
+„Alle Daten zurücksetzen" löscht wirklich alles — Einstellungen, Favoriten, gelernte Muster, eigene Geräte. Zwei Bestätigungen, aus gutem Grund.
+
+### Wenn das nicht hilft
+Ein Neuladen der Seite. Danach die Home-Assistant-Verbindung prüfen — zeigt HA selbst noch aktuelle Werte?
 
 ---
 
-## Tipp changelog - Profi-Tipps
+## Tipp changelog - Hilfe
 
 **Title:** Wo sehe ich, was sich mit Updates ändert?
 **Hero:** none
 **Tags:** Hilfe, Updates
 
-Suche „Änderungsverlauf" oder tippe das Changelog-Widget auf der Startseite. Jede Version ist dokumentiert — durchsuchbar und nach Themen gefiltert.
+Such nach „Änderungsverlauf" oder tippe die entsprechende Kachel auf der Startseite.
+
+### Was dort steht
+Jede Version mit Titel, Datum und ausführlicher Beschreibung dessen, was sich geändert hat — und oft auch warum.
+
+### Suchen und filtern
+Volltextsuche über alle Einträge, dazu Filter nach Themen-Schlagworten.
+
+### Deine Version
+Die aktuell installierte Version steht ganz oben und unter Einstellungen → Über.
 
 ---
 
-## Tipp zeit-sortierung - Profi-Tipps
-
-**Title:** Kann die Card morgens andere Geräte zeigen als abends?
-**Hero:** none
-**Tags:** Profi, Sortierung
-
-Ja — die Zeit-Sortierung lernt, welche Geräte du zu welcher Tageszeit benutzt, und sortiert die Liste entsprechend. Morgens die Kaffeemaschine oben, abends das Wohnzimmerlicht.
-
-Aktivieren über das Uhr-Symbol in der Werkzeugleiste oder in den Filter-Einstellungen.
-
----
-
-## Tipp toasts - Profi-Tipps
+## Tipp toasts - Hilfe
 
 **Title:** Kann ich die kleinen Bestätigungs-Einblendungen anpassen?
 **Hero:** none
-**Tags:** Profi, Toasts
+**Tags:** Hilfe, Toasts
 
-Ja. Einstellungen → Allgemein → Toasts. Dort bestimmst du, bei welchen Ereignissen eine Einblendung erscheint, wo sie sitzt und wie lange sie bleibt.
+Ja — Einstellungen → Allgemein → Toasts.
 
----
+### Drei Dinge
+- **Wann** — bei welchen Ereignissen eine Einblendung erscheint
+- **Position** — wo auf dem Bildschirm
+- **Dauer** — wie lange sie bleibt
 
-## Tipp geraete-bauen - Profi-Tipps
-
-**Title:** Kann ich eigene Geräte-Ansichten bauen — ohne Code?
-**Hero:** none
-**Tags:** Profi, Integration
-
-Ja. Suche „Geräte hinzufügen" und wähle einen Typ: Energie-Dashboard, 3D-Drucker, Wetterstation oder Universal. Sensoren auswählen, benennen, fertig — die Card baut die Ansicht.
-
-Kein YAML. Jederzeit wieder änderbar.
+### Und die Ruhezeiten
+Im selben Bereich liegt das nächtliche Zeitfenster, in dem gar nichts aufploppt. Siehe den Tipp zu den Ruhezeiten.
 
 ---
