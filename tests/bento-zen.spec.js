@@ -635,6 +635,30 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     const linie = await root.locator('.bento-widget--mit-reitern .bento-carousel-header').evaluate(
       (el) => getComputedStyle(el).borderBottomWidth);
     expect(linie).toBe('1px');
+    // v2237: 1:1 heißt auch die HÖHE — das Badge hob den Reiter auf 35 px,
+    // der Kalender-Reiter hat 31 (14er-Text + 7er-Polster).
+    const reiterHoehe = await reiter.first().evaluate((el) => Math.round(el.getBoundingClientRect().height));
+    expect(reiterHoehe).toBeGreaterThanOrEqual(30);
+    expect(reiterHoehe).toBeLessThanOrEqual(32);
+
+    // v2237: Rasteransicht — die Zeilen dürfen NIE kollabieren. Die Karte
+    // trägt container-type:inline-size; in der Grid-Spur-Vermessung wurde
+    // ihre aspect-ratio-Höhe zum Größenzyklus (Spur = 0, Karten fächerten
+    // übereinander). Flex-Wrap misst am Element — der Wrapper muss also
+    // echte Höhe haben. Und der Kanten-Frost (oben/unten) liegt als Overlay
+    // an, nicht als Maske (die wäre wieder die Backdrop-Wurzel von v2236).
+    await root.locator('.bento-carousel-viewtoggle-btn').first().click();
+    const gitterMass = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const w = c.querySelector('.bento-carousel-gitter .bento-widget-card-wrapper');
+      return {
+        wrapperHoehe: w ? Math.round(w.getBoundingClientRect().height) : 0,
+        kanten: c.querySelectorAll('.bento-kante').length,
+      };
+    });
+    expect(gitterMass.wrapperHoehe).toBeGreaterThan(100);
+    expect(gitterMass.kanten).toBe(2);
     await reiter.nth(1).click();
     await expect(root.locator('.bento-widget[data-widget-id="__suggestions__"]')).toBeVisible({ timeout: 5000 });
     await expect(root.locator('.bento-carousel-tab')).toHaveCount(2);

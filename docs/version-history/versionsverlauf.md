@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2237 - 2026-07-30
+
+**Title:** 🃏 Grid rows no longer collapse, edge fades return as frost, tabs truly 1:1
+
+Three corrections from live testing of v1.1.2236:
+
+- **The vertical grid's cards were fanning on top of each other.** Root cause worth remembering: the device
+  card carries `container-type: inline-size`, and inside CSS Grid's auto-row track sizing its
+  aspect-ratio-derived height becomes a sizing cycle — the track resolves to 0 and every card overlaps the
+  previous row. Giving the wrapper its own aspect-ratio did not help (the track asks earlier). The container
+  is now flex-wrap instead of grid: flex lines measure the real element, row height equals real card height.
+  A regression test pins the wrapper height.
+
+- **The top/bottom edge fades are back — as frost overlays, not masks.** The calendar's mask cannot return
+  here: `mask-image` on the scroller makes it a backdrop root and kills the rows' glass (the v1.1.2236
+  lesson). Instead two thin overlay strips above the content carry a backdrop blur with a gradient mask on
+  themselves — rows sliding under them frost out progressively. The top edge appears only while scrolled,
+  like the calendar's.
+
+- **The tabs are now 1:1 with the calendar's including height.** The count badge had quietly grown the tab to
+  35 px against the calendar's 31. The badge is sized to fit inside the text line box now; the suite asserts
+  font, radius and height.
+
 ## Version 1.1.2236 - 2026-07-30
 
 **Title:** 🎛️ Free-layout polish round: tabs like the calendar's, real glass in the list, universal dots
