@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2233 - 2026-07-30
+
+**Title:** 🗂️ Free layout: favourites and suggestions become tabs, cards get real glass
+
+- **Widget 1 no longer makes you choose.** In the free layout, when the slot holds favourites or suggestions,
+  the tile shows BOTH — as tabs in the tile's header with live counts ("Favoriten 5" / "Vorschläge 8"), the
+  same pattern the news widget uses for Unread/Read. The choice persists across sessions, and the tabs stay
+  in place even when the active tab is empty — otherwise an empty tab would be a dead end. Slots configured
+  with anything else are untouched, as is the panel layout.
+
+- **Cards on the image now wear the appearance glass.** The inactive device card is a thin
+  `rgba(255,255,255,0.1)` — designed for dark wallpapers, nearly invisible on a bright photo (user report).
+  On the image tile, non-active cards now use exactly the glass chain from Settings → Appearance → Background:
+  the card inherits the variables from the tile (it is a `.glass-panel`), and its backdrop-filter samples the
+  painted image behind it — that is content, not another filter's output, so the nested-backdrop limitation
+  does not apply. Active (white/coloured) cards stay as they are.
+
+- Verification note: the test house's light is on, so no inactive card exists naturally — the suite takes the
+  `active` class off a card and reads the computed chain (blur + saturate + the user's settings) to pin the
+  rule itself.
+
 ## Version 1.1.2232 - 2026-07-30
 
 **Title:** 🖼️ Free layout: rows travel to the top, corners hardened for real Chrome

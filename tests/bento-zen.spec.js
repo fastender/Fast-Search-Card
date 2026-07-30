@@ -615,6 +615,29 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     });
     expect(obenAngekommen.anteil).toBeLessThan(0.15);
     expect(obenAngekommen.bild).toBeLessThan(0.1);
+
+    // v1.1.2233: W1 trägt Reiter mit Zählung — Favoriten ↔ Vorschläge, wie
+    // beim News-Widget. Der Wechsel muss auch aus einem LEEREN Reiter wieder
+    // herausführen (die Reiter stehen deshalb auch im Leer-Zustand).
+    const reiter = root.locator('.bento-carousel-tab');
+    await expect(reiter).toHaveCount(2);
+    await expect(reiter.first()).toContainText('Favoriten 1');
+    await reiter.nth(1).click();
+    await expect(root.locator('.bento-widget[data-widget-id="__suggestions__"]')).toBeVisible({ timeout: 5000 });
+    await expect(root.locator('.bento-carousel-tab')).toHaveCount(2);
+    await root.locator('.bento-carousel-tab').first().click();
+    await expect(root.locator('.bento-widget[data-widget-id="__favorites__"]')).toBeVisible({ timeout: 5000 });
+
+    // v1.1.2233: Karten AUF dem Bild tragen die Aussehen-Glaskette (inaktive) —
+    // die Klasse wird testhalber abgenommen, weil das Testhaus-Licht an ist.
+    const kartenGlas = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const karte = alle[alle.length - 1].querySelector('.bento-widget--hat-bild .device-card, .bento-widget--hat-bild .device-list-item');
+      if (!karte) return '';
+      karte.classList.remove('active');
+      return getComputedStyle(karte).backdropFilter || '';
+    });
+    expect(kartenGlas).toContain('blur');
   });
 
   test('frei: die Kapsel geht beim Klick in die Breite auf', async ({ page }) => {
