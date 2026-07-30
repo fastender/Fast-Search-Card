@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2230 - 2026-07-30
+
+**Title:** 🧪 A second home layout to test: "Free"
+
+- **New, optional home layout "Free"** — chosen under Settings → General → Home layout, mockup-driven like its
+  predecessors, and explicitly a trial: if it wins, it becomes the only version. The default stays "Panel"
+  (v1.1.2229), untouched. Deliberately a NEW settings key (`startScreen.zenLayout`) rather than reviving
+  `bentoLayout`, where existing users still carry values like 'classic'.
+
+- **What "Free" changes in the revealed state:** every widget stands isolated on the wallpaper again — the
+  shared tile surface keeps only its position and height as an invisible layout box. The search bar becomes a
+  narrow centred capsule (640 px) that opens with a morph: the width runs over a CSS transition with the
+  island's overshoot curve, the depth comes from the panel's existing framer height animation (72 → 672,
+  400 ms) — measured: one click takes the row from 640 to 1200. The island already sits at the very top
+  (pill at y = 0, verified), so "island maximal up" needed no change.
+
+- **The favourites tile becomes an image tile.** Its red gradient gives way to real backdrop glass (allowed
+  again — no panel underneath), with an optional background image above it: set under Settings → General →
+  Configure widgets, a `/local/…` path or URL, same pattern as the custom wallpaper. Scrolling the favourites
+  list fades the image out proportionally to the scroll distance and back in when scrolling up — a
+  path-coupled effect, not a timed one, written straight to the element with no re-render per scroll event.
+
+- **Verified at the pixel:** the test image is a deliberately pure-red 1×1 GIF, and the tile centre measures
+  red through the readability scrim — proving the layer paints, not merely that a value arrives (the lesson
+  from the tint variable that never painted). Two new tests pin the whole contract; the "Panel" parity test
+  continues to guard the default.
+
 ## Version 1.1.2229 - 2026-07-30
 
 **Title:** 🔍 The real search bar returns above the tile panel

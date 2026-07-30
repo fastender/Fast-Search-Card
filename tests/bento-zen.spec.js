@@ -18,7 +18,7 @@
 // warten großzügig — lieber langsam grün als knapp rot.
 
 import { test, expect } from '@playwright/test';
-import { mountCard, updateHass } from './harness/card.js';
+import { mountCard, updateHass, openDevice, revealStart } from './harness/card.js';
 
 // v1.1.2225: kein `bentoLayout` mehr — der Zen-Start IST die Startseite.
 const ZEN_ON = {
@@ -489,6 +489,90 @@ test.describe('Zen-Startseite', () => {
     expect(telefon.breite).toBe(350);
     expect(telefon.rand).toBe(17);        // 16 + 1 px Panelrand
     expect(telefon.hoehe).toBeGreaterThan(1000);
+  });
+});
+
+// ── Start-Layout „frei" (v1.1.2230, Testlauf) ────────────────────────────────
+// Der Nutzer testet ein zweites Gerüst des aufgedeckten Zustands: jedes Widget
+// isoliert (kein Panelglas), die Suchzeile als schmale mittige Kapsel, die beim
+// Klick in die Breite aufgeht (die Tiefe liefert die bestehende framer-Höhen-
+// Animation), und die Favoriten-Kachel trägt ein Bild statt des roten Verlaufs.
+// Gewinnt der Test, wird „frei" die einzige Version — bis dahin ist 'panel'
+// die unangetastete Vorgabe (deren Vertrag steht oben im Paritäts-Test).
+test.describe('Start-Layout „frei" (Testlauf)', () => {
+  // 1×1-GIF, bewusst REIN ROT: der Pixeltest unten erkennt daran, dass die
+  // Bild-Ebene wirklich MALT — nicht nur, dass ein Wert ankommt.
+  const BILD = 'data:image/gif;base64,R0lGODlhAQABAIAAAP8AAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
+  const FREI = {
+    startScreen: { bento: true, zenLayout: 'frei', w1Image: BILD, widgets: ['__favorites__', 'todos', 'news', 'integration'] },
+    appearance: { statsBarEnabled: true },
+  };
+
+  test('frei: kein Panelglas, schmale Kapsel, Insel ganz oben, Favoriten als Bildkachel', async ({ page }) => {
+    await page.setViewportSize({ width: 1400, height: 900 });
+    const root = await mountCard(page, { settings: FREI });
+    await revealStart(page, root);
+
+    // Favorit auf dem echten Weg, damit die Kachel ihr Karussell zeigt.
+    await openDevice(root, page, 'Wohnzimmer Licht');
+    await root.locator('.favorite-button').click();
+    await expect(root.locator('.favorite-button.active')).toHaveCount(1, { timeout: 8000 });
+    await root.locator('.back-button').click();
+    await root.locator('.category-icon').click();
+    await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 10000 });
+    await page.waitForTimeout(1500);
+
+    const m = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const cb = c.getBoundingClientRect();
+      const panel = c.querySelector('.bento-zen-panel');
+      const fav = c.querySelector('.bento-widget[data-widget-id="__favorites__"]');
+      const pille = c.querySelector('.island-pill');
+      return {
+        panelGlas: getComputedStyle(panel, '::before').content,
+        panelRand: getComputedStyle(panel).borderTopWidth,
+        rowBreite: Math.round(c.querySelector('.search-row').getBoundingClientRect().width),
+        favRot: getComputedStyle(fav).backgroundImage.includes('255, 69, 58'),
+        bildDa: !!c.querySelector('.bento-widget-bild'),
+        inselOben: Math.round(pille.getBoundingClientRect().top - cb.top),
+      };
+    });
+    expect(m.panelGlas).toBe('none');       // kein Glas mehr am Layout-Kasten
+    expect(m.panelRand).toBe('0px');
+    expect(m.rowBreite).toBe(640);          // die schmale Kapsel
+    expect(m.favRot).toBe(false);           // Rot ist dem Bild gewichen
+    expect(m.bildDa).toBe(true);
+    expect(m.inselOben).toBeLessThanOrEqual(2);  // maximal oben
+
+    // Und das Bild MALT (rein rotes Test-GIF; ~235 wegen des Lese-Schleiers).
+    const pos = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const r = alle[alle.length - 1].querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
+      return { x: Math.round(r.x + r.width * 0.6), y: Math.round(r.y + r.height * 0.6) };
+    });
+    const clip = await page.screenshot({ clip: { x: pos.x, y: pos.y, width: 4, height: 4 } });
+    const rgb = await page.evaluate(async (b64) => {
+      const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+      const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+      const ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0);
+      return [...ctx.getImageData(1, 1, 1, 1).data.slice(0, 3)];
+    }, clip.toString('base64'));
+    expect(rgb[0]).toBeGreaterThan(180);
+    expect(rgb[1]).toBeLessThan(60);
+  });
+
+  test('frei: die Kapsel geht beim Klick in die Breite auf', async ({ page }) => {
+    await page.setViewportSize({ width: 1400, height: 900 });
+    const root = await mountCard(page, { settings: FREI });
+    await revealStart(page, root);
+
+    const vorher = await root.locator('.search-row').evaluate((el) => Math.round(el.getBoundingClientRect().width));
+    await root.locator('input.search-input').click();
+    await page.waitForTimeout(700);
+    const nachher = await root.locator('.search-row').evaluate((el) => Math.round(el.getBoundingClientRect().width));
+    expect(vorher).toBe(640);
+    expect(nachher).toBe(1200);
   });
 });
 
