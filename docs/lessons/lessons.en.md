@@ -84,7 +84,7 @@ The entry animation moves nothing — clock, greeting and bar are in place from 
 **Hero:** none
 **Tags:** Start, Gestures
 
-One gesture is enough: swipe up, one notch of the mouse wheel, or the up arrow key.
+One gesture is enough: swipe up, turn the mouse wheel, or press the down arrow key.
 
 ### What happens then
 The reveal runs by itself — nothing gets stuck halfway:
@@ -95,11 +95,14 @@ The reveal runs by itself — nothing gets stuck halfway:
 4. The sidebar slides in from the left
 5. The four tiles arrive one after another — largest first
 
-### Back to rest
-One gesture downward folds it all back — the same staircase in reverse, a touch faster.
+### It's a one-way trip
+Once revealed, the card stays revealed. Even going into search or opening a device brings you back to the tiles afterwards, not to the resting screen. Only reloading the page brings that back.
+
+### Why that makes sense
+Anyone who has used the card once doesn't want to face the locked door again on the next glance. The resting screen is meant for the untouched state — the wall tablet nobody has been near for hours.
 
 ### Good to know
-Once you actually use the card (search, open a device), it stays revealed. The resting state only returns when you ask for it.
+While the island is unfolded the gesture is ignored — otherwise scrolling inside the island would rebuild the whole screen by accident.
 
 ---
 
@@ -202,21 +205,24 @@ The capsule morphs into the target view — it grows into the full view from whe
 
 ## Tipp insel-halten - The Island
 
-**Title:** What's the preview when I hold the island down?
+**Title:** How do I see everything that's running at once?
 **Hero:** none
-**Tags:** Island, Gestures
+**Tags:** Island, Live
 
-Press and hold the capsule for about half a second — a preview opens without leaving the screen.
+When more than one thing is running, a tap on the island unfolds the full list instead of jumping straight into a device.
 
-### What you see
-- **On alerts** — the notification panel docks under the capsule. Acknowledge, snooze and mark-as-read work right there.
-- **On live activities** — a glass list of **all** running things. Tapping a row opens that device.
+### Which reaction you get
+- **Several running activities** → the capsule unfolds into a glass list, each row opens its device
+- **Exactly one activity** → straight into its detail view
+- **A new alert just arrived** → the Notification Center
+- **At rest** → the Notification Center as well
+- **Already unfolded** → another tap closes it
 
-### Short or long
-The short tap stays the fast path — it opens the fitting view immediately. After a long press the release-click is swallowed, so you don't land somewhere by accident.
+### Scrolling the list
+When there are many, the unfolded list scrolls. It closes itself as soon as nothing is running anymore.
 
-### Good to know
-The live preview closes itself as soon as nothing is running anymore.
+### A note on older descriptions
+Up to v1.1.2205 this list needed a long press. Since v1.1.2206 a normal tap is enough — if you know the hold from older write-ups, it is no longer needed.
 
 ---
 
@@ -372,13 +378,37 @@ No. Search forgives typos and finds partial words too.
 - **Typos** — "ligth" finds your light
 - **Partial words** — "bed lamp" finds the "Bedroom Bed Lamp"
 - **Two words** — "living room light" is read as room plus device type
-- **Both languages** — "Lampe" and "light" reach the same target
+- **Both languages** — "Lampe" and "light" reach the same target, whichever language the card is currently speaking
 
 ### How much you have to type
-Two or three letters usually surface the right match. The card searches device names, room names and entity IDs at once.
+From the first letter a suggestion appears as ghost text; from the second real matches arrive. Display name, room name and entity ID are searched at once — the display name carries the most weight.
 
-### If nothing shows up
-Check whether the device is excluded by a pattern (Settings → General → Filter) or whether a limit is capping what gets loaded.
+### Upper and lower case
+Doesn't matter. The ghost text even adopts your own casing so the suggestion lines up pixel-perfectly over what you typed.
+
+---
+
+## Tipp geraet-fehlt - Search
+
+**Title:** A device is missing from search — why?
+**Hero:** none
+**Tags:** Search, Troubleshooting
+
+Usually because it isn't assigned to a room in Home Assistant.
+
+### The most common cause
+The card only loads entities that have an area assigned. A device without a room appears nowhere — not in search, not in a tile.
+
+Fix it in Home Assistant: Settings → Devices & Services → open the device → assign an area. Then reload the card.
+
+### The other candidates, in order
+1. **A pattern hides it** — check Settings → Filter → Excluded patterns. The bundles are broad: "Batteries" matches everything on `*_battery`.
+2. **Home Assistant hides it itself** — marked hidden, disabled, or as a diagnostic value. To check, briefly flip Settings → Filter → Visibility.
+3. **A limit applies** — if Settings → Filter → Limits shows a number instead of 0, only that many entities load.
+4. **It's currently unreachable** — entities in state "unavailable" or "unknown" are skipped.
+
+### To cross-check
+Does Home Assistant find the device in its own search? If not, it isn't the card.
 
 ---
 
@@ -512,7 +542,7 @@ When active it groups the device list by **recent activity** instead of by room.
 
 ### Three profiles
 - **Fine** — Just now · Last 15 min · Last 30 min · Last hour
-- **Standard** — Last 15 min · Last hour · Today
+- **Standard** — Last 15 min · Last hour
 - **Coarse** — Last hour · Last 6 hours · Last 12 hours
 
 Everything beyond the last window falls into "Today" or "Older".
@@ -521,7 +551,7 @@ Everything beyond the last window falls into "Today" or "Older".
 Time sorting works on top of the category and area filters. "Lights, by activity" is possible.
 
 ### Turning it on
-Settings → General → Filter → Sort by time.
+Settings → Appearance → Filter → Sort by time.
 
 ---
 
@@ -534,17 +564,17 @@ Settings → General → Filter → Sort by time.
 With Quick Control the device icon on the card becomes the switch itself.
 
 ### Turning it on
-Settings → General → Quick Control. It's off out of the box — it noticeably changes what tapping does, so the choice is yours.
+Settings → Appearance → Quick Control. It's off out of the box — it noticeably changes what tapping does, so the choice is yours.
 
 ### After that
 - **Tap the icon** — switches immediately
 - **Tap the card next to it** — still opens the detail view
 
 ### Feedback
-On the phone there's a short haptic pulse. A ring appears around the icon while it's working.
+On the phone there's a short haptic pulse. The icon shrinks slightly while pressed and overshoots its size briefly after firing — the only place in the card that vibrates at all.
 
 ### Good to know
-System entities like news or weather are unaffected — a tap always opens their view.
+System entities like news or weather are unaffected — a tap always opens their view. So are device types without quick control.
 
 ---
 
@@ -582,10 +612,14 @@ Yes, for each device type individually.
 - **Hold** — a tap isn't enough, it takes a sustained press
 
 ### The defaults
-Lights, switches, fans, input booleans and media players are on **Tap**. Covers and locks on **Hold**. Climate devices and vacuums are selectable too.
+**Tap:** lights, switches, fans, climate, media players, vacuums, humidifiers, scenes, scripts, automations.
+**Hold:** covers, locks, valves, sirens.
+
+### What the devices do
+Mostly a plain toggle. A media player pauses or resumes, a lock flips to the opposite state, a vacuum starts — or returns to base if it's already cleaning.
 
 ### Where
-Settings → General → Quick Control. The master switch at the top, the list of types below.
+Settings → Appearance → Quick Control. The master switch at the top, the list of types below.
 
 ---
 
@@ -708,19 +742,20 @@ One tap starts the scene. A brief pop-in confirms it worked — or reports the e
 **Hero:** none
 **Tags:** Control, History
 
-In the third tab of the detail view: "History".
+In the "History" tab of the detail view.
 
-### What's there
-- **Charts** for 24 hours, 7 days and 30 days
-- **Recent events** as a chronological list
-- **Statistics** — how often switched, how long active, average duration
-- **Time-of-day analysis** — when this device typically runs
+### The periods
+Four buttons: **D** (day), **W** (week), **M** (month), **Y** (year). These are real calendar periods, not rolling windows — "W" is this week, not the last seven days.
 
-### For every device
-History works for all entity types, not just sensors. A switch gets its curve too.
+### Paging
+The arrows left and right jump one period back or forward. Forward stops at the present. The calendar icon lets you pick a free range instead.
 
-### Where the data comes from
-From the Home Assistant history. How far back depends on how long your HA keeps data.
+### What else is in there
+- **Activities** — this device's events as a chronological list, with the high and low of each period
+- Tapping an event jumps back into the chart, at exactly that point
+
+### How far back
+Sensors with long-term statistics (meter readings, measurements) give gap-free curves across months. Everything else only reaches as far as your Home Assistant keeps raw data — often around ten days.
 
 ---
 
@@ -1219,21 +1254,26 @@ True refraction is a Chromium capability. On Safari and iOS a frost-and-tint mod
 
 ---
 
-## Tipp splashscreen - Appearance
+## Tipp hinweise - Control
 
-**Title:** Can I change the loading screen?
+**Title:** Can the card warn me when a value gets too high?
 **Hero:** none
-**Tags:** Appearance, Start
+**Tags:** Control, Hints
 
-Yes, three options — Settings → Appearance → Splashscreen.
+Yes — with hints. They watch a value and speak up when it crosses a limit or stays in one state for too long.
 
-### The options
-- **Off** — the card appears immediately
-- **Progress bar** — the classic loader
-- **Handwriting** — a "hello" gets drawn, in two strokes with a pause between
+### Where to set them up
+In the detail view of a watchable device, in the "Context" tab under "Hints".
 
-### When it takes effect
-The change applies the next time the card loads, not immediately.
+### Two kinds
+- **Threshold** — fires when a reading goes above or below a limit
+- **Duration** — fires when a state lasts too long, like a window that has been open for two hours
+
+### So it doesn't flutter
+A small margin applies around each limit so a value hovering right on the threshold doesn't fire every minute — two points on percentages, half a degree on temperatures.
+
+### An honest limitation
+Hints are only evaluated while a dashboard with the card is open. Anything safety-critical belongs in a Home Assistant automation, not in the card.
 
 ---
 
@@ -1259,7 +1299,7 @@ There the screen width decides. The setting applies to tablet and desktop.
 **Hero:** none
 **Tags:** Filter, Hide
 
-Settings → General → Filter → Excluded patterns.
+Settings → Filter → Excluded patterns. "Filter" is one of the four main sections of the settings, along the top.
 
 ### The wildcards
 - `*` stands for any number of characters — `sensor.*` matches all sensors
@@ -1284,13 +1324,19 @@ Delete the pattern again, done. Sensible default patterns are pre-filled on firs
 **Hero:** none
 **Tags:** Filter, Templates
 
-Yes — Quick Add, right below the excluded patterns.
+Yes — the suggestion chips above the input field under Settings → Filter.
+
+### The bundles
+- **Updates** — Home Assistant's update entities
+- **Batteries** — charge levels and battery states
+- **Signal** — radio quality, link strength
+- **System sensors** — uptime, last boot, connectivity
 
 ### How it works
-Tap a suggestion and its whole pattern set lands in your list. A **✓** shows a set is already active.
+Tap a bundle and its whole pattern set lands in your list. A checkmark shows a bundle is already active.
 
 ### What it's for
-Typical clean-up cases — unavailable entities, diagnostic values, technical helper entities — in one tap instead of ten lines of manual work.
+Typical clean-up cases in one tap instead of ten lines of manual work. Individual patterns from a bundle can be deleted again normally afterwards.
 
 ---
 
@@ -1300,18 +1346,19 @@ Typical clean-up cases — unavailable entities, diagnostic values, technical he
 **Hero:** none
 **Tags:** Filter, Visibility
 
-Settings → General → Filter → Visibility.
+Settings → Filter → Visibility.
 
-### Three switches
-- **Hidden entities** — whatever is marked "hidden" in HA
-- **Disabled entities** — whatever is switched off in HA
-- **Diagnostic entities** — technical values HA normally tucks away
+### Two switches
+- **Hide hidden entities** — whatever is marked "hidden" in Home Assistant
+- **Hide diagnostic and disabled entities** — technical values and switched-off entries
 
-### The default
-All three off. The card respects what you decided in Home Assistant — nothing slips through unasked.
+Both are on out of the box. The card respects what you decided in Home Assistant.
 
 ### When you need them
-When setting up a new device and a sensor stubbornly won't show. Switch on, find it, switch off again.
+When setting up a new device and a sensor stubbornly won't show. Switch off, find it, switch back on.
+
+### The more common reason
+When a device is missing it's usually not this, but that it isn't assigned to a room in Home Assistant. See the tip "A device is missing from search".
 
 ---
 
@@ -1321,13 +1368,15 @@ When setting up a new device and a sensor stubbornly won't show. Switch on, find
 **Hero:** none
 **Tags:** Filter, Performance
 
-Settings → General → Filter → Limits. Two dials that help a lot on large installations.
+Settings → Filter → Limits.
 
 ### Maximum number of entities
-Caps how many entities get loaded at all. `0` means unlimited. With several thousand entities a limit speeds up startup noticeably.
+Caps how many entities get loaded at all — in steps of fifty up to 1000. **0 means unlimited** and is the default. With several thousand entities a limit speeds up startup noticeably.
 
-### Load only entities with an area
-Hides everything not assigned to a room. In many installations that's exactly the technical entities you'd never search for anyway.
+### What else helps
+- Excluded patterns for everything you never search for (batteries, signal strengths, update entities)
+- Turning videos off on mobile
+- Fewer Bento tiles carrying live data
 
 ### The side effect
 Fewer loaded entities means not just a faster start but less noise in search.
@@ -1340,7 +1389,7 @@ Fewer loaded entities means not just a faster start but less noise in search.
 **Hero:** none
 **Tags:** Filter, Toolbar
 
-Yes — Settings → General → Filter.
+Yes — Settings → Appearance → Filter.
 
 ### What you control
 - **Master switch** — the whole filter button on or off. Off means a tidy toolbar with no filter controls.
@@ -1349,6 +1398,9 @@ Yes — Settings → General → Filter.
 
 ### The counter in practice
 It answers "is a light still on somewhere?" without a single tap.
+
+### Not to be confused
+This is the toolbar. What gets loaded in the first place lives under Settings → **Filter** — a section of its own.
 
 ---
 

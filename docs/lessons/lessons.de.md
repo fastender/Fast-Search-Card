@@ -84,7 +84,7 @@ Die Einblendung bewegt nichts — Uhr, Begrüßung und Leiste sind vom ersten Bi
 **Hero:** none
 **Tags:** Start, Gesten
 
-Eine Geste genügt: nach oben wischen, einmal am Mausrad drehen oder die Pfeiltaste nach oben drücken.
+Eine Geste genügt: nach oben wischen, am Mausrad drehen oder die Pfeiltaste nach unten drücken.
 
 ### Was dann passiert
 Der Aufbau läuft von selbst durch, nichts bleibt auf halbem Weg stehen:
@@ -95,11 +95,14 @@ Der Aufbau läuft von selbst durch, nichts bleibt auf halbem Weg stehen:
 4. Die Sidebar schiebt sich von links herein
 5. Die vier Kacheln kommen nacheinander — die größte zuerst
 
-### Zurück in die Ruhe
-Eine Geste nach unten fährt alles wieder zusammen — dieselbe Treppe rückwärts, eine Spur schneller.
+### Es ist ein Einbahnweg
+Einmal aufgedeckt, bleibt die Card aufgedeckt. Auch wenn du in die Suche gehst oder ein Gerät öffnest, kommst du danach in die Kachelansicht zurück, nicht auf den Ruhebildschirm. Erst ein Neuladen der Seite bringt ihn zurück.
+
+### Warum das sinnvoll ist
+Wer die Card einmal benutzt hat, will beim nächsten Blick nicht wieder an der verschlossenen Tür stehen. Der Ruhebildschirm ist für den unberührten Zustand gedacht — für das Wandtablet, an dem seit Stunden niemand war.
 
 ### Gut zu wissen
-Sobald du die Card wirklich benutzt (suchen, ein Gerät öffnen), bleibt sie aufgedeckt. Der Ruhezustand kommt erst zurück, wenn du ihn selbst wieder holst.
+Ist die Insel gerade aufgeklappt, wird die Geste ignoriert — sonst würdest du beim Scrollen in der Insel versehentlich den ganzen Bildschirm umbauen.
 
 ---
 
@@ -202,21 +205,24 @@ Die Kapsel morpht in die Zielansicht hinein — sie wächst an ihrer Stelle zur 
 
 ## Tipp insel-halten - Die Insel
 
-**Title:** Was ist die Vorschau, wenn ich die Insel gedrückt halte?
+**Title:** Wie sehe ich alle laufenden Vorgänge auf einmal?
 **Hero:** none
-**Tags:** Insel, Gesten
+**Tags:** Insel, Live
 
-Halte die Kapsel etwa eine halbe Sekunde gedrückt — es öffnet sich eine Vorschau, ohne dass du den Bildschirm verlässt.
+Wenn mehr als eine Sache läuft, klappt ein Tipp auf die Insel die vollständige Liste auf — statt direkt in ein Gerät zu springen.
 
-### Was du siehst
-- **Bei Meldungen** — das Mitteilungs-Panel dockt unter der Kapsel an. Quittieren, stummschalten und als gelesen markieren geht direkt dort.
-- **Bei Live-Aktivitäten** — eine Glasliste **aller** laufenden Vorgänge. Ein Tipp auf eine Zeile öffnet das jeweilige Gerät.
+### Wann welche Reaktion kommt
+- **Mehrere laufende Vorgänge** → die Kapsel klappt zu einer Glasliste auf, jede Zeile öffnet ihr Gerät
+- **Genau ein Vorgang** → direkt in dessen Detailansicht
+- **Eine neue Meldung ist gerade eingetroffen** → ins Mitteilungs-Center
+- **Ruhezustand** → ebenfalls ins Mitteilungs-Center
+- **Bereits aufgeklappt** → ein weiterer Tipp schließt wieder
 
-### Kurz oder lang
-Der kurze Tipp bleibt der schnelle Weg — er öffnet sofort die passende Ansicht. Nach einem langen Druck wird der Loslass-Klick geschluckt, du landest also nicht versehentlich woanders.
+### Scrollen in der Liste
+Sind es viele, lässt sich die aufgeklappte Liste scrollen. Sie schließt sich von selbst, sobald nichts mehr läuft.
 
-### Gut zu wissen
-Die Live-Vorschau schließt sich von selbst, sobald nichts mehr läuft.
+### Ein früheres Detail
+Bis v1.1.2205 brauchte diese Liste einen langen Druck. Seit v1.1.2206 genügt der normale Tipp — falls du das Gedrückthalten aus älteren Beschreibungen kennst, es wird nicht mehr gebraucht.
 
 ---
 
@@ -372,13 +378,37 @@ Nein. Die Suche verzeiht Tippfehler und findet auch Wortteile.
 - **Vertipper** — „Lihct" findet dein Licht
 - **Wortteile** — „bett lampe" findet die „Schlafzimmer-Bettlampe"
 - **Zwei Wörter** — „Wohnzimmer Licht" wird als Raum plus Gerätetyp verstanden
-- **Beide Sprachen** — „Lampe" und „light" führen zum selben Ziel
+- **Beide Sprachen** — „Lampe" und „light" führen zum selben Ziel, unabhängig davon, welche Sprache die Card gerade spricht
 
 ### Wie viel du tippen musst
-Meist genügen zwei bis drei Buchstaben, bis der richtige Treffer oben steht. Die Card durchsucht Gerätenamen, Raumnamen und Entity-IDs gleichzeitig.
+Ab dem ersten Buchstaben erscheint ein Vorschlag als Geistertext, ab dem zweiten kommen echte Treffer. Durchsucht werden Anzeigename, Raumname und Entity-ID gleichzeitig — der Anzeigename wiegt am schwersten.
 
-### Wenn nichts kommt
-Prüfe, ob das Gerät durch ein Muster ausgeschlossen ist (Einstellungen → Allgemein → Filter) oder ob ein Limit die Ladung begrenzt.
+### Groß- und Kleinschreibung
+Egal. Der Geistertext übernimmt sogar deine eigene Schreibweise, damit sich der Vorschlag pixelgenau über dein Getipptes legt.
+
+---
+
+## Tipp geraet-fehlt - Suchen
+
+**Title:** Ein Gerät fehlt in der Suche — woran liegt das?
+**Hero:** none
+**Tags:** Suche, Fehlersuche
+
+Meist daran, dass es in Home Assistant keinem Raum zugewiesen ist.
+
+### Die häufigste Ursache
+Die Card lädt ausschließlich Entitäten mit einem zugewiesenen Bereich. Ein Gerät ohne Raum taucht nirgends auf — weder in der Suche noch in einer Kachel.
+
+Zu ändern in Home Assistant: Einstellungen → Geräte & Dienste → das Gerät öffnen → Bereich zuweisen. Danach die Card neu laden.
+
+### Die weiteren Kandidaten, der Reihe nach
+1. **Ein Muster blendet es aus** — Einstellungen → Filter → Ausgeschlossene Muster durchsehen. Die Vorlagen-Pakete sind großzügig: „Batterien" trifft alles auf `*_battery`.
+2. **Home Assistant selbst versteckt es** — als versteckt, deaktiviert oder als Diagnose-Wert markiert. Zum Prüfen kurz Einstellungen → Filter → Sichtbarkeit umschalten.
+3. **Ein Limit greift** — steht unter Einstellungen → Filter → Limits eine Zahl statt 0, werden nur so viele Entitäten geladen.
+4. **Es ist gerade nicht erreichbar** — Entitäten im Zustand „nicht verfügbar" oder „unbekannt" werden übersprungen.
+
+### Zum Gegenprüfen
+Findet Home Assistant das Gerät in seiner eigenen Suche? Wenn nein, liegt es nicht an der Card.
 
 ---
 
@@ -512,16 +542,16 @@ Aktiv gruppiert sie die Geräteliste nach **letzter Aktivität** statt nach Raum
 
 ### Drei Profile
 - **Fein** — Gerade eben · Letzte 15 Min · Letzte 30 Min · Letzte Stunde
-- **Standard** — Letzte 15 Min · Letzte Stunde · Heute
+- **Standard** — Letzte 15 Min · Letzte Stunde
 - **Grob** — Letzte Stunde · Letzte 6 Std · Letzte 12 Std
 
-Alles jenseits des letzten Fensters landet in „Heute" beziehungsweise „Älter".
+Alles jenseits des letzten Fensters landet in „Heute" oder „Älter".
 
 ### Kombinierbar
 Die Zeit-Sortierung wirkt zusätzlich zum Kategorie- und Raumfilter. „Lichter, nach Aktivität" ist also möglich.
 
 ### Einschalten
-Einstellungen → Allgemein → Filter → Nach Zeit sortieren.
+Einstellungen → Darstellung → Filter → Nach Zeit sortieren.
 
 ---
 
@@ -534,17 +564,17 @@ Einstellungen → Allgemein → Filter → Nach Zeit sortieren.
 Mit der Schnellsteuerung wird das Geräte-Icon auf der Karte selbst zum Schalter.
 
 ### Einschalten
-Einstellungen → Allgemein → Schnellsteuerung. Ab Werk ist die Funktion aus — sie verändert das Antippverhalten spürbar, deshalb entscheidest du.
+Einstellungen → Darstellung → Schnellsteuerung. Ab Werk ist die Funktion aus — sie verändert das Antippverhalten spürbar, deshalb entscheidest du.
 
 ### Danach gilt
 - **Tipp aufs Icon** — schaltet sofort
 - **Tipp auf die Karte daneben** — öffnet weiterhin die Detailansicht
 
 ### Rückmeldung
-Auf dem Handy gibt es ein kurzes haptisches Signal. Beim Fahren erscheint ein Ring um das Icon.
+Auf dem Handy gibt es ein kurzes haptisches Signal. Das Icon zieht sich beim Drücken leicht zusammen und schnellt nach dem Schalten kurz über seine Größe hinaus — die einzige Stelle in der Card, an der sie vibriert.
 
 ### Gut zu wissen
-System-Entities wie News oder Wetter sind nicht betroffen — bei ihnen öffnet ein Tipp immer die Ansicht.
+System-Entities wie News oder Wetter sind nicht betroffen — bei ihnen öffnet ein Tipp immer die Ansicht. Gerätetypen ohne Schnellsteuerung ebenso.
 
 ---
 
@@ -581,11 +611,15 @@ Ja, für jeden Gerätetyp einzeln.
 - **Tippen** — ein Tipp schaltet sofort
 - **Halten** — ein Tipp reicht nicht, es braucht den gehaltenen Druck
 
-### Die Voreinstellung
-Lichter, Schalter, Ventilatoren, Eingabe-Schalter und Media-Player stehen auf **Tippen**. Rollläden und Schlösser auf **Halten**. Klimageräte und Sauger sind ebenfalls wählbar.
+### Die Voreinstellungen
+**Tippen:** Lichter, Schalter, Ventilatoren, Klima, Media-Player, Sauger, Luftbefeuchter, Szenen, Skripte, Automationen.
+**Halten:** Rollläden, Schlösser, Ventile, Sirenen.
+
+### Was die Geräte tun
+Meist ein schlichtes Umschalten. Ein Media-Player pausiert oder spielt weiter, ein Schloss wechselt in die Gegenrichtung, ein Sauger startet — oder fährt zur Basis, wenn er gerade saugt.
 
 ### Wo
-Einstellungen → Allgemein → Schnellsteuerung. Der Hauptschalter oben, darunter die Liste der Typen.
+Einstellungen → Darstellung → Schnellsteuerung. Der Hauptschalter oben, darunter die Liste der Typen.
 
 ---
 
@@ -708,19 +742,20 @@ Ein Tipp startet die Szene. Eine kurze Einblendung bestätigt, dass es geklappt 
 **Hero:** none
 **Tags:** Steuerung, Verlauf
 
-Im dritten Reiter der Detailansicht: „Verlauf".
+Im Reiter „Verlauf" der Detailansicht.
 
-### Was dort ist
-- **Diagramme** für 24 Stunden, 7 Tage und 30 Tage
-- **Letzte Ereignisse** als chronologische Liste
-- **Statistiken** — wie oft geschaltet, wie lange aktiv, durchschnittliche Dauer
-- **Tageszeit-Analyse** — wann dieses Gerät typischerweise läuft
+### Die Zeiträume
+Vier Knöpfe: **T** (Tag), **W** (Woche), **M** (Monat), **J** (Jahr). Das sind echte Kalenderzeiträume, keine rollenden Fenster — „W" ist diese Woche, nicht die letzten sieben Tage.
 
-### Für jedes Gerät
-Der Verlauf funktioniert für alle Entity-Typen, nicht nur für Sensoren. Auch ein Schalter bekommt seine Kurve.
+### Blättern
+Die Pfeile links und rechts springen einen Zeitraum zurück oder vor. Vorwärts endet in der Gegenwart. Über das Kalender-Symbol wählst du stattdessen einen freien Zeitraum.
 
-### Woher die Daten kommen
-Aus der Home-Assistant-Historie. Wie weit zurück, hängt davon ab, wie lange dein HA Daten aufbewahrt.
+### Was sonst noch drinsteckt
+- **Aktivitäten** — die Ereignisse dieses Geräts als chronologische Liste, mit Höchst- und Tiefstwerten je Zeitraum
+- Ein Tipp auf ein Ereignis springt zurück ins Diagramm, an genau diese Stelle
+
+### Wie weit zurück
+Sensoren mit Langzeit-Statistik (Zählerstände, Messwerte) liefern lückenlose Kurven über Monate. Alle anderen reichen nur so weit, wie dein Home Assistant die Rohdaten aufbewahrt — oft rund zehn Tage.
 
 ---
 
@@ -1219,21 +1254,26 @@ Die echte Lichtbrechung ist eine Chromium-Fähigkeit. Auf Safari und iOS greift 
 
 ---
 
-## Tipp splashscreen - Aussehen
+## Tipp hinweise - Steuerung
 
-**Title:** Kann ich den Startbildschirm beim Laden ändern?
+**Title:** Kann die Card mich warnen, wenn ein Wert zu hoch wird?
 **Hero:** none
-**Tags:** Aussehen, Start
+**Tags:** Steuerung, Hinweise
 
-Ja, drei Varianten — Einstellungen → Darstellung → Splashscreen.
+Ja — mit Hinweisen. Sie beobachten einen Wert und melden sich, wenn er eine Grenze reißt oder zu lange in einem Zustand bleibt.
 
-### Die Optionen
-- **Aus** — die Card erscheint sofort
-- **Ladebalken** — der klassische Fortschritt
-- **Handschrift** — ein „hello" wird gezeichnet, in zwei Zügen mit Pause dazwischen
+### Wo du sie anlegst
+In der Detailansicht eines beobachtbaren Geräts, im Reiter „Kontext" unter „Hinweise".
 
-### Wann es greift
-Die Änderung wirkt beim nächsten Laden der Card, nicht sofort.
+### Zwei Arten
+- **Schwellwert** — meldet sich, wenn ein Messwert über oder unter eine Grenze geht
+- **Dauer** — meldet sich, wenn ein Zustand zu lange anhält, etwa ein Fenster, das seit zwei Stunden offen steht
+
+### Damit es nicht flattert
+Um eine Grenze herum gilt ein kleiner Sicherheitsabstand, damit ein Wert, der genau auf der Schwelle pendelt, nicht im Minutentakt meldet — zwei Punkte bei Prozentwerten, ein halbes Grad bei Temperaturen.
+
+### Eine ehrliche Einschränkung
+Hinweise werden nur ausgewertet, solange ein Dashboard mit der Card geöffnet ist. Für alles Sicherheitskritische gehört die Logik in eine Home-Assistant-Automation, nicht in die Card.
 
 ---
 
@@ -1259,7 +1299,7 @@ Dort entscheidet die Bildschirmbreite. Die Einstellung wirkt auf Tablet und Desk
 **Hero:** none
 **Tags:** Filter, Ausblenden
 
-Einstellungen → Allgemein → Filter → Ausgeschlossene Muster.
+Einstellungen → Filter → Ausgeschlossene Muster. „Filter" ist einer der vier Hauptbereiche der Einstellungen, ganz oben in der Leiste.
 
 ### Die Platzhalter
 - `*` steht für beliebig viele Zeichen — `sensor.*` trifft alle Sensoren
@@ -1284,13 +1324,19 @@ Muster wieder löschen, fertig. Beim ersten Start sind sinnvolle Standard-Muster
 **Hero:** none
 **Tags:** Filter, Vorlagen
 
-Ja — die Schnellauswahl direkt unter den ausgeschlossenen Mustern.
+Ja — die Vorschlags-Chips über dem Eingabefeld unter Einstellungen → Filter.
+
+### Die Pakete
+- **Updates** — die Update-Entitäten von Home Assistant
+- **Batterien** — Ladestände und Batteriezustände
+- **Signal** — Funkqualität, Verbindungsstärke
+- **System-Sensoren** — Betriebszeit, letzter Neustart, Erreichbarkeit
 
 ### Wie es geht
-Tippe einen Vorschlag an, und sein komplettes Muster-Set landet in deiner Liste. Ein **✓** zeigt, dass ein Set schon aktiv ist.
+Tippe ein Paket an, und sein komplettes Muster-Set landet in deiner Liste. Ein Häkchen zeigt, dass ein Paket schon aktiv ist.
 
 ### Wofür das gut ist
-Typische Aufräum-Fälle — nicht verfügbare Entitäten, Diagnose-Werte, technische Hilfsentitäten — mit einem Tipp statt zehn Zeilen Handarbeit.
+Typische Aufräum-Fälle mit einem Tipp statt zehn Zeilen Handarbeit. Einzelne Muster daraus lassen sich hinterher normal wieder löschen.
 
 ---
 
@@ -1300,18 +1346,19 @@ Typische Aufräum-Fälle — nicht verfügbare Entitäten, Diagnose-Werte, techn
 **Hero:** none
 **Tags:** Filter, Sichtbarkeit
 
-Einstellungen → Allgemein → Filter → Sichtbarkeit.
+Einstellungen → Filter → Sichtbarkeit.
 
-### Drei Schalter
-- **Versteckte Entitäten** — was in HA auf „hidden" steht
-- **Deaktivierte Entitäten** — was in HA abgeschaltet ist
-- **Diagnose-Entitäten** — technische Werte, die HA normalerweise wegräumt
+### Zwei Schalter
+- **Versteckte Entitäten ausblenden** — was in Home Assistant auf „versteckt" steht
+- **Diagnose- und deaktivierte Entitäten ausblenden** — technische Werte und abgeschaltete Einträge
 
-### Die Voreinstellung
-Alle drei sind aus. Die Card respektiert, was du in Home Assistant entschieden hast — nichts rutscht ungefragt durch.
+Beide sind ab Werk an. Die Card respektiert also, was du in Home Assistant entschieden hast.
 
 ### Wann du sie brauchst
-Beim Einrichten eines neuen Geräts, wenn ein Sensor partout nicht auftaucht. Einschalten, finden, wieder ausschalten.
+Beim Einrichten eines neuen Geräts, wenn ein Sensor partout nicht auftaucht. Ausschalten, finden, wieder einschalten.
+
+### Der häufigere Grund
+Fehlt ein Gerät, liegt es meist nicht hieran, sondern daran, dass es in Home Assistant keinem Raum zugewiesen ist. Siehe den Tipp „Ein Gerät fehlt in der Suche".
 
 ---
 
@@ -1321,13 +1368,15 @@ Beim Einrichten eines neuen Geräts, wenn ein Sensor partout nicht auftaucht. Ei
 **Hero:** none
 **Tags:** Filter, Leistung
 
-Einstellungen → Allgemein → Filter → Limits. Zwei Stellschrauben, die bei großen Installationen viel bringen.
+Einstellungen → Filter → Limits.
 
 ### Maximale Anzahl Entitäten
-Begrenzt, wie viele Entitäten überhaupt geladen werden. `0` heißt unbegrenzt. Bei mehreren tausend Entitäten beschleunigt ein Limit den Start deutlich.
+Begrenzt, wie viele Entitäten überhaupt geladen werden — in Fünfziger-Schritten bis 1000. **0 heißt unbegrenzt** und ist die Voreinstellung. Bei mehreren tausend Entitäten beschleunigt ein Limit den Start deutlich.
 
-### Nur Entitäten mit Raum laden
-Blendet alles aus, was keinem Bereich zugewiesen ist. In vielen Installationen sind das genau die technischen Entitäten, die man ohnehin nie sucht.
+### Was sonst noch hilft
+- Ausgeschlossene Muster für alles, was du nie suchst (Batterien, Signalstärken, Update-Entitäten)
+- Videos auf dem Handy ausschalten
+- Weniger Bento-Kacheln mit Live-Daten
 
 ### Der Nebeneffekt
 Weniger geladene Entitäten heißt nicht nur schnellerer Start, sondern auch weniger Rauschen in der Suche.
@@ -1340,7 +1389,7 @@ Weniger geladene Entitäten heißt nicht nur schnellerer Start, sondern auch wen
 **Hero:** none
 **Tags:** Filter, Werkzeugleiste
 
-Ja — Einstellungen → Allgemein → Filter.
+Ja — Einstellungen → Darstellung → Filter.
 
 ### Was du steuerst
 - **Hauptschalter** — der ganze Filter-Knopf an oder aus. Aus heißt: aufgeräumte Werkzeugleiste ohne Filter-Bedienelemente.
@@ -1349,6 +1398,9 @@ Ja — Einstellungen → Allgemein → Filter.
 
 ### Der Zähler in der Praxis
 Er beantwortet die Frage „brennt noch irgendwo Licht?" ohne einen einzigen Tipp.
+
+### Nicht verwechseln
+Das ist die Werkzeugleiste. Was überhaupt geladen wird, steht unter Einstellungen → **Filter** — ein eigener Hauptbereich.
 
 ---
 
