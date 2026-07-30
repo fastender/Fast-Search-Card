@@ -544,7 +544,7 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     });
     expect(m.panelGlas).toBe('none');       // kein Glas mehr am Layout-Kasten
     expect(m.panelRand).toBe('0px');
-    expect(m.rowBreite).toBe(640);          // die schmale Kapsel
+    expect(m.rowBreite).toBe(1200);         // volle Breite (v2236: 640er-Kapsel zurückgebaut)
     expect(m.favRot).toBe(false);           // Rot ist dem Bild gewichen
     expect(m.bildDa).toBe(true);
     expect(m.inselOben).toBeLessThanOrEqual(2);  // maximal oben
@@ -621,7 +621,20 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     // herausführen (die Reiter stehen deshalb auch im Leer-Zustand).
     const reiter = root.locator('.bento-carousel-tab');
     await expect(reiter).toHaveCount(2);
-    await expect(reiter.first()).toContainText('Favoriten 1');
+    // v2236: Label und Zahl getrennt — die Zahl steht als Badge im Reiter
+    // (1:1 Subcategory-Leiste), die Typografie 1:1 wie die Kalender-Reiter.
+    await expect(reiter.first()).toContainText('Favoriten');
+    await expect(reiter.first().locator('.bento-carousel-tab-zahl')).toHaveText('1');
+    const reiterStil = await reiter.first().evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return `${cs.fontSize}/${cs.fontWeight}/${cs.borderRadius}`;
+    });
+    expect(reiterStil).toBe('14px/600/16px');
+    // Haarlinie unter der Reiter-Zeile, Fuß-Beschriftung weg (v2236).
+    await expect(root.locator('.bento-widget--mit-reitern .bento-carousel-footer')).toHaveCount(0);
+    const linie = await root.locator('.bento-widget--mit-reitern .bento-carousel-header').evaluate(
+      (el) => getComputedStyle(el).borderBottomWidth);
+    expect(linie).toBe('1px');
     await reiter.nth(1).click();
     await expect(root.locator('.bento-widget[data-widget-id="__suggestions__"]')).toBeVisible({ timeout: 5000 });
     await expect(root.locator('.bento-carousel-tab')).toHaveCount(2);
@@ -640,18 +653,6 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     expect(kartenGlas).toContain('blur');
   });
 
-  test('frei: die Kapsel geht beim Klick in die Breite auf', async ({ page }) => {
-    await page.setViewportSize({ width: 1400, height: 900 });
-    const root = await mountCard(page, { settings: FREI });
-    await revealStart(page, root);
-
-    const vorher = await root.locator('.search-row').evaluate((el) => Math.round(el.getBoundingClientRect().width));
-    await root.locator('input.search-input').click();
-    await page.waitForTimeout(700);
-    const nachher = await root.locator('.search-row').evaluate((el) => Math.round(el.getBoundingClientRect().width));
-    expect(vorher).toBe(640);
-    expect(nachher).toBe(1200);
-  });
 });
 
 // ── Am Finger ────────────────────────────────────────────────────────────────

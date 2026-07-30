@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.2236 - 2026-07-30
+
+**Title:** 🎛️ Free-layout polish round: tabs like the calendar's, real glass in the list, universal dots
+
+Eight refinements from live testing, all in the free layout unless noted:
+
+- **The favourites/suggestions tabs now match the calendar tabs to the pixel** — 14 px/600, 7×14 padding,
+  radius 16, same fills — and the count sits in a BADGE inside the tab, exactly like the subcategory bar's
+  chips. A hairline runs under the tab row, as it does beneath Upcoming/Past in the calendar widget. The
+  bottom-left caption ("Favorites · 5 items") is gone — the tabs say it now.
+
+- **List rows finally wear the same glass as the grid cards.** The culprit was the list's bottom-fade
+  mask: `mask-image` turns the scroller into a backdrop root, so the rows' backdrop-filter sampled the empty
+  list instead of the image behind it — frosted cards in the grid, naked rows in the list. With an image set,
+  the mask is dropped and both views blur identically.
+
+- **The image fade completes exactly when the first row reaches the top** — the fade distance is now the
+  start offset, not the whole list length. Scrolling further keeps the image off; scrolling back restores it
+  on the same path.
+
+- **The grid view scrolls vertically like the list — dots removed.** In tabs mode the paged carousel is
+  replaced by a three-column scrolling grid (two on the phone) sharing the list's scroll handler, image fade,
+  start offset and computed floor. One nicety discovered in testing: the browser reuses the scroller element
+  across the view toggle, so the scroll position — and with it the image fade — carries over consistently.
+
+- **The auto-slider (W2) uses the universal card's dots now** — the HeroSlidePager pill with growing active
+  dot, 10-second progress fill and a proper pause/play button. The button pauses deliberately until pressed
+  again; hovering still pauses fleetingly, as before. Applies in both layouts (same widget). The old
+  dot-progress CSS was deleted — under the `/^bento/` safelist it would have shipped forever despite being
+  dead.
+
+- **The search capsule is back to full width** — the narrow 640 px capsule from v1.1.2230 is retired on
+  request; the reveal keeps the plain full-width search row.
+
 ## Version 1.1.2235 - 2026-07-30
 
 **Title:** 🌐 Notifications finally speaks English — the third aborted session, salvaged
