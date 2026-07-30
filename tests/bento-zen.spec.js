@@ -510,7 +510,11 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
 
   test('frei: kein Panelglas, schmale Kapsel, Insel ganz oben, Favoriten als Bildkachel', async ({ page }) => {
     await page.setViewportSize({ width: 1400, height: 900 });
-    const root = await mountCard(page, { settings: FREI });
+    // Listenansicht vorwählen — der Scroll-Fade und der Mittig-Start leben dort.
+    const root = await mountCard(page, {
+      settings: FREI,
+      storage: { 'bentoCarouselView:__favorites__': 'list' },
+    });
     await revealStart(page, root);
 
     // Favorit auf dem echten Weg, damit die Kachel ihr Karussell zeigt.
@@ -549,7 +553,9 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     const pos = await page.evaluate(() => {
       const alle = [...document.querySelectorAll('.main-container')];
       const r = alle[alle.length - 1].querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
-      return { x: Math.round(r.x + r.width * 0.6), y: Math.round(r.y + r.height * 0.6) };
+      // 🔑 OBEN messen: seit die Liste mittig beginnt (v2231), sitzt bei 60 %
+      // Höhe die weiße Gerätezeile — das Bild gehört der oberen Hälfte.
+      return { x: Math.round(r.x + r.width * 0.5), y: Math.round(r.y + r.height * 0.25) };
     });
     const clip = await page.screenshot({ clip: { x: pos.x, y: pos.y, width: 4, height: 4 } });
     const rgb = await page.evaluate(async (b64) => {
@@ -560,6 +566,37 @@ test.describe('Start-Layout „frei" (Testlauf)', () => {
     }, clip.toString('base64'));
     expect(rgb[0]).toBeGreaterThan(180);
     expect(rgb[1]).toBeLessThan(60);
+
+    // v1.1.2231: Und die ECKEN bleiben rund — Chrome hob die Bild-Ebene auf
+    // den Compositor und die entkam der runden Beschneidung des Trägers
+    // (mobil unten, Desktop rechts eckig). Ein Pixel 3 px in der Box-Ecke
+    // liegt AUSSERHALB der Rundung und darf nie das rote Testbild zeigen.
+    const kachel = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const r = alle[alle.length - 1].querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
+      return { x: Math.round(r.x), y: Math.round(r.y), r: Math.round(r.right), b: Math.round(r.bottom), h: Math.round(r.height) };
+    });
+    for (const [ex, ey] of [[kachel.r - 4, kachel.y + 2], [kachel.r - 4, kachel.b - 4], [kachel.x + 2, kachel.b - 4]]) {
+      const eclip = await page.screenshot({ clip: { x: ex, y: ey, width: 4, height: 4 } });
+      const ergb = await page.evaluate(async (b64) => {
+        const img = new Image(); img.src = 'data:image/png;base64,' + b64; await img.decode();
+        const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+        const ctx = cv.getContext('2d'); ctx.drawImage(img, 0, 0);
+        return [...ctx.getImageData(1, 1, 1, 1).data.slice(0, 3)];
+      }, eclip.toString('base64'));
+      expect(ergb[0] < 150 || ergb[1] > 80, `Ecke ${ex},${ey} zeigt das Bild: ${ergb}`).toBe(true);
+    }
+
+    // v1.1.2231: Die Liste beginnt mittig — das Bild bekommt die obere Hälfte.
+    const listeOben = await page.evaluate(() => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const fav = c.querySelector('.bento-widget[data-widget-id="__favorites__"]').getBoundingClientRect();
+      const l = c.querySelector('.bento-carousel-list-wrap').getBoundingClientRect();
+      return (l.top - fav.top) / fav.height;
+    });
+    expect(listeOben).toBeGreaterThan(0.4);
+    expect(listeOben).toBeLessThan(0.55);
   });
 
   test('frei: die Kapsel geht beim Klick in die Breite auf', async ({ page }) => {

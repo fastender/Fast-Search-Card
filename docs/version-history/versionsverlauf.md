@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2231 - 2026-07-30
+
+**Title:** 🖼️ Free layout polish: round corners, image gets the upper half, gallery picker
+
+- **The image tile's corners are round again — everywhere.** Chrome promotes the image layer (it carries an
+  opacity transition) onto its own compositor layer, and that layer escaped the tile's rounded clipping —
+  bottom corners square on the phone, right corners on the desktop. The layer now rounds and clips itself
+  (`border-radius: inherit`), so the rounding is part of the layer and cannot get lost. Proven by pixel: a
+  point 3 px inside the box corner lies outside the rounding and must never show the test image — checked at
+  three corners in the suite.
+
+- **The favourites list starts at mid-tile** when an image is set — the upper half belongs to the picture, as
+  requested. Measured at 46 % of the tile height (the first attempt with 52 % list height landed at 36 % and
+  was corrected). The image reveal on scroll also benefits: more scroll distance, smoother fade. The grid
+  view is untouched — it pages, it does not scroll.
+
+- **Image picking now works like the wallpaper setting.** The same gallery component, reading the same folder
+  configured under Appearance → Wallpaper, sits below the URL field in Configure widgets. It follows the
+  wallpaper's storage rule exactly: the gallery stores the `media_content_id` and the card resolves it to a
+  fresh signed URL at mount — resolved media URLs expire, so they are never persisted. Picking from the
+  gallery clears the manual URL and vice versa.
+
+- One test lesson worth recording: after the list moved to mid-tile, the suite's image-pixel probe suddenly
+  sampled a white device row instead of the picture — the row had moved exactly onto the old sampling point.
+  The probe now samples the upper half, where the image lives by contract.
+
 ## Version 1.1.2230 - 2026-07-30
 
 **Title:** 🧪 A second home layout to test: "Free"
