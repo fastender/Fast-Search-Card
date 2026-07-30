@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2229 - 2026-07-30
+
+**Title:** 🔍 The real search bar returns above the tile panel
+
+- **Design correction on reflection:** the v1.1.2228 search capsule inside the panel is gone again. It was a
+  button that could only jump into the search — the real search bar brings what the capsule could not: the back
+  button and the four category buttons on its right edge. It now stands free above the panel again, exactly as
+  before, with its reveal fade and the sheen restored.
+
+- **The tile panel stays** — that part of the redesign holds. It shrinks from 672 to 576 so the arithmetic
+  closes again: island 60 + search row 72 + gap 24 + panel 576 = 732, and the panel's bottom edge stays flush
+  with the expanded search panel, as the tile grid's always has. Inner padding 24 and tile radius 24 keep the
+  mockup decision; the tile area is 526 px.
+
+- The pixel-parity contract was updated to the new numbers (row at 60, panel at 156), the harness search paths
+  go through the real input again, and the phone panel keeps growing with its stacked content at 16 px edge
+  padding.
+
 ## Version 1.1.2228 - 2026-07-30
 
 **Title:** 🪟 The start screen becomes one panel

@@ -25,11 +25,6 @@ async function openSettings(page, root) {
   // sichtbar, deshalb lief der Test in einen Timeout statt in einen klaren
   // Fehler). Tests ohne Startseite bleiben unberührt.
   await revealIfLocked(page, root);
-  // v1.1.2228: siehe openDevice im Harness — die Kapsel öffnet die Suche.
-  const kapsel = root.locator('.bento-zen-panel-search');
-  if (await kapsel.count()) {
-    await kapsel.click();
-  }
   const input = root.locator('input.search-input');
   await input.click();
   await input.fill('Einstellungen');

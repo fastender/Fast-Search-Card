@@ -99,16 +99,19 @@ test.describe('Zen-Startseite', () => {
     await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
     expect(await visible(root, '.bento-cell--w1')).toBe(true);
     expect(await visible(root, '.bento-cell--w2')).toBe(true);
-    // Uhr und Gruß haben abgetreten; das PANEL trägt jetzt alles (v2228):
-    // die Kapsel öffnet die Suche, ein Eingabefeld gibt es hier nicht mehr.
+    // Uhr und Gruß haben abgetreten; die ECHTE Suchzeile steht über dem
+    // Kachel-Panel (v2229: die Kapsel-Variante ist zurückgebaut — die echte
+    // Zeile bringt Zurück-Knopf und die vier Kategorien mit).
     expect(await visible(root, '.bento-zen-curtain')).toBe(false);
+    expect(await visible(root, '.search-row')).toBe(true);
+    await expect(root.locator('input.search-input')).toBeVisible();
     expect(await visible(root, '.bento-zen-panel')).toBe(true);
-    await expect(root.locator('.bento-zen-panel-search')).toBeVisible();
-    expect(await visible(root, '.search-row')).toBe(false);
-    // Und die Insel steht ÜBER dem Panel — so war die Mockup-Entscheidung.
+    // Reihenfolge: Insel, Suchzeile, Panel.
     const inselOben = await root.locator('.island-holder').evaluate(el => el.getBoundingClientRect().top);
+    const suchOben = await root.locator('.search-row').evaluate(el => el.getBoundingClientRect().top);
     const panelOben = await root.locator('.bento-zen-panel').evaluate(el => el.getBoundingClientRect().top);
-    expect(inselOben).toBeLessThan(panelOben);
+    expect(inselOben).toBeLessThan(suchOben);
+    expect(suchOben).toBeLessThan(panelOben);
   });
 
   test('zurück ist nicht mehr möglich — der Weg ist einbahnig', async ({ page }) => {
@@ -139,8 +142,8 @@ test.describe('Zen-Startseite', () => {
     await page.mouse.wheel(0, 120);
     await expect.poll(() => visible(root, '.bento-cell--w34'), { timeout: 15000 }).toBe(true);
 
-    // Suche öffnen (v2228: über die Kapsel im Panel) — die Startseite hängt aus …
-    await root.locator('.bento-zen-panel-search').click();
+    // Suche öffnen — die Startseite hängt aus …
+    await root.locator('input.search-input').click();
     await expect(root.locator('.bento-zen')).toHaveCount(0, { timeout: 10000 });
 
     // … und beim Zurück steht wieder das Bento, nicht die Ruhelage.
@@ -430,15 +433,15 @@ test.describe('Zen-Startseite', () => {
   });
 
   test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {
-    // 🔑 Der Vertrag seit v1.1.2228 (Mockup-Beschluss): EIN Panel auf
-    // DetailView-Höhe trägt Kapsel und Raster. Insel-Platz 60 + Panel 672
-    // = 732 — die Kartenhöhe ist exakt die alte. Innen: Rand 24, Kapsel 64,
-    // Abstände 24 → Kachelfläche 534 (der Wert aus dem freigegebenen Mockup).
-    // Die krummen 25/85/1150 sind kein Zufall, sondern der 1-px-Panelrand.
+    // 🔑 Der Vertrag seit v1.1.2229: die ECHTE Suchzeile steht frei über dem
+    // Kachel-Panel (Zurück-Knopf + vier Kategorien — deshalb kam die
+    // v2228-Kapsel wieder raus). Insel 60 + Zeile 72 + 24 + Panel 576 = 732;
+    // die Panel-Unterkante fluchtet mit der aufgeklappten Suche. Innen Rand 24
+    // → Kachelfläche 526. Die krummen 25er sind der 1-px-Panelrand.
     const ERWARTET = {
-      panel:  [0, 60, 1200, 672],
-      kapsel: [25, 85, 1150, 64],
-      grid:   [25, 173, 1150, 534],
+      row:   [0, 60, 1200, 72],
+      panel: [0, 156, 1200, 576],
+      grid:  [25, 181, 1150, 526],
     };
 
     await page.setViewportSize({ width: 1400, height: 900 });
@@ -458,14 +461,14 @@ test.describe('Zen-Startseite', () => {
         return [Math.round(b.left - cb.left), Math.round(b.top - cb.top),
                 Math.round(b.width), Math.round(b.height)];
       };
-      return { panel: m('.bento-zen-panel'), kapsel: m('.bento-zen-panel-search'),
+      return { row: m('.search-row'), panel: m('.bento-zen-panel'),
                grid: m('.bento-zen-panel .bento-grid') };
     });
     expect(desktop).toEqual(ERWARTET);
 
     // Telefon: das Panel wächst mit dem Inhalt — geprüft werden die festen
-    // Größen (Breite 350 wie früher das Raster, Rand 16, Kapsel 56) und dass
-    // es wirklich wächst statt bei 672 abzuschneiden.
+    // Größen (Breite 350, Rand 16) und dass es wirklich wächst statt bei 576
+    // abzuschneiden.
     await page.setViewportSize({ width: 390, height: 844 });
     const root2 = await mountCard(page, { settings: ZEN_ON });
     await waitForZen(root2);
@@ -476,17 +479,15 @@ test.describe('Zen-Startseite', () => {
 
     const telefon = await root2.locator('.main-container').evaluate((c) => {
       const p = c.querySelector('.bento-zen-panel').getBoundingClientRect();
-      const k = c.querySelector('.bento-zen-panel-search').getBoundingClientRect();
+      const g = c.querySelector('.bento-zen-panel .bento-grid').getBoundingClientRect();
       return {
         breite: Math.round(p.width),
-        rand: Math.round(k.left - p.left),
-        kapsel: Math.round(k.height),
+        rand: Math.round(g.left - p.left),
         hoehe: Math.round(p.height),
       };
     });
     expect(telefon.breite).toBe(350);
     expect(telefon.rand).toBe(17);        // 16 + 1 px Panelrand
-    expect(telefon.kapsel).toBe(56);
     expect(telefon.hoehe).toBeGreaterThan(1000);
   });
 });

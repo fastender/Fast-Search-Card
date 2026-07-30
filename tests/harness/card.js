@@ -331,14 +331,6 @@ export async function openDevice(root, page, query, name) {
   // der Vorhang den Klick ab. Nur wenn die Ruhelage wirklich da ist, damit Tests
   // ohne Startseite unberührt bleiben.
   await revealIfLocked(page, root);
-  // v1.1.2228: Im aufgedeckten Zen gibt es kein sichtbares Eingabefeld mehr —
-  // die Kapsel im Panel öffnet das Suchpanel (echte `.search-row` übernimmt
-  // erst dann). Ohne Startseite existiert die Kapsel nicht und der alte Weg
-  // gilt unverändert.
-  const kapsel = root.locator('.bento-zen-panel-search');
-  if (await kapsel.count()) {
-    await kapsel.click();
-  }
   const input = root.locator('input.search-input');
   await input.click();
   await input.fill(query);
