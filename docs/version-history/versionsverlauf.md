@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2240 - 2026-08-01
+
+**Title:** 😴 The island's standby cascade — card folds to a mini pill, then rides right as a badge button
+
+Second half of the island redesign (user design, mockup v7): after idle time the two-line card gets out of
+the way in two stages.
+
+- **The cascade:** card → (tap on free area OR ~30 s idle) → **mini pill** (full-radius 330 px, keeps the
+  line-1 values and the corner buttons; line 2 and the facts roll fold to zero height) → (~60 s more) →
+  **badge button far right**: a 52 px circle that RIDES to the right edge (measured `translateX` on the
+  anchor — never on the framer pill, which owns no transform), carrying the app-with-dot glyph the user
+  supplied and a counter bubble with the total notification count in the highest pending severity color.
+  Tapping the pill or the button restores the card; so does every NEW notification (the takeover needs
+  line 2 — and the cascade never folds while a takeover ring is running or the live list is expanded).
+
+- **Activity semantics:** any pointer/wheel/key activity on the card keeps an UNFOLDED card awake (resets
+  the idle clock) but does not unfold a folded one — someone working next to the island wants it small.
+  The ▦ button wakes the card first when tapped from the mini pill (the list belongs to the full form).
+
+- **Settings:** `startScreen.islandStandby { enabled, miniMs, knopfMs }` — default on, 30 s/60 s. No UI
+  switch yet (that belongs to the pending island settings reorg). With the cascade disabled, the free-area
+  tap keeps its old meaning (notification center); with it enabled, the free-area tap folds — per the
+  user's interaction design, the three severity buttons are the way into the center.
+
+- **Harness note:** the test harness now mounts with the cascade DISABLED unless a test explicitly asks
+  for it — slow suites idle for 25+ s mid-poll, and a card that folds itself mid-assertion is a flake
+  factory. Three dedicated cascade tests request it with short clocks and pin: idle folds to mini (line 2
+  at height 0, width < 400) then to the button (width < 60, right edge within 40 px of the holder edge),
+  free-area click folds immediately and a tap restores, and a fresh notification wakes the button, takes
+  over line 2, then counts in the bubble (blue for info). 111 tests total.
+
 ## Version 1.1.2239 - 2026-08-01
 
 **Title:** 🏝️ The island becomes a two-line macOS card — light frost, dark ink, severity buttons with counter bubbles

@@ -72,6 +72,14 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
   // ein Rennen zwischen langStore-Default und hass, ob die Karte deutsch oder
   // englisch rendert — und Tests, die deutsche Labels suchen, scheitern dann
   // sporadisch.
+  // 🔑 v1.1.2240: Die Standby-Kaskade der Insel (Karte → Mini-Pille → Knopf)
+  // ist im Harness AUS, sofern ein Test sie nicht ausdrücklich anfordert —
+  // sonst faltet die Karte nach 30 s Leerlauf mitten in langsamen Läufen
+  // (Roll-Zyklus 20 s + Boot-Gnade) und islandText-Polls reißen sporadisch.
+  const settingsPatch = { ...settings, startScreen: { ...(settings.startScreen || {}) } };
+  if (settingsPatch.startScreen.islandStandby === undefined) {
+    settingsPatch.startScreen.islandStandby = { enabled: false };
+  }
   await page.addInitScript(({ settingsPatch, language, storagePatch }) => {
     try {
       localStorage.clear();
@@ -83,7 +91,7 @@ export async function mountCard(page, { hass = {}, settings = {}, lang = 'de', s
         localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
       }
     } catch (_) { /* erster Aufruf kann vor der Origin liegen */ }
-  }, { settingsPatch: settings, language: lang, storagePatch: storage });
+  }, { settingsPatch, language: lang, storagePatch: storage });
 
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => !!window.FastSearchCardApp, null, { timeout: 20000 });

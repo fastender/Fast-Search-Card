@@ -262,6 +262,22 @@ test.describe('Insel', () => {
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
   });
 
+  test('ohne Kaskade öffnet die freie Fläche das Center', async ({ page }) => {
+    // Der Harness fährt mit abgeschalteter Standby-Kaskade — dann behält die
+    // freie Fläche ihre Center-Bedeutung (sonst faltet sie, s. Kaskaden-Suite).
+    const root = await mountCard(page, { settings: BENTO_ON });
+    await expect(root.locator('.island-pill')).toBeVisible();
+    await page.evaluate(() => {
+      window.__opened = [];
+      window.addEventListener('fsc-open-notifications', () => window.__opened.push('notifications'));
+    });
+    // Rechts neben den Werten ist die Zeile frei (keine Meldungen → keine
+    // Knöpfe); dort trifft der Klick sicher keinen inneren role=button-Span.
+    const box = await root.locator('.island-zeile1').boundingBox();
+    await page.mouse.click(box.x + box.width - 30, box.y + box.height / 2);
+    await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['notifications']);
+  });
+
   test('die Stufen-Zählung ist pur und zählt Low bewusst nicht', async ({ page }) => {
     // Die Regel selbst ist pur und wird direkt am Modul geprüft (Muster aus
     // dem Hero-Spec) — Low war schon immer nur ein Flüstern und bekommt
@@ -275,5 +291,91 @@ test.describe('Insel', () => {
       ]);
     });
     expect(r).toEqual({ critical: 1, warning: 2, info: 1 });
+  });
+});
+
+// ── Standby-Kaskade (v1.1.2240, User-Design Mockup v7) ──────────────────────
+// Karte → (Klick oder miniMs Leerlauf) → Mini-Pille → (knopfMs) → Meldungs-
+// Knopf GANZ RECHTS. Der Harness fährt sonst mit enabled:false — hier wird
+// die Kaskade mit kurzen Zeiten ausdrücklich angefordert.
+test.describe('Insel — Standby-Kaskade', () => {
+  const KASKADE = (miniMs, knopfMs) => ({
+    startScreen: { bento: true, islandStandby: { enabled: true, miniMs, knopfMs } },
+    appearance: { statsBarEnabled: true },
+  });
+
+  test('Leerlauf faltet zur Mini-Pille und weiter zum Knopf ganz rechts', async ({ page }) => {
+    const root = await mountCard(page, { settings: KASKADE(1200, 1200) });
+    const pill = root.locator('.island-pill');
+    await expect(pill).toBeVisible();
+
+    // Stufe 1: Mini-Pille — Zeile 2 faltet auf Höhe 0, die Form wird zur
+    // schmalen Vollpille.
+    await expect(pill).toHaveAttribute('data-ruhe', 'mini', { timeout: 8000 });
+    await expect.poll(() => pill.locator('.island-zeile2').evaluate(
+      (el) => Math.round(el.getBoundingClientRect().height)), { timeout: 5000 }).toBe(0);
+    await expect.poll(() => pill.evaluate((el) => Math.round(el.getBoundingClientRect().width)),
+      { timeout: 5000 }).toBeLessThan(400);
+
+    // Stufe 2: der Knopf — 52er-Kreis, und er FÄHRT an den rechten Rand.
+    await expect(pill).toHaveAttribute('data-ruhe', 'alert', { timeout: 8000 });
+    await expect(root.locator('.island-ruheknopf')).toBeVisible();
+    await expect.poll(() => pill.evaluate((el) => Math.round(el.getBoundingClientRect().width)),
+      { timeout: 5000 }).toBeLessThan(60);
+    await expect.poll(() => pill.evaluate((el) => {
+      const holder = el.closest('.island-holder').getBoundingClientRect();
+      const me = el.getBoundingClientRect();
+      return Math.round(holder.right - me.right);
+    }), { timeout: 5000 }).toBeLessThan(40);
+
+    // Tipp auf den Knopf → die volle Karte kehrt zurück.
+    await root.locator('.island-ruheknopf').click();
+    await expect(pill).toHaveAttribute('data-ruhe', '', { timeout: 5000 });
+    await expect.poll(() => pill.locator('.island-zeile2').evaluate(
+      (el) => Math.round(el.getBoundingClientRect().height)), { timeout: 5000 }).toBeGreaterThan(10);
+  });
+
+  test('Klick auf die freie Fläche faltet sofort, Tipp auf die Pille holt zurück', async ({ page }) => {
+    // Lange Zeiten: hier faltet ausschließlich der Klick.
+    const root = await mountCard(page, { settings: KASKADE(120000, 120000) });
+    const pill = root.locator('.island-pill');
+    await expect(pill).toBeVisible();
+    await expect(pill).toHaveAttribute('data-ruhe', '');
+
+    // Rechts neben den Werten ist Zeile 1 frei (keine Meldungen → keine
+    // Knöpfe); dort trifft der Klick keinen inneren role=button-Span.
+    const z1 = await root.locator('.island-zeile1').boundingBox();
+    await page.mouse.click(z1.x + z1.width - 30, z1.y + z1.height / 2);
+    await expect(pill).toHaveAttribute('data-ruhe', 'mini', { timeout: 5000 });
+
+    // Tipp auf die freie Fläche der Mini-Pille → Karte zurück.
+    const mini = await root.locator('.island-zeile1').boundingBox();
+    await page.mouse.click(mini.x + mini.width - 20, mini.y + mini.height / 2);
+    await expect(pill).toHaveAttribute('data-ruhe', '', { timeout: 5000 });
+  });
+
+  test('eine neue Meldung weckt den Knopf und zählt danach in der Kugel', async ({ page }) => {
+    const root = await mountCard(page, { settings: KASKADE(1500, 1500) });
+    const pill = root.locator('.island-pill');
+    await expect(pill).toHaveAttribute('data-ruhe', 'alert', { timeout: 10000 });
+
+    // Boot-Gnade sicher verstreichen lassen (Übernahme kündigt nur NEUES an).
+    await page.waitForTimeout(5200);
+    await updateHass(page, (states, entity) => {
+      states['persistent_notification.p1'] = entity(
+        'persistent_notification.p1', 'Meldung', 'notifying',
+        { title: 'Trockner fertig', message: 'x' }
+      );
+    });
+    // Die Meldung weckt die Karte und übernimmt Zeile 2 …
+    await expect(pill).toHaveAttribute('data-ruhe', '', { timeout: 8000 });
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('Trockner fertig');
+
+    // … und nach Übernahme + Leerlauf sitzt sie als Zahl in der Knopf-Kugel
+    // (Info → blaue Kugel). Während der Übernahme faltet die Kaskade nicht.
+    await expect(pill).toHaveAttribute('data-ruhe', 'alert', { timeout: 20000 });
+    const kugel = root.locator('.island-ruheknopf .island-eck');
+    await expect(kugel).toHaveText('1');
+    await expect(kugel).toHaveClass(/island-eck--blau/);
   });
 });
