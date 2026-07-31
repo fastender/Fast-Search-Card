@@ -1,5 +1,43 @@
 # Versionsverlauf
 
+## Version 1.1.2239 - 2026-08-01
+
+**Title:** 🏝️ The island becomes a two-line macOS card — light frost, dark ink, severity buttons with counter bubbles
+
+Full island redesign (user design, mockup rounds v1–v7). The one-line capsule with its mood swaps
+(alert ▸ live ▸ ambient) is gone; nothing displaces anything anymore:
+
+- **Light macOS card:** bright frost (`rgba(255,255,255,0.72)` tint over the user's glass blur), dark ink
+  `#1d1d1f`, radius 24, fixed width 540 (mobile 390). The wallpaper-driven island tint mirroring in
+  `WallpaperModeOverlay` lost its consumer and is removed.
+
+- **Line 1 — the calm:** weather · current power · house-facts roll (the category-bar numbers), each its own
+  tap target as before. On the right the **corner buttons in the iOS app-icon pattern**: ℹ info (blue bubble),
+  ⚠ warnings (amber), ❗ critical (red), ▦ running activities (grey). A button whose counter is 0 does not
+  appear; the bubbles sit at the top-right corner of each button. The three severity buttons open the
+  notification center, ▦ toggles the in-card live list (same shape, grows downward — unchanged).
+
+- **Line 2 — the lively:** a ticker rolling through ALL live activities (4-second beat, countdowns via the
+  digit roll, progress as the thin bottom line, tap opens the device). When the house is idle the house facts
+  roll here instead — and line 1 leaves its roll slot empty, so nothing shows twice. A NEW notification still
+  takes over line 2 for ~6 s with the timing ring (C1), then condenses into its severity button. The long-runner
+  condensation (90-s partition + tile chips) is retired — the ticker rotates, ▦ counts.
+
+- **Night face** now dims to "weather only" in line 1; the live ticker and the buttons stay (standing states
+  and important counts don't vanish at night).
+
+- **Geometry ripple:** the two-liner is 72 px tall (band 84 with margin), so the frozen zen contract moved to
+  row [0,84], panel [0,180], grid [25,205] — panel bottom still flush with the expanded search at 756.
+
+- **A real touch bug fixed en passant:** with the zen start locked, an up-swipe starting ON the island did
+  nothing — the pill's `touch-action: manipulation` let the browser pan, pointercancel ate the pointerup, the
+  reveal gesture died. The one-line pill was too small for anyone to hit; the taller card made it reachable.
+  Locked + collapsed, the island now carries `touch-action: none` like the rest of the lock screen.
+
+- Suite updated to the new contract (107 tests): light style + two-line assertion, per-severity counting with
+  zero-hides-button, ticker keeps line 1 values, expansion via ▦, pure `severityCounts`; dataprovider/watches
+  now observe the severity buttons instead of the retired alert chip.
+
 ## Version 1.1.2238 - 2026-07-30
 
 **Title:** ⏰ Lock-screen clock with live status, exact clipping edges, and a real Safari fix

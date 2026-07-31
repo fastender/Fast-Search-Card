@@ -86,14 +86,15 @@ test.describe('Hinweise (Wächter)', () => {
     await expect(list).not.toContainText('Noch kein Hinweis', { timeout: 10000 });
 
     // Wert über die Grenze schieben — der Hinweis muss die Insel erreichen.
-    // v1.1.2209: als Meldungs-Chip (die Übernahme läuft nur, wenn die
-    // Boot-Gnade schon vorbei ist — der Chip kommt IMMER).
+    // v1.1.2239: als Eck-Knopf seiner Stufe (die Übernahme läuft nur, wenn
+    // die Boot-Gnade schon vorbei ist — der Knopf kommt IMMER).
     await updateHass(page, (states, entity) => {
       states['sensor.bad_hum'] = entity('sensor.bad_hum', 'Luftfeuchte', '80', {
         unit_of_measurement: '%', device_class: 'humidity', state_class: 'measurement',
       });
     });
-    await expect(root.locator('.island-chip-alert')).toHaveCount(1, { timeout: 12000 });
+    await expect(root.locator('.island-knopf[data-knopf="warn"], .island-knopf[data-knopf="info"]'))
+      .toHaveCount(1, { timeout: 12000 });
   });
 
   test('ein Hinweis lässt sich löschen', async ({ page }) => {

@@ -211,7 +211,8 @@ test.describe('Zen-Startseite', () => {
       }
     });
     await page.waitForTimeout(2500);
-    await root.locator('.island-pill').click({ timeout: 15000 });
+    // v1.1.2239: aufgeklappt wird über den ▦-Knopf (Laufendes).
+    await root.locator('.island-knopf[data-knopf="kacheln"]').click({ timeout: 15000 });
     await expect(root.locator('.island-anchor[data-expanded="true"]')).toHaveCount(1, { timeout: 15000 });
     await page.waitForTimeout(1200);
 
@@ -369,7 +370,8 @@ test.describe('Zen-Startseite', () => {
     // noch keine Liste, und ein Tipper öffnet dann etwas anderes.
     await page.waitForTimeout(2500);
     const liste = root.locator('.island-list');
-    await root.locator('.island-pill').click({ timeout: 15000 });
+    // v1.1.2239: aufgeklappt wird über den ▦-Knopf (Laufendes).
+    await root.locator('.island-knopf[data-knopf="kacheln"]').click({ timeout: 15000 });
     // Die Liste klappt über ~480 ms auf. Erst ausklappen lassen — ein Kasten,
     // der währenddessen gemessen wird, zeigt eine Stelle, die es danach nicht
     // mehr gibt, und das Rad ginge ins Leere.
@@ -445,13 +447,14 @@ test.describe('Zen-Startseite', () => {
   test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {
     // 🔑 Der Vertrag seit v1.1.2229: die ECHTE Suchzeile steht frei über dem
     // Kachel-Panel (Zurück-Knopf + vier Kategorien — deshalb kam die
-    // v2228-Kapsel wieder raus). Insel 60 + Zeile 72 + 24 + Panel 576 = 732;
+    // v2228-Kapsel wieder raus). Seit v1.1.2239 ist die Insel ein Zweizeiler:
+    // Insel-Band 84 (Karte 72 + Rand 12) + Zeile 72 + 24 + Panel 576 = 756;
     // die Panel-Unterkante fluchtet mit der aufgeklappten Suche. Innen Rand 24
     // → Kachelfläche 526. Die krummen 25er sind der 1-px-Panelrand.
     const ERWARTET = {
-      row:   [0, 60, 1200, 72],
-      panel: [0, 156, 1200, 576],
-      grid:  [25, 181, 1150, 526],
+      row:   [0, 84, 1200, 72],
+      panel: [0, 180, 1200, 576],
+      grid:  [25, 205, 1150, 526],
     };
 
     await page.setViewportSize({ width: 1400, height: 900 });
