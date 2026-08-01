@@ -426,8 +426,10 @@ test.describe('Insel', () => {
         tabs: sub.getIslandListTabs(acts, 'de').map((t) => `${t.key}:${t.count}`),
         gefiltert: sub.filterActivitiesByTab(acts, 'lights').map((a) => a.id),
         alle: sub.filterActivitiesByTab(acts, 'alle').length,
-        // Ein einziger Typ braucht keine Reiter.
-        einzeln: sub.getIslandListTabs([{ id: 'x', domain: 'light' }], 'de').length,
+        // v1.1.2250: Reiter stehen AUCH bei nur einer Kategorie (vorher
+        // unterdrückt — beim Nutzer mit 51 Lichtern fehlten sie dadurch ganz).
+        einzeln: sub.getIslandListTabs([{ id: 'x', domain: 'light' }], 'de').map((t) => t.key),
+        leer: sub.getIslandListTabs([], 'de').length,
         trefferStern: live.matchesAnyPattern('light.geheim_flur', ['light.geheim_*']),
         trefferExakt: live.matchesAnyPattern('vacuum.robi', ['vacuum.robi']),
         keinTreffer: live.matchesAnyPattern('light.wohnzimmer', ['light.geheim_*']),
@@ -439,7 +441,8 @@ test.describe('Insel', () => {
     expect(r.tabs).toEqual(['alle:4', 'lights:2', 'covers:1', 'timer:1']);
     expect(r.gefiltert).toEqual(['a', 'b']);
     expect(r.alle).toBe(4);
-    expect(r.einzeln).toBe(0);
+    expect(r.einzeln).toEqual(['alle', 'lights']);
+    expect(r.leer).toBe(0);
     expect(r.trefferStern).toBe(true);
     expect(r.trefferExakt).toBe(true);
     expect(r.keinTreffer).toBe(false);
@@ -508,30 +511,57 @@ test.describe('Insel — Standby-Kaskade', () => {
       (el) => Math.round(el.getBoundingClientRect().height)), { timeout: 5000 }).toBeGreaterThan(10);
   });
 
-  test('Klick auf die freie Fläche faltet sofort, Tipp auf die Pille holt zurück', async ({ page }) => {
-    // Lange Zeiten: hier faltet ausschließlich der Klick.
+  test('das × schickt die Insel sofort nach rechts, ein Tipp holt sie zurück', async ({ page }) => {
+    // v1.1.2250 (Nutzer-Entscheid): Das Wegschicken hat jetzt einen eigenen
+    // Knopf — × links oben, sichtbar beim Überfahren. Er springt DIREKT in die
+    // Endlage rechts (ohne Umweg über die Mini-Pille); die freie Fläche klappt
+    // stattdessen die Liste auf (eigener Test unten).
+    // Lange Leerlaufzeiten: hier faltet ausschließlich das ×.
     const root = await mountCard(page, { settings: KASKADE(120000, 120000) });
     const pill = root.locator('.island-pill');
     await expect(pill).toBeVisible();
     await expect(pill).toHaveAttribute('data-ruhe', '');
 
-    // Rechts neben den Werten ist Zeile 1 frei (keine Meldungen → keine
-    // Knöpfe); dort trifft der Klick keinen inneren role=button-Span.
-    // 🔑 Locator-Klick mit relativer Position statt page.mouse auf gemessene
-    // Koordinaten: der Locator wartet auf Element-STABILITÄT — der rohe
-    // Mausklick traf je nach Boot-Reveal-Skalierung mal, mal nicht (Flake).
-    const kopf = root.locator('.island-head');
-    const kopfBox = await kopf.boundingBox();
-    await kopf.click({ position: { x: kopfBox.width - 30, y: 13 } });
-    await expect(pill).toHaveAttribute('data-ruhe', 'mini', { timeout: 5000 });
+    // Der Knopf hängt an :hover — erst über die Karte fahren.
+    await pill.hover();
+    const x = root.locator('.island-x');
+    await expect(x).toBeVisible({ timeout: 5000 });
+    await x.click();
+    await expect(pill).toHaveAttribute('data-ruhe', 'alert', { timeout: 5000 });
 
-    // Tipp auf die freie Fläche der Mini-Pille → Karte zurück. Erst den
-    // Breiten-Morph (460 ms) aussitzen, dann frisch messen.
-    await expect.poll(() => pill.evaluate((el) => Math.round(el.getBoundingClientRect().width)),
-      { timeout: 5000 }).toBeLessThan(340);
-    const miniBox = await kopf.boundingBox();
-    await kopf.click({ position: { x: miniBox.width - 20, y: 13 } });
+    // Tipp auf den Knopf → volle Karte zurück.
+    await root.locator('.island-ruheknopf').click();
     await expect(pill).toHaveAttribute('data-ruhe', '', { timeout: 5000 });
+  });
+
+  test('ein Klick auf die freie Fläche klappt die Liste auf', async ({ page }) => {
+    // v1.1.2250: früher faltete dieser Klick zur Mini-Pille — seit das × das
+    // Wegschicken übernimmt, zeigt er stattdessen, was läuft.
+    const root = await mountCard(page, {
+      settings: {
+        ...KASKADE(120000, 120000),
+        startScreen: {
+          ...KASKADE(120000, 120000).startScreen,
+          liveActivities: { enabled: true, sources: { timer: true, vacuum: true, cover: true, media_player: true, script: true, automation: true, climate: true, light: true, switch: true } },
+        },
+      },
+    });
+    const pill = root.locator('.island-pill');
+    await updateHass(page, (states, entity) => {
+      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
+        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
+      });
+    });
+    await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
+    await expect(pill).toHaveAttribute('data-expanded', 'false');
+
+    // 🔑 Locator-Klick mit relativer Position: der Locator wartet auf
+    // Element-Stabilität (roher Mausklick verfehlte je nach Boot-Skalierung).
+    const kopf = root.locator('.island-head');
+    const box = await kopf.boundingBox();
+    await kopf.click({ position: { x: box.width - 30, y: 13 } });
+    await expect(pill).toHaveAttribute('data-expanded', 'true', { timeout: 5000 });
+    await expect(pill).toHaveAttribute('data-ruhe', '');
   });
 
   test('eine neue Meldung weckt den Knopf und zählt danach in der Kugel', async ({ page }) => {

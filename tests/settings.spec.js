@@ -54,6 +54,24 @@ async function openRow(root, label) {
  * ist. 🔑 Das Haupt-Menü der Allgemein-Einstellungen hat KEINE Navbar; `null`
  * ist deshalb die verlässliche Aussage „wir sind im Menü".
  */
+/**
+ * 🔑 v1.1.2250: Wartet, bis ein Element WIRKLICH steht. Die Settings-
+ * Unteransichten federn beim Einschieben nach; ein Klick, der in diese
+ * Nachfederung fällt, geht ins Leere (das Ziel wandert unter dem Zeiger weg).
+ * Unter Volllast war das die Ursache mehrerer sporadischer Fehlschläge —
+ * isoliert liefen dieselben Tests immer grün. Zwei gleiche Messungen im
+ * Abstand von 120 ms sind das Ruhesignal.
+ */
+async function warteAufRuhe(locator, timeout = 8000) {
+  await expect(locator).toBeVisible({ timeout });
+  await expect.poll(async () => {
+    const a = await locator.boundingBox();
+    await new Promise((r) => setTimeout(r, 120));
+    const b = await locator.boundingBox();
+    return !!a && !!b && Math.round(a.x) === Math.round(b.x) && Math.round(a.y) === Math.round(b.y);
+  }, { timeout }).toBe(true);
+}
+
 async function currentTitle(root) {
   const titles = root.locator('.ios-navbar-title');
   if ((await titles.count()) === 0) return null;
@@ -100,13 +118,7 @@ test.describe('Einstellungen → Allgemein', () => {
     // fiel dadurch in etwa jedem fünften Lauf um (auch isoliert). Geprüft
     // wird die Ruhe über zwei gleiche Messungen der Knopfposition.
     const zurueck = root.locator('.ios-navbar-back').last();
-    await expect(zurueck).toBeVisible();
-    await expect.poll(async () => {
-      const a = await zurueck.boundingBox();
-      await new Promise((r) => setTimeout(r, 120));
-      const b = await zurueck.boundingBox();
-      return a && b && Math.round(a.x) === Math.round(b.x) && Math.round(a.y) === Math.round(b.y);
-    }, { timeout: 8000 }).toBe(true);
+    await warteAufRuhe(zurueck);
     await zurueck.click();
     // Zurück im Menü: dort gibt es keine Navbar mehr.
     await expect.poll(() => currentTitle(root), { timeout: 10000 }).toBeNull();
@@ -137,7 +149,8 @@ test.describe('Einstellungen → Allgemein', () => {
     // Style-Detail zu zielen wird das erste klickbare Element der ersten
     // Zeile genommen — der LiquidGlassSwitch rendert dort seinen Hit-Bereich.
     const firstRow = root.locator('.ios-settings-view').last().locator('.ios-item').first();
-    await firstRow.locator('.ios-item-right').first().click({ force: true });
+    // v1.1.2250: ohne `force` — s. Begründung beim Standby-Schalter unten.
+    await firstRow.locator('.ios-item-right').first().click();
     await expect.poll(
       () => page.evaluate(() => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.appearance?.statsBarEnabled)
     ).toBe(false);
@@ -160,6 +173,11 @@ test.describe('Einstellungen → Allgemein', () => {
     // Zeit-Zeile zyklt: 30 s → 1 Min.
     const miniZeile = view.locator('.ios-item', { hasText: 'Zur Mini-Pille nach' });
     await expect(miniZeile.locator('.ios-item-value')).toHaveText('30 s');
+    // 🔑 v1.1.2250: Erst klicken, wenn die eingeschobene Unteransicht steht.
+    // Fällt der Klick in ihre Nachfederung, wandert die Zeile unter dem Zeiger
+    // weg und das Ereignis geht ins Leere — unter Volllast fiel der Test
+    // dadurch um, isoliert nie (gleiche Ursache wie beim Zurück-Test oben).
+    await warteAufRuhe(miniZeile);
     await miniZeile.click();
     await expect(miniZeile.locator('.ios-item-value')).toHaveText('1 Min');
     await expect.poll(() => page.evaluate(
@@ -167,11 +185,23 @@ test.describe('Einstellungen → Allgemein', () => {
     )).toBe(60000);
 
     // Schalter aus → gespeichert UND die Zeit-Zeilen treten ab.
-    const schalter = view.locator('.ios-item', { hasText: 'Automatisch falten' });
-    await schalter.locator('.ios-item-right').click({ force: true });
-    await expect.poll(() => page.evaluate(
+    // 🔑 `.first()`: Während der Unteransicht-Überblendung stehen kurzzeitig
+    // ZWEI Ansichten im Baum — ein mehrdeutiger Locator wirft dann im
+    // strict mode, und ein verschluckter Fehler sieht aus wie „Klick tut
+    // nichts". Deshalb eindeutig adressieren.
+    const schalter = view.locator('.ios-item', { hasText: 'Automatisch falten' }).first();
+    await warteAufRuhe(schalter);
+    // 🔑 v1.1.2250: KEIN `force: true` mehr. Playwright scrollt das Ziel vor
+    // dem Klick ins Bild — mit `force` überspringt es danach die
+    // Stabilitätsprüfung und klickt auf die VOR dem Scrollen berechnete
+    // Stelle. Gemessen: die Schalter-Zeile wanderte dabei um 127 px, der
+    // Klick landete auf einer anderen Zeile und der Schalter blieb stehen
+    // (jeder zweite Lauf rot). Ohne `force` wartet Playwright die Ruhe ab.
+    const standbyWert = () => page.evaluate(
       () => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.startScreen?.islandStandby?.enabled
-    )).toBe(false);
+    );
+    await schalter.locator('.ios-item-right').first().click();
+    await expect.poll(standbyWert, { timeout: 10000 }).toBe(false);
     await expect(view.locator('.ios-item', { hasText: 'Zur Mini-Pille nach' })).toHaveCount(0);
   });
 
@@ -187,6 +217,9 @@ test.describe('Einstellungen → Allgemein', () => {
 
     const energie = view.locator('.ios-item', { hasText: 'Energie' }).first();
     await expect(energie.locator('.ios-item-value')).toHaveText('Automatisch');
+    // Gleiche Disziplin wie beim Standby-Schalter: erst klicken, wenn die
+    // eingeschobene Ansicht steht (v1.1.2250).
+    await warteAufRuhe(energie);
     await energie.click();
     // Der Testhaus-Leistungssensor steht in der Liste — wählen.
     const kandidat = view.locator('.ios-item-subtitle', { hasText: 'sensor.' }).first();

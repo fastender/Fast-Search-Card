@@ -112,13 +112,10 @@ test.describe('Hero-Übergang — Modul', () => {
 
 test.describe('Hero-Übergang — Verdrahtung', () => {
   test('ein Tap auf die Insel hebt einen Klon ab', async ({ page }) => {
+    // v1.1.2250: OHNE laufende Aktivität — seit dem Klick-Umbau klappt ein
+    // Tipp bei laufenden Geräten die Liste auf (kein Hero), und nur der Weg
+    // ins Mitteilungs-Center lässt den Klon abheben. Genau der wird geprüft.
     const root = await mountCard(page, { settings: BENTO_ON });
-    // Live-Aktivität → die Insel ist antippbar und öffnet ein Gerät.
-    await updateHass(page, (states, entity) => {
-      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
-        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
-      });
-    });
     const pill = root.locator('.island-pill');
     await expect(pill).toBeVisible();
     await pill.click();
@@ -134,12 +131,8 @@ test.describe('Hero-Übergang — Verdrahtung', () => {
     // Im Harness öffnet das fsc-open-entity-Event keine Detail-Ansicht. Genau
     // dann greift der Fallback: waitForElement läuft ins Budget, dissolve räumt
     // auf. Das ist die „nie kaputt"-Zusage unter härtesten Bedingungen.
+    // v1.1.2250: ebenfalls ohne Live-Aktivität, s. Test darüber.
     const root = await mountCard(page, { settings: BENTO_ON });
-    await updateHass(page, (states, entity) => {
-      states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
-        duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
-      });
-    });
     const pill = root.locator('.island-pill');
     await expect(pill).toBeVisible();
     await pill.click();

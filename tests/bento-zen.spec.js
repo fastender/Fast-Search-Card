@@ -184,8 +184,12 @@ test.describe('Zen-Startseite', () => {
     });
     await page.waitForTimeout(2500);
 
-    // Insel antippen → Detail-Ansicht; die Startseite hängt aus.
+    // v1.1.2250: Ein Tipp auf die Insel KLAPPT jetzt die Liste auf (früher
+    // führte er direkt ins Gerät). Der Weg ins Gerät geht seither über die
+    // Zeile — genau das prüft dieser Test weiterhin: aus der Insel heraus ein
+    // Gerät öffnen zählt als Entsperren.
     await root.locator('.island-pill').click({ timeout: 15000 });
+    await root.locator('.island-row').first().click({ timeout: 15000 });
     await expect(root.locator('.detail-panel')).toHaveCount(1, { timeout: 15000 });
     await expect(root.locator('.bento-zen')).toHaveCount(0);
 
@@ -693,7 +697,12 @@ test.describe('Frei-Gerüst (Bildkachel & Reiter)', () => {
     // (zurück in die Listenansicht, dort wurde es gemeldet).
     await root.locator('.bento-carousel-viewtoggle-btn').nth(1).click();
     await page.waitForTimeout(300);
-    const kantenGeo = await page.evaluate(() => {
+    // 🔑 v1.1.2250: POLLEN statt einmal messen. Die Resthöhe der Scroll-Fläche
+    // (`--w1-restboden`) rechnet BentoWidget asynchron nach jedem
+    // Ansichtswechsel neu (ResizeObserver + Nachzügler-Timeouts); wer nach
+    // einer festen Wartezeit einmal misst, erwischt gelegentlich den Stand
+    // davor — der Test fiel dadurch sporadisch mit „unten: 17" um.
+    const kante = () => page.evaluate(() => {
       const alle = [...document.querySelectorAll('.main-container')];
       const c = alle[alle.length - 1];
       const kachel = c.querySelector('.bento-widget--mit-reitern').getBoundingClientRect();
@@ -704,8 +713,8 @@ test.describe('Frei-Gerüst (Bildkachel & Reiter)', () => {
         unten: Math.round(kachel.bottom - wrap.bottom),
       };
     });
-    expect(kantenGeo.oben).toBeLessThanOrEqual(1);
-    expect(kantenGeo.unten).toBeLessThanOrEqual(2);
+    await expect.poll(async () => (await kante()).unten, { timeout: 8000 }).toBeLessThanOrEqual(2);
+    expect((await kante()).oben).toBeLessThanOrEqual(1);
     await reiter.nth(1).click();
     await expect(root.locator('.bento-widget[data-widget-id="__suggestions__"]')).toBeVisible({ timeout: 5000 });
     await expect(root.locator('.bento-carousel-tab')).toHaveCount(2);

@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2250 - 2026-08-02
+
+**Title:** ✖️ One hairline everywhere, island tabs that always show, and a dismiss button for the island
+
+- **Every tabbed tile now carries widget 1's hairline.** It hangs directly on the tab row, 7 px below the
+  chips, in `rgba(255,255,255,0.1)` — news had it 10 px lower (attached to the content), the calendar 4 px
+  lower and heavier, the tasks tile had none at all. One shared rule replaces three private ones.
+
+- **The island's category tabs appear even when only one kind is running.** They were suppressed for a single
+  category — with 51 lights running, that meant no tabs at all, exactly the case where the count matters most.
+
+- **The head above the list shows the most recent activity** instead of the rotating ticker entry, and its icon
+  sits in the same round background as the rows below. Live activities now carry their `last_changed`
+  timestamp so "most recent" is a fact, not a guess. The collapsed card keeps rotating as designed.
+
+- **A × button appears on hover, top left of the island.** It sends the card straight to the far-right badge
+  button — the destination idle time otherwise reaches in two stages. And, per user decision, a click on the
+  island's free area now OPENS the live list (with the subcategory bar's chip animation: scale 0.8 → 1, 220 ms,
+  staggered) instead of folding it; folding is the ×'s job and the idle clock's.
+
+- **Widget 1's scrollbar moved back inside the tile.** Its −20 px offset dated from when the tile had 28 px of
+  padding; with 16 px it sat on the tile edge.
+
+- Suite 122. Three tests were rewritten to the new click contract (island tap → list, hero clone via the
+  notification path), and several were hardened after a real diagnosis: `click({ force: true })` skips
+  Playwright's stability check *after* it scrolls the target into view, so the click lands on the
+  pre-scroll position — measured: the switch row moved 127 px and the click hit a different row, failing
+  every other run. Removing `force` fixed it; sub-view clicks now wait for the spring-in to settle.
+
 ## Version 1.1.2249 - 2026-08-01
 
 **Title:** 🎛️ Six reported details: centred mini pill, round buttons, list tabs, task scrollbar, three-line tips
