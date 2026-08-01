@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2242 - 2026-08-01
+
+**Title:** ⚙️ Island settings catch up with the two-liner — standby gets its switch and timings
+
+The settings still described the dead one-line capsule ("clock & weather at rest", the
+alert ▸ live ▸ ambient priority model) — user-visible and simply wrong since v1.1.2239. This release
+brings the whole settings surface up to date:
+
+- **Island settings tab rewritten:** subtitle and footer now describe the light two-line card — line 1
+  values plus the four alert buttons with counter bubbles (zero hides a button), line 2 live ticker with
+  the takeover ring.
+
+- **New "Standby" section:** a switch for the fold cascade (`islandStandby.enabled`) plus two tap-to-cycle
+  duration rows — card → mini pill (15 s/30 s/1 min/2 min) and mini pill → far-right button
+  (30 s/1 min/2 min/5 min). Changes broadcast over the existing `startScreenSettingsChanged` event, so the
+  island picks them up live; the timing rows disappear while the cascade is off.
+
+- **Info popups rewritten (de+en):** `settingsInfo.island` describes the two-liner and its tap targets;
+  new `settingsInfo.islandStandby` explains the cascade, what wakes the card, and that nothing folds while
+  the live list or a takeover ring is open. The island bullet inside the status-&-greetings popup updated
+  too. `info-popups-catalog.md` carries both entries (catalog rule).
+
+- New suite test (112 total): the standby switch and both cycle rows write `islandStandby` to storage, and
+  the timing rows leave when the switch goes off.
+
 ## Version 1.1.2241 - 2026-08-01
 
 **Title:** ⚡ Post-redesign audit: the weather-identity leak, a truly idle standby, and two real widget bugs

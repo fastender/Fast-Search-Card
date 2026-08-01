@@ -109,6 +109,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | infoKey | Ort | Sektion |
 |---|---|---|
 | `island` | Insel (Detail) | Die Insel / The Island |
+| `islandStandby` | Insel (Detail) | Standby |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
 | `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
@@ -189,7 +190,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Die zwei Elemente ganz oben in der Karte.
 >
-> - **Insel** – die morphende Glas-Kapsel: Uhr & Wetter in Ruhe, Live-Aktivitäten (Timer, Sauger, Medien …) wenn etwas läuft, Meldungen wenn etwas wartet. Details im ⓘ der Insel-Einstellungen.
+> - **Insel** – die helle Karte oben: Dauerwerte und Meldungs-Knöpfe in Zeile 1, Live-Ticker (Timer, Sauger, Medien …) in Zeile 2. Details im ⓘ der Insel-Einstellungen.
 > - **Begrüßungs-Leiste (GreetingsBar)** – zeigt eine tageszeitabhängige Begrüßung. Rein dekorativ, jederzeit ein- und ausschaltbar.
 >
 > *Warum wichtig:* Die Insel bringt das Wichtigste auf einen Blick nach oben.
@@ -199,7 +200,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > The two elements at the very top of the card.
 >
-> - **Island** – the morphing glass capsule: clock & weather at rest, live activities (timers, vacuums, media …) when something runs, alerts when something waits. Details in the island settings' ⓘ.
+> - **Island** – the light card on top: standing values and alert buttons in line 1, the live ticker (timers, vacuums, media …) in line 2. Details in the island settings' ⓘ.
 > - **Greetings bar (GreetingsBar)** – shows a time-of-day greeting. Purely decorative, toggle on or off anytime.
 >
 > *Why it matters:* the island surfaces what matters most at a glance.
@@ -685,37 +686,68 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## island
 
-> v1.1.2172 (Insel Phase 2b): ersetzt `statsBar` + `statsBarWidgets` — die
-> StatsBar (Widget-Leiste + Energie-Sensor-Konfiguration) ist der morphenden
-> Insel gewichen (v2170/71), die ihren Inhalt selbst wählt.
+> v1.1.2172 (Insel Phase 2b): ersetzt `statsBar` + `statsBarWidgets`.
+> v1.1.2242: komplett neu geschrieben für den ZWEIZEILER (v2239/40) — die
+> alte Kapsel mit Prioritätswahl (Meldung ▸ Live ▸ Ruhe) existiert nicht mehr.
 
 **DE**
 > ## Die Insel
 >
-> Eine morphende Glas-Kapsel oben mittig — sie zeigt immer genau **eins**, nach Priorität:
+> Eine helle Karte oben mittig, zwei Zeilen:
 >
-> - **Meldung** – Warnungen orange, Infos blau; mehrere stapeln sich zu „N Mitteilungen". Kritisches erscheint zusätzlich als roter Banner.
-> - **Live-Aktivität** – laufender Timer (Countdown), Sauger, Rollo, Medien … Bei mehreren: die wichtigste plus „+N".
-> - **Ruhe** – Uhr, Wetter, Presence-Punkt (grau = nichts wartet).
-> - **Nachts** – in den Ruhezeiten dimmt das Ruhegesicht auf „nur Uhr"; Meldungen und Live bleiben sichtbar.
+> - **Zeile 1 — das Ruhige:** Wetter, aktuelle Leistung und ein Roll durch die Haus-Fakten („3 Lichter an" …). Rechts die **Meldungs-Knöpfe mit Zähler-Kugeln**: ℹ Infos (blau), ⚠ Warnungen (orange), ❗ Kritisches (rot), ▦ Laufendes (grau). Ein Knopf, dessen Zähler auf 0 steht, erscheint nicht.
+> - **Zeile 2 — das Lebendige:** ein Ticker durch die Live-Aktivitäten (Timer mit Countdown, Sauger, Medien …). Ruht das Haus, rollen hier die Haus-Fakten. Eine **neue** Meldung übernimmt die Zeile kurz mit einem Zeitring und zählt danach in ihrem Knopf.
+> - **Nachts** – in den Ruhezeiten (Toast-Einstellungen) dimmt Zeile 1 auf „nur Wetter"; Ticker und Knöpfe bleiben.
 >
-> Tippen öffnet die passende Ansicht: Meldungen → Mitteilungen-Center, Live → Geräte-Detail.
+> Kritisches (Leck, Rauch, Gas) erscheint zusätzlich als roter Banner. Jeder Wert ist ein eigenes Ziel: Wetter → seine Entity, Leistung → Energie, Fakten → ihre Geräteliste, Ticker → das Gerät, ℹ/⚠/❗ → Mitteilungen-Center, ▦ → die Live-Liste in der Karte.
 >
 > *Warum wichtig:* Ein ruhiges Element statt vieler Widgets — es meldet sich nur, wenn es etwas zu sagen gibt.
 
 **EN**
 > ## The Island
 >
-> A morphing glass capsule top center — it always shows exactly **one** thing, by priority:
+> A light card top center, two lines:
 >
-> - **Alert** – warnings orange, infos blue; several stack into "N notifications". Critical additionally raises the red banner.
-> - **Live activity** – a running timer (countdown), vacuum, cover, media … With several: the most important plus "+N".
-> - **Rest** – clock, weather, presence dot (gray = nothing waiting).
-> - **At night** – during quiet hours the resting face dims to clock-only; alerts and live stay visible.
+> - **Line 1 — the calm:** weather, current power and a roll through the house facts ("3 lights on" …). On the right the **alert buttons with counter bubbles**: ℹ infos (blue), ⚠ warnings (orange), ❗ critical (red), ▦ running (gray). A button whose counter is 0 does not appear.
+> - **Line 2 — the lively:** a ticker through the live activities (timers with countdown, vacuums, media …). When the house is idle, the house facts roll here instead. A **new** alert briefly takes the line over with a timing ring, then counts in its button.
+> - **At night** – during quiet hours (toast settings) line 1 dims to weather-only; ticker and buttons stay.
 >
-> Tapping opens the fitting view: alerts → notification center, live → the device's detail view.
+> Critical alerts (leak, smoke, gas) additionally raise the red banner. Every value is its own target: weather → its entity, power → energy, facts → their device list, ticker → the device, ℹ/⚠/❗ → the notification center, ▦ → the live list inside the card.
 >
 > *Why it matters:* one calm element instead of many widgets — it only speaks up when there's something to say.
+
+## islandStandby
+
+> NEU v1.1.2242: Standby-Kaskade der Insel (v2240) bekommt UI — Schalter +
+> zwei Zeit-Zeilen (Tipp wechselt den Wert) in den Insel-Einstellungen.
+
+**DE**
+> ## Standby
+>
+> Nach einer Weile ohne Berührung macht sich die Insel klein — in zwei Stufen:
+>
+> 1. **Mini-Pille** – nur noch die Dauerwerte und die Meldungs-Knöpfe.
+> 2. **Knopf ganz rechts** – ein kleiner runder Knopf mit der Gesamtzahl der Meldungen in der Farbe der höchsten Stufe.
+>
+> Ein Klick auf die freie Kartenfläche faltet sofort zur Mini-Pille. **Zurück** kommt die volle Karte durch einen Tipp auf Pille oder Knopf — und von selbst bei jeder neuen Meldung.
+>
+> Die beiden Zeiten lassen sich hier einstellen (Tippen auf die Zeile wechselt den Wert). Solange die aufgeklappte Live-Liste offen ist oder eine Übernahme läuft, faltet nichts.
+>
+> *Warum wichtig:* Auf dem Wandtablet soll die Insel da sein, wenn etwas los ist — und sonst dem Hintergrund den Platz lassen.
+
+**EN**
+> ## Standby
+>
+> After a while without touch the island gets out of the way — in two stages:
+>
+> 1. **Mini pill** – just the standing values and the alert buttons.
+> 2. **Button far right** – a small round button carrying the total alert count in the color of the highest severity.
+>
+> A click on the card's free area folds to the mini pill immediately. The full card **returns** with a tap on the pill or button — and by itself with every new alert.
+>
+> Both durations are set here (tapping a row cycles its value). While the expanded live list is open or a takeover ring is running, nothing folds.
+>
+> *Why it matters:* on a wall tablet the island should be there when something is happening — and otherwise leave the stage to the background.
 
 ## limits
 

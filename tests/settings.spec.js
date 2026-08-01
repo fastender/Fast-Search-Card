@@ -128,4 +128,36 @@ test.describe('Einstellungen → Allgemein', () => {
       () => page.evaluate(() => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.appearance?.statsBarEnabled)
     ).toBe(false);
   });
+
+  test('Standby-Schalter und Zeit-Zeilen schreiben islandStandby', async ({ page }) => {
+    // v1.1.2242: die Kaskade (v2240) hat jetzt UI — Schalter + zwei
+    // Zyklus-Zeilen (Tipp schaltet zur nächsten Vorwahl).
+    const root = await mountCard(page, {
+      settings: {
+        startScreen: { bento: true, islandStandby: { enabled: true, miniMs: 30000, knopfMs: 60000 } },
+        appearance: { statsBarEnabled: true },
+      },
+    });
+    await openSettings(page, root);
+    await openRow(root, 'Insel');
+    await expect.poll(() => currentTitle(root)).toBe('Insel');
+    const view = root.locator('.ios-settings-view').last();
+
+    // Zeit-Zeile zyklt: 30 s → 1 Min.
+    const miniZeile = view.locator('.ios-item', { hasText: 'Zur Mini-Pille nach' });
+    await expect(miniZeile.locator('.ios-item-value')).toHaveText('30 s');
+    await miniZeile.click();
+    await expect(miniZeile.locator('.ios-item-value')).toHaveText('1 Min');
+    await expect.poll(() => page.evaluate(
+      () => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.startScreen?.islandStandby?.miniMs
+    )).toBe(60000);
+
+    // Schalter aus → gespeichert UND die Zeit-Zeilen treten ab.
+    const schalter = view.locator('.ios-item', { hasText: 'Automatisch falten' });
+    await schalter.locator('.ios-item-right').click({ force: true });
+    await expect.poll(() => page.evaluate(
+      () => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.startScreen?.islandStandby?.enabled
+    )).toBe(false);
+    await expect(view.locator('.ios-item', { hasText: 'Zur Mini-Pille nach' })).toHaveCount(0);
+  });
 });
