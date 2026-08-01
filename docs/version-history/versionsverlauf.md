@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2246 - 2026-08-01
+
+**Title:** 📐 Two reported layout bugs: the standby button now sits flush right, hovered rows are no longer clipped
+
+Both bugs came from the same class of mistake — a hardcoded inset that nobody measured against its neighbours:
+
+- **The standby button was 24 px short of the right edge.** The ride-to-the-right distance subtracted an
+  extra margin (24 desktop / 16 mobile) on top of the half-width math, so the folded button stopped inside
+  the content edge while the search row and the tile grid below ran all the way to it. Measured in the live
+  card: button right edge 982 vs. content edge 1005. The margin is gone — half holder width minus half
+  button width puts the right edge exactly on the content edge, verified at 0 px offset on desktop (1050)
+  and phone (375). The counter bubble still overhangs its 3 px on purpose (iOS badge pattern). The button
+  diameter is now a named constant instead of a bare `26`, and the hook no longer takes `isMobile`.
+
+- **Hovered rows in widget 1 were clipped left and right.** The cards scale on hover (1.02 in list view,
+  1.05 in grid), and `overflow-y: auto` on the scroller forces `overflow-x` to clip — which is exactly why
+  the base rule reserves 8 px of horizontal padding. The tabs-mode rule from v1.1.2238 had cut that to 2 px:
+  a 529 px row grows 10.6 px, i.e. 5.3 px per side, so 3 px got sliced off on each side (measured, matching
+  the report). The padding goes back to 8 px and a compensating −6 px margin pushes the clip edge outward by
+  the same amount — so the rows stay exactly where v1.1.2238 put them (verified identical to the pixel) while
+  the growth now happens inside the clip box, with 3 px to spare.
+
+- **Both are pinned by tests that were red-proofed against the old code** (117 total): the cascade test's
+  edge assertion was tightened from "less than 40 px" — a threshold the 24 px bug passed comfortably — to
+  flush within 1 px, and a new hover test asserts no overhang in list AND grid view plus the unchanged
+  resting inset. The new hover test fails on the old CSS with exactly "Received: 3".
+
 ## Version 1.1.2245 - 2026-08-01
 
 **Title:** 🏁 The layout trial is decided — "free" wins, the panel layout is removed

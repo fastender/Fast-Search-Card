@@ -371,11 +371,16 @@ test.describe('Insel — Standby-Kaskade', () => {
     await expect(root.locator('.island-ruheknopf')).toBeVisible();
     await expect.poll(() => pill.evaluate((el) => Math.round(el.getBoundingClientRect().width)),
       { timeout: 5000 }).toBeLessThan(60);
+    // 🔑 v1.1.2246: BÜNDIG, nicht „ungefähr rechts". Die alte Schranke (< 40)
+    // war weit genug, dass der gemeldete 24-px-Versatz sie mühelos bestand —
+    // ein Test, der den Fehler mitträgt, ist keiner. Jetzt zählt die Kante:
+    // die rechte Kante des Knopfes liegt auf der Kante des Holders (= Kante
+    // von Suchzeile und Kachelraster; 1 px Toleranz für die Boot-Skalierung).
     await expect.poll(() => pill.evaluate((el) => {
       const holder = el.closest('.island-holder').getBoundingClientRect();
       const me = el.getBoundingClientRect();
-      return Math.round(holder.right - me.right);
-    }), { timeout: 5000 }).toBeLessThan(40);
+      return Math.abs(Math.round(holder.right - me.right));
+    }), { timeout: 5000 }).toBeLessThanOrEqual(1);
 
     // Tipp auf den Knopf → die volle Karte kehrt zurück.
     await root.locator('.island-ruheknopf').click();

@@ -724,6 +724,70 @@ test.describe('Frei-Gerüst (Bildkachel & Reiter)', () => {
     expect(kartenGlas).toContain('blur');
   });
 
+  test('beim Hover wird die Zeile NICHT an der Scroll-Kante beschnitten', async ({ page }) => {
+    // 🐞 v1.1.2246 (Nutzer-Report): Die Karten wachsen beim Hover (Liste 1.02,
+    // Raster 1.05). `overflow-y: auto` am Scroller erzwingt `overflow-x`
+    // ungleich visible — er beschneidet also alles, was über sein POLSTER
+    // hinauswächst. Die Basisregel hält dafür 8 px bereit, die Reiter-Regel
+    // aus v2238 hatte sie auf 2 px gekürzt: 3 px sichtbarer Beschnitt je Seite.
+    // Geprüft wird beides, was zusammengehört: KEIN Überstand über die
+    // Clip-Kante UND die Zeilen stehen in Ruhe unverändert dort, wo v2238 sie
+    // haben wollte (der negative Rand darf sie nicht verschieben).
+    await page.setViewportSize({ width: 1050, height: 900 });
+    const root = await mountCard(page, {
+      settings: FREI,
+      storage: { 'bentoCarouselView:__favorites__': 'list' },
+    });
+    await revealStart(page, root);
+
+    await openDevice(root, page, 'Wohnzimmer Licht');
+    await root.locator('.favorite-button').click();
+    await expect(root.locator('.favorite-button.active')).toHaveCount(1, { timeout: 8000 });
+    await root.locator('.back-button').click();
+    await root.locator('.category-icon').click();
+    await expect(root.locator('.bento-zen')).toHaveCount(1, { timeout: 10000 });
+    await page.waitForTimeout(1200);
+
+    const messen = () => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const w1 = c.querySelector('.bento-widget[data-widget-id="__favorites__"]');
+      const sc = w1.querySelector('.bento-carousel-list') || w1.querySelector('.bento-carousel-gitter');
+      const k = w1.querySelector('.device-list-item') || w1.querySelector('.device-card');
+      const scb = sc.getBoundingClientRect(), kb = k.getBoundingClientRect();
+      return {
+        skaliert: getComputedStyle(k).transform !== 'none',
+        ueberstandLinks: Math.round(scb.left - kb.left),
+        ueberstandRechts: Math.round(kb.right - scb.right),
+        einzugLinks: Math.round(kb.left - w1.getBoundingClientRect().left),
+      };
+    };
+
+    // Ruhe: die Zeile sitzt 19 px innerhalb der Kachelkante (16 Kachel-Polster
+    // + 2 Scroller-Polster + 1 Rahmen) — der Stand aus v2238.
+    const ruhe = await page.evaluate(messen);
+    expect(ruhe.einzugLinks).toBeGreaterThanOrEqual(18);
+    expect(ruhe.einzugLinks).toBeLessThanOrEqual(20);
+
+    // Hover Listenansicht: die Karte wächst, bleibt aber INNERHALB der Kante.
+    await root.locator('.bento-carousel-list-row').first().hover();
+    await page.waitForTimeout(500);
+    const liste = await page.evaluate(messen);
+    expect(liste.skaliert).toBe(true);
+    expect(liste.ueberstandLinks).toBeLessThanOrEqual(0);
+    expect(liste.ueberstandRechts).toBeLessThanOrEqual(0);
+
+    // Und dasselbe im Raster (dort skalieren die Karten sogar auf 1.05).
+    await page.mouse.move(5, 5);
+    await root.locator('.bento-carousel-viewtoggle-btn').first().click();
+    await page.waitForTimeout(500);
+    await root.locator('.bento-carousel-gitter .device-card').first().hover();
+    await page.waitForTimeout(500);
+    const raster = await page.evaluate(messen);
+    expect(raster.skaliert).toBe(true);
+    expect(raster.ueberstandLinks).toBeLessThanOrEqual(0);
+  });
+
 });
 
 // ── Am Finger ────────────────────────────────────────────────────────────────
