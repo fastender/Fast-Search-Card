@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2244 - 2026-08-01
+
+**Title:** 🧩 Island.jsx split — icons, ticker, list, and two hooks; the corner buttons become a config map
+
+Pure structural release (no visible or behavioral change) — the last two items from the post-redesign audit:
+
+- **Island.jsx shrinks from 985 to 625 lines.** Extracted, content-identical: `island/IslandIcons.jsx`
+  (all inline SVGs + the digit roll + the app-with-dot standby symbol), `island/IslandTicker.jsx` (line 2's
+  four faces: takeover ring ▸ done moment ▸ live activity ▸ house fact), `island/IslandLiveList.jsx`,
+  `hooks/useIslandStandby.js` (the whole fold cascade: stage state, timers, activity listener, ride-right
+  anchor transform) and `hooks/useIslandHero.js` (fake-hero flight both ways, reading the tint via ref so a
+  severity change doesn't restart its effect). `SUBCAT_REP_DOMAIN` moved into `utils/subcategoryMap.js`,
+  next to the table it belongs to.
+
+- **A nice side effect of the hook order:** the standby cascade is now created BEFORE the takeover effect,
+  so the old forward reference (`wecken` called above its declaration, working only because effects run
+  post-render) is gone.
+
+- **The four corner buttons are one config map** — glyph, bubble color, counter, aria label, and tap target
+  per entry, one JSX template; the zero-hides-button rule is a single `filter`. Previously four near-identical
+  blocks that could silently drift apart.
+
+- Full suite green unchanged (115) — the refactor is pinned by the existing island, cascade, zen, and
+  settings contracts; no test needed changing.
+
 ## Version 1.1.2243 - 2026-08-01
 
 **Title:** 🌦️ Weather & power pickers — the island's standing values become choosable
