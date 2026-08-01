@@ -22,7 +22,7 @@ Both bugs came from the same class of mistake — a hardcoded inset that nobody 
   the same amount — so the rows stay exactly where v1.1.2238 put them (verified identical to the pixel) while
   the growth now happens inside the clip box, with 3 px to spare.
 
-- **Both are pinned by tests that were red-proofed against the old code** (117 total): the cascade test's
+- **Both are pinned by tests that were red-proofed against the old code** (116 total): the cascade test's
   edge assertion was tightened from "less than 40 px" — a threshold the 24 px bug passed comfortably — to
   flush within 1 px, and a new hover test asserts no overhang in list AND grid view plus the unchanged
   resting inset. The new hover test fails on the old CSS with exactly "Received: 3".
