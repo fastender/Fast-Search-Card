@@ -446,15 +446,16 @@ test.describe('Zen-Startseite', () => {
 
   test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {
     // 🔑 Der Vertrag seit v1.1.2229: die ECHTE Suchzeile steht frei über dem
-    // Kachel-Panel (Zurück-Knopf + vier Kategorien — deshalb kam die
+    // Kachel-Kasten (Zurück-Knopf + vier Kategorien — deshalb kam die
     // v2228-Kapsel wieder raus). Seit v1.1.2239 ist die Insel ein Zweizeiler:
-    // Insel-Band 84 (Karte 72 + Rand 12) + Zeile 72 + 24 + Panel 576 = 756;
-    // die Panel-Unterkante fluchtet mit der aufgeklappten Suche. Innen Rand 24
-    // → Kachelfläche 526. Die krummen 25er sind der 1-px-Panelrand.
+    // Insel-Band 84 (Karte 72 + Rand 12) + Zeile 72 + 24 + Kasten 576 = 756;
+    // die Unterkante fluchtet mit der aufgeklappten Suche. Seit v1.1.2245
+    // (Frei-Sieg) ist der Kasten NUR Layout — kein Glas, kein Rand, kein
+    // Polster: das Raster füllt die volle Fläche.
     const ERWARTET = {
       row:   [0, 84, 1200, 72],
       panel: [0, 180, 1200, 576],
-      grid:  [25, 205, 1150, 526],
+      grid:  [0, 180, 1200, 576],
     };
 
     await page.setViewportSize({ width: 1400, height: 900 });
@@ -500,28 +501,25 @@ test.describe('Zen-Startseite', () => {
       };
     });
     expect(telefon.breite).toBe(350);
-    expect(telefon.rand).toBe(17);        // 16 + 1 px Panelrand
+    expect(telefon.rand).toBe(0);         // v2245: Kasten ohne Polster/Rand
     expect(telefon.hoehe).toBeGreaterThan(1000);
   });
 });
 
-// ── Start-Layout „frei" (v1.1.2230, Testlauf) ────────────────────────────────
-// Der Nutzer testet ein zweites Gerüst des aufgedeckten Zustands: jedes Widget
-// isoliert (kein Panelglas), die Suchzeile als schmale mittige Kapsel, die beim
-// Klick in die Breite aufgeht (die Tiefe liefert die bestehende framer-Höhen-
-// Animation), und die Favoriten-Kachel trägt ein Bild statt des roten Verlaufs.
-// Gewinnt der Test, wird „frei" die einzige Version — bis dahin ist 'panel'
-// die unangetastete Vorgabe (deren Vertrag steht oben im Paritäts-Test).
-test.describe('Start-Layout „frei" (Testlauf)', () => {
+// ── Das Frei-Gerüst (v1.1.2230–2238; seit v1.1.2245 die EINZIGE Version) ─────
+// Jedes Widget steht isoliert auf der Tapete (kein Panelglas), W1 trägt Bild
+// und Fav/Sug-Reiter. Der Testlauf ist entschieden — das Panel-Layout ist
+// gelöscht, der `zenLayout`-Schlüssel wird ignoriert.
+test.describe('Frei-Gerüst (Bildkachel & Reiter)', () => {
   // 1×1-GIF, bewusst REIN ROT: der Pixeltest unten erkennt daran, dass die
   // Bild-Ebene wirklich MALT — nicht nur, dass ein Wert ankommt.
   const BILD = 'data:image/gif;base64,R0lGODlhAQABAIAAAP8AAAAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
   const FREI = {
-    startScreen: { bento: true, zenLayout: 'frei', w1Image: BILD, widgets: ['__favorites__', 'todos', 'news', 'integration'] },
+    startScreen: { bento: true, w1Image: BILD, widgets: ['__favorites__', 'todos', 'news', 'integration'] },
     appearance: { statsBarEnabled: true },
   };
 
-  test('frei: kein Panelglas, schmale Kapsel, Insel ganz oben, Favoriten als Bildkachel', async ({ page }) => {
+  test('kein Panelglas, volle Suchzeile, Insel ganz oben, Favoriten als Bildkachel', async ({ page }) => {
     await page.setViewportSize({ width: 1400, height: 900 });
     // Listenansicht vorwählen — der Scroll-Fade und der Mittig-Start leben dort.
     const root = await mountCard(page, {

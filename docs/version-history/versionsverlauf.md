@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2245 - 2026-08-01
+
+**Title:** 🏁 The layout trial is decided — "free" wins, the panel layout is removed
+
+The v1.1.2230 trial ends by user verdict: the free layout (each widget standing on the wallpaper, W1 as
+image tile with favorites/suggestions tabs) is now the ONLY home screen scaffold; the panel layout
+(search bar above one shared glass surface, v1.1.2229) is deleted.
+
+- **The panel element survives as a pure layout box** (position + height) — it lost its `glass-panel`
+  chain, border, and padding entirely instead of having them overridden per layout. The frozen desktop
+  contract moves accordingly: the grid now fills the box exactly (row [0,84] · box [0,180,1200,576] ·
+  grid [0,180,1200,576], bottom still flush with the expanded search at 756); on the phone the tiles run
+  edge-to-edge in the 350 box (as the free layout always did).
+
+- **Removed:** the Start-Layout picker in the general settings, `readZenLayout` and its wiring through
+  `useSearchFieldSettings`/SearchField, the `layoutFrei` prop (the tab combo and image tile are now
+  unconditional), the dead `main-container--bento-zen-frei` class, both `--frei` CSS override blocks, the
+  leftover 640-capsule rule (margin/width transition, inert since v1.1.2236), and the **red favorites
+  gradient (v1.1.2224)** plus its footer-label opacity companion — actively deleted because PurgeCSS's
+  `/^bento/` safelist would otherwise ship the dead rules forever. A stored `startScreen.zenLayout` is
+  ignored and left in place (downgrade safety, same rule as `bentoLayout` in v1.1.2225).
+
+- **Tests:** the free-layout describe becomes the default contract (no `zenLayout` key), the pixel parity
+  and phone-inset tests carry the new frozen numbers, and the old "favorites tile carries its red" test is
+  inverted — it now guards that the deleted red never resurfaces. Suite stays at 115, all green.
+
 ## Version 1.1.2244 - 2026-08-01
 
 **Title:** 🧩 Island.jsx split — icons, ticker, list, and two hooks; the corner buttons become a config map

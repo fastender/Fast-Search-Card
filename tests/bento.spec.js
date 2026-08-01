@@ -86,10 +86,11 @@ test.describe('Bento-Startseite', () => {
     expect((await widgets(root).allInnerTexts())[0]).toContain('Integration');
   });
 
-  test('die Favoriten-Kachel trägt ihre Farbe, die Vorschläge nicht', async ({ page }) => {
-    // v1.1.2224: Die Farbe hängt an `data-widget-id="__favorites__"` — fällt das
-    // Attribut im JSX weg, verschwindet der Verlauf lautlos und kein Build merkt
-    // es. Geprüft wird deshalb der berechnete Hintergrund.
+  test('KEINE Kachel trägt mehr das alte Favoriten-Rot', async ({ page }) => {
+    // v1.1.2245: Das Apple-Rot der Favoriten (v2224) ist mit dem Panel-Layout
+    // gestorben — im Frei-Gerüst trägt W1 Bild oder Glas. Der Test hält das
+    // Gegenteil des alten Vertrags fest: taucht das Rot wieder auf, ist eine
+    // gelöschte Regel zurückgekommen (PurgeCSS-Safelist-Falle).
     const root = await mountCard(page, {
       settings: {
         ...BENTO_ON,
@@ -108,9 +109,7 @@ test.describe('Bento-Startseite', () => {
       return { fav: lies('__favorites__'), sug: lies('__suggestions__') };
     });
 
-    expect(farben.fav).toContain('rgba(255, 69, 58');
-    // Die Vorschläge bleiben Glas — die Regel darf nicht über
-    // `.bento-widget--carousel` auf sie überschwappen.
+    expect(farben.fav || '').not.toContain('rgba(255, 69, 58');
     expect(farben.sug || '').not.toContain('rgba(255, 69, 58');
   });
 
