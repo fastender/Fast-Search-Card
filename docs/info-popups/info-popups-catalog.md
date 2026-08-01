@@ -109,6 +109,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | infoKey | Ort | Sektion |
 |---|---|---|
 | `island` | Insel (Detail) | Die Insel / The Island |
+| `islandSources` | Insel (Detail) | Dauerwerte / Standing values |
 | `islandStandby` | Insel (Detail) | Standby |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
@@ -715,6 +716,31 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > Critical alerts (leak, smoke, gas) additionally raise the red banner. Every value is its own target: weather → its entity, power → energy, facts → their device list, ticker → the device, ℹ/⚠/❗ → the notification center, ▦ → the live list inside the card.
 >
 > *Why it matters:* one calm element instead of many widgets — it only speaks up when there's something to say.
+
+## islandSources
+
+> NEU v1.1.2243: Dauerwert-Picker (Wetter/Energie manuell statt Heuristik) —
+> der lange offene Rest der Insel-Settings-Reorg aus v2212.
+
+**DE**
+> ## Dauerwerte
+>
+> Woher die Insel (und die Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
+>
+> - **Wetter** – Automatisch nimmt die erste Wetter-Entity der Geräteliste. Manuell lässt sich jede `weather.*`-Entity wählen — auch eine ohne zugewiesenen Raum.
+> - **Energie** – Automatisch nimmt den betragsstärksten Leistungssensor (in den meisten Häusern der Gesamtverbrauch). Manuell lässt sich jeder Sensor mit `device_class: power` wählen.
+>
+> „Automatisch" ist die sichere Wahl; der Picker hilft, wenn die Heuristik daneben liegt (z. B. ein einzelner starker Verbraucher statt des Hausanschlusses). Wird die gewählte Entity später entfernt, fällt die Anzeige still auf Automatik zurück.
+
+**EN**
+> ## Standing values
+>
+> Where the island (and the lock screen's status line) takes its two standing values from:
+>
+> - **Weather** – Automatic takes the first weather entity of the device list. Manual lets you pick any `weather.*` entity — including one without an assigned room.
+> - **Power** – Automatic takes the strongest power sensor by magnitude (in most homes the total consumption). Manual lets you pick any sensor with `device_class: power`.
+>
+> "Automatic" is the safe choice; the picker helps when the heuristic guesses wrong (e.g. a single strong consumer instead of the mains feed). If the chosen entity disappears later, the display silently falls back to automatic.
 
 ## islandStandby
 

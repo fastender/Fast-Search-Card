@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2243 - 2026-08-01
+
+**Title:** 🌦️ Weather & power pickers — the island's standing values become choosable
+
+The long-open rest of the island settings reorg (pending since v1.1.2212): "Automatic" stays the default,
+but both standing values can now be chosen by hand.
+
+- **New "Standing values" section in the island settings:** two expandable rows (Weather / Power) listing an
+  "Automatic" entry plus the candidates — every `weather.*` entity and every numeric sensor with
+  `device_class: power`. Picking writes `startScreen.islandSources { weatherId, powerId }` and broadcasts the
+  usual settings event; the row shows the chosen friendly name.
+
+- **Resolution is RAW from `hass.states`,** deliberately bypassing the curated device list — so an entity
+  without an assigned room (which curation filters out) is still selectable. A chosen power sensor wins inside
+  `pickPowerInfo` (unit-aware, kW×1000); if the chosen entity disappears later, the display silently falls
+  back to the automatic heuristic. The chosen weather entity is maintained by the island's 1-second driver
+  with an identity guard (no extra re-renders while nothing changes).
+
+- **The lock screen's status line follows the same sources** — its 15-second memo resolves the overrides too,
+  so island and lock screen never disagree.
+
+- New info popup `islandSources` (de+en, catalog updated). Suite grows to 115: a pure test for the
+  prefer-override-with-silent-fallback rule, a live test proving a weak chosen sensor beats the 1234-W
+  heuristic and a room-less weather entity renders, and a settings test driving the picker UI into storage.
+
 ## Version 1.1.2242 - 2026-08-01
 
 **Title:** ⚙️ Island settings catch up with the two-liner — standby gets its switch and timings

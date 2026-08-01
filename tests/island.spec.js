@@ -283,6 +283,50 @@ test.describe('Insel', () => {
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['notifications']);
   });
 
+  test('gewählte Dauerwert-Quellen übersteuern die Automatik', async ({ page }) => {
+    // v1.1.2243: islandSources — der Energie-Picker schlägt die Heuristik
+    // (Testhaus-Sensor 1234 W wäre sonst der stärkste), das Wetter kommt ROH
+    // aus hass.states (Entity OHNE Registry-Raum — die Kuratierung würde sie
+    // wegfiltern, genau dafür ist die Roh-Auflösung da).
+    await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: {
+          ...BENTO_ON.startScreen,
+          islandSources: { weatherId: 'weather.test', powerId: 'sensor.steckdose' },
+        },
+      },
+    });
+    await updateHass(page, (states, entity) => {
+      states['sensor.steckdose'] = entity('sensor.steckdose', 'Steckdose', '300',
+        { device_class: 'power', unit_of_measurement: 'W' });
+      states['weather.test'] = entity('weather.test', 'Testwetter', 'sunny', { temperature: 21 });
+    });
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('300 W');
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('21°');
+    expect(await islandText(page)).not.toContain('1,2 kW');
+  });
+
+  test('die Energie-Vorzugswahl ist pur und fällt still zurück', async ({ page }) => {
+    await mountCard(page);
+    const r = await page.evaluate(async () => {
+      const mod = await import('/src/utils/islandState.js');
+      const states = {
+        'sensor.haus': { state: '2000', attributes: { device_class: 'power', unit_of_measurement: 'W' } },
+        'sensor.klein': { state: '1.5', attributes: { device_class: 'power', unit_of_measurement: 'kW' } },
+      };
+      return {
+        auto: mod.pickPowerInfo(states, 'de'),
+        gewaehlt: mod.pickPowerInfo(states, 'de', 'sensor.klein'),
+        verschwunden: mod.pickPowerInfo(states, 'de', 'sensor.weg'),
+      };
+    });
+    expect(r.auto.entity_id).toBe('sensor.haus');
+    expect(r.gewaehlt).toEqual({ entity_id: 'sensor.klein', text: '1,5 kW' });
+    // Gewählte Entity weg → still zurück zur Heuristik.
+    expect(r.verschwunden.entity_id).toBe('sensor.haus');
+  });
+
   test('die Stufen-Zählung ist pur und zählt Low bewusst nicht', async ({ page }) => {
     // Die Regel selbst ist pur und wird direkt am Modul geprüft (Muster aus
     // dem Hero-Spec) — Low war schon immer nur ein Flüstern und bekommt

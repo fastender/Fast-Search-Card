@@ -160,4 +160,28 @@ test.describe('Einstellungen → Allgemein', () => {
     )).toBe(false);
     await expect(view.locator('.ios-item', { hasText: 'Zur Mini-Pille nach' })).toHaveCount(0);
   });
+
+  test('der Energie-Picker schreibt islandSources und zeigt die Wahl', async ({ page }) => {
+    // v1.1.2243: Dauerwerte-Sektion — Zeile aufklappen, Sensor wählen.
+    const root = await mountCard(page, {
+      settings: { startScreen: { bento: true }, appearance: { statsBarEnabled: true } },
+    });
+    await openSettings(page, root);
+    await openRow(root, 'Insel');
+    await expect.poll(() => currentTitle(root)).toBe('Insel');
+    const view = root.locator('.ios-settings-view').last();
+
+    const energie = view.locator('.ios-item', { hasText: 'Energie' }).first();
+    await expect(energie.locator('.ios-item-value')).toHaveText('Automatisch');
+    await energie.click();
+    // Der Testhaus-Leistungssensor steht in der Liste — wählen.
+    const kandidat = view.locator('.ios-item-subtitle', { hasText: 'sensor.' }).first();
+    const gewaehlteId = await kandidat.textContent();
+    await kandidat.click();
+    await expect.poll(() => page.evaluate(
+      () => JSON.parse(localStorage.getItem('systemSettings') || '{}')?.startScreen?.islandSources?.powerId
+    )).toBe(gewaehlteId.trim());
+    // Die Zeile zeigt jetzt den Namen der Wahl statt „Automatisch".
+    await expect(energie.locator('.ios-item-value')).not.toHaveText('Automatisch');
+  });
 });
