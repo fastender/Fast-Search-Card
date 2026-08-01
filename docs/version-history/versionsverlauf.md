@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2247 - 2026-08-01
+
+**Title:** 🚨 PurgeCSS ate the grey badge — plus the alignment fix survives a sidebar toggle
+
+An independent cross-check of the two v1.1.2246 fixes confirmed both root causes and turned up a third,
+already-shipped bug that no test could have caught:
+
+- **The ▦ button's counter bubble was RED instead of grey in the shipped build.** The v1.1.2244 refactor
+  turned the four corner buttons into a config map and started COMPOSING the colour class
+  (`island-eck--${k.kugel}`) — so the extractor only ever saw `island-eck--`, and PurgeCSS dropped
+  `island-eck--grau` from the bundle. Blue/amber/red survived by pure luck: they also appear as literals in
+  the standby button. The bubble therefore fell back to the base red, making "3 things running" look like a
+  critical alert. The class names are now written out in full. Same trap as `bento-widget--${size}` — and,
+  as then, invisible in dev (which does not purge).
+
+- **New bundle test — the only kind that can catch this.** It reads the BUILT output (`dist/fast-search-card.js`,
+  or the purged `style-*.css` after a plain build) and asserts that the state-driven class names really
+  shipped. Red-proofed: against the previous build it fails naming exactly `island-eck--grau`. Suite: 117.
+
+- **The standby button now re-aligns without a window resize.** Its position was measured only on entering
+  the folded state and on `window.resize` — but collapsing the Home Assistant sidebar changes the card width
+  with no resize event, leaving the button at a stale offset (the very symptom just fixed). A ResizeObserver
+  on the island holder now catches every width change.
+
+- **Sub-pixel polish:** the ride distance rounds down instead of to-nearest, so an odd card width can no
+  longer push the button half a pixel past the content edge. The comment about the badge overhang was
+  corrected to 2 px (the pill's 1 px border eats one).
+
 ## Version 1.1.2246 - 2026-08-01
 
 **Title:** 📐 Two reported layout bugs: the standby button now sits flush right, hovered rows are no longer clipped
