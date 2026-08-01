@@ -189,7 +189,10 @@ test.describe('Insel', () => {
       window.__opened = [];
       window.addEventListener('fsc-open-entity', (e) => window.__opened.push(e.detail.entityId));
     });
-    await root.locator('.island-zeile2 [role="button"]').click();
+    // 🔑 hasText-Filter: während des Roll-Übergangs stehen alter und neuer
+    // Eintrag ~0,5 s BEIDE im DOM (AnimatePresence-Exit) — der nackte
+    // Selektor lief dann in die strict-mode-Verletzung.
+    await root.locator('.island-zeile2 [role="button"]', { hasText: 'Pizza' }).click();
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['timer.pizza']);
   });
 
@@ -272,9 +275,11 @@ test.describe('Insel', () => {
       window.addEventListener('fsc-open-notifications', () => window.__opened.push('notifications'));
     });
     // Rechts neben den Werten ist die Zeile frei (keine Meldungen → keine
-    // Knöpfe); dort trifft der Klick sicher keinen inneren role=button-Span.
-    const box = await root.locator('.island-zeile1').boundingBox();
-    await page.mouse.click(box.x + box.width - 30, box.y + box.height / 2);
+    // Knöpfe); Locator-Klick mit relativer Position — er wartet auf
+    // Element-Stabilität (roher Mausklick verfehlte je nach Boot-Reveal).
+    const kopf = root.locator('.island-head');
+    const kopfBox = await kopf.boundingBox();
+    await kopf.click({ position: { x: kopfBox.width - 30, y: 13 } });
     await expect.poll(() => page.evaluate(() => window.__opened)).toEqual(['notifications']);
   });
 
@@ -344,13 +349,20 @@ test.describe('Insel — Standby-Kaskade', () => {
 
     // Rechts neben den Werten ist Zeile 1 frei (keine Meldungen → keine
     // Knöpfe); dort trifft der Klick keinen inneren role=button-Span.
-    const z1 = await root.locator('.island-zeile1').boundingBox();
-    await page.mouse.click(z1.x + z1.width - 30, z1.y + z1.height / 2);
+    // 🔑 Locator-Klick mit relativer Position statt page.mouse auf gemessene
+    // Koordinaten: der Locator wartet auf Element-STABILITÄT — der rohe
+    // Mausklick traf je nach Boot-Reveal-Skalierung mal, mal nicht (Flake).
+    const kopf = root.locator('.island-head');
+    const kopfBox = await kopf.boundingBox();
+    await kopf.click({ position: { x: kopfBox.width - 30, y: 13 } });
     await expect(pill).toHaveAttribute('data-ruhe', 'mini', { timeout: 5000 });
 
-    // Tipp auf die freie Fläche der Mini-Pille → Karte zurück.
-    const mini = await root.locator('.island-zeile1').boundingBox();
-    await page.mouse.click(mini.x + mini.width - 20, mini.y + mini.height / 2);
+    // Tipp auf die freie Fläche der Mini-Pille → Karte zurück. Erst den
+    // Breiten-Morph (460 ms) aussitzen, dann frisch messen.
+    await expect.poll(() => pill.evaluate((el) => Math.round(el.getBoundingClientRect().width)),
+      { timeout: 5000 }).toBeLessThan(340);
+    const miniBox = await kopf.boundingBox();
+    await kopf.click({ position: { x: miniBox.width - 20, y: 13 } });
     await expect(pill).toHaveAttribute('data-ruhe', '', { timeout: 5000 });
   });
 

@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2241 - 2026-08-01
+
+**Title:** ⚡ Post-redesign audit: the weather-identity leak, a truly idle standby, and two real widget bugs
+
+Three read-only agents audited the fresh island/zen code (performance, structure, recent bento work);
+this release lands the confirmed findings:
+
+- **The main render leak was one object identity.** `useSearchResults` rebuilt the `weatherEntity` via
+  `devices.find(...)` on every devices rebuild — a new object with identical content on practically every
+  entity change. That silently defeated the island's `memo` (every device tick re-rendered the whole island)
+  AND tore down/restarted its 1-second driver through a spurious effect dependency. The hook now returns the
+  PREVIOUS object while entity id, state, and temperature are unchanged; the island driver dropped the unused
+  `weatherEntity` dep.
+
+- **Folded means idle now.** In the mini-pill/button standby stages the ticker and the line-1 facts roll no
+  longer run (their AnimatePresence blur transitions played to nobody), and the 1-second driver stretches to a
+  5-second beat — visible there are only the power value and the counter bubbles. Waking runs a refresh
+  immediately. The idle-clock activity listener is also throttled to once per second (trackpad wheel fired
+  dozens of clear/set-timeout pairs per second).
+
+- **Lock-screen status line stopped scanning per keystroke.** The typewriter re-renders the zen view every
+  25–75 ms, and the status line's `pickPowerInfo` scanned ALL entities on each render (~40 full scans/s while
+  "resting"). It now memoizes on the 15-second clock tick, along with the Intl date/time formatting.
+
+- **Two real widget bugs:** the slider's pause button (v2236) didn't clear the running autoplay interval
+  (`userPaused` missing from the effect deps) — the slider advanced one more slide after pausing; and the
+  BentoWidget memo comparator ignored tab counts and preview-list membership — a favorites swap at equal count
+  kept showing the old devices, and an inactive tab's counter bubble could go stale.
+
+- **Dead code out:** `NotificationsPanel.jsx` (182 LOC, the old island peek) had no importers left and is
+  deleted; stale comments in `timeFormatters.js` corrected.
+
+- Suite stays at 111 — three tests hardened against races the audit work surfaced (locator clicks with
+  relative positions instead of raw mouse coordinates during the boot reveal; a hasText filter for the
+  ticker's 0.5-s AnimatePresence exit overlap).
+
 ## Version 1.1.2240 - 2026-08-01
 
 **Title:** 😴 The island's standby cascade — card folds to a mini pill, then rides right as a badge button
