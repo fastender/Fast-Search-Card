@@ -86,6 +86,58 @@ test.describe('Bento-Startseite', () => {
     expect((await widgets(root).allInnerTexts())[0]).toContain('Integration');
   });
 
+  test('Aufgaben, Nachrichten und Kalender tragen alle denselben Scrollbalken', async ({ page }) => {
+    // v1.1.2248 (Nutzer-Report): Die Nachrichten hatten seit v1549 einen
+    // eigenen Scrollbalken, der Kalender seit v1649 — die Aufgaben als
+    // einzige nicht. Man sah der Liste dort nicht an, dass unten noch etwas
+    // wartet. Geprüft wird die GEMEINSAME Zusage: jede der drei Kacheln
+    // rendert ihren Balken-Behälter.
+    // 🔑 Die Rich-Fassung der Kacheln gibt es NUR im W2-Slot (`size ===
+    // 'medium'`, BentoWidget.jsx) — Aufgaben müssen also an Position 2 stehen,
+    // sonst rendert die schlichte Icon-Kachel und der Test misst ins Leere.
+    const root = await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: { bento: true, widgets: ['__favorites__', 'todos', 'news', 'integration'] },
+      },
+    });
+    await waitForBento(root, page);
+    await expect(root.locator('.bento-rich-todos')).toHaveCount(1, { timeout: 10000 });
+
+    // 🔑 Der Balken erscheint NUR bei echtem Überlauf (CustomScrollbar prüft
+    // scrollHeight > clientHeight). Das Testhaus hat zu wenige Aufgaben —
+    // deshalb wird die Liste künstlich flach gemacht und ein Scroll-Ereignis
+    // ausgelöst. Genau das prüft die Verdrahtung: Ref, Überlauf, Balken.
+    const balken = await page.evaluate(async () => {
+      const alle = [...document.querySelectorAll('.main-container')];
+      const c = alle[alle.length - 1];
+      const kachel = c.querySelector('.bento-rich-todos');
+      const liste = kachel.querySelector('.bento-rich-todos-list');
+      liste.style.maxHeight = '30px';
+      liste.style.height = '30px';
+      liste.dispatchEvent(new Event('scroll', { bubbles: true }));
+      window.dispatchEvent(new Event('resize'));
+      await new Promise((r) => setTimeout(r, 400));
+      return {
+        ueberlauf: liste.scrollHeight > liste.clientHeight,
+        hatBalken: !!kachel.querySelector('.custom-scrollbar-container'),
+        // Bezugsrahmen: der Balken sitzt absolut, die Kachel muss ihn halten.
+        positioniert: getComputedStyle(kachel).position,
+        // Diagnose, falls der Balken ausbleibt (CustomScrollbar bricht bei
+        // unsichtbarem oder nicht scrollendem Container ab):
+        overflowY: getComputedStyle(liste).overflowY,
+        sichtbar: typeof liste.checkVisibility === 'function'
+          ? liste.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+          : 'unbekannt',
+        offsetParent: liste.offsetParent ? liste.offsetParent.className.split(' ')[0] : null,
+      };
+    });
+    expect(balken).toEqual({
+      ueberlauf: true, hatBalken: true, positioniert: 'relative',
+      overflowY: 'auto', sichtbar: true, offsetParent: 'bento-rich-todos',
+    });
+  });
+
   test('KEINE Kachel trägt mehr das alte Favoriten-Rot', async ({ page }) => {
     // v1.1.2245: Das Apple-Rot der Favoriten (v2224) ist mit dem Panel-Layout
     // gestorben — im Frei-Gerüst trägt W1 Bild oder Glas. Der Test hält das

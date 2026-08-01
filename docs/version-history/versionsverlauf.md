@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2249 - 2026-08-01
+
+**Title:** 🎛️ Six reported details: centred mini pill, round buttons, list tabs, task scrollbar, three-line tips
+
+A batch of user-reported polish, all six verified in the running card:
+
+- **Mini pill sat 3 px too high.** Line 2 folds to zero height in standby, but the flex gap below it stayed
+  and pushed the values up. Gap removed, column centred — measured 9 px above / 9 px below.
+
+- **The corner buttons are fully round** (was a 10 px rounded square), and their counter bubbles moved 2 px
+  inward so they hug the circle instead of floating off the diagonal.
+
+- **Rows in the expanded island list get a round icon background** — same pattern as the device list's
+  `.device-list-icon`, in dark tint for the light card.
+
+- **That list now works like the tiles:** category tabs with counts (All · Lights · Covers · Media · …,
+  hidden when only one kind is running), a hairline and a 24 px edge fade — geometry taken 1:1 from
+  widget 2. Here a real `mask-image` is allowed: the rows carry no backdrop glass that it could flatten
+  (the v1.1.2236 trap does not apply).
+
+- **The island respected no exclusion patterns.** It reads raw `hass.states`, so entities excluded under
+  Settings → Filter still showed up. `extractLiveActivities` now takes the pattern list (wildcards
+  supported, dots treated as literals) and the island passes the same cached list the device list uses.
+
+- **The tasks tile had no custom scrollbar** — news has had one since v1.1.1549, the calendar since
+  v1.1.1649. Added, and the native thin bar removed so there are not two. Root cause worth noting: the
+  scrollbar binds its observers exactly once, so a container that mounts late (empty state first, data
+  arriving async) never gets one — the tasks list is therefore always mounted now, with the empty state
+  inside it.
+
+- **Widget 1's hairline matches widget 2:** 8 px of air instead of 10, and the softer 0.1 line; the edge
+  frost is 24 px like widget 2's mask (the frost technique itself has to stay — a mask would make the
+  scroller a backdrop root and kill the rows' glass).
+
+- **The tips tile may use three lines** instead of two (its area row is hidden anyway, so the space is free).
+
+- Suite 121, including a flaky settings test hardened: it clicked the back button while the sub-view was
+  still springing in, which failed roughly one run in five.
+
 ## Version 1.1.2247 - 2026-08-01
 
 **Title:** 🚨 PurgeCSS ate the grey badge — plus the alignment fix survives a sidebar toggle

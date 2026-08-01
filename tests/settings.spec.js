@@ -93,7 +93,21 @@ test.describe('Einstellungen → Allgemein', () => {
     await openRow(root, 'Währung');
     await expect.poll(() => currentTitle(root)).toBe('Währung');
 
-    await root.locator('.ios-navbar-back').last().click();
+    // 🔑 v1.1.2248: Der Zurück-Knopf wird ERST angeklickt, wenn die
+    // eingeschobene Unteransicht wirklich steht. Die Ansicht federt beim
+    // Einschieben nach; fiel der Klick in diese Nachfederung, wanderte der
+    // Knopf unter dem Zeiger weg und das Ereignis ging ins Leere — der Test
+    // fiel dadurch in etwa jedem fünften Lauf um (auch isoliert). Geprüft
+    // wird die Ruhe über zwei gleiche Messungen der Knopfposition.
+    const zurueck = root.locator('.ios-navbar-back').last();
+    await expect(zurueck).toBeVisible();
+    await expect.poll(async () => {
+      const a = await zurueck.boundingBox();
+      await new Promise((r) => setTimeout(r, 120));
+      const b = await zurueck.boundingBox();
+      return a && b && Math.round(a.x) === Math.round(b.x) && Math.round(a.y) === Math.round(b.y);
+    }, { timeout: 8000 }).toBe(true);
+    await zurueck.click();
     // Zurück im Menü: dort gibt es keine Navbar mehr.
     await expect.poll(() => currentTitle(root), { timeout: 10000 }).toBeNull();
   });

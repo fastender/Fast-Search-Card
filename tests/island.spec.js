@@ -327,6 +327,125 @@ test.describe('Insel', () => {
     expect(r.verschwunden.entity_id).toBe('sensor.haus');
   });
 
+  test('die aufgeklappte Liste trägt Reiter nach Kategorie und filtert danach', async ({ page }) => {
+    // v1.1.2248 (Nutzer-Wunsch): Die Liste ist bei vielen laufenden Geräten
+    // unübersichtlich — sie bekommt Reiter „Alle · Lichter · Rollos …" mit
+    // Zählung, dazu Haarlinie und Kanten-Fade wie in den Kacheln.
+    const root = await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: {
+          ...BENTO_ON.startScreen,
+          liveActivities: { enabled: true, sources: { timer: true, vacuum: true, cover: true, media_player: true, script: true, automation: true, climate: true, light: true, switch: true } },
+        },
+      },
+    });
+    await updateHass(page, (states, entity) => {
+      for (let i = 1; i <= 3; i++) {
+        states[`light.t${i}`] = entity(`light.t${i}`, `Licht ${i}`, 'on', { brightness: 200 });
+      }
+      states['media_player.box'] = entity('media_player.box', 'Box', 'playing',
+        { media_title: 'Lied', volume_level: 0.4, supported_features: 84381 });
+      states['vacuum.robi'] = entity('vacuum.robi', 'Robi', 'cleaning', {});
+    });
+    await expect(root.locator('.island-knopf[data-knopf="kacheln"]')).toHaveCount(1, { timeout: 10000 });
+    await root.locator('.island-knopf[data-knopf="kacheln"]').click();
+
+    const reiter = root.locator('.island-list-reiter-knopf');
+    await expect(reiter.first()).toBeVisible({ timeout: 8000 });
+    const texte = await reiter.allInnerTexts();
+    // 🔑 KEINE absoluten Zahlen: das Testhaus bringt eigene aktive Geräte mit
+    // (Licht, Schalter …). Geprüft wird deshalb die innere Stimmigkeit —
+    // „Alle" zählt genau so viele Zeilen, wie die Liste zeigt.
+    expect(texte[0]).toContain('Alle');
+    expect(texte.join('|')).toContain('Lichter');
+    const alleZahl = Number((texte[0].match(/(\d+)/) || [])[1]);
+    await expect(root.locator('.island-row')).toHaveCount(alleZahl, { timeout: 5000 });
+
+    // Filtern: „Lichter" lässt genau so viele Zeilen stehen, wie sein Badge sagt.
+    const lichterText = texte.find((t) => t.includes('Lichter'));
+    const lichterZahl = Number((lichterText.match(/(\d+)/) || [])[1]);
+    expect(lichterZahl).toBeGreaterThanOrEqual(3);   // unsere drei sind dabei
+    await reiter.filter({ hasText: 'Lichter' }).first().click();
+    await expect(root.locator('.island-row')).toHaveCount(lichterZahl, { timeout: 5000 });
+    await reiter.first().click();
+    await expect(root.locator('.island-row')).toHaveCount(alleZahl, { timeout: 5000 });
+
+    // Linie + Fade wie bei Widget 2: 1 px, 8 px Luft, 24er-Maske.
+    const aufbau = await root.locator('.island-list-flaeche').evaluate((el) => {
+      const cs = getComputedStyle(el);
+      const liste = el.querySelector('.island-list');
+      return {
+        linie: cs.borderTopWidth,
+        luft: cs.marginTop,
+        maske: (getComputedStyle(liste).maskImage || '').includes('24px'),
+      };
+    });
+    expect(aufbau).toEqual({ linie: '1px', luft: '8px', maske: true });
+  });
+
+  test('ausgeschlossene Muster halten Geräte aus der Insel heraus', async ({ page }) => {
+    // v1.1.2248 (Nutzer-Report): Die Insel las rohe hass.states und ging an
+    // der Ausschlussliste (Einstellungen → Filter) vorbei — dort abgewählte
+    // Entities tauchten trotzdem auf.
+    const root = await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: {
+          ...BENTO_ON.startScreen,
+          liveActivities: { enabled: true, sources: { timer: true, vacuum: true, cover: true, media_player: true, script: true, automation: true, climate: true, light: true, switch: true } },
+        },
+      },
+      storage: { excludedPatterns: ['light.geheim_*', 'vacuum.robi'] },
+    });
+    await updateHass(page, (states, entity) => {
+      states['light.geheim_flur'] = entity('light.geheim_flur', 'Geheim Flur', 'on', { brightness: 200 });
+      states['light.sichtbar'] = entity('light.sichtbar', 'Sichtbar', 'on', { brightness: 200 });
+      states['vacuum.robi'] = entity('vacuum.robi', 'Robi', 'cleaning', {});
+    });
+    await expect(root.locator('.island-knopf[data-knopf="kacheln"]')).toHaveCount(1, { timeout: 10000 });
+    await root.locator('.island-knopf[data-knopf="kacheln"]').click();
+    await expect(root.locator('.island-row').first()).toBeVisible({ timeout: 8000 });
+
+    const namen = (await root.locator('.island-row-name').allInnerTexts()).join('|');
+    expect(namen).toContain('Sichtbar');
+    expect(namen).not.toContain('Geheim');
+    expect(namen).not.toContain('Robi');
+  });
+
+  test('Reiter-Aufbau und Muster-Abgleich sind pur', async ({ page }) => {
+    await mountCard(page);
+    const r = await page.evaluate(async () => {
+      const sub = await import('/src/utils/subcategoryMap.js');
+      const live = await import('/src/utils/liveActivitySources.js');
+      const acts = [
+        { id: 'a', domain: 'light' }, { id: 'b', domain: 'light' },
+        { id: 'c', domain: 'cover' }, { id: 'd', domain: 'timer' },
+      ];
+      return {
+        tabs: sub.getIslandListTabs(acts, 'de').map((t) => `${t.key}:${t.count}`),
+        gefiltert: sub.filterActivitiesByTab(acts, 'lights').map((a) => a.id),
+        alle: sub.filterActivitiesByTab(acts, 'alle').length,
+        // Ein einziger Typ braucht keine Reiter.
+        einzeln: sub.getIslandListTabs([{ id: 'x', domain: 'light' }], 'de').length,
+        trefferStern: live.matchesAnyPattern('light.geheim_flur', ['light.geheim_*']),
+        trefferExakt: live.matchesAnyPattern('vacuum.robi', ['vacuum.robi']),
+        keinTreffer: live.matchesAnyPattern('light.wohnzimmer', ['light.geheim_*']),
+        // 🔑 Der Punkt ist ein LITERAL, kein Regex-Joker: `light.x` darf nicht
+        // auf `lightax` passen und `a.b` nicht auf `axb`.
+        punktIstLiteral: live.matchesAnyPattern('lightaflur', ['light.flur']),
+      };
+    });
+    expect(r.tabs).toEqual(['alle:4', 'lights:2', 'covers:1', 'timer:1']);
+    expect(r.gefiltert).toEqual(['a', 'b']);
+    expect(r.alle).toBe(4);
+    expect(r.einzeln).toBe(0);
+    expect(r.trefferStern).toBe(true);
+    expect(r.trefferExakt).toBe(true);
+    expect(r.keinTreffer).toBe(false);
+    expect(r.punktIstLiteral).toBe(false);
+  });
+
   test('die Stufen-Zählung ist pur und zählt Low bewusst nicht', async ({ page }) => {
     // Die Regel selbst ist pur und wird direkt am Modul geprüft (Muster aus
     // dem Hero-Spec) — Low war schon immer nur ein Flüstern und bekommt
