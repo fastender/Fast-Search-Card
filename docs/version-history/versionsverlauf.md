@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2252 - 2026-08-02
+
+**Title:** ⏱️ The island's timings become configurable — so the test suite stops watching real clocks
+
+No visible change: the island still uses the approved design timings (6 s takeover, 4 s roll, 5 s boot
+grace). They are now read from `startScreen.islandTiming` (no UI, same pattern `islandStandby` had before
+v1.1.2242), which lets the suite run them in fast-forward.
+
+Why: three tests were literally waiting out real seconds — 26 s to watch a 4-second roll cycle through five
+categories, 17 s for boot grace plus takeover. They now assert the same promises (order of events, not wall
+clock) in a fraction of the time. The island suite went from 1.8 to 1.3 minutes.
+
 ## Version 1.1.2251 - 2026-08-02
 
 **Title:** ⏯️ The slider's pause button finally means what it says

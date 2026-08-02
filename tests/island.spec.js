@@ -16,6 +16,19 @@ import { mountCard, updateHass, broadcast, islandText } from './harness/card.js'
 // Die Insel erscheint nur, wenn Suche offen ODER Bento aktiv ODER Detail offen.
 const BENTO_ON = { startScreen: { bento: true }, appearance: { statsBarEnabled: true } };
 
+// 🔑 v1.1.2252: ZEITRAFFER. Die Insel liest ihre Takte aus
+// `startScreen.islandTiming` (ohne UI). Vorher musste die Suite die ECHTEN
+// Design-Zeiten abwarten — ein Test verbrannte 26 s beim Zusehen, wie der
+// 4-s-Roll durch fünf Kategorien wandert, ein anderer 17 s für Boot-Gnade
+// plus Übernahme. Mit gestauchten Werten prüfen sie dieselbe Zusage in
+// Sekunden. Die REIHENFOLGE der Ereignisse bleibt unberührt — nur der
+// Maßstab ändert sich.
+const SCHNELL = { rollMs: 350, takeoverMs: 700, bootGraceMs: 600 };
+const zeitraffer = (settings = BENTO_ON, timing = SCHNELL) => ({
+  ...settings,
+  startScreen: { ...settings.startScreen, islandTiming: timing },
+});
+
 /**
  * v1.1.2239: Aufklappen geschieht über den ▦-Knopf (Laufendes) — der Kopf
  * führt ins Mitteilungen-Center, die Ticker-Zeile zu ihrem Gerät.
@@ -63,21 +76,21 @@ test.describe('Insel', () => {
     // Zeile 1: die Dauerwerte — im Testhaus der 1234-W-Sensor als „1,2 kW".
     // Zeile 2 rollt in Ruhe die Haus-Fakten (5 Kategorien im Testhaus,
     // 4-s-Takt) — ein voller Zyklus dauert 20 s.
-    await mountCard(page, { settings: BENTO_ON });
+    await mountCard(page, { settings: zeitraffer() });
     await expect.poll(() => islandText(page)).toContain('1,2 kW');
-    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Licht an');
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('1 Licht an');
   });
 
   test('der Roll zeigt die Aktiv-Zahlen der Kategorieleiste', async ({ page }) => {
     // v1.1.2212: der Roll zählt aus der KURATIERTEN Geräteliste mit den
     // Leisten-Regeln — vorher zählte er rohe States („9 lights on" vs.
     // „Lights 6" in der Leiste).
-    await mountCard(page, { settings: BENTO_ON });
+    await mountCard(page, { settings: zeitraffer() });
     await updateHass(page, (states, entity) => {
       states['light.kueche'] = entity('light.kueche', 'Küche Licht', 'on');
     });
-    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('2 Lichter an');
-    await expect.poll(() => islandText(page), { timeout: 25000 }).toContain('1 Schalter an');
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('2 Lichter an');
+    await expect.poll(() => islandText(page), { timeout: 8000 }).toContain('1 Schalter an');
   });
 
   test('ein Timer läuft im Ticker und verdrängt die Dauerwerte NICHT', async ({ page }) => {
@@ -102,7 +115,7 @@ test.describe('Insel', () => {
     // v1.1.2209 (C1): eine NEUE Meldung übernimmt Zeile 2 für ~6 s (Zeitring)
     // und kondensiert dann in den Eck-Knopf ihrer Stufe; der Ticker kehrt
     // zurück.
-    const root = await mountCard(page, { settings: BENTO_ON });
+    const root = await mountCard(page, { settings: zeitraffer() });
     await updateHass(page, (states, entity) => {
       states['timer.pizza'] = entity('timer.pizza', 'Pizza', 'active', {
         duration: '0:15:00', finishes_at: new Date(Date.now() + 400000).toISOString(),
@@ -111,8 +124,8 @@ test.describe('Insel', () => {
     await expect.poll(() => islandText(page), { timeout: 10000 }).toContain('Pizza');
 
     // Boot-Gnade verstreichen lassen: Bestand beim Seitenaufbau kündigt sich
-    // bewusst NICHT an — nur wirklich Neues übernimmt.
-    await page.waitForTimeout(5200);
+    // bewusst NICHT an — nur wirklich Neues übernimmt. (Zeitraffer: 600 ms.)
+    await page.waitForTimeout(900);
     await updateHass(page, (states, entity) => {
       states['persistent_notification.p1'] = entity(
         'persistent_notification.p1', 'Meldung', 'notifying',
@@ -565,12 +578,14 @@ test.describe('Insel — Standby-Kaskade', () => {
   });
 
   test('eine neue Meldung weckt den Knopf und zählt danach in der Kugel', async ({ page }) => {
-    const root = await mountCard(page, { settings: KASKADE(1500, 1500) });
+    // Zeitraffer: die 6-s-Übernahme und die 5-s-Boot-Gnade sind hier nur
+    // Kulisse — geprüft wird die REIHENFOLGE (wecken → übernehmen → zählen).
+    const root = await mountCard(page, { settings: zeitraffer(KASKADE(1500, 1500)) });
     const pill = root.locator('.island-pill');
     await expect(pill).toHaveAttribute('data-ruhe', 'alert', { timeout: 10000 });
 
     // Boot-Gnade sicher verstreichen lassen (Übernahme kündigt nur NEUES an).
-    await page.waitForTimeout(5200);
+    await page.waitForTimeout(900);
     await updateHass(page, (states, entity) => {
       states['persistent_notification.p1'] = entity(
         'persistent_notification.p1', 'Meldung', 'notifying',
