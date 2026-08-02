@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2261 - 2026-08-02
+
+**Title:** 🌑 The filter window now dims the whole screen
+
+**Hero:** none
+
+**Tags:** filter, modal, polish
+
+The dimming behind the filter window was pinned to `.main-container`, so it ended at that box. Everything the
+card paints outside it stayed bright — the sidebar, which sits to the *left* of the container by design
+(`right: 100%`), and the notification button reaching past the top right corner. A modal that dims a rectangle
+in the middle of its own screen looks like a bug, and it was one.
+
+The dimming is now `fixed` and covers the viewport, measured 0,0 to the full width and height. The window and
+its ✕ stay anchored to the button exactly as before — only the dark layer behind them grew.
+
+One caveat worth writing down: during the boot reveal the card sits inside a wrapper that is still scaled
+(0.95 → 1), and a scaled ancestor becomes the containing block for anything `fixed`. In that state the dimming
+falls back to the card's own box — which is precisely what it did before this change, so the fallback is never
+worse. Once the reveal settles, the transform is gone and the dimming reaches the edges of the screen.
+
 ## Version 1.1.2260 - 2026-08-02
 
 **Title:** 🌫️ Closing is a morph again, not a snap
