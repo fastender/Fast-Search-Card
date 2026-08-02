@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2264 - 2026-08-02
+
+**Title:** ✨ A glowing cursor in the search field, and a taller search bar
+
+**Tags:** search, cursor, visionOS, layout
+
+Two changes to the search field, both settled in a mockup first.
+
+**The cursor glows.** The browser's own caret is switched off (`caret-color: transparent`) and a cursor of our
+own stands at the measured width of the typed text — measured, not calculated: with a proportional typeface
+any arithmetic over character widths is wrong, and the field already had a mirror span for exactly this
+purpose. It is built in three layers: the white core, a narrow fringe (cool above, warm below) and a wide
+glow. Both light layers sit in `plus-lighter`, so light *adds* to what is behind it instead of covering it —
+that is what makes the same cursor work over pale glass and over a dark wallpaper alike.
+
+Its beat holds at both ends: 320 ms up, **400 ms held bright**, 120 ms down, 120 ms held dark. Without the
+hold at the top the cursor tips over at its peak and looks hurried; without the one at the bottom the
+extinction passes in a single frame and reads as "dimmer" rather than "off". Only the flanks are soft.
+
+**The bar is 104 px tall** instead of 72 (83 instead of 58 on phones). The height grows purely as air around
+the contents: the icon (24), the type (24/30) and the filter button (44) sit centred and are fixed — measured
+across the change, none of them moved. The collapsed panel keeps its pill shape because the radius now follows
+half the height (52, phones 42) and returns to 35 when the panel opens.
+
+The start screen sits 32 px lower as a result; per the decision taken with it, the grid keeps its 576 px
+rather than being trimmed to hold the old total.
+
 ## Version 1.1.2263 - 2026-08-02
 
 **Title:** 📍 Info popups: right origin on the first click, dimming to the screen edge
