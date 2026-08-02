@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2270 - 2026-08-02
+
+**Title:** 🏗️ Results no longer build the entire list before showing anything
+
+**Tags:** performance, search, render
+
+Measuring the render path turned up one dominant cost and cleared two suspects.
+
+A single `DeviceCard` costs **0.76 ms** to mount and produces 19 DOM nodes — measured with the real component
+against a real provider: 10 cards 28 ms, 40 cards 33 ms, 100 cards 76 ms. On a wall tablet that is several
+hundred milliseconds for one screen of results.
+
+The result list is virtualised, so that should never happen — except the virtualiser only engages once the
+scroll container has been found, and that search ran in an effect **after** the first render. So every time
+results opened, the fallback path built the *complete* list first, painted it, and only then swapped in the
+virtualised one. Two changes: the search now runs in a layout effect, before the browser paints, and until it
+has run the fallback renders **eight rows** instead of everything. If the search genuinely finds no scroll
+container — a foreign layout context — everything is rendered as before, since nothing would come along to
+fill in the rest.
+
+Two suspects measured and acquitted, so they stay as they are: the two clone passes over all devices while the
+panel is open cost under 1 ms per tick even at 1500 devices, and `filterDevices` / `groupDevicesByRoom`
+together run 2–10 ms per tick — real, but they legitimately depend on live state (activity counts, recency
+sorting), and rebuilding that chain for a few milliseconds would trade a lot of risk for little gain.
+
 ## Version 1.1.2269 - 2026-08-02
 
 **Title:** ⚡ Search stopped re-indexing itself six times a second
