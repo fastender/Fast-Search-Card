@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2268 - 2026-08-02
+
+**Title:** ⭕ Category buttons grew with the search bar
+
+**Tags:** search, layout
+
+The round category buttons that appear beside the bar when you tap back were still 72 px — the bar's old
+height — and so looked stunted next to a 98 px bar. They now read the same variable the bar does, so the next
+adjustment carries them along instead of leaving them behind.
+
+For that the variable moved from the panel up to `.search-row`: the buttons are siblings of the panel, not
+children, and could never have reached a value declared inside it. The phone override moved with it, and the
+separate 58 px rule for the buttons is gone — one number governs bar, result list and buttons now. The symbols
+inside stay at 24 px: as in the bar, only the surface around them grows.
+
 ## Version 1.1.2267 - 2026-08-02
 
 **Title:** 🧯 Search bar no longer squeezed by a long result list
