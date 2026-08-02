@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2265 - 2026-08-02
+
+**Title:** 📏 Search bar 104 → 100
+
+**Tags:** search, layout
+
+Four pixels off the search bar after seeing it in place: 100 px on desktop, 80 on phones. The pill radius
+follows half the height as before (50, phones 40) and still returns to 35 when the panel opens. Icon, type and
+filter button are unchanged at 24, 24/30 and 44 — verified again after the change, since that is the whole
+point of the taller bar.
+
 ## Version 1.1.2264 - 2026-08-02
 
 **Title:** ✨ A glowing cursor in the search field, and a taller search bar
