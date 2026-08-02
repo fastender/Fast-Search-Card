@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2259 - 2026-08-02
+
+**Title:** 🫧 Closing the filter window no longer leaves a dark button behind
+
+**Hero:** none
+
+**Tags:** filter, animation, polish
+
+Two things were wrong on the way out. The window shrank back to button size with its glass fully opaque, so
+the last frames were unavoidably a dark disc sitting where the button is — it read as a second button
+appearing right before everything vanished. The window now fades while it shrinks, and its opacity reaches
+zero after 190 ms, long before it is small enough to read as a disc.
+
+The free-standing ✕ used to travel back up with the closing window instead of simply going away. Its exit no
+longer animates its position at all — only a 120 ms fade, so it is gone almost immediately. The content
+inside fades in 130 ms so it never outlives the window around it, and the dimming behind lifts in 240 ms.
+
 ## Version 1.1.2258 - 2026-08-02
 
 **Title:** 🪟 The filter flyout became a window that grows out of the button
