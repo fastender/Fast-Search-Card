@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2269 - 2026-08-02
+
+**Title:** ⚡ Search stopped re-indexing itself six times a second
+
+**Tags:** performance, search, refactor
+
+Results were slow to appear while typing. The cause was not the amount of work the search does — it was how
+often it did it.
+
+Home Assistant hands the card a **new** items array on every state tick, roughly six times a second, holding
+the same entities with only their states refreshed. Three things hung off that array's identity rather than
+its content: the result cache (cleared every tick), the lazy Fuse re-index, and — through the `search`
+callback — the memo holding the results themselves. So with a search term active, every tick tore down and
+rebuilt the whole thing: parse the intent, re-index all entities in Fuse, search, rank, sort. Measured here at
+2–9 ms per pass; on a wall tablet a multiple of that, six times a second, competing with the very keystrokes
+waiting to be rendered.
+
+Invalidation now follows **content**. A signature runs over exactly the fields Fuse indexes — entity id,
+friendly name, area — and only a change there re-indexes anything. Verified over 800 entities: a state change
+leaves the signature untouched, while renaming, moving, adding or removing a device all register. The
+signature costs 0.4 ms per tick and replaces a job that cost multiples of that.
+
+One trap came with it: memoised results hold the entity objects from the moment of the search, so a lamp
+switching on during an active search would have stayed dark on its card. The hits are therefore re-bound to
+the live objects each tick — a map lookup over the (short) result list, keeping the scores and highlight
+matches from the search itself.
+
 ## Version 1.1.2268 - 2026-08-02
 
 **Title:** ⭕ Category buttons grew with the search bar
