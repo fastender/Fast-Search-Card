@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2257 - 2026-08-02
+
+**Title:** 🚫 No more dark rim when hovering a card in widget 1
+
+Hovering makes framer write `background-color: rgba(255,255,255,0.18)` inline onto the card. On the image
+tile the card also carries the appearance glass gradient on top of that, so the new light colour only shows
+through in the base layer — and where the gradient fades out, at the card's edge, that produced a visibly
+darker seam. Cards on the image tile now keep their glass unchanged while hovered; the feedback stays with
+the scale-up and the light `::before` sheen.
+
 ## Version 1.1.2256 - 2026-08-02
 
 **Title:** ↩️ Wrong scrollbar reverted — widget 1's moves right instead
