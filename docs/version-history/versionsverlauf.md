@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2267 - 2026-08-02
+
+**Title:** 🧯 Search bar no longer squeezed by a long result list
+
+**Tags:** search, layout, fix
+
+With many cards in the results, the search bar came out shorter than it should be. The height of the bar
+lived in two places: as the bar's own `height`, and hand-computed inside the result list's `max-height` — the
+comment there read "672 total − 72 search-wrapper = 600". Raising the bar to 98 left that 600 untouched, so
+the panel was asked for 698 px of content in 672 px of space. The bar, being a flex child that may shrink, is
+what gave way.
+
+The list now derives its height instead of copying it — `calc(672px - var(--fsc-suchzeile))`, with the
+variable declared once on the panel (and overridden for phones). The bar additionally carries
+`flex-shrink: 0`, so it can never be compressed again even if something else in the column misbehaves.
+
+Verified with the list deliberately overfilled and scrolling: panel 672, bar 98, list 574 — 98 + 574 = 672,
+exactly.
+
 ## Version 1.1.2266 - 2026-08-02
 
 **Title:** 📐 Search bar 98, tabs back to the top, weather line centred
