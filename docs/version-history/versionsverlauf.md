@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.2258 - 2026-08-02
+
+**Title:** 🪟 The filter flyout became a window that grows out of the button
+
+**Hero:** none
+
+**Tags:** filter, search, visionOS, morph
+
+Tapping the filter used to slide a row of small round buttons out to the left of the search bar. It is now a
+modal window that grows out of the button itself — the same story the island tells: one surface changing its
+size, not a second panel popping up over the first. The button lost its own surface along the way; closed
+there is only the mark, and the glass appears when the window does.
+
+Inside, two groups sit under quiet uppercase headers: **View** (Tiles / List) and **Filter by** (Categories /
+Rooms / Recent). Each choice is a circle with a label underneath — no tile behind it — and the picked one
+lights up. Both rows are left-aligned so the first circle starts exactly under its header. Each header carries
+an ⓘ that unfolds an explanation below it, and the window grows and shrinks with it: the height is measured
+from the content, never guessed. A choice never closes the window; that is what the free-standing ✕ below it
+is for, or a tap next to the window.
+
+One choice in each row is always set — "filter by nothing" no longer exists, so the bar under the search is
+never empty and there is nothing left to reset.
+
+Three things worth writing down, because each of them cost a measurement to find:
+
+- The window hangs in `.main-container` via a portal. `.search-panel` clips its content (that is where its
+  round corners come from) and is only 72 px tall while collapsed — a window growing downwards inside it
+  would have been cut off.
+- The ✕ is a *sibling* of the window, not a child: the window clips its own content, which is exactly what
+  makes the morph work, and a circle below it would have disappeared into that clip.
+- Anchoring divides by the accumulated scale. `getBoundingClientRect` reports pixels *after* every transform
+  (the card boots at `scale(0.95)`), `offsetWidth` reports layout pixels; without that division the window
+  would sit next to its button while the card is still scaling.
+
 ## Version 1.1.2257 - 2026-08-02
 
 **Title:** 🚫 No more dark rim when hovering a card in widget 1
