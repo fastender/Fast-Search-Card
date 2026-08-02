@@ -138,6 +138,34 @@ test.describe('Bento-Startseite', () => {
     });
   });
 
+  test('der Pause-Knopf des Schiebers sagt, was er tut — auch mit der Maus darauf', async ({ page }) => {
+    // 🐞 v1.1.2251 (Nutzer-Report): Der Zeiger MUSS im Widget sein, um den
+    // Knopf zu treffen — und genau das pausierte den Schieber automatisch.
+    // Der Knopf las diesen Hover-Halt und zeigte deshalb IMMER „Play"; ein
+    // Druck darauf pausierte dann dauerhaft. Beschriftung und Wirkung waren
+    // gegenläufig. Jetzt spiegelt er nur die Nutzerwahl.
+    const root = await mountCard(page, {
+      settings: {
+        ...BENTO_ON,
+        startScreen: { bento: true, widgets: ['__favorites__', '__rich_slider__', 'news', 'integration'] },
+      },
+    });
+    await waitForBento(root, page);
+    const schieber = root.locator('.bento-rich-slider');
+    await expect(schieber).toHaveCount(1, { timeout: 10000 });
+    const knopf = schieber.locator('.hero-slide-pause');
+    // Ohne Dots (nur ein Eintrag) gibt es keinen Knopf — dann ist hier nichts
+    // zu prüfen; der Testhaus-Inhalt entscheidet das.
+    if ((await knopf.count()) === 0) test.skip(true, 'Schieber hat nur einen Eintrag — kein Pager');
+
+    await schieber.hover();
+    await expect(knopf).toHaveAttribute('aria-label', 'Pause');   // NICHT „Play"
+    await knopf.click();
+    await expect(knopf).toHaveAttribute('aria-label', 'Play');    // jetzt hält er
+    await knopf.click();
+    await expect(knopf).toHaveAttribute('aria-label', 'Pause');
+  });
+
   test('KEINE Kachel trägt mehr das alte Favoriten-Rot', async ({ page }) => {
     // v1.1.2245: Das Apple-Rot der Favoriten (v2224) ist mit dem Panel-Layout
     // gestorben — im Frei-Gerüst trägt W1 Bild oder Glas. Der Test hält das

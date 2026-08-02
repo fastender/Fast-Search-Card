@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2251 - 2026-08-02
+
+**Title:** ⏯️ The slider's pause button finally means what it says
+
+- **The pause button was inverted whenever you could reach it.** Hovering the slider pauses it — and you have
+  to hover it to click the button. The button read that hover pause and therefore always showed *Play*, while
+  pressing it set the persistent pause. Label and effect pointed in opposite directions. The button now
+  reflects only the user's own choice (`knopfPausiert`); the progress bar still freezes on hover as before.
+  The Universal card's pager is unaffected (the new prop is optional).
+
+- **The island's × button ran away from the cursor.** It faded in with a `transform: scale()`, so its hit area
+  kept moving while you aimed at it — an automated click chased it for 60 seconds without ever landing. It now
+  fades in on opacity alone, its box stays put, and it also keeps itself visible while the pointer is on it
+  (it overhangs the card edge, so approaching it from outside used to make it vanish).
+
+- `.bento-rich-slider` padding is 18 px all round (was 16/18).
+
+- Suite 123, with the pause-button contract red-proofed against the old code (it reported exactly the
+  inverted "Play").
+
 ## Version 1.1.2250 - 2026-08-02
 
 **Title:** ✖️ One hairline everywhere, island tabs that always show, and a dismiss button for the island
