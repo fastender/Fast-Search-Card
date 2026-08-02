@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2254 - 2026-08-02
+
+**Title:** 📐 The quick-controls drawer closes properly again — and faster
+
+- **Closing the innermost submenu left the grey area standing open.** The drawer measures its target height
+  from the wrong element: `panel.scrollHeight` reads the *animated* element, which carries the fixed height
+  framer set on it — and `scrollHeight` never falls below the element's own box. So when the effects row
+  collapsed, the measured value stayed at the old maximum and the panel kept its full, now empty height.
+  It now measures the content's `offsetHeight`, which follows in both directions (and is layout-based, so
+  the row's hover scaling can't distort it).
+
+- **The closing animation was stuttering.** Its content carries glass surfaces, and every height frame forces
+  the blur to be recomputed — the early frames being the most expensive. Closing now takes 0.14 s instead of
+  0.24 s, and the downward move after collapsing a submenu is a short tween instead of a spring: the
+  overshoot was the most visible part of the stutter.
+
 ## Version 1.1.2253 - 2026-08-02
 
 **Title:** 📏 More air under the news tabs
