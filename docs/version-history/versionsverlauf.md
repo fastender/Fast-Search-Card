@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2266 - 2026-08-02
+
+**Title:** 📐 Search bar 98, tabs back to the top, weather line centred
+
+**Tags:** search, bento, zen, fix
+
+**Search bar 98 px** (78 on phones), radius 49 and 39 — the pill still follows half the height, and icon,
+type and filter button are untouched at 24, 24/30 and 44.
+
+**The tabs on an empty Favorites tile sat at the bottom.** The tile's own rule sets `justify-content:
+flex-end` — icon above, label below, which is right for every normal widget — and it stands *later* in the
+stylesheet than the empty-state rule. Same specificity, so the later one won and pulled the tabs, the heading
+and the message down to the floor. The empty-state rule now carries the class twice, which settles it on
+specificity rather than on line order. Tabs sit at the top like in the filled tile, and the message centres in
+the space below via two `auto` margins.
+
+**The weather and power line was left-aligned** under the centred clock. The clock block centres with
+`text-align: center`, and that only centres inline content — a flex container needs its own
+`justify-content`. It has one now.
+
+**Both lines got bigger and equal:** date and status line are 19 px (were 17 and 15), with the weather symbol
+at 18 and the bolt at 16 so they grow with the type instead of shrinking against it.
+
 ## Version 1.1.2265 - 2026-08-02
 
 **Title:** 📏 Search bar 104 → 100
