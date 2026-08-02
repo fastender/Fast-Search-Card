@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2260 - 2026-08-02
+
+**Title:** 🌫️ Closing is a morph again, not a snap
+
+**Hero:** none
+
+**Tags:** filter, animation, visionOS
+
+Getting rid of the dark disc in v1.1.2259 came at the price of a hurried exit: 340 ms against the 520 ms it
+takes to open. Closing now runs the full length again and reads as what it is — one surface collapsing back
+into its button.
+
+The shape takes 500 ms on an evenly paced curve rather than the front-loaded one, so the collapse is actually
+visible instead of being over in the first few frames. The fade sits on top of it and finishes earlier: the
+window is still 224 px wide at 85 % opacity, has shrunk to 119 px at 42 %, and is down to 17 % by the time it
+is under 90 px — small enough to read as a button, far too faint to be seen as one. Measured across the whole
+exit, there is no frame where the window is both narrower than 110 px and more than 25 % opaque.
+
+The free-standing ✕ is the one thing that does not move: it holds its position to the pixel and fades in
+160 ms. The content inside goes in 200 ms, the dimming behind lifts over 440 ms with the morph.
+
 ## Version 1.1.2259 - 2026-08-02
 
 **Title:** 🫧 Closing the filter window no longer leaves a dark button behind
