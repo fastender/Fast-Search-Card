@@ -1,5 +1,12 @@
 # Versionsverlauf
 
+## Version 1.1.2253 - 2026-08-02
+
+**Title:** 📏 More air under the news tabs
+
+The news tile's tab row now keeps 10 px to its hairline instead of 7. Tasks and calendar keep the shared
+7 px from v1.1.2250.
+
 ## Version 1.1.2252 - 2026-08-02
 
 **Title:** ⏱️ The island's timings become configurable — so the test suite stops watching real clocks
