@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2263 - 2026-08-02
+
+**Title:** 📍 Info popups: right origin on the first click, dimming to the screen edge
+
+**Tags:** info, modal, fix
+
+Two things were wrong with yesterday's info popup, and both had the same shape: something was read too late,
+or read in the wrong frame of reference.
+
+**The first click came out of the top left corner.** Every following click was correct. On the very first
+render nothing had been measured yet, so the window fell back to a placeholder origin of 0,0 — and framer
+takes exactly that first value as the start of the animation, no matter what arrives a frame later. The
+button is now measured *synchronously while opening*, before the state flips, and the overlay only renders
+once a measurement exists.
+
+**The dimming stopped at the panel edge.** It hung inside `.detail-panel`, and that panel is glass —
+`backdrop-filter` makes an element the containing block for anything `position: fixed` inside it, so
+"full screen" ended at its border. Worse, `.detail-panel-wrapper` carries `z-index: 10` and therefore its own
+stacking context: a window at `z-index: 9999` *inside* it still paints on level 10 and could never rise above
+a dimming layer outside. Dimming, window and ✕ now hang together one level up, in `.main-container` —
+measured 0,0 to the full viewport, with the window centred on the card to the pixel and the ✕ 14 px below it.
+
 ## Version 1.1.2262 - 2026-08-02
 
 **Title:** ⓘ Every info popup now speaks the filter window's language
