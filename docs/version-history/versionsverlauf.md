@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2262 - 2026-08-02
+
+**Title:** ⓘ Every info popup now speaks the filter window's language
+
+**Tags:** info, modal, visionOS, polish
+
+The card has info buttons everywhere — fifteen files use the same primitive — and they still opened the old
+way: a dark panel fading in at the centre, a small ✕ in its top right corner, a blue button at the bottom.
+Next to the new filter window that looked like a different app. All of it is now the same surface.
+
+The popup **grows out of its ⓘ button** into the centre, on the same 520 ms curve with the same slight
+overshoot, and collapses back into it while fading — so the closing never ends as a dark disc. The glass is
+copied value for value from the filter window: the same gradient over `rgba(58,60,66,0.58)`, the same
+`blur(34px) saturate(190%)`, the same bright hairline on top and dark one below, the same deep shadow. The
+dimming behind covers the whole screen instead of just the panel.
+
+The ✕ left the window. It is now the same free-standing 36 px glass circle sitting 14 px below, horizontally
+centred — measured 0 px off — and it fades without moving, exactly like the filter's. "Got it" stays where it
+was, but as a glass pill rather than a blue bar, so the window keeps one material throughout.
+
+The height is measured, not guessed: the window is exactly as tall as its content up to 74 % of the panel, and
+past that the text scrolls inside with its own scrollbar while the heading and the button stay put.
+
+One subtlety worth recording: the overlay is no longer mounted behind `open &&`. Torn out of the tree the
+moment it closes, `AnimatePresence` never gets to run its exit — the popup would have vanished instantly
+instead of morphing back. The condition now sits inside the presence wrapper.
+
 ## Version 1.1.2261 - 2026-08-02
 
 **Title:** 🌑 The filter window now dims the whole screen
