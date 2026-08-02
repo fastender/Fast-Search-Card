@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2255 - 2026-08-02
+
+**Title:** 📐 The drawer gets its padding back, and the results scrollbar moves to the edge
+
+- **The opened drawer was cut off at the bottom.** Yesterday's fix measured the content but forgot that the
+  animated `height` is a border box: the panel's own `16px` top and bottom padding were missing, so the last
+  row lost 32 px. The measurement now adds the panel's computed vertical padding — read from the style, so a
+  later padding change carries over by itself.
+
+- **The results list's scrollbar sat over the cards.** It was still on the component's default `right: 3px`;
+  it now sits at the panel edge.
+
 ## Version 1.1.2254 - 2026-08-02
 
 **Title:** 📐 The quick-controls drawer closes properly again — and faster
