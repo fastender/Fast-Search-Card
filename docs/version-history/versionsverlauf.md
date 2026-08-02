@@ -1,5 +1,13 @@
 # Versionsverlauf
 
+## Version 1.1.2256 - 2026-08-02
+
+**Title:** ↩️ Wrong scrollbar reverted — widget 1's moves right instead
+
+v1.1.2255 moved the results list's scrollbar; the report was about **widget 1's**. The results list is back
+to the component default, and widget 1's bar goes from −6 px to −12 px — v1.1.2250 had pulled it too far
+left when correcting the earlier "too far right".
+
 ## Version 1.1.2255 - 2026-08-02
 
 **Title:** 📐 The drawer gets its padding back, and the results scrollbar moves to the edge
@@ -9,8 +17,8 @@
   row lost 32 px. The measurement now adds the panel's computed vertical padding — read from the style, so a
   later padding change carries over by itself.
 
-- **The results list's scrollbar sat over the cards.** It was still on the component's default `right: 3px`;
-  it now sits at the panel edge.
+- ~~The results list's scrollbar sat over the cards.~~ **Reverted in v1.1.2256** — the report was about
+  widget 1's scrollbar, not the results list.
 
 ## Version 1.1.2254 - 2026-08-02
 
