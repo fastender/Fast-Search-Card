@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2283 - 2026-08-04
+
+**Title:** 🔥 Thermal round 4 — the forecast icons stop twitching, the island band takes a breath
+
+**Tags:** performance, mobile, thermal, weather, island
+
+User report: the phone gets warm. This card has learned the same lesson three times already — v1.1.1181
+(58 → 42 endless SVG animations), v1.1.1242 (skeleton shimmer), v1.1.1244 (pending pulse) — and it is the
+same lesson again: **an animation that never ends never lets the device idle.**
+
+**First, what it is NOT.** The island's one-second driver was measured, not guessed: against a synthetic
+house of 800 entities it costs **0.42 ms per tick** (live-activity scan 0.36, power heuristic 0.03, category
+roll 0.02, signatures 0.005, settings read 0.002) — about 1.5 seconds of compute per hour. That is not what
+warms a phone, so nothing there was touched.
+
+**The hourly forecast was running about a hundred endless animations on the main thread.** Twenty-four hour
+icons, each drawn with up to four separately animated paths — four rain drops, three fog lines — plus the
+seven daily rows underneath. They animate SVG children, and SVG children get no compositor layer of their
+own: every frame is real paint work, forever, for as long as the weather view stays open. The small forecast
+icons are now static; at 22 px the two-pixel drift was barely visible anyway. The large hero icon above them
+keeps floating.
+
+**The island's running text now rests between passes.** Since v1.1.2282 both lines scroll, and with a
+column only ~80 px wide they scroll practically always — two permanently animating layers on the screen you
+look at most. After each pass the band now holds still for five seconds, then runs again. It halves the
+moving time and reads better, because the beginning of the sentence stands still at the beginning. Pointing
+at the island still stops it; the pause is set through an attribute rather than an inline style, so it
+cannot fight the hover rule.
+
 ## Version 1.1.2282 - 2026-08-03
 
 **Title:** 🏝️ The island is one line again — values, live, two texts, a stack of badges
