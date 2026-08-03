@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2275 - 2026-08-03
+
+**Title:** ⌨️ The search bar types its own invitation
+
+**Tags:** search, animation, layout
+
+**94 px** now (74 on phones), four less than before; the pill radius follows at 47 and 37, and icon, type and
+buttons are untouched as always.
+
+**At rest the placeholder writes itself.** Instead of the category name sitting there from the first frame,
+the bar types out "Search or Ask" — one character every 55 ms, starting 700 ms after mount so the card's own
+fade-in is over before anything moves. It runs once per mount and only while nothing is typed and the panel is
+closed; from the moment someone types or the panel opens, the category placeholder takes over again as before.
+German gets "Suchen oder fragen".
+
 ## Version 1.1.2274 - 2026-08-03
 
 **Title:** 🧲 The right-hand button stopped hopping, hover stopped repainting
