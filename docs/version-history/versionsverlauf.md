@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2276 - 2026-08-03
+
+**Title:** 📵 Info popups were two lines tall on the phone
+
+**Tags:** info, mobile, fix, search
+
+**On iPhone the info window opened crippled**: wide, barely two lines tall, its text cut off after the
+heading, and hanging near the top of the screen instead of the middle. It sized itself from
+`.main-container` — and on phones that container has no `min-height` while the detail view inside it is
+positioned absolutely, so it is only as tall as the search bar, about 94 px. Three quarters of that is 70,
+the floor of 200 took over, and the window could never be taller than that.
+
+Height and centre now come from the **screen**, which is the honest reference: the dimming covers the whole
+screen anyway. Reproduced with the container forced down to a phone-like 142 px: the cap goes from 160 to
+601 px, the body scrolls (483 of 1658 px visible) and the window sits on screen rather than off the top.
+
+**The typed placeholder types like a person now.** A fixed interval reads like a ticker, so each character
+gets its own scattered pause — around 62 ms, a good 130 after a space, the way one pauses between words. And
+it no longer stays: after holding the finished sentence for 1.8 s the bar returns to the category name it
+belongs to.
+
 ## Version 1.1.2275 - 2026-08-03
 
 **Title:** ⌨️ The search bar types its own invitation
