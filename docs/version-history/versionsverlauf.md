@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2272 - 2026-08-03
+
+**Title:** 📱 Cursor sat too far right on phones, Tab hint retired
+
+**Tags:** search, cursor, mobile, fix
+
+**The cursor drifted on phones.** It stands at the measured width of the typed text, and that measurement
+comes from a hidden mirror span — which carried a hard-coded 24 px while the input drops to 19 px below
+768 px. So the mirror measured a bigger text than the one on screen: for "energy" it claimed 70.9 px where
+the text actually ends at 58.3 px, putting the cursor **12.6 px past the last letter**. The mirror now
+follows the same 19/24 as the input, measured back at 58 px against the true 58.3. While there, the cursor
+also drops from 30 to 24 px on phones and centres itself vertically instead of hanging from the top — its
+surroundings are 30 px tall there, so top-anchored it sat three pixels high.
+
+**The Tab hint and the blue confirm button are gone.** Both existed to accept a suggestion; the suggestion's
+own button on the right does that with one tap, on any device. The orphaned handler went with them.
+
+**The suggestion chip lost its border** — the fill carries it on its own.
+
 ## Version 1.1.2271 - 2026-08-02
 
 **Title:** 🎯 One place on the right, never two icons at once
