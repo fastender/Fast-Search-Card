@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2279 - 2026-08-03
+
+**Title:** ⏳ The invitation waits until you have arrived
+
+**Tags:** search, kiosk, ui, fix
+
+**The typed sentence started too early.** It ran on mount — that is, while the clock screen was still up and
+the bar sat behind the curtain, so it wrote itself unseen and was over by the time anyone arrived. It now waits
+for the start screen to be left *and* the search to be closed, which is exactly the state where there is
+something to invite.
+
+Two things had to be untangled for that. The animation's timers hung in the effect's cleanup, so any change to
+a dependency killed them mid-flight and the retry bailed out at the once-only guard — in the bento view, where
+one render follows the next, it would never have run at all. Start and teardown are separate now: only
+unmounting clears the timers.
+
+**The button on the left was a permanent back arrow** while the search was open, so the current category was no
+longer readable. The arrow answers the pointer again: category symbol at rest, arrow on hover — verified in the
+open panel with transitions stilled.
+
+**Kiosk mode is applied earlier and follows up.** It now starts as the card mounts rather than when the search
+field runs its effect, and it re-applies at 150, 400, 900, 1800 and 3500 ms. HA builds its frame in bursts —
+`hui-root` first, `#view` and the sidebar later, and again when entering the bento view — so one attempt often
+lands beside it. That is the "only scrolling back and forth fixes it" report. Following up costs nothing: where
+the styles are already right, nothing is written to the DOM at all.
+
 ## Version 1.1.2278 - 2026-08-03
 
 **Title:** ✍️ The invitation is written, not swapped in
