@@ -481,7 +481,9 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **HA-Sidebar anzeigen** / **HA-Kopfzeile anzeigen** – linke/obere HA-Leiste ein- oder ausblenden.
 >
-> *Warum wichtig:* Für einen aufgeräumten Vollbild-Look.
+> *Warum wichtig:* Für einen aufgeräumten Vollbild-Look. Der Platz der Kopfzeile wird zurückgegeben, damit unten nichts abgeschnitten wird.
+>
+> *Zusammen mit kiosk-mode:* Ist **kiosk-mode** installiert, sollte sie das Kommando haben — diese beiden Optionen dann besser ausschalten.
 
 **EN**
 > ## Home Assistant
@@ -491,6 +493,10 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Show HA sidebar** / **Show HA header** – show or hide the left/top HA bar.
 >
 > *Why it matters:* for a clean full-screen look.
+>
+> *Together with kiosk-mode:* if **kiosk-mode** is installed, let it be in charge — better switch these two options off then.
+
+<!-- v1.1.2277: Hinweis zur Koexistenz mit kiosk-mode ergänzt (beide Sprachen). -->
 
 ## animations
 

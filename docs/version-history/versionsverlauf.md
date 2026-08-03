@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2277 - 2026-08-03
+
+**Title:** 🖥️ Hiding the Home Assistant header now gives its space back
+
+**Tags:** kiosk, home assistant, layout, search
+
+**Kiosk mode was rebuilt** along the lines of NemesisRE/kiosk-mode. Three things were wrong:
+
+The header was only *hidden* — its space stayed reserved. That is the empty band at the top and the content
+cut off at the bottom that was reported from a wall tablet. The view's top padding is now recomputed, with
+`--safe-area-inset-top` for iPads with a notch and a `0px` fallback for older HA versions that do not know
+`--view-container-padding-top`.
+
+The sidebar was collapsed through `--mdc-drawer-width` — the *old* variable name. Current HA reads
+`--ha-sidebar-width` and builds the drawer from `wa-drawer` / `.sidebar-shell`; both generations are served
+now, and `--mdc-top-app-bar-width: 100%` keeps the header from staying narrow where it is still visible.
+With the sidebar hidden, `hass-toggle-menu` is caught in the capture phase so neither the hamburger nor a
+swipe brings it back.
+
+And the styling only ever survived the moment it was applied: changing dashboard or view makes HA rebuild
+`hui-root`, taking the injection with it. It now re-applies on `location-changed`, on `popstate` and when the
+panel resolver swaps its child — debounced, and checking that the style element still hangs in the live shadow
+root instead of piling up orphans. `removeKioskMode` undoes all of it, and the card calls it when it unmounts,
+so repeated mounts cannot leak listeners.
+
+This reaches outside the card into HA's own frame, which stays a deliberate exception: header and sidebar,
+nothing else. Where kiosk-mode is installed alongside, it should be in charge — the info popup now says so in
+both languages.
+
+**Also:** accepting a suggestion leaves the text field empty while the search stays active through its chip —
+the filter reappeared and landed on top of the ✕ in the shared slot. It now stays away for as long as any chip
+is set.
+
 ## Version 1.1.2276 - 2026-08-03
 
 **Title:** 📵 Info popups were two lines tall on the phone
