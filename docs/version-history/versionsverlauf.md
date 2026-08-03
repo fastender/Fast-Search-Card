@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2278 - 2026-08-03
+
+**Title:** ✍️ The invitation is written, not swapped in
+
+**Tags:** search, cursor, animation
+
+"Search or Ask" was being typed into the input's `placeholder` attribute. That is a text swap, not an
+animation: the letters appear, but nothing is *writing* them — a placeholder cannot carry a cursor, and it
+reads in the dimmed placeholder colour.
+
+It now works the way the start screen does it: the sentence is real, visible text lying over the input in the
+same typeface, and the glowing cursor walks along behind it. Traced live: "Such" with the cursor at 30 px,
+"Suchen o" at 65, "Suchen oder" at 96, the full sentence at 159 — the cursor is measured against the same
+mirror the real caret uses, so it sits exactly where a typed character would put it.
+
+When the sentence has stood for its 1.8 s, text and cursor disappear together and the bar goes back to the
+category name.
+
 ## Version 1.1.2277 - 2026-08-03
 
 **Title:** 🖥️ Hiding the Home Assistant header now gives its space back
