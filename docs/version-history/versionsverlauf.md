@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2273 - 2026-08-03
+
+**Title:** 🗂️ Categories became a window, and the button on the left says what it does
+
+**Tags:** search, categories, visionOS
+
+Going back from the search panel used to drop you onto the start screen with the four category buttons already
+spread out beside the bar — a menu nobody had asked for. Back is now simply back, and the categories moved
+into a window of their own.
+
+It grows out of the button on the left exactly as the filter window grows out of the button on the right, and
+it does so by literally sharing its rules: the same `filter-modal-*` classes, so the glass, the timings, the
+free-standing ✕ and the full-screen dimming can never drift apart between the two. Inside are the four
+categories as circles with labels — devices, sensors, actions, custom — with the current one lit, and an ⓘ
+explaining what the choice actually changes. The window is 360 px rather than the filter's 280, because four
+choices at 76 px plus their gaps and padding need exactly that; at 280 the last one would have been clipped.
+
+The button on the left also has something to say now, which it never did outside AI mode: **Back** while the
+panel is open, **Choose category** when it is closed.
+
 ## Version 1.1.2272 - 2026-08-03
 
 **Title:** 📱 Cursor sat too far right on phones, Tab hint retired
