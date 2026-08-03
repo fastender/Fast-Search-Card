@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2271 - 2026-08-02
+
+**Title:** 🎯 One place on the right, never two icons at once
+
+**Tags:** search, ui
+
+The right end of the search bar showed up to three things side by side while typing: a clear ✕, a brain for AI
+mode, and the filter — plus the suggestion's own little icon glued to the end of the ghosted word. It is one
+slot now, with exactly one occupant:
+
+- **nothing typed** — the filter, as before
+- **a suggestion was found** — its symbol, sitting where the filter sits, in the filter's size (42 px) as a
+  bright circle with a dark glyph; tapping it accepts the suggestion, exactly as tapping the ghost word does
+- **typed, no suggestion** — the ✕ to clear
+
+The brain is gone from the bar entirely. With it goes the only way into AI mode from here, which is the point:
+it was competing for attention on every keystroke.
+
+The small icon that used to sit right after the ghosted word is gone too, and with it the hidden mirror span
+that measured the word's width to position it — the symbol has a fixed home now and needs no measuring.
+
 ## Version 1.1.2270 - 2026-08-02
 
 **Title:** 🏗️ Results no longer build the entire list before showing anything
