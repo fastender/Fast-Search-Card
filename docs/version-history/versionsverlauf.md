@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2282 - 2026-08-03
+
+**Title:** 🏝️ The island is one line again — values, live, two texts, a stack of badges
+
+**Tags:** island, redesign, marquee, notifications
+
+**The two-storey island is gone.** The head used to stack a headline row (weather, power, rolling summary,
+four square counter buttons) on top of a ticker line, 72 px tall and 540 px wide. It is now a single row,
+52 px tall and 470 px wide, exactly as the approved mock-up: from the left, the values as badges, the live
+button, the two text lines, the severity circles, and the way into the notification centre.
+
+**The values lost their icons and became badges** — 21°, 1.2 kW — each still a link into the weather or
+energy view. **The live button is a plain round dot**: green and breathing while something is running, grey
+and still when the house is quiet. Pressing it expands the panel exactly as the old tile button did.
+
+**The severity circles are now display only.** They overlap by 12 px, carry no number, and are the same
+30 px as the live dot, so the trio reads as one object. The separating ring sits *inside* the circle as a
+border — as an outer shadow it added five phantom pixels and made them look bigger than the live dot — and
+the fills are opaque, otherwise the rear circle showed through the front one. Blue for information, amber
+for warnings, red for critical. The single way in is the "4 notifications ›" link on the right, with the
+chevron set apart from the words.
+
+**One type size for everything** (12.5 px, 12 on phones), tighter leading, and the text column nudged 2 px
+down so the block sits optically centred rather than arithmetically.
+
+**Both text lines run when they do not fit.** The text is laid out twice, the band travels exactly one copy
+plus its gap and jumps back invisibly; the pace is a readable 45 px per second, the edges are masked, and
+pointing at the island stops the band so it can be read. Whether it runs at all is a measurement — CSS alone
+cannot ask "does this fit?" — and it re-measures when the content grows or the row narrows.
+
+The standby cascade keeps its stages: the mini pill now shows only the hard readings (values, live, stack)
+and shrinks to 260 px, since the single row no longer fills 330.
+
 ## Version 1.1.2281 - 2026-08-03
 
 **Title:** ⬅️ The typed sentence starts where the pill's curve ends
