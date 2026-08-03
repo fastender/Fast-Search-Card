@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2280 - 2026-08-03
+
+**Title:** 🎬 The bar clears the stage while it writes
+
+**Tags:** search, cursor, animation, visionOS
+
+**The cursor is 20 % smaller** — and all of it together, so the proportions hold: the stroke from 2 × 30 to
+1.6 × 24, the close fringe from 2.4 to 1.9 px, the wide glow from 24 to 19.2, each with its blur scaled to
+match. On phones the stroke drops from 24 to 19 px.
+
+**While the sentence writes itself, the bar belongs to it alone.** The category button on the left and the
+filter on the right step aside — measured at both ends: 1 before, 0 during.
+
+**When it has finished, they come back in the visionOS way** rather than popping in: blur to sharp, faint to
+solid, with a hair of scale, over 560 ms — the category name arriving with them. It plays exactly once and
+then returns to the ordinary state, so no later render can replay it.
+
+The phase rides as a data attribute on the search bar rather than as a class on each button: the category
+button belongs to the input section, the filter to its parent, and a state on the shared box reaches both
+without growing the prop chain — the same trick as `data-zen-revealed` on the card.
+
 ## Version 1.1.2279 - 2026-08-03
 
 **Title:** ⏳ The invitation waits until you have arrived
