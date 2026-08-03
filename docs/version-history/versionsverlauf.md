@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2274 - 2026-08-03
+
+**Title:** 🧲 The right-hand button stopped hopping, hover stopped repainting
+
+**Tags:** search, ui, fix
+
+**Buttons jumped while typing.** The filter, the suggestion symbol and the ✕ were siblings in the same flex
+row, so while one was fading out and the next fading in, both briefly took up space: the button slid left by
+its own width and snapped back as soon as the exchange finished. All three now share **one fixed place** at
+the right edge, positioned outside the flow, with the occupants stacked on top of each other. Measured across
+the change: the centre of that place sits at the same pixel whether the field is empty or holding text.
+
+**Hover repainted the suggestion button.** It borrowed a shared hover variant that sets a `backgroundColor` —
+which turned the white circle grey and made its inner highlight read as a border. It has its own variant now,
+and like the filter it only scales.
+
+**The button on the left swapped its icon on hover.** On the start screen that meant a back arrow appeared
+where there was nothing to go back to. The arrow now follows the *state*: it shows while the search panel is
+open, and hovering merely scales the button — verified at both states with transitions stilled. Its background
+was and stays fully transparent.
+
 ## Version 1.1.2273 - 2026-08-03
 
 **Title:** 🗂️ Categories became a window, and the button on the left says what it does
