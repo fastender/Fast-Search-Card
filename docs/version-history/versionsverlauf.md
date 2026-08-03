@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2281 - 2026-08-03
+
+**Title:** ⬅️ The typed sentence starts where the pill's curve ends
+
+**Tags:** search, animation
+
+While the sentence writes itself the category button steps aside — but it was only invisible, not gone, so the
+text still began a button's width plus the flex gap into the bar, floating in the middle of nowhere. The
+button now gives up its space as well, and a negative margin swallows the gap flex would otherwise keep. The
+sentence starts 34 px further left, at the padding edge where the pill's rounding has run out; the space rides
+back in on the same curve when the button returns.
+
 ## Version 1.1.2280 - 2026-08-03
 
 **Title:** 🎬 The bar clears the stage while it writes
