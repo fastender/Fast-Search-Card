@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.2284 - 2026-08-04
+
+**Title:** 🔥 Thermal round 5 — the provider stops rendering the whole card on every Home Assistant tick
+
+**Tags:** performance, mobile, thermal, dataprovider, render
+
+Home Assistant hands the card a brand-new `hass` object on every state change in the house — in a lively home
+that is dozens per second, each one an energy meter, a presence sensor, an automation. Two separate faults
+turned each of those into work, and both were measured in the dev instance with a render counter hooked into
+Preact's `options.__r`.
+
+**Fault 1 — every tick became a render.** The provider subscribed to the store and set state on each one. Now
+the subscription is throttled to 250 ms (leading edge immediate, trailing edge guaranteed, the same figure
+`useHassThrottled` already used). Measured: **60 ticks fired in one burst produced 0 renders while they were
+arriving** (13.6 ms of pure loop) and settled into a handful afterwards, where before every single one landed.
+
+**The freshness is untouched, and that is the whole point.** `hassRef` and `window._hass` now hang off the
+store directly in their own subscription — they are updated on every tick, synchronously, without rendering
+anything. Verified: after a burst of 60, `window._hass` is the very last object, same JavaScript turn. Every
+service call, every watch, every callback reads from there, never from the throttled state.
+
+**Fault 2 — a provider render dragged the entire card behind it.** Preact re-renders children when the parent
+renders, even when the context value has not changed. Since v1.1.1710 `hass` is deliberately *not* in the
+context value — but the tree ran anyway: SearchField with its 30-plus hooks, the grouped list, both banners,
+the filter and category windows, the motion wrappers. Measured before: **one tick = 20 components rendered.**
+The children now pass through a `memo` gate, so their identity only changes when the app above really
+re-renders. Measured after: **one tick = the provider itself, nothing below it.**
+
+**And the card is not deaf.** Two counter-checks, because "context no longer arrives" would be the one
+catastrophic failure mode here. In an isolated tree on the same Preact instance, a context change still
+reached the consumer through the gate (value and render count both moved) while the non-consuming component
+in between stayed untouched. In the real card, a genuine data change — entities reloaded via `cacheCleared` —
+re-rendered SearchField, the grouped list and the banners exactly as before.
+
 ## Version 1.1.2283 - 2026-08-04
 
 **Title:** 🔥 Thermal round 4 — the forecast icons stop twitching, the island band takes a breath
