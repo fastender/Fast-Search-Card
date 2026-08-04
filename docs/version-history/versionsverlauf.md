@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2288 - 2026-08-04
+
+**Title:** 📏 The island's two-liner stops being clipped, stops drifting, and the footer gets room
+
+**Tags:** island, layout, typography, bugfix
+
+Three reports on the two-line summary, each measured before and after.
+
+**The second line was cut off along its bottom edge.** The ticker's round icon backing is 26 px tall while
+the line capped at 17 — measured as `scrollHeight 26` against `clientHeight 17`, so nine pixels of the
+circle simply vanished. The backing is now 22 px and the line exactly 22: smaller would clip it again,
+larger would pull the two lines apart. Verified: scroll height and client height are both 22, nothing
+overflows.
+
+**The lines sit closer together**, as asked: the 1 px gap between them is gone and the leading tightened
+from 1.15 to 1.1. The column is 37 px tall in total — three more than before, but now showing everything
+instead of cropping it.
+
+**The first line no longer drifts into place.** It looked misaligned for a moment and then snapped right.
+The cause: the rolling cell was only as wide as its text, and during a roll change two texts briefly
+occupy it — so the cell grew to the wider one and shrank back afterwards, dragging the right-aligned text
+with it. The cell now spans the full column and places its content at the right edge; alignment moved out
+of inline styles into CSS, where a running marquee can still flip it back to the left. Verified across
+twelve samples and two roll changes: the right edge stayed at exactly the same pixel every time.
+
+**The footer strip has room to breathe** — 8 px above the hairline, 15 above and 13 below the text, where
+it previously ended two pixels under its own baseline.
+
 ## Version 1.1.2287 - 2026-08-04
 
 **Title:** 🩹 The expanded island no longer overhangs the card, and it stops shrinking when held
