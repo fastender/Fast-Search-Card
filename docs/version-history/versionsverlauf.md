@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2286 - 2026-08-04
+
+**Title:** 🏝️ The island learns its stages — button, pill, notification panel, live panel, swipe away
+
+**Tags:** island, redesign, notifications, stages, glass
+
+The v2282 single row lasted two days; the approved stages mock-up
+(insel-stadien-mockup.html, seven review rounds) replaces it wholesale.
+
+**The island now boots as a round glass button** with the counter bubble, at the right edge — the resting
+face of the old standby cascade, promoted to the default. Tapping it opens the **mini pill**: the bare
+values (27°, 3.8 kW — no badge backgrounds, 14 px apart) on the left and the button row hard right.
+
+**The button row is one segmented field**, exact format of the detail tabs (dark ground, radius 24, 5 px
+padding) with a **white slider** that travels to the chosen spot — four colorless icons in tab order:
+critical ❗, warning ⚠, info ⓘ, and live 〰 (the pulse line from the notification centre's Live tab).
+Severity is read from the shape; colour lives in the panel's tab dots.
+
+**Any severity button opens the notification panel** — same shaft the live list uses: tabs with counts and
+colour dots (All · Critical · Warning · Info), rows with dot, title, reason, relative time, source label,
+and snooze/dismiss buttons (dismiss verified: an HA alert acknowledges locally, the row disappears, the
+header line drops to "0 Warnungen"). The scroll area has a **fixed height of 236 px** with the card's
+CustomScrollbar, so switching filters never changes the pill's size. **Tabs and button row are one
+selection**: pressing ⚠ selects the Warning tab, choosing "All" below releases the button and hides the
+slider, pressing the same button again closes to mini. The **live button opens the device list** exactly as
+before. Both panels end in the same Apple-like footer strip over a hairline — "Open notification centre ›"
+or "Open all activities ›" (deep-links to the Live tab) — in text colour, not signal blue.
+
+**A two-line summary sits right-aligned next to the button row** (at most 190 px, marquee with reading
+pause beyond that): for notifications "2 Warnungen / 5 Mitteilungen" following the selected tab ("All"
+names the highest present severity); for live the familiar rolling category line and ticker.
+
+**Swiping right** anywhere on the head lays the island back onto the button from any stage — iOS-sheet
+physics: follow the finger with shrink and fade, spring back under 90 px, a flick counts only if it also
+travelled 24 px. Verified both ways in the dev instance.
+
+**The pill is now real glass like the search bar, and hell/dunkel follows Settings → Appearance** (dark
+mode light/dark/auto, auto = dark from 20:00 to 06:00): the light theme keeps the white card tint, the dark
+theme uses the search bar's standard glass; ink, chips, list rows, hairlines, scrollbar and footer all
+switch through one set of variables. Approved measurements throughout: height 64, radius 34, circles 30,
+button gap 0, font 12.5.
+
+The standby cascade (v2240) is retired — its resting button IS the new initial stage; the idle timers, the
+mini fold and the hover × are gone, along with the breathing live dot (one endless animation fewer). The
+old `useIslandStandby` hook stays on disk but has no callers. Note: the island Playwright specs still
+assume the old boot face and were deliberately not touched or run (standing rule).
+
 ## Version 1.1.2285 - 2026-08-04
 
 **Title:** 🔥 Thermal round 6 — zero endless animations at rest
