@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2287 - 2026-08-04
+
+**Title:** 🩹 The expanded island no longer overhangs the card, and it stops shrinking when held
+
+**Tags:** island, bugfix, layout, css-specificity
+
+Two reports on the fresh stages island, both reproduced in the dev instance before touching anything.
+
+**Expanded, the panel was cut off at both sides.** The pill carried the mock-up's fixed 470 px, but the
+card is only as wide as Home Assistant grants it — with the sidebar open, on a tablet, in a narrow column.
+Measured at 420 px of content width: the pill stuck out **25 px on each side** and the card's edge sliced
+it. The width is now clamped to the space actually available, and that space is *observed* rather than
+measured once — the sidebar folds in and out without any window resize, the same reason the standby button
+already carried an observer. A measurement of zero is treated as "no reading", not as "no space", so a card
+that has not been laid out yet still gets its full width. Verified at 420 px: pill 420, zero overhang on
+either side, head still 64 tall.
+
+**Pressing and holding shrank the whole island, text and all.** `perceivedSpeed.css` gives every button an
+`:active { transform: scale(0.97) }` for instant touch feedback — and the island's head is a `<button>`, so
+holding it scaled the entire card. It is not a button in that sense: it is a surface with its own targets
+inside, and those give their own feedback. The scale is now suppressed for the head.
+
+The fix needed a second pass: `.island-head:active` scores (0,2,0) against the global rule's (0,2,1) and
+would have quietly lost. With the pill in front of it (0,3,0) it wins regardless of file order — checked by
+pitting copies of both rules against each other in the browser.
+
 ## Version 1.1.2286 - 2026-08-04
 
 **Title:** 🏝️ The island learns its stages — button, pill, notification panel, live panel, swipe away
