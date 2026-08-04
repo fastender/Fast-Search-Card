@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2285 - 2026-08-04
+
+**Title:** 🔥 Thermal round 6 — zero endless animations at rest
+
+**Tags:** performance, mobile, thermal, zen, island
+
+The goal of this round is a threshold, not a slope: as long as **one** animation runs, the browser produces a
+frame on every screen tick, forever — only at **zero** does the device drop into its deep idle state. Two
+leftovers stood in the way.
+
+**The curtain kept animating invisibly for the whole session.** Revealing the start screen only faded the
+curtain to `opacity: 0` — it stayed mounted, and its two endless animations (the blinking caret, the breathing
+grip) kept running behind the visible surface for nobody. The curtain is now unmounted 420 ms after the
+reveal, once its 260 ms fade has finished; the path is one-way, so it cannot need to come back before the next
+load. Verified on a fresh page: two endless runners before the reveal, **zero** after it, and only finite
+entrance animations remain. One real bug caught on the way: `isZenRevealed` is a function, and the first
+version negated the function object instead of its result — the curtain would never have mounted at all. The
+dev instance caught it before any user did.
+
+**The island's decorative motion now sleeps after three minutes.** The breathing live dot — and the running
+text band, if one is moving — pause via `animation-play-state` once no pointer, wheel or key has been seen
+for three minutes; the very first gesture wakes them. Paused, not hidden: the dot stays visible and green, it
+just stops pulsing, so no information is lost. Both edges were driven through the real path with a shortened
+test clock: idle → attribute `still`, computed play-state `paused`; one gesture → `wach`, `running`.
+
+Also fixed: the reduced-motion block missed both zen runners — the caret was not listed at all, and the grip
+rule targeted the outer shell while the animation sits on the inner element. Both are now covered.
+
+With this, a resting card runs **zero** endless animations once the standby readings hold still.
+
 ## Version 1.1.2284 - 2026-08-04
 
 **Title:** 🔥 Thermal round 5 — the provider stops rendering the whole card on every Home Assistant tick
