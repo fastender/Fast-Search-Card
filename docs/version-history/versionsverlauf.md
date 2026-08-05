@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2293 - 2026-08-06
+
+**Title:** 🏝️ The resting button keeps its dark glass over an open page — leftover hero code deleted
+
+**Tags:** island, glass, detail-view, cleanup
+
+**The white button.** Over an open detail view the pill swaps its blur for a still substitute — deliberately,
+since v2207: floating above the running background video, a live `backdrop-filter` drags every video frame
+through the blur (tablet report). That substitute was `rgba(255,255,255,0.92)`, from back when the island was
+a light macOS card with dark ink. Since v2289 it wears dark glass and **white** ink, so the resting button
+turned into a white disc with a white bell inside it (user report with a screenshot). The substitute is now
+the same tint the island uses everywhere, just denser because no blur is helping: `rgba(28,28,30,0.88)`.
+The values capsule beside it was never covered by that rule at all — it kept blurring video frames and looked
+different from the button; both share the substitute now.
+
+**Cleanup.** `src/utils/heroTransition.js` and `tests/hero-transition.spec.js` are gone — the last user of the
+flight animation went out with v2292.
+
 ## Version 1.1.2292 - 2026-08-06
 
 **Title:** 🏝️ The island steps aside for a new page — fake-hero flight removed
