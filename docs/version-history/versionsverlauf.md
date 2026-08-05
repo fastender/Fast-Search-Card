@@ -1,5 +1,48 @@
 # Versionsverlauf
 
+## Version 1.1.2289 - 2026-08-04
+
+**Title:** 🏝️ The island splits in two — a status line at rest, a summary capsule, a panel with two axes
+
+**Tags:** island, redesign, notifications, glass, mockup
+
+The stages mock-up went through another twelve rounds; this is what came out of it.
+
+**Weather and power moved out of the island** into their own glass capsule beside it. At rest the two bodies
+span the full width — values at the left edge, the round button at the right — so the resting state reads as
+a **status line**: the situation on one side, the way in on the other. Both share one height (44), because
+three different heights side by side looked like three different sets. The old standby travel of the anchor
+is gone with it: with the row distributing its two capsules itself, the extra transform pushed everything
+out of the card (measured: button at x=990 in a 760-wide card, screen blank).
+
+**Tapping the button gives the island the stage.** The values capsule steps off, the island moves to the
+**centre** and shows a **summary capsule** after the iOS pattern: the severities overlapping like a stack of
+app icons, the total beside them, the chevron hard right. The values only belong to the resting state — a
+glance at the notifications should not have to carry them.
+
+**Any tap opens the panel with a stage already selected** — the highest one actually present. The slider
+never sits in the void, and you start at the most urgent instead of at "something".
+
+**The panel now filters on two axes.** The button row picks the **severity** (❗⚠ⓘ), the tabs below sort by
+**origin** — Watch · Sensor · System — built from the data, never hard-wired, and an origin that is empty
+in the current selection does not appear at all. That gives the tabs the same job everywhere: on the live
+side they sort by category, here by source.
+
+**The panel keeps its own vocabulary from the card's windows**: the notification icon stays as a bubble on
+the top edge and appears *first*, then the panel steps out of the blur behind it (visionOS: things emerge
+from fog, they do not unfold). Below it the free-standing ✕, 36 px, 14 px under the form — its position
+follows the *measured* height, since a fixed value would sit wrong for half the opening animation. The dim
+behind it is **half the modal strength** (0.14 against 0.28): a window is a procedure, the island is a
+glance — the full modal dim would switch off the whole dashboard twenty times a day.
+
+**Fixed along the way:** switching between the two panels overflowed the head by 91 px — the retiring text
+column still held its 190 px while the pill was already narrower, so the button row slid over the text. The
+inactive column is now simply *not there* rather than "width 0 with a transition".
+
+Also: the ✕ of the filter, category and info windows now carries the same glyph and size as the island's
+(21 px, `display: block` so it stops sitting on the text baseline), and running text is masked only on the
+right while it stands still — both edges only while it moves.
+
 ## Version 1.1.2288 - 2026-08-04
 
 **Title:** 📏 The island's two-liner stops being clipped, stops drifting, and the footer gets room
