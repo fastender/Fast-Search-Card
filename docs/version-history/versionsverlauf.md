@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2292 - 2026-08-06
+
+**Title:** 🏝️ The island steps aside for a new page — fake-hero flight removed
+
+**Tags:** island, notifications, animation, cleanup
+
+Opening the notification centre from the island used to stage a flight: a bright clone of the pill lifted off,
+waited for the detail view to mount and flew onto it. On screen that read as a **large grey slab** covering
+half the card, and on the way back the same clone — white at 0.7 opacity — landed on the pill and left it
+looking **completely white** (user report with a screenshot sequence). The whole `useIslandHero` mechanism
+is gone. A page change does not need its own flight; the detail view brings its own entrance.
+
+**And the island now folds shut when a new page comes forward.** Before, its panel simply stayed open on top
+of the notification centre and covered the upper half of it. The three openers (centre, entity, subcategory)
+fold it back to the resting button themselves, and an effect on `showDetail` catches every *foreign* route in
+as well — a bento tile, the search, the alert banner.
+
+Verified with a real mouse: tapping "Open notification center" switches straight to the centre with nothing
+on top of it, and going back leaves the island resting in its normal glass — no clone in the DOM, no white
+pill, no filter left behind.
+
 ## Version 1.1.2291 - 2026-08-05
 
 **Title:** 🏝️ Tapping the island's capsule opens the island again, not the full notification centre
