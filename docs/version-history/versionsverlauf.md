@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2291 - 2026-08-05
+
+**Title:** 🏝️ Tapping the island's capsule opens the island again, not the full notification centre
+
+**Tags:** island, notifications, pointer-events, bugfix
+
+Reported from the desktop: the panel never appeared — a click on "N notifications" jumped straight into the
+notification centre instead.
+
+The cause was the swipe-to-dismiss gesture. `pointerdown` on the pill **captured the pointer immediately**,
+and a captured pointer also redirects the `click` that follows it: the tap on the summary capsule was
+delivered to the head button instead, and that button's job is "free surface → open the notification
+centre". Traced live with an event log: `pointerdown → island-mtext`, `gotpointercapture → island-head`,
+`click → island-head`. Every automated check had missed it, because synthetic click events arrive without a
+`pointerdown` at all — only a real mouse (or finger) walks into it.
+
+**The pointer is now captured only once a drag actually starts** (8 px), so a tap stays a tap and reaches the
+element under it, while a swipe still holds on to the pointer after it leaves the pill. On top of that, the
+click that a browser delivers after a swipe is ignored for 400 ms — otherwise "swipe back to the button"
+would have opened the full view on release.
+Verified with a real mouse against the built bundle: the capsule now opens the island panel with the highest
+present severity preselected, and a swipe still returns to the resting button without opening anything.
+
 ## Version 1.1.2290 - 2026-08-05
 
 **Title:** 🏝️ The island gets its glass back — one edge for head, tabs, rows and footer
