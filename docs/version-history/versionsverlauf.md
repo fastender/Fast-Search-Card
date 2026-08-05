@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2294 - 2026-08-06
+
+**Title:** 🏝️ Tighter mini capsule, one panel height, a white bubble and more air above the head text
+
+**Tags:** island, spacing, panel, notifications
+
+Four adjustments from the same round of feedback.
+
+**The mini capsule sits close to its edges again.** The head's own 10 px padding — added in v2290 so head
+text, tabs, rows and footer share one edge inside the *panel* — was landing on top of the pill's padding in
+the *mini* state: nearly twice as much air left of the severity circle and right of the chevron as above and
+below them. The mini state now carries the padding once, 8 px per side (measured: 24 → 9 left, 26 → 9 right).
+
+**The panel is always the same height.** The list had `max-height`, so the live side grew with its rows and
+the panel jumped in height when switching between the two sides. It is a fixed 236 px now for both, with the
+custom scrollbar taking over — the same rule the notification side already followed.
+
+**The bubble above the panel is white.** It sits half over the panel and half over the card; in dark glass it
+all but disappeared against a dark background. White with a dark glyph is the one tone that reads on both.
+
+**More air above the head text**, and the button row grows with it: the head is 72 px instead of 64 (mobile
+62 instead of 56), the text starts 18 px below the pill's edge instead of 14, and the row went from 130×40 to
+136×46 through its own padding — the circles are unchanged, so the stack in the mini capsule stays as it was.
+
 ## Version 1.1.2293 - 2026-08-06
 
 **Title:** 🏝️ The resting button keeps its dark glass over an open page — leftover hero code deleted
