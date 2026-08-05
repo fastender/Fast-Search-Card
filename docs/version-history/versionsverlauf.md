@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2295 - 2026-08-06
+
+**Title:** 🏝️ The grey rectangle behind the island was the dim itself — now it covers the card
+
+**Tags:** island, stacking, marquee, icons
+
+**That grey rectangle** appearing behind the open panel *was* the dim. It is `position: fixed; inset: 0`,
+which should mean "the whole viewport" — but it lived inside the island holder, and the zen layout gives that
+holder a `transform` (`translateY(0)` once revealed). An element with a transform becomes the containing block
+for `fixed`, so `inset: 0` meant *the holder*: a 1060 × 72 strip, measured in the dev instance, sitting behind
+the island with hard corners. The dim now hangs by portal in the card itself (`.main-container`, the same
+target the info windows use) as `position: absolute` — measured 1007 × 739, exactly the card. Its `z-index`
+is 3: above the search row and the bento, below the island — at 150 it covered its own panel and greyed it
+out.
+
+**The marquee waits, then goes.** Long text now stands still for 700 ms before it starts to travel, so the
+beginning can actually be read; the 5-second pause after each pass stays. It also measures against the
+column's target width when the line has no width yet — while the panel is still opening, the inactive column
+is `display: none`, and a measurement of 0 read as "it fits", leaving long text clipped forever.
+
+**The device icon in line 2 got its light disc back.** Its `rgba(0,0,0,0.06)` was invisible on the dark glass
+the island has worn since v2289 — it now uses the same theme variable as the round icons in the list below.
+
 ## Version 1.1.2294 - 2026-08-06
 
 **Title:** 🏝️ Tighter mini capsule, one panel height, a white bubble and more air above the head text
