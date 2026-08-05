@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2290 - 2026-08-05
+
+**Title:** 🏝️ The island gets its glass back — one edge for head, tabs, rows and footer
+
+**Tags:** island, glass, backdrop-filter, alignment, notifications
+
+Four things the stages redesign still owed.
+
+**The panel had no glass at all.** It looked "too transparent, the blur is missing" — and it was: the
+entrance animation ends on `filter: blur(0px)`, and with `both` that end state *stays*. An element carrying
+any `filter` becomes a **backdrop root**, so the pill's `::before` was blurring only what sits inside the
+pill behind it, which is nothing (measured: `filter: blur(0px)` glued on for good while the tiles below
+shone through untouched). The animation now holds only its *start* state (`backwards`); afterwards the
+filter is gone and the blur from Settings → Appearance → Background bites again.
+
+**The capsules were left out of that chain.** Values capsule and head bubble are *siblings* of the pill, not
+descendants — they inherited neither the glass variables (`backdrop-filter: none`, measured) nor the ink
+(`color: inherit` gave them black on dark glass). The variables now hang on the island's holder, so the whole
+island paints with one set: the same tint and the same blur radius as the search bar, straight from the
+user's appearance settings. The bubble above the panel therefore carries the same body as the button, rather
+than floating as a bare glyph.
+
+**One edge for the whole panel.** The head text sat 10 px further left than everything under it, because a
+`padding: 0` shorthand eight lines below the `padding-left: 20px` in the same rule quietly deleted it. Head
+text, tab pills, notification dots and footer text now all start 25 px behind the pill's edge, and the button
+row, the row buttons and the footer chevron all end 23 px before it. The footer's hairline runs the full
+inner width instead of stopping 12 px short.
+
+**With no notifications**, the summary capsule shows the button's own bell on a quiet ground instead of an
+empty gap — the resting face stays recognisable when nothing is wrong.
+
 ## Version 1.1.2289 - 2026-08-04
 
 **Title:** 🏝️ The island splits in two — a status line at rest, a summary capsule, a panel with two axes
