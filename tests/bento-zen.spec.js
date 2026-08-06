@@ -234,87 +234,6 @@ test.describe('Zen-Startseite', () => {
     await expect(root.locator('.bento-zen')).toHaveAttribute('data-revealed', 'false');
   });
 
-  test('die Suchleiste wechselt durch alle vier Kategorien', async ({ page }) => {
-    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
-    await waitForZen(root);
-    await expect(root.locator('.bento-zen-search')).toHaveCount(1);
-
-    // Standzeit 3,5 s, dazwischen wird getippt — deshalb nur die VOLLEN
-    // Beschriftungen sammeln; „Ger" ist ein Zwischenstand, kein Ergebnis.
-    const ziel = ['Aktionen', 'Benutzerdefiniert', 'Geräte', 'Sensoren'];
-    const gesehen = new Set();
-    for (let i = 0; i < 40; i++) {
-      const t = (await root.locator('.bento-zen-cat-label').innerText()).trim();
-      if (ziel.includes(t)) gesehen.add(t);
-      if (gesehen.size === 4) break;
-      await page.waitForTimeout(500);
-    }
-    expect([...gesehen].sort()).toEqual(ziel);
-
-    // Der Schreibbalken blinkt durchgehend — er verschwindet nie.
-    await expect(root.locator('.bento-zen-caret')).toHaveCount(1);
-  });
-
-  test('die Leiste hat feste Breite und springt beim Tippen nicht', async ({ page }) => {
-    // 🔑 Sie sitzt in einer Spalte, deren Breite der GRUSS bestimmt. Mit
-    // `width: 100%` wäre sie je nach Spruch mal 537, mal 610 px breit — und
-    // spränge bei jedem Kategoriewechsel.
-    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
-    await waitForZen(root);
-    const messe = () => root.locator('.bento-zen-search').evaluate(
-      (el) => Math.round(el.getBoundingClientRect().width),
-    );
-    const vorher = await messe();
-    await page.waitForTimeout(3400);   // mindestens ein Wechsel
-    expect(await messe()).toBe(vorher);
-    expect(vorher).toBe(560);
-  });
-
-  test('ein Tipper öffnet die ZULETZT gewählte Kategorie, nicht die gezeigte', async ({ page }) => {
-    // 🔑 Die Leiste zeigt reihum alle vier — sie ist eine Anzeige, kein
-    // Umschalter. Geöffnet wird, wo der Nutzer zuletzt war; beim ersten Start
-    // ist das die Vorgabe der Suche (Geräte).
-    const root = await mountCard(page, { settings: ZEN_ON, lang: 'de' });
-    await waitForZen(root);
-
-    // Warten, bis die Leiste NICHT mehr auf „Geräte" steht — dann ist gezeigt
-    // und zuletzt-gewählt garantiert verschieden.
-    await expect
-      .poll(async () => (await root.locator('.bento-zen-cat-label').innerText()).trim(),
-        { timeout: 20000 })
-      .toMatch(/^(Sensoren|Aktionen|Benutzerdefiniert)$/);
-
-    await root.locator('.bento-zen-search').click();
-    const feld = root.locator('input.search-input');
-    await expect(feld).toBeVisible({ timeout: 10000 });
-    // Geöffnet ist „Geräte" — die zuletzt gewählte, nicht die angezeigte.
-    await expect(feld).toHaveAttribute('placeholder', /Geräte/i);
-    // Und das Bento wurde übersprungen.
-    await expect(root.locator('.bento-zen')).toHaveCount(0);
-    await expect(root.locator('.bento-cell--w1')).toHaveCount(0);
-  });
-
-  test('die Leiste trägt das Glas aus den Einstellungen', async ({ page }) => {
-    // 🔑 Über `glass-panel` — dieselbe Kette wie das Suchpanel, damit Blur und
-    // Sättigung aus dem Aussehen-Bereich automatisch greifen. Eine eigene,
-    // fest verdrahtete `backdrop-filter` würde die Einstellungen ignorieren.
-    const root = await mountCard(page, { settings: ZEN_ON });
-    await waitForZen(root);
-    const leiste = root.locator('.bento-zen-search');
-    expect(await leiste.evaluate((el) => el.classList.contains('glass-panel'))).toBe(true);
-    const kette = await leiste.evaluate((el) => getComputedStyle(el, '::before').backdropFilter);
-    expect(kette).toContain('blur(');
-    expect(kette).toContain('saturate(');
-    // Maße 1:1 aus der echten eingeklappten Leiste.
-    expect(await leiste.evaluate((el) => el.offsetHeight)).toBe(72);
-    expect(await leiste.evaluate((el) => getComputedStyle(el).borderRadius)).toBe('35px');
-    const label = await root.locator('.bento-zen-cat-label').evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return `${cs.fontSize}/${cs.fontWeight}`;
-    });
-    expect(label).toBe('24px/400');
-  });
-
   test('die Kacheln behalten ihr Glas — kein Filter über ihnen', async ({ page }) => {
     // 🔑 Ein `filter` auf einem Vorfahren — auch `blur(0px)` — macht ihn zur
     // „backdrop root": jedes `backdrop-filter` darunter sieht dann nur noch den
@@ -424,28 +343,23 @@ test.describe('Zen-Startseite', () => {
         datum: y('.bento-zen-date'),
         uhr: y('.bento-zen-time'),
         gruss: y('.bento-zen-greet'),
-        leiste: y('.bento-zen-search'),
-        leisteUnten: y('.bento-zen-search', 'bottom'),
         insel: y('.island-holder'),
         inselUnten: y('.island-holder', 'bottom'),
         griff: y('.bento-zen-grip'),
         karte: Math.round(cb.height),
-        leisteBreit: Math.round(c.querySelector('.bento-zen-search').getBoundingClientRect().width),
         karteBreit: Math.round(cb.width),
       };
     });
 
-    // Reihenfolge von oben nach unten.
+    // Reihenfolge von oben nach unten. (v1.1.2296: die getippte Such-Attrappe
+    // zwischen Gruß und Insel gibt es nicht mehr.)
     expect(lage.datum).toBeLessThan(lage.uhr);
     expect(lage.uhr).toBeLessThan(lage.gruss);
-    expect(lage.gruss).toBeLessThan(lage.leiste);
-    expect(lage.leisteUnten).toBeLessThan(lage.insel);
+    expect(lage.gruss).toBeLessThan(lage.insel);
     expect(lage.inselUnten).toBeLessThan(lage.griff);
-    // Nichts ragt heraus …
+    // Nichts ragt heraus.
     expect(lage.datum).toBeGreaterThan(0);
     expect(lage.griff).toBeLessThan(lage.karte);
-    // … und der Randabstand der Leiste beträgt 16 px auf jeder Seite.
-    expect(lage.karteBreit - lage.leisteBreit).toBe(32);
   });
 
   test('aufgedeckt stimmen die Maße Pixel für Pixel', async ({ page }) => {

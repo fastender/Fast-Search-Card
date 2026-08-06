@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2296 - 2026-08-06
+
+**Title:** 🌙 A quieter start screen: no fake search bar, one greeting colour, the island straight to its capsule
+
+**Tags:** zen, start-screen, island, cleanup
+
+**The typed search bar is gone.** It was a replica of the real search bar in which a typewriter cycled through
+the four categories — decorative, and it duplicated a bar that appears anyway the moment the screen is
+revealed. Out with it go `ZEN_CATEGORIES`, the four typing constants, the `onSearchCategory` prop and the
+handler behind it, plus about 3 KB of CSS (the caret blink, the sheen, the category label). The sheen keyframes
+stay: the *real* search bar inherited them for its entrance.
+
+**The greeting is one colour.** The name — and with it the comma — sat at 72 % white and read like a separate
+clause; the name is the address, not an afterthought.
+
+**On the start screen the island opens straight into its capsule.** There is no resting state there: weather
+and power already stand under the clock, so a second set beside an alert button was saying the same thing
+twice. The island starts as the mini capsule ("N notifications") and expands from there; the values capsule
+and the round alert button belong to the revealed card, where they form the status line. Revealing swaps one
+for the other — an open panel stays open.
+
+Tests: the four checks covering the removed search bar are gone, and the phone-layout check no longer expects
+a bar between greeting and island.
+
 ## Version 1.1.2295 - 2026-08-06
 
 **Title:** 🏝️ The grey rectangle behind the island was the dim itself — now it covers the card
