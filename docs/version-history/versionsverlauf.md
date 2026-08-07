@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2297 - 2026-08-07
+
+**Title:** 🔥 The start screen stops ticking every second — the island's driver moves into its own hook
+
+**Tags:** performance, island, refactor, cleanup
+
+**The second-hand tick belongs to the open panel.** The island's data driver ran at 1 s whenever the island
+was not the resting button — and since v2296 the island starts on the zen screen as the mini capsule. So the
+one screen that lies open for minutes was ticking every second for values nobody can see there: lines 1 and 2
+are `display: none` in the mini state, only the stack, the count and the chevron are on screen. The tick is
+now tied to `isExpanded`, so it is 1 s with a panel open and 5 s folded, and the immediate `run()` on every
+switch fills in without a wait. Measured in the dev instance with a patched `setInterval`: the zen start no
+longer creates a 1000 ms timer at all, and the island produces **0 DOM mutations in 20 s** at rest.
+
+**One heartbeat instead of two.** The ticker roll and the line-1 roll ran as separate intervals with the same
+period, both gated on "not the resting button" — so in the mini state they kept rolling behind two hidden
+columns, re-rendering the island each time. They share one interval now, gated on the open panel; each
+counter only advances when its line is actually on screen.
+
+**The driver is a hook.** Its 50 lines moved out of `Island.jsx` into `hooks/useIslandDaten.js` (1083 → 1036
+lines), along with the two signature helpers that only it used. One trap on the way, worth writing down: as an
+effect it could sit near the bottom of the component, but as a `const` destructuring it cannot — the first
+read of `liveActivities` is two lines below `isExpanded`, and anything declared later lands in the temporal
+dead zone. The dev instance said so immediately ("Cannot access 'liveActivities' before initialization"); the
+build had compiled it without a word.
+
+**Deleted:** `hooks/useIslandStandby.js` — 159 lines with no caller since the island moved to explicit stages.
+
 ## Version 1.1.2296 - 2026-08-06
 
 **Title:** 🌙 A quieter start screen: no fake search bar, one greeting colour, the island straight to its capsule
