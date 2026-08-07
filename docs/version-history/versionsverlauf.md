@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2318 - 2026-08-08
+
+**Title:** 🌊 The moon no longer hides behind the tabs — the scene starts below the header line
+
+**Tags:** ocean, bento, w1, polish
+
+User report with screenshot: at night the moon climbs to the top of the tile — straight behind the
+Favoriten/Vorschläge tabs, with the plane's contrail crossing the tab row. Three options were on the table:
+lowering the orbit (`EL_MAX` — forbidden for good reason, it is derived from the field of view and global), a
+scrim behind the tabs (prettier occlusion is still occlusion), or **starting the scene below the header
+line**. The third won: the canvas now begins at 56 px, where the tab row's divider ends. The scene treats its
+smaller area as the whole picture — sun and moon paths scale parametrically and stay fully visible, the
+object overlay moves along automatically, and above the line the tabs sit on calm tile glass, like a window
+frame. The card dock moved from 330 to 344 px (252 mobile) so the water strip between horizon and cards keeps
+its width; the layer's top corners lost their inherited rounding, which would otherwise have floated
+mid-tile.
+
+One CSS lesson recorded on the way: the offset rule matched the base layer's `inset: 0` in specificity
+(0,2,0 vs 0,2,0), so *load order* decided — and in dev the base stylesheet loads later, silently keeping
+`top: 0`. The rule now carries three classes and wins regardless of order.
+
 ## Version 1.1.2317 - 2026-08-08
 
 **Title:** 🌊 Ocean settings and the node test — slices 2 and 4 of the integration plan
