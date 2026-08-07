@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2316 - 2026-08-08
+
+**Title:** 🌊 Cards dock below the horizon, and the empty tile's tabs stop jumping
+
+**Tags:** ocean, bento, w1, polish
+
+Two findings from the first real-device session with the ocean background.
+
+**The sea was barely visible.** With the wallpaper's start offset (220 px ≈ 40 % of the tile) the device cards
+sat right on top of the water — the scene's horizon lies at 52 %, so all that showed was sky. With the ocean
+active, the list and grid now start at **72 %** of the tile: sky, horizon and a strip of water stay open, and
+the first card row sits at the bottom like a dock. The scroll fade is untouched — scrolling still drives the
+cards over the water while the scene fades out. The wallpaper offset for images stays exactly as it was.
+
+**The empty tile's tabs were offset.** In the no-favourites state the Favoriten/Vorschläge tabs sat naked in
+the tile (16 px base padding, no divider), visibly shifted against the filled state's header
+(14 px / 16 px + divider). The empty state now renders the same `bento-carousel-header` with the same
+paddings — measured: tabs at 19/21 px from the tile corner in **both** states, pixel-identical.
+
 ## Version 1.1.2315 - 2026-08-08
 
 **Title:** 🌊 The ocean moves behind the favourites — W1 keeps its tabs, cards and fade
