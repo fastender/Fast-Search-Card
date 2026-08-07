@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2305 - 2026-08-07
+
+**Title:** 🌍 Device cards, device configs and the setup step — and a runtime error the build could not see
+
+**Tags:** i18n, translations, devices, setup
+
+`utils/deviceConfigs.js` (13), `DeviceCard.jsx` (18) and `UniversalSetup/Step2Customize.jsx` (17) are done.
+The device files joined `ui.controls.*` (6 of their 31 strings already had a key there); the setup step got
+its own `ui.setup.*`, since those texts belong to a flow, not to a device. The tree is down from 477 to
+**429**.
+
+**Two traps, both invisible to the build:**
+
+`Step2Customize` is an *expression* component — `}) => (` with JSX straight after, no body. There is nowhere
+to put a `const t`. It got a module-level helper taking `lang` as a second argument, the same shape
+`ma/components.jsx` uses for its six exports.
+
+Worse: a sweep across the whole tree for "uses `t(` without a helper in scope" turned up
+`durationLabel` in CalendarSettingsView — a module function with its own `lang` parameter, where the
+component's `t` is simply not visible. **That was a ReferenceError shipped in v2302**, waiting for anyone who
+opened the calendar's default-duration picker. It calls `translateUI` directly now. The sweep is noisy (most
+hits take `t` as a prop) but it is the only thing that finds this class of mistake — `t` is a valid identifier
+elsewhere in the same file, so neither the build nor the key checker has anything to complain about.
+
+The tool also learned that a key may not start with a digit: "1 picked" would have produced `1Picked:` in the
+dictionary, which is a syntax error. It now prefixes those (`onePicked` after a rename).
+
+Checks: 408 keys present in both languages, 80 resolutions compared against the original strings, and the
+repaired duration label reads "Minuten" / "minutes" again.
+
 ## Version 1.1.2304 - 2026-08-07
 
 **Title:** 🌍 State texts join the existing `controls` namespace — half of them were already there

@@ -49,6 +49,10 @@ def _schluesselname(en, de, vergeben):
     basis = unicodedata.normalize('NFKD', en or de).encode('ascii', 'ignore').decode()
     woerter = re.findall(r'[A-Za-z0-9]+', basis)[:3]
     name = woerter[0].lower() + ''.join(w.capitalize() for w in woerter[1:]) if woerter else 'text'
+    # Ein Schlüssel darf nicht mit einer Ziffer beginnen — `1Picked: '…'` ist im
+    # Wörterbuch ein Syntaxfehler ("1 picked" hätte genau das erzeugt).
+    if name[0].isdigit():
+        name = 'n' + name[0].upper() + name[1:]
     if name in vergeben:
         i = 2
         while f'{name}{i}' in vergeben:
