@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2299 - 2026-08-07
+
+**Title:** ⚙️ One switch row instead of eleven lines — the first six settings files
+
+**Tags:** refactor, settings, components
+
+The settings screens carry the same switch row over and over: title, optional subtitle, switch on the right —
+eleven lines of `ios-item > ios-item-left > ios-item-content > label [+ subtitle]` plus
+`ios-item-right > LiquidGlassSwitch`. It now lives in `components/common/SettingsToggleRow.jsx`.
+
+Measured before touching anything: 55 uses of the switch across 18 files, **38 of them word-for-word the
+canonical shape**. This release migrates the six files where *every* use is canonical — General (6), Toast (4),
+Privacy (3), Island (2), VisibilityView (1), QuickStats (1) = 17 rows. The other 17 uses carry their own
+variants (icon inside the row, clickable left half, a condition around the switch) and stay where they are.
+
+**An honest correction to the estimate:** this saves about **39 lines**, not the ~700 I guessed from the raw
+hit count. The rows shrink from ~11 lines to ~8.7, because `label`, `subtitle`, `checked` and a multi-line
+`onChange` still need their own lines. The value is the single place to change the row, not the line count.
+
+One trap worth recording: the migration pattern tore apart a subtitle that contained nested JSX
+(QuickStatsView — entity id plus a conditional state chip). The build caught it as a syntax error; a subtitle
+that had merely *lost* content would have compiled silently. Every migrated row was then checked prop by prop,
+and the two touched screens verified in the dev instance — including the dimmed, disabled row in Privacy
+(`opacity: 0.7`, grey switch), which came through unchanged.
+
 ## Version 1.1.2298 - 2026-08-07
 
 **Title:** 🧹 One spinner beat instead of eight, a retired file and four tests for a feature that no longer exists
