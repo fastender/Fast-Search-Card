@@ -192,6 +192,129 @@ Distribution: 6× zero-config, 5× one-tap, 3× wheel, rest arrives ready from H
 
 ---
 
+### 3b. Escalation track — reaching the person who isn't looking *(added 2026-08-07)*
+
+**Status of the base:** #3 shipped across v1.1.2156–2169 and merged into the Island. In place: the
+three lanes, severity 1–4, snooze, history, the danger `device_class` whitelist, the critical banner,
+quiet hours (with `allowCritical`), threshold **and** duration watches with hysteresis, the
+live-activity strip, and the Island's two filter axes (severity × origin).
+
+**The gap this closes:** everything built so far assumes **somebody is looking at the tablet** —
+badge, Island, banner, Center are all visual. A second read of djdevil/AlertTicker-Card surfaced
+that its genuinely unexploited contribution isn't a feature but a *category*: mechanisms that reach
+a person who is in another room. That is the honest hole in an otherwise complete system.
+
+Ordered by value-per-effort.
+
+#### E1 — Camera frame on the alert *(strongest, surprisingly cheap)*
+
+**Pitch:** motion in the hallway, a doorbell press, a leak in the cellar — the alert shows the
+camera image right there instead of describing it.
+
+**Why it's cheap:** HA exposes `attributes.entity_picture` on camera entities **including a signed
+access token**. A snapshot is literally an `<img src={hass.hassUrl(entity_picture)}>` — no stream
+lifecycle, no WebRTC, no new subsystem. (A live stream is a different, much larger problem; this is
+deliberately only the still frame.)
+
+**Camera↔alert matching, Apple-simple:** default to the camera in the **same area** as the
+triggering entity; fall back to a manual per-source pick in settings; show nothing if neither
+resolves. Never guess across areas.
+
+**Surfaces:** thumbnail in the Center row and in the Island's message panel; larger frame in the
+critical banner. Refresh the `src` on open (the token URL is cache-busted by HA itself).
+
+**Effort:** Small–medium. Also the first genuinely useful step into [#4 Camera live-view](#4-camera-live-view-system-entity).
+
+#### E2 — Sound on critical
+
+**Pitch:** on a wall tablet this is the difference between "I saw it" and "I didn't".
+
+**The real obstacle is not the audio, it's autoplay policy.** Browsers block `Audio.play()` until
+the page has seen a user gesture, and the block returns after every reload. Design accordingly:
+
+- A **"Test sound"** button in settings that doubles as the unlock (playing on a click is allowed).
+- Re-arm on the first tap anywhere after a reload (one-shot listener), so a tablet that reboots
+  overnight is armed again as soon as anyone touches it.
+- If still blocked, **fail silently and surface it** — a small "sound is blocked, tap once to
+  enable" note in the Center. Never let a muted browser create the illusion of an audible alarm.
+
+Scope: critical only, one short built-in sound, per-severity opt-in. No custom URL library (that is
+AlertTicker's territory and a maintenance tail).
+
+**Effort:** Small — but budget the autoplay handling, that's where the work is.
+
+#### E3 — Spoken announcement (TTS)
+
+**Correction of an earlier judgement in this document.** The original #3 listed "no card-authored
+server-side automations" as a non-goal and lumped TTS in with it. That conflated two things: what
+makes AlertTicker invasive is that it *writes automations into HA* so TTS fires when the dashboard
+is closed. A direct `tts.speak` / `tts.*_say` **service call while the card is open** is just a
+service call — exactly what the card already does constantly. On an always-on display that works.
+
+**What ships:** per-severity opt-in (default off), target `media_player` picked in settings, message
+= the notification title + a short reason. Respect quiet hours **and** the manual mute (E6).
+Rate-limit hard — never speak twice for the same instance, never more than once per N seconds.
+
+**Explicit limit to document in the info popup:** this only speaks while a dashboard is open. It is
+not a replacement for an HA automation, and it is not push. 24/7 delivery stays
+[#22 companion integration](#22-companion-integration-long-term) territory.
+
+**Effort:** Small. The discipline (rate limit, quiet hours, mute) is most of it.
+
+#### E4 — Flap guard for the alert lane *(robustness, not a feature)*
+
+The watch lane has hysteresis (`nextFiringState`, plus NaN-holds). The **other three alert sources
+do not**: `alert.*`, the danger whitelist and `persistent_notification` re-fire on every transition,
+and because ack is instance-bound via `created_at`, a chattering contact produces a fresh unread
+entry each time — badge noise, history spam, and (with E2/E3) repeated sound.
+
+Add a **per-id minimum re-fire interval** (AlertTicker uses a 10 s window; 30–60 s is more
+appropriate here): within the window a re-fire updates the existing entry instead of creating a new
+instance. Keep it in the pure source layer so it stays node-testable like the rest.
+
+**Effort:** Small. Highest correctness value of the six.
+
+#### E5 — Snooze duration menu
+
+Today snooze is a fixed 1 h. "Until this evening" is a different wish from "not right now".
+Offer 30 min / 1 h / 4 h / 8 h / tomorrow morning, keeping one-tap 1 h as the default action and the
+menu behind a long-press. The store already keys snoozes by id with an expiry — this is UI only.
+
+**Effort:** Small.
+
+#### E6 — Manual mute
+
+Quiet hours are *scheduled*; "quiet for the next two hours" is a different need (guests, a film, a
+crying baby). One global switch with a duration, visible while active (the Island's rest button is
+the natural indicator), auto-expiring. Must suppress toast, banner, sound and TTS — but **never**
+the Center or the badge, so nothing is lost.
+
+**Effort:** Small.
+
+#### E7 — Wall-display scale
+
+`overlay_scale`-style zoom (1× / 1.5× / 2×) for the Island and the banner, so a tablet across the
+room stays readable. Likely a CSS variable on the Island root — but check the measured-width logic
+(`--island-formhoehe`, the ResizeObserver-driven width) before assuming it just scales.
+
+**Effort:** Small, with a layout-verification tail.
+
+#### Still deliberately not taken from AlertTicker
+
+The rules engine (operators, Jinja2, AND/OR multi-entity), the 50-theme/3D/vinyl styling, the
+auto-cycling ticker, and card-authored server-side automations. Two borderline items are parked
+rather than rejected: `visible_to` per-user filtering belongs with
+[#15 multi-user profiles](#15-multi-user-profiles), and message placeholders (`{name}`, `{state}`)
+only make sense if users author their own text — which contradicts the "no forms" principle #3 is
+built on.
+
+#### Suggested order
+
+**E4 → E1 → E5/E6 → E2 → E3 → E7.** Correctness first, then the one big visual win, then the cheap
+UX gains, then the two that need care (autoplay policy, speech discipline), then polish.
+
+---
+
 ### 4. Camera live-view system entity
 
 **Pitch:** Cameras get their own app-style view with a grid + live stream.

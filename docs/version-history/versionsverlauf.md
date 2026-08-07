@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2319 - 2026-08-08
+
+**Title:** 🌊 Orbit cap instead of window frame — the ocean fills the header again, sun and moon stop below it
+
+**Tags:** ocean, bento, w1, polish
+
+User verdict on v2318's "scene starts below the header line" approach: rejected — the cut-off top looked
+wrong. New direction, quoting the brief: cap the maximum position of sun and moon *inside* the scene, and
+the header row must be filled with ocean. So the 56-px canvas offset and its three-class CSS rule are gone,
+the layer is back to `inset: 0` (sky and stars now run behind the Favoriten/Vorschläge tabs), and the card
+dock returned to its approved 330/240 px.
+
+The cap itself is exact, not eyeballed: `createOceanScene` takes a `headroomPx` option and inverts the
+shader's projection (`uv = (frag − 0.5·uR)/uR.y`, body centre at `tan(el)/(FOV·cos az) − 0.02`) to find the
+elevation at which the disc's crest touches the header line — at full lateral swing, where `cos az` lifts
+the projection, with the disc radius and an 8-px buffer subtracted. Sun and moon get separate caps: the sun
+uses its bigger disc and full azimuth span; the moon's squashed orbit formula (−0.10 + (cap+0.10)·0.9) is
+inverted so its crest actually *reaches* the line instead of stopping 10 % short. The cap recomputes on
+resize (piggybacking on the existing per-frame rect read, pushing uniforms only when it moves) and is wired
+only into the W1 cover case via `headroomPx: 56` — the standalone ocean widget for W2–W4 has no tab row and
+keeps the full orbit. The overlay plane's flight path is clamped below the header too (relevant on mobile,
+where 13.5 % of the tile height lands inside the tab row).
+
+Verified in dev against both extremes: full moon in deep night crests ~58 px below the tile edge (disc fully
+clear of the 56-px header), a 60° midsummer sun at ~68 px, header filled with sky in both. The
+"t is not a function" errors in the dev console turned out to be pre-v2313 leftovers from a tab open since
+yesterday — a fresh mount with an `unhandledrejection` trap recorded zero.
+
 ## Version 1.1.2318 - 2026-08-08
 
 **Title:** 🌊 The moon no longer hides behind the tabs — the scene starts below the header line
