@@ -24,6 +24,13 @@ SPRACHEN = {
     'en': WURZEL / 'src/utils/translations/languages/en.js',
 }
 
+# Ordner, deren Dateien `t` als PROP durchgereicht bekommen (der Präfix wird
+# beim Aufrufer gesetzt, hier steht nur `t('key')`). Ohne diese Karte prüft das
+# Skript solche Dateien gar nicht — ein Tippfehler bliebe bis zum Nutzer stehen.
+PROP_PRAEFIXE = {
+    'components/tabs/SettingsTab/': 'settings',   # SettingsTab.jsx:73
+}
+
 
 def lies_schluessel(pfad):
     """Sammelt alle Pfade eines Wörterbuchs ('ui.a.b') über die Einrückung.
@@ -56,15 +63,25 @@ def sammle_verwendungen():
     verwendungen = []  # (schluessel, datei, zeilennr)
     for datei in sorted(WURZEL.glob('src/**/*.js')) + sorted(WURZEL.glob('src/**/*.jsx')):
         text = datei.read_text(errors='ignore')
-        if 'translateUI' not in text:
-            continue
         rel = str(datei.relative_to(WURZEL))
+        # Dateien ohne eigenen translateUI-Import können ihr `t` als Prop
+        # bekommen — dann entscheidet PROP_PRAEFIXE, ob wir sie prüfen.
+        if 'translateUI' not in text and not any(o in rel for o in PROP_PRAEFIXE):
+            continue
 
         # Präfix eines lokalen t()-Helfers: translateUI(`praefix.${key}`, …)
         praefix = None
         m = re.search(r'translateUI\(`([\w.]+)\.\$\{\w+\}`', text)
         if m:
             praefix = m.group(1)
+        elif re.search(r'^\s*t,\s*$|\(\{\s*t[,}]|,\s*t\s*\}\)', text, re.M):
+            # Datei bekommt `t` als PROP — der Präfix steht dann beim Aufrufer.
+            # Ohne diese Karte blieben ganze Ordner ungeprüft (die vier
+            # Einstellungs-Tabs waren 47 Schlüssel lang unsichtbar).
+            for ordner, p in PROP_PRAEFIXE.items():
+                if ordner in rel:
+                    praefix = p
+                    break
 
         for nr, roh in enumerate(text.split('\n'), 1):
             # Zeilenkommentare abschneiden: Erklärtexte nennen Schlüssel gern
@@ -85,6 +102,27 @@ def sammle_verwendungen():
     return verwendungen
 
 
+def deutsche_reste_im_englischen():
+    """Findet Einträge in en.js, die offensichtlich deutscher Text sind.
+
+    Hintergrund: In v1.1.2301 hat ein Generierskript die englischen Strings nach
+    `de.js` geschrieben. Build, Schlüsselprüfung und Tests blieben grün — nur
+    die Oberfläche war in der falschen Sprache. Umlaute und ein paar
+    unverwechselbare Wörter reichen als Fühler; englische Einträge, die absichtlich
+    identisch sind ('Radio', 'Queue'), lösen nichts aus.
+    """
+    verdaechtig = []
+    marker = re.compile(
+        r'[äöüßÄÖÜ]|\b(?:Nach|Keine|Nicht|Alle|Immer|Zeit|Anzeige|Auswahl|'
+        r'L\u00f6schen|\u00c4ndern|und|oder|der|die|das)\b')
+    text = SPRACHEN['en'].read_text()
+    for nr, zeile in enumerate(text.split('\n'), 1):
+        eintrag = re.match(r"^\s+'?([\w-]+)'?\s*:\s*'((?:[^'\\]|\\.)*)',?$", zeile)
+        if eintrag and marker.search(eintrag.group(2)):
+            verdaechtig.append((eintrag.group(1), eintrag.group(2), nr))
+    return verdaechtig
+
+
 def main():
     woerter = {name: lies_schluessel(pfad) for name, pfad in SPRACHEN.items()}
     fehlend = []
@@ -95,10 +133,19 @@ def main():
         if fehlt_in:
             fehlend.append((schluessel, datei, nr, fehlt_in))
 
-    if not fehlend:
+    verdreht = deutsche_reste_im_englischen()
+    if not fehlend and not verdreht:
         gesamt = len(set(k for k, _, _ in sammle_verwendungen()))
-        print(f'check-i18n-keys: {gesamt} Schlüssel, alle in de + en vorhanden.')
+        print(f'check-i18n-keys: {gesamt} Schlüssel, alle in de + en vorhanden, '
+              f'kein deutscher Text in en.js.')
         return 0
+    if verdreht:
+        print(f'check-i18n-keys: {len(verdreht)} verdächtige Einträge in en.js '
+              f'(sieht deutsch aus):\n')
+        for k, wert, nr in verdreht:
+            print(f'  {k}: {wert!r}  (en.js:{nr})')
+        if fehlend:
+            print()
 
     print(f'check-i18n-keys: {len(fehlend)} fehlende Schlüssel\n')
     for schluessel, datei, nr, fehlt_in in fehlend:

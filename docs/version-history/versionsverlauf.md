@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2306 - 2026-08-07
+
+**Title:** 🌍 The four settings tabs move in — and the key checker turns out to have been half blind
+
+**Tags:** i18n, translations, settings, tooling
+
+Toast (13), General (17), Appearance (12) and Start Screen (8) are done: 50 strings, 47 new keys in
+`ui.settings.*`. These four needed no helper at all — they already receive `t` as a prop from
+`SettingsTab.jsx:73`, which points at exactly that namespace. Six ternaries stay behind; they read from data
+objects (`row.titleDe`), not from literals. The tree is down from 429 to **379**.
+
+**The checker was skipping them.** It bailed on any file without an own `translateUI` import — and a file that
+gets `t` handed down as a prop has none. So the entire `SettingsTab/` folder, the most translation-heavy
+corner of the app, was never checked. With a small map of prop-prefixed folders the count went from 408 to
+**622 keys** — a third of all keys had been outside the guard the whole time.
+
+**And a second guard, born from the v2301 mistake:** the checker now flags entries in `en.js` that are
+obviously German (umlauts, a handful of unmistakable words). Back then a generator wrote the English strings
+into `de.js` and everything stayed green — build, keys, tests — while the interface simply spoke the wrong
+language. Proven by planting `byAreas: 'Nach Räumen'` in `en.js`: the run named it and exited non-zero. Words
+that are legitimately identical in both languages ("Radio", "Queue") do not trip it.
+
 ## Version 1.1.2305 - 2026-08-07
 
 **Title:** 🌍 Device cards, device configs and the setup step — and a runtime error the build could not see
