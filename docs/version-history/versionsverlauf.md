@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2303 - 2026-08-07
+
+**Title:** 🌍 News and the rest of Music Assistant move in — plus a migration tool for the remaining files
+
+**Tags:** i18n, translations, news, tooling
+
+**News is done as an entity:** `NewsView` (24) and its settings view (22) share `ui.news.*` with 36 keys.
+**Music Assistant is done too:** `controls/ma/components.jsx` (21) joins the panel's namespace, reusing two
+keys that were already there. The tree is down from 587 to **521** bilingual ternaries.
+
+**New tool: `scripts/i18n-migrate.py <namespace> <files…>`.** It collects the pairs, matches them against the
+existing namespace so identical text reuses its key, writes what is missing to both dictionaries, and rewrites
+the source. `--trocken` shows the plan without touching anything. Two things it does deliberately: it verifies
+its own column after writing (the v2301 mistake, where English strings landed in `de.js`), and it does *not*
+invent the `t()` helper — the files differ too much (component prop, module parameter, several exports) — it
+just says which form is missing.
+
+`ma/components.jsx` got a module-level helper with an explicit `lang` argument, because that file exports six
+components and each carries its own language prop.
+
+One thing the tool cannot see: renaming a key. Making three `…2` keys speak (`articleAgeHeader` and friends)
+also renamed `display` in the *todos* and *calendar* namespaces, which had nothing to do with News. The key
+checker named both broken call sites immediately — a good argument for running it after every edit, not just
+after a migration.
+
+Checks: 341 keys present in both languages, 102 resolutions compared against the original strings, and the
+news settings view rendered in German and English with no `ui.…` path showing.
+
 ## Version 1.1.2302 - 2026-08-07
 
 **Title:** 🌍 Todos and Calendar settings move into the dictionary — 97 more strings
