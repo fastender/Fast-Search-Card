@@ -33,7 +33,10 @@ WOERTER = {
     'de': WURZEL / 'src/utils/translations/languages/de.js',
     'en': WURZEL / 'src/utils/translations/languages/en.js',
 }
-PAAR = re.compile(r"lang === 'de' \? '((?:[^'\\]|\\.)*)' : '((?:[^'\\]|\\.)*)'")
+# \s* zwischen den Teilen: in Tabellen stehen die Zweige oft ausgerichtet
+# ("lang === 'de' ? 'Netzbezug (W)'        : 'Grid Import (W)'") — ohne das
+# blieben 14 Stellen in EnergyDashboardSensorUtils stumm liegen.
+PAAR = re.compile(r"lang === 'de'\s*\?\s*'((?:[^'\\]|\\.)*)'\s*:\s*'((?:[^'\\]|\\.)*)'")
 
 
 def _bestehende(namensraum, sprache):

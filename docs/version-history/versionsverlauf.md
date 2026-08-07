@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2308 - 2026-08-07
+
+**Title:** 🌍 Energy, integration and schedules — and 14 strings the tool had been walking past
+
+**Tags:** i18n, translations, energy, tooling
+
+Five files: `EnergyDashboardSensorUtils` (14), `EnergyChartsView` (11), `EnergyDashboardSetup` (7) into a new
+`ui.energy.*`, `ManagementView` (13) into `ui.integration.*`, and `AllSchedulesView` (9) into the `schedule`
+namespace that already existed. The tree is down from 313 to **261**.
+
+**The tool had a blind spot.** In lookup tables the two branches are often aligned for readability:
+
+    grid_import:  lang === 'de' ? 'Netzbezug (W)'        : 'Grid Import (W)',
+
+The pattern demanded a single space around `?` and `:`, so all 14 strings in `EnergyDashboardSensorUtils` were
+reported as "0 found" — silently, because nothing was there to fail. It now allows any whitespace. Worth
+remembering for the remaining files: a migration that finds nothing is a reason to look, not to move on.
+
+Two more shapes turned up. `EnergyDashboardSensorUtils` has **no imports at all** — a pure config module —
+so the import had to go after the file header rather than beside an existing one. And `NavBar` inside
+`ManagementView` is another expression component; it calls `translateUI` directly instead of borrowing a
+helper it cannot see.
+
+Checks: 712 keys in both languages, no German in `en.js`, 20 resolutions against the originals, and
+`getValueLabel` called for real — "Netzbezug (W)" / "Grid Import (W)", "PV Leistung (W)" / "PV Power (W)".
+
 ## Version 1.1.2307 - 2026-08-07
 
 **Title:** 🌍 Setup views, the todos list and both calendar views — two scope traps caught before shipping
