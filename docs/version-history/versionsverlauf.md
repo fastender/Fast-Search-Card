@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2309 - 2026-08-07
+
+**Title:** 🌍 Bento, tips, changelog — and the files that were already "done" gave up 31 more strings
+
+**Tags:** i18n, translations, bento, tooling
+
+Fifteen files this round. New namespaces `ui.bento.*` (virtual widget builders, the widget itself, the date
+helpers) and `ui.tipps.*` / `ui.versionsverlauf.*` for those two entities, plus the device activities view
+into `ui.controls.*`. **189 migratable ternaries left**, down from 261.
+
+**The interesting part: 31 of those strings came out of files that were already migrated.** GeneralSettingsTab
+gave up 10 more, MusicAssistantPanel 7, deviceConfigs 6, NewsView 5. They had been invisible to the pattern
+until v2308 widened it for aligned columns — a good reminder that "0 left" only means "0 that the pattern can
+see".
+
+Two module files (`virtualItems.js`, `helpers.js`) export several builders, each taking its own `lang`, so
+they got the module-level helper shape. Everything else has a local one.
+
+**And the import bug bit for the third time.** Inserting a new import after the *first* `^import` line lands
+inside a multi-line `import {\n  A,\n  B,\n} from '…'` and splits it in half. It is now placed after the last
+import, tracking multi-line blocks properly — and the same audit checks all fifteen files for it.
+
+Checks: 791 keys in both languages, no German in `en.js`, and the migrated module functions called for real —
+`buildFavoritesItem` returns "Favoriten / 3 Einträge" and "Favorites / 3 items", `formatDueDate` returns
+"Heute" and "Today".
+
 ## Version 1.1.2308 - 2026-08-07
 
 **Title:** 🌍 Energy, integration and schedules — and 14 strings the tool had been walking past
