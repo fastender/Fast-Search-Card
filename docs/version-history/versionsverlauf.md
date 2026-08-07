@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2298 - 2026-08-07
+
+**Title:** 🧹 One spinner beat instead of eight, a retired file and four tests for a feature that no longer exists
+
+**Tags:** cleanup, css, tests
+
+Housekeeping, measured against the current tree rather than the old audit notes.
+
+**`@keyframes spin` lived in eight places** — five under the name `spin` (EnergyChartsView,
+EnergyDashboardSetup, NewsView, VersionsverlaufView, TodosView) and three times the very same rotation under a
+private name (`tipps-spin`, `detail-tab-spin`, `ma-spin`). All of them turn once around. One definition now
+lives in `styles/shared.css`, which hangs off `index.jsx` and is therefore always present — keyframes are
+root-scoped, and `build.sh` puts every imported stylesheet into one block in the shadow DOM. Checked against
+the purged single file, not just the dev build: one definition survives, three call sites use it.
+
+**`components/controls/CircularRingModal.jsx`** (91 lines) is deleted. It was retired in v2124 when
+`SegmentedRingGauge` took over the labels mode, and has had no importer since — the only real orphan in the
+tree.
+
+**The "Insel — Standby-Kaskade" test block is gone** (4 tests, 122 lines). It checked the idle fold
+(`data-ruhe="mini"` → `"alert"`), the × that sent the island away and the wake-up on a new notification. None
+of that exists: the island has known only `data-stadium` since v2286/2289, `ruhe` is a derived bit with two
+values, `.island-x` is gone, and the standby hook went out as dead code in v2297. Its one valuable
+assertion — a new notification takes over line 2 and condenses into its button — is covered by a separate
+test further up the file.
+
 ## Version 1.1.2297 - 2026-08-07
 
 **Title:** 🔥 The start screen stops ticking every second — the island's driver moves into its own hook
