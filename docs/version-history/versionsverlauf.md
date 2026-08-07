@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2314 - 2026-08-07
+
+**Title:** 🌊 The ocean arrives — a living WebGL sea as an option for the big W1 tile
+
+**Tags:** ocean, bento, webgl, feature
+
+The finished ocean widget (a WebGL shader scene fed by Home Assistant — sun position, weather, moon phase,
+plus DOM overlays for plane, gulls and sailboat) is wired into the card as a bento widget. Six delivered
+files went in unchanged in substance; slice 1 of the integration plan covers placement, wiring and a visual
+check. New id `__ocean__`, domain `ocean` in `RICH_DOMAINS`, a virtual item like the slider's, a render case
+in `BentoWidget`, a router case, and the slot picker now offers "Meer / Ocean" — **including for W1**, where
+the favourites image tile used to be the only large option (that was the request). Configuration
+(`startScreen.ocean`: entities, view bearing, objects, fps cap) rides along as `entity.config`; the settings
+UI is the next slice.
+
+Two seam bugs fixed while wiring: the delivered import path pointed at a `hooks/useHassThrottled` that does
+not exist (the real hook lives in the DataProvider), and `useHassThrottled(hassProp)` would have passed the
+hass *object* as the throttle interval — it now uses `useHassThrottled(1000)` like BentoZenView. And one
+PurgeCSS trap defused: the fallback built wave classes as `of-w${n}`; composed names get eaten by the
+production purge, so the three class names are written out literally. Verified against the built single file:
+all ocean classes survive.
+
+Verified in dev with real defaults (sun at 32°, partly cloudy, 18 km/h wind): the tile renders sun, glitter
+path, waves, horizon haze, gulls and the boat; sky/water pixels probed from the live canvas. One
+test-environment note for the record: the browser pane mounts hidden, where the widget's own
+IntersectionObserver correctly *pauses* the scene — the black tile that caused an hour of debugging was the
+power-saving logic doing its job. On a real, visible dashboard the scene starts immediately.
+
+Still open (next slices): the `oceanWeather` node test, the settings sub-view with ⓘ popup + catalog entry,
+and the wall-tablet measurement that decides whether the scene ever defaults to on.
+
 ## Version 1.1.2313 - 2026-08-07
 
 **Title:** 🚑 Hotfix: mount crash on v2312 when the favourites tile is empty — an optional prop called raw
