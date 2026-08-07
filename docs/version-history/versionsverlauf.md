@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2300 - 2026-08-07
+
+**Title:** ⚙️ All 38 canonical switch rows now share one component
+
+**Tags:** refactor, settings, components
+
+The remaining four files follow: Appearance (12 of 14), Todos settings (6 of 7), the news settings view
+(2 of 3) and Live Activities (1 of 2). That completes the canonical set — **38 rows in 10 files**, down from
+~418 lines to 267 (Ø 11 → Ø 7), so about **151 lines** and, more to the point, one place to change the row.
+
+The five rows left behind are left behind on purpose: a label sharing its line with an ⓘ button, a subtitle
+that only exists under a condition, a clickable left half. Each would have added a prop that serves exactly
+one caller.
+
+This time the migration refused to touch any row whose label or subtitle contained nested markup — the guard
+that was missing in v2299, where a subtitle with a conditional chip got torn apart. Zero rows were skipped for
+that reason here, and all 38 were audited prop by prop afterwards. Verified in the dev instance across the
+General, Privacy and Appearance tabs: rows keep their 57 px height, their switch, their subtitle, and the
+dimmed-and-disabled row keeps `opacity: 0.7` with a grey switch.
+
 ## Version 1.1.2299 - 2026-08-07
 
 **Title:** ⚙️ One switch row instead of eleven lines — the first six settings files
