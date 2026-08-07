@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2301 - 2026-08-07
+
+**Title:** 🌍 Music Assistant speaks from the dictionary — and eleven silent translation holes are closed
+
+**Tags:** i18n, translations, tooling
+
+First file of the dictionary migration: **MusicAssistantPanel, 49 of its 50 bilingual ternaries** now read
+from `ui.musicAssistant.*` (37 keys, both languages). The one left inline pluralises ("1 track / 2 tracks").
+The panel already had a `t()` helper pointing at that namespace — the namespace simply never existed.
+
+**Which brings up the real problem this release fixes.** `getTranslation` returns the *key path* when a key is
+missing, not null. A path is truthy, so the common `translateUI('x') || 'fallback'` pattern can never fall
+back: the screen shows the literal string `ui.general.loading`. Four places relied on exactly that dead
+fallback, and six German-only `climate.*` keys had no English counterpart — an English timer name read
+`ui.climate.heat`. All eleven are now in both dictionaries.
+
+**New guard:** `scripts/check-i18n-keys.py` collects every key used in the source — direct `translateUI` calls
+and local `t()` helpers with their prefix — and verifies it exists in **both** `de.js` and `en.js`. Current
+state: 226 keys, all present. Run it before shipping any translation change.
+
+It earned its keep immediately: the script that wrote the new dictionary entries put the *English* strings
+into `de.js`. Nothing failed — the build was green, the keys all resolved, and a German Music Assistant panel
+would simply have been in English. What caught it was resolving all 37 keys in both languages and comparing
+them against the original strings, 74 checks in total; all 74 match now.
+
 ## Version 1.1.2300 - 2026-08-07
 
 **Title:** ⚙️ All 38 canonical switch rows now share one component
