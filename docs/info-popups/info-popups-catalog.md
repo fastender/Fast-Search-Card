@@ -1196,3 +1196,29 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - Several active gauges cycle automatically as a slideshow.
 >
 > *Why it matters:* this is how you highlight exactly the energy metrics that matter most to you.
+
+## oceanScene
+
+> Einstellungen → Startbildschirm. ⓘ am „Meer"-Sektionskopf (v1.1.2317).
+
+**DE**
+> ## Meer
+>
+> Eine lebende Meeres-Szene als Hintergrund der großen Kachel — berechnet auf der Grafikeinheit (WebGL), gespeist aus deinem Home Assistant:
+>
+> - **Sonne & Mond** – Stand, Farben und Nacht folgen deiner `sun.sun`-Entity; die Mondphase optional einem Mond-Sensor.
+> - **Wetter** – Wolken, Wind, Regen, Schnee und Dunst kommen aus der Wetter-Entity. Messwerte (Bewölkung, Sichtweite) schlagen den Zustandstext.
+> - **Blickrichtung** – In welche Himmelsrichtung die Kachel „schaut"; danach wandern Sonne und Mond durchs Bild.
+>
+> **Kostet Grafikleistung:** Die Szene zeichnet bis zu 30-mal pro Sekunde. Sie pausiert automatisch, wenn sie nicht sichtbar ist; der Bildratendeckel senkt die Last weiter. Auf einem Wandtablet nach längerem Betrieb die Gerätetemperatur prüfen.
+
+**EN**
+> ## Ocean
+>
+> A living sea scene as the large tile's background — rendered on the GPU (WebGL), fed by your Home Assistant:
+>
+> - **Sun & moon** – position, colours and night follow your `sun.sun` entity; the moon phase optionally a moon sensor.
+> - **Weather** – clouds, wind, rain, snow and haze come from the weather entity. Measured values (cloud coverage, visibility) beat the state text.
+> - **View bearing** – the compass direction the tile "faces"; sun and moon travel accordingly.
+>
+> **Costs GPU time:** the scene draws up to 30 times per second. It pauses automatically while not visible; the frame-rate cap lowers the load further. On a wall tablet, check device temperature after extended use.

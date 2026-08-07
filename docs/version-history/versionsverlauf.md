@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2317 - 2026-08-08
+
+**Title:** 🌊 Ocean settings and the node test — slices 2 and 4 of the integration plan
+
+**Tags:** ocean, settings, tests, info-popup
+
+**The node test first** (explicitly commissioned): `tests/ocean-weather.spec.js` covers the mapping layer in
+six tests following the house "pure" pattern — unit conversion incl. nonsense→null, palette continuity across
+the horizon with rising≠setting, the night factor's 0-at-+5°/1-at-−10° contract, moon phase from text, 0..1
+number, moon age in days and missing sensor, numeric weather attributes beating the state map plus the windy
+floor, and `sceneFromHass`'s azimuth clamp following the aspect ratio with finite defaults when every entity
+is missing. **6/6 green on the first run.**
+
+**Then the settings**, under Start Screen right below the "Ocean instead of image" switch, dimmed while that
+switch is off (island pattern): weather/sun/moon entity rows with inline picker lists (automatic / sun.sun /
+none as first entry), view bearing as a tap-to-cycle through the eight compass points ("SW (225°)"), the
+frame-rate cap cycling 30/24/15, and one toggle each for plane, gulls and sailboat. Everything lands in
+`startScreen.ocean`, which the tile already consumes live via `startScreenSettingsChanged`. Verified in dev by
+actually clicking through: picking `weather.balkon`, cycling to SW/24 fps, switching the gulls off — the
+stored object and the row values match.
+
+The ⓘ on the section header explains where the data comes from and that the scene costs GPU time — text in
+both dictionaries under `settingsInfo.oceanScene`, and the popup catalog got its entry in the same release, as
+the rule demands.
+
+What remains from the plan is slice 5 alone: the wall-tablet measurement (frame rate of the whole card,
+device temperature after 30 minutes) — that verdict decides whether the scene ever defaults to on.
+
 ## Version 1.1.2316 - 2026-08-08
 
 **Title:** 🌊 Cards dock below the horizon, and the empty tile's tabs stop jumping
