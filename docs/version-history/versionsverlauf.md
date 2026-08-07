@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2302 - 2026-08-07
+
+**Title:** 🌍 Todos and Calendar settings move into the dictionary — 97 more strings
+
+**Tags:** i18n, translations, todos, calendar
+
+Two more files, same method as v2301. **TodosSettingsView: all 48** bilingual ternaries → `ui.todos.*`
+(30 keys). **CalendarSettingsView: all 49** → `ui.calendar.*` (30 keys). Both files had no `t()` helper and no
+namespace at all; both now carry one, and both namespaces are meant for the whole entity, so the views and
+dialogs that follow can move in beside them.
+
+The tree is down from 682 to **587** bilingual ternaries.
+
+Both files went through the same three checks: `check-i18n-keys.py` (286 keys, all present in de and en),
+resolving every new key in both languages against the original strings (120 comparisons, all equal), and
+rendering each view twice — once German, once English — with no `ui.…` path left showing.
+
+The generator that writes dictionary entries now verifies its own column before it finishes: it re-reads the
+file and asserts the first entry carries the language it was supposed to write. That is the mistake from
+v2301, where the English strings landed in `de.js` and everything downstream stayed green.
+
 ## Version 1.1.2301 - 2026-08-07
 
 **Title:** 🌍 Music Assistant speaks from the dictionary — and eleven silent translation holes are closed
