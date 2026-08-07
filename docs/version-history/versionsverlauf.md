@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2312 - 2026-08-07
+
+**Title:** 🔥 Zero permanent animations at rest — the search caret joins the idle gate
+
+**Tags:** performance, thermal, search, island
+
+The fresh idle measurement after v2297 showed exactly **one** infinite animation still running on the resting
+card: the glowing search-bar caret (`fsc-caret-takt`, 960 ms, forever). The thermal rule from six audit
+rounds says warmth is a threshold, not a slope — going from five runners to one saves almost nothing, going
+from **one to zero** is what lets the compositor actually sleep.
+
+The idle gate built for the island in v2285 (three minutes without a gesture → decorative animations pause,
+first gesture wakes) now covers the whole card: the island mirrors its `data-dekor` bit onto the
+`.main-container`, and one CSS rule pauses the caret there. Paused, not hidden — the bar simply stands still;
+the moment you touch, scroll or type, it blinks again. The gate deliberately stays in the island (clock and
+wake listeners already exist there; a second gate would tick twice), which also means: with the island
+disabled the caret keeps blinking, the same scope the gate has had since v2285.
+
+The verification produced a lesson worth the release notes: the wake-up seemed to work only *every other
+time* — synthetic events, real CDP clicks, nothing was reliable. The card was innocent. The browser pane is
+`hidden` while scripts run, `requestAnimationFrame` never fires there, and Preact flushes its renders through
+rAF — state updates queued up until some timer dragged them through, which looked exactly like a flaky
+listener. With the rAF-over-timer shim from the dev-testing notes, the cycle is clean: two full
+rest→wake rounds, both wake paths (keydown, pointerdown), and at rest the card now reports
+**0 running infinite animations**.
+
 ## Version 1.1.2311 - 2026-08-07
 
 **Title:** 🚑 Hotfix: the zen start crashed in v2310 — a timer variable named `t` fooled the safety sweep
