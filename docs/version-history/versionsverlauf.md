@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2311 - 2026-08-07
+
+**Title:** 🚑 Hotfix: the zen start crashed in v2310 — a timer variable named `t` fooled the safety sweep
+
+**Tags:** hotfix, i18n, zen, bugfix
+
+**v2310 shipped a crash.** `BentoZenView` calls `t('favorites')` for the two W1 tab labels — but the file
+never got a helper, so the zen start screen threw `ReferenceError: t is not defined` on every render. The
+sweep that was supposed to catch exactly this class had checked for `const t = ` — and the file contains
+`const t = setTimeout(…)`: a **timer handle named `t`** satisfied the check. The strictified sweep
+(`const t = (key…` plus useCallback/payload/text-table forms, multi-line signatures included) found five more
+files of the same class before they could crash: the weather and slider bento widgets, the sensor chart view,
+`StartScreenSettingsTab.buildAvailableEntities` — and `TodoFormDialog`, where the migrated `t('none')` would
+have collided with the file's own `t` *text table* (`t.none` style; the entry moved into that table instead).
+
+`bento.homeScreen` was the one key that existed in two other namespaces but not the one the new helper reads
+from; copied.
+
+Verified at runtime, not just by build: the zen screen mounts, reveals, and reports **zero errors** — and the
+idle measurement that started this whole exercise now reads: timers 5 s/30 s/300 s (no second-hand), exactly
+**one** infinite animation still running (the search-bar caret), 4 live backdrop-filter elements.
+
 ## Version 1.1.2310 - 2026-08-07
 
 **Title:** 🌍 The long tail in one sweep — 187 strings across ~60 files, and the accidents that sweep produced
