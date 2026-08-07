@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2307 - 2026-08-07
+
+**Title:** 🌍 Setup views, the todos list and both calendar views — two scope traps caught before shipping
+
+**Tags:** i18n, translations, calendar, todos, setup
+
+Six files in three namespaces: the three remaining `UniversalSetup` views (35 occurrences → `ui.setup.*`),
+`TodosView` (14 → `ui.todos.*`) and both calendar surfaces, `CalendarView` plus the bento widget
+`BentoRichCalendar` (18 → `ui.calendar.*`). Nineteen of those 67 occurrences already had a key — the entity
+namespaces created in v2302 are paying for themselves. The tree is down from 379 to **313**.
+
+**Two scope traps, both found by sweeping rather than by the build:**
+
+In `TodosView` the helper landed *above* the line where `lang` is destructured out of `props` — that function
+starts with an early return, so the destructuring sits further down. Reading `lang` before it exists is a
+ReferenceError on every render of that view. Moved below.
+
+In `CalendarView`, `EventRow` and `WeekGrid` are module functions with their own `lang` parameter, sitting
+outside the component. The component's `t` is invisible there — the exact mistake that shipped in v2302 as
+`durationLabel`. Both got their own helper before this release left the machine.
+
+Checks: 670 keys in both languages, no German text in `en.js`, 24 resolutions compared against the originals,
+and the two repaired module functions read "Ganztägig / All day" and "Ohne Titel / Untitled".
+
 ## Version 1.1.2306 - 2026-08-07
 
 **Title:** 🌍 The four settings tabs move in — and the key checker turns out to have been half blind
