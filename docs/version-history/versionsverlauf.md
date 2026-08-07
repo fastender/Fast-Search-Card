@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2313 - 2026-08-07
+
+**Title:** 🚑 Hotfix: mount crash on v2312 when the favourites tile is empty — an optional prop called raw
+
+**Tags:** hotfix, i18n, bento, bugfix
+
+**v2312 crashed at mount for users whose favourites/suggestions tile is empty** — "t is not a function",
+reported with the full stack. The minified trace pointed at `SettingsInfoButton`: the mass migration had
+turned its aria-label into `t('showInfo')`, but `t` is an **optional prop** there — the component has always
+carried a `tr = t || fallback` for exactly that reason. `BentoWidget` renders the ⓘ button on the empty
+favourites tile *without* a `t` prop, the empty tile sits in the zen start's mount path, and calling an
+undefined prop is precisely "t is not a function".
+
+Why no test caught it: the dev mocks pass `favoritesCount = null`, which skips the empty-state branch — the
+user's real count is `0`, which takes it. The diagnosis came from the reported stack instead: bundle line and
+column resolved to `aria-label:t("showInfo")`, and a sweep for raw `t('…')` calls in files carrying the
+`t || fallback` pattern found exactly four — all in this one file, all now on `tr`. A warning comment sits on
+the `tr` so the next migration reads it.
+
 ## Version 1.1.2312 - 2026-08-07
 
 **Title:** 🔥 Zero permanent animations at rest — the search caret joins the idle gate
