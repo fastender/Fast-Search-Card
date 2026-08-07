@@ -1,6 +1,44 @@
 # Versionsverlauf
 
-## Version 1.1.2319 - 2026-08-08
+## Version 1.1.2320 - 2026-08-08
+
+**Title:** 📅 Calendar respects HA visibility, and rolls forward to the next event on open
+
+**Tags:** calendar, bugfix, feature, settings, community
+
+Two items from the community forum's eight-point report, both publicly promised.
+
+**Hidden/disabled calendars (bug).** `listCalendars` matched on the `calendar.` prefix only — and Home
+Assistant does not remove hidden entities from `hass.states`, it only flags them in the entity registry
+(`hidden_by` / `disabled_by`). So a calendar hidden in HA stayed visible in the card. Fixed via the
+registry-in-entity route (option B from the plan): `loadEntityRegistry` is fetched once per session and
+cached on the entity; until it arrives, `hass.states`' sibling `hass.entities` (HA's synchronous display
+registry) already covers the hidden case on the very first synchronous call, and once the WS registry lands,
+the list is rebuilt so `attrs.calendars` consumers (bento widget, settings list, event dialog) follow. Option
+A (threading the DataProvider's enriched list into CalendarView) was rejected because the view receives hass
+via props only — the wiring would have been a far bigger cut for the same result. The filter honors the
+existing global visibility switches (`filterHiddenEntities` / `filterDiagnosticEntities`, both default on)
+instead of hard-filtering — dev-probed through all five states (sync first call, registry arrival, attrs
+recall, each switch off). One fix point heals all three surfaces because view, settings and dialog all feed
+from the same list. The reported "double entries" could not be reproduced (per entity_id the list cannot
+duplicate); the likely cause is one backend calendar exposed by two integrations as two entities — for which
+hiding one in HA is now precisely the working remedy. Noted as open.
+
+**Jump to next event (feature).** Part (a) of the wish — a default view — already existed but went unfound
+(see below). Part (b) is new: on first mount only, if the default view's range contains no *visible* event
+(card-disabled calendars and, with show-past off, finished events don't count), the view loads a bounded
+90-day look-ahead and moves anchor + selected day to the first upcoming event, following the existing
+deep-link anchor pattern. The guard consumes itself immediately: manual navigation never snaps back
+(UI-verified — "Today" returns to the empty August and stays), bento deep-links start pre-consumed, and a
+pending UID deep-link suppresses the jump. API trace shows exactly one extra range call, no loop. New setting
+`display.jumpToNextEvent` (default on) as a toggle right below the default view row; the `calDisplay` info
+popup explains it (de+en, catalog updated — including newly written content sections for `calCalendars` and
+`calDisplay`, which only existed as index rows before).
+
+**Default view discoverability.** The reporter asked for a setting that already existed — labeled
+"Standard-Zeitraum"/"Default range" and sitting mid-section. Someone searching for "default view" reads that
+as a data window, not a view choice. The row now leads the Display section and says what it does:
+"Standardansicht beim Öffnen" / "Default view on open".
 
 **Title:** 🌊 Orbit cap instead of window frame — the ocean fills the header again, sun and moon stop below it
 

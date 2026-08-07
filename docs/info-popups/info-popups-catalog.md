@@ -1222,3 +1222,59 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **View bearing** – the compass direction the tile "faces"; sun and moon travel accordingly.
 >
 > **Costs GPU time:** the scene draws up to 30 times per second. It pauses automatically while not visible; the frame-rate cap lowers the load further. On a wall tablet, check device temperature after extended use.
+
+## calCalendars
+
+> Kalender → Einstellungen. ⓘ am „Kalender"-Sektionskopf. (Inhalts-Abschnitt
+> nachgetragen in v1.1.2320 — der Key selbst ist älter; Anlass war der neue
+> HA-Sichtbarkeits-Hinweis.)
+
+**DE**
+> ## Kalender
+>
+> Jeder in Home Assistant eingerichtete Kalender erscheint hier.
+>
+> - **Schalter** rechts: Kalender ein-/ausblenden — ausgeblendete Termine verschwinden aus allen Ansichten.
+> - **Tippen auf die Zeile** öffnet die **Farbauswahl** — überschreibt die automatisch vergebene Farbe (oder „Standard" für die Auto-Farbe).
+> - In **Home Assistant versteckte oder deaktivierte** Kalender tauchen gar nicht erst auf — gesteuert über Einstellungen → Filter → Sichtbarkeit.
+>
+> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe.
+
+**EN**
+> ## Calendars
+>
+> Every calendar configured in Home Assistant shows up here.
+>
+> - **Switch** on the right: show/hide a calendar — hidden events disappear from all views.
+> - **Tap the row** to open the **color picker** — overrides the auto-assigned color ("Default" restores it).
+> - Calendars **hidden or disabled in Home Assistant** don't appear at all — controlled via Settings → Filters → Visibility.
+>
+> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color.
+
+## calDisplay
+
+> Kalender → Einstellungen. ⓘ am „Anzeige"-Sektionskopf. (Inhalts-Abschnitt
+> nachgetragen in v1.1.2320 — Anlass: neue Zeile „Zum nächsten Termin springen"
+> + geschärftes Label „Standardansicht beim Öffnen".)
+
+**DE**
+> ## Anzeige
+>
+> - **Standardansicht beim Öffnen** – mit welcher Ansicht der Kalender startet (Tag/Woche/Monat/Jahr).
+> - **Zum nächsten Termin springen** – ist die Startansicht leer, rückt der Kalender automatisch zum Zeitraum des nächsten Termins vor (sucht bis 90 Tage voraus).
+> - **Vergangene Events anzeigen** – aus: nur kommende Termine; an: auch bereits beendete.
+> - **Sortierung** – Reihenfolge der Event-Liste (auf-/absteigend nach Startzeit).
+> - **Wochenstart** – Montag oder Sonntag (wirkt auf Monats-/Wochenraster).
+> - **Zeitformat** – 24-Stunden oder 12-Stunden (AM/PM).
+> - **Wochennummern** – KW-Spalte im Monatsraster ein-/ausblenden.
+
+**EN**
+> ## Display
+>
+> - **Default view on open** – which view the calendar starts in (Day/Week/Month/Year).
+> - **Jump to next event** – if the opening view is empty, the calendar rolls forward to the period of the next upcoming event (looks up to 90 days ahead).
+> - **Show past events** – off: only upcoming; on: also finished events.
+> - **Sort order** – order of the event list (ascending/descending by start time).
+> - **Week starts on** – Monday or Sunday (affects the month/week grid).
+> - **Time format** – 24-hour or 12-hour (AM/PM).
+> - **Week numbers** – show/hide the week-number column in the month grid.
