@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2304 - 2026-08-07
+
+**Title:** 🌍 State texts join the existing `controls` namespace — half of them were already there
+
+**Tags:** i18n, translations, state-helpers
+
+`utils/stateHelpers.js` (24) and `DetailView/useDetailHeaderInfo.js` (23) now read from `ui.controls.*`.
+Pointing the tool at that **existing** namespace instead of inventing a new one paid off immediately: of the
+47 occurrences, **24 already had a key** — "Battery", "Humidity", "Active", "Unknown" and friends were in the
+dictionary all along, written out inline anyway. Only 23 keys were actually new. The tree is down from 521 to
+**477**.
+
+Six of the new keys needed better names than the tool's automatic numbering, because German and English differ
+in capitalisation where the other language does not: `edit`/`editLower` ("Bearbeiten"/"bearbeiten"),
+`openState`/`openLower`, and `switchedOn`/`switchedOff` for the wordier "Eingeschaltet"/"Ausgeschaltet" beside
+the existing short `on`/`off`. This time the rename stayed inside the `controls` block — in v2303 a careless
+one reached into two other namespaces.
+
+**The risk in these two files was a different one:** they are utilities, not components. Six functions used
+`t()` without a helper in scope — `getStateDuration`, `getQuickStats` and four header builders. That is a
+ReferenceError at runtime, and **the build does not see it**, because `t` is a perfectly valid identifier
+somewhere else in the file. Found by walking every top-level function and comparing "uses `t(`" against
+"defines `const t =`"; each of the six got its own helper.
+
+Verified by calling the functions rather than looking at a screen: eight entity states and seven 3D-printer
+steps resolved in both languages, plus 46 key resolutions compared against the original strings. The states
+that still return their raw value (`idle` for a media player, say) did so before as well — that fallback in
+`getStateText` is unchanged.
+
 ## Version 1.1.2303 - 2026-08-07
 
 **Title:** 🌍 News and the rest of Music Assistant move in — plus a migration tool for the remaining files
