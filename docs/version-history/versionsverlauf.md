@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.2310 - 2026-08-07
+
+**Title:** 🌍 The long tail in one sweep — 187 strings across ~60 files, and the accidents that sweep produced
+
+**Tags:** i18n, translations, tooling, bugfix
+
+The remaining files went through in namespace groups (setup, integration, controls, bento, todos, calendar,
+tipps, versionsverlauf, schedule, notifications, news, context, settings), with a new
+`scripts/i18n-add-helper.py` doing the helper insertion that had been error-prone by hand. **Of 682 bilingual
+ternaries at the start of this migration, 54 remain** — all deliberate: template strings, pluralisation,
+data-object selectors, and `getLocale` itself.
+
+A mass sweep produces mass accidents, and this one produced five kinds — all caught by the guards before
+release, four of them invisible to the build:
+
+- **The migration ate its own infrastructure.** `getLocale` in `translations/index.js` — the `de-DE`/`en-US`
+  mapping — became `t('enUs')`, with `enUs: 'de-DE'` written to the dictionary. Even a code comment mentioning
+  the ternary got rewritten. Restored; the one ternary in that file is the point of that file.
+- **Language-code selectors are not UI text.** `lang === 'de' ? 'de' : 'en'` (object-key selection) in
+  NotificationsView, notificationSources and subcategoryMap became `t('en')` — a key literally named "en"
+  holding the value `'de'`. All three reverted to inline selectors.
+- **`t('x', lang)` where `lang` does not exist.** The module-helper rewrite added a `lang` argument inside
+  eight ScheduleTab functions that receive `t` as a *parameter* — evaluating the undefined `lang` throws on
+  every call. Those three utils are back to parameter-`t` only; all their keys were verified present in
+  `ui.schedule.*`, matching what the shipped v2309 bundle already resolved.
+- **A duplicate namespace block.** The new `context` keys were inserted as a second `context:` block; in a JS
+  object literal the last duplicate wins, so all six resolved to their key path. Merged into the existing
+  block; a new check scans both dictionaries for duplicate namespace blocks (and for locale-code values).
+- **Wrong import depths, again.** The path calculator was off in 37 files; one repair pass normalised every
+  `translateUI` import against its actual directory depth.
+
+Checks: 921 keys present in both languages, no German in `en.js`, no duplicate blocks, no locale-code values,
+zero `t()` calls without a helper or parameter in scope, and 16 resolutions plus a real `dangerLabel('smoke')`
+call ("Rauch erkannt" / "Smoke detected") against the originals.
+
 ## Version 1.1.2309 - 2026-08-07
 
 **Title:** 🌍 Bento, tips, changelog — and the files that were already "done" gave up 31 more strings
