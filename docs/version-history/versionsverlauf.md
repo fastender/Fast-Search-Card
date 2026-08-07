@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2315 - 2026-08-08
+
+**Title:** 🌊 The ocean moves behind the favourites — W1 keeps its tabs, cards and fade
+
+**Tags:** ocean, bento, w1, refinement
+
+v2314 made the ocean a *separate* W1 widget that displaced the favourites tile. That was the wrong cut — the
+request was: **replace the wallpaper, keep everything else.** Now the scene takes over the tile's *background
+layer*: same `bento-widget-bild` element, same `coverRef`, so the scroll fade the wallpaper had
+(opacity = 1 − scrollTop/padTop) acts on the living sea exactly as it did on the image — measured 1.0 at rest,
+0.64 mid-scroll, back to 1.0. Tabs (Favoriten ↔ Vorschläge), device cards, view toggle and edge shades are
+untouched.
+
+Switched on via a new toggle in Start Screen settings: "Meer statt Bild / Ocean instead of image"
+(`startScreen.oceanW1`); the image field dims while the scene owns the slot but keeps its value. The W1 slot
+picker is back to favourites/suggestions only — the ocean is not a widget there, it is the background. The
+standalone ocean widget from v2314 stays available for W2–W4.
+
+One deliberate thermal guard: the scene only mounts once the zen screen is **revealed**. At rest the curtain
+covers the grid, and the widget's own IntersectionObserver would consider the tile visible — WebGL would have
+run forever exactly where the card has stood at zero permanent animations since v2312.
+
+Empty favourites still show the glass tile with the ⓘ hint, same as with a wallpaper — the background layer
+only exists in the carousel state.
+
 ## Version 1.1.2314 - 2026-08-07
 
 **Title:** 🌊 The ocean arrives — a living WebGL sea as an option for the big W1 tile
