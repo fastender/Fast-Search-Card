@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.2330 - 2026-08-08
+
+**Title:** 🪟 STABLE — the first full release since v1.1.1931 (June 20)
+
+**Tags:** stable, release, summary
+
+Same code as v1.1.2320, published as a **stable release** (`--latest`) — the update every HACS user
+receives, after ~390 prereleases over seven weeks. Highlights of the span v1.1.1932 → v1.1.2330; details
+live in the individual entries below.
+
+- **Zen start screen** became the one and only start screen (v2225, freeform since v2245): a calm cover
+  with greeting and a mini search pill that expands on tap.
+- **Ocean widget** (v2314–v2319): a living WebGL sea scene as the W1 background behind favorites and
+  suggestions — sun, moon and weather fed by Home Assistant, with an orbit cap so celestial bodies stay
+  below the tab header. Off by default; enable under Settings → Start Screen.
+- **Island redesign** (v2289+): two bodies — a values capsule and the island proper; quiet state is a
+  status line, the panel opens sphere-first with a two-axis filter.
+- **Notification system** (v2199): three lanes, lane follows state; a notification center system entity
+  with overview, live and history.
+- **Thermal doctrine** (v2284–v2312): zero endless animations at rest — throttled data provider, idle
+  gate covering the whole card. Phones stay cool on the wall.
+- **Calendar community fixes** (v2320): calendars hidden or disabled in HA disappear from the card
+  (honoring the visibility filter switches), the view rolls forward to the next upcoming event when the
+  opening range is empty (default on, capped at 90 days), and the default-view setting moved up front
+  with a clearer label.
+- **i18n dictionary migration** (v2301–v2310): 682 inline bilingual literals down to 54 deliberate
+  special cases, guarded by `check-i18n-keys.py` (944 keys).
+- **Performance and refactors**: DataProvider split (v2192–94), island 1-second driver + signatures
+  (v2180–82), DetailView/UCT splits (v2078–2102), IosSubView/IosPagerView dedup (~2000 LOC, v2170–90),
+  bundle measured and closed at 505 KB gzip (v2198).
+- **Playwright harness** (v2191+): 111 tests across every visible surface.
+- **Liquid glass** polish (v2083–93), circular slider redesign phase 1 (v2103), media-assistant features
+  (v1992–96), bottom sheets on all domains (v2056–73), universal history on all entities, calendar/todos
+  tooling, and two same-day hotfixes (v2311, v2313) for the zen-mount translator crashes.
+
 ## Version 1.1.2320 - 2026-08-08
 
 **Title:** 📅 Calendar respects HA visibility, and rolls forward to the next event on open
