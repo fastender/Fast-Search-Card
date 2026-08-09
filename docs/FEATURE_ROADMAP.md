@@ -1022,7 +1022,7 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget | Existing infrastructure, clear daily payoff |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline | Existing infrastructure, clear daily payoff |
 | **Medium effort, established patterns** | #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
@@ -1145,15 +1145,69 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ---
 
+## Part seven — 2026-08-08 addition
+
+One idea from a look at a neighbouring project. Same conceptual space, different product — the concept is worth having, the code is not needed.
+
+---
+
+### 44. House Timeline — one chronological view of everything that happened
+
+**Pitch:** A single scrollable list of what your home did today. Every state change worth reading, house-wide, newest first, grouped by day. Not per device — the whole house.
+
+**Status quo:** The card can already tell you what *one* device did. It cannot tell you what *the house* did. To reconstruct an evening you open six detail views and read six History tabs.
+
+The idea comes from [home-status](https://github.com/biggiebytes/home-status) (MIT), which ships a "Timeline" prominently in its screenshots while leaving it almost undocumented in the README. The concept is worth taking; nothing needs to be copied.
+
+**What already exists — this is mostly composition:**
+
+| Piece | Where | What it does today |
+|---|---|---|
+| Logbook fetch | `src/services/logbookService.js` — `getDeviceLogbookEvents({ hass, entityIds, periodType, periodIndex, customStart, customEnd })` | Calls WS `logbook/get_events`, normalises the result. Already takes an **array** of entity IDs. |
+| Merge + sort | `DeviceActivitiesView.jsx:84–108` | Runs sensor-derived events and logbook in parallel, flattens, sorts by timestamp descending |
+| Day grouping | `DeviceActivitiesView.jsx:136` | Groups by `timestamp.toDateString()` |
+| Period maths | `calculatePeriodDates(periodType, periodIndex)` | D/W/M/Y plus custom ranges, already used by the charts |
+| Row rendering | `DeviceActivitiesView.jsx:160` | Distinguishes `source === 'logbook'` from derived sensor events |
+
+Every layer needed already works. What is missing is a caller that passes the *house* instead of one device, plus a place to put it.
+
+**What ships:**
+- A new system entity `timeline` (mirrors `notifications` in shape) with its own view and sidebar entry.
+- Reuses the existing period header — D/W/M/Y and custom range — so it behaves like the charts people already know.
+- Filters along two axes: by area, and by domain. Same chip pattern the search toolbar uses.
+- Rows are tappable and open the entity's detail view, exactly like the notification Live rows do.
+- Optional Bento widget: the last five events, for the small W3/W4 slots.
+
+**The one real design question — scope of the fetch.**
+
+`logbook/get_events` accepts `entity_ids`, and today the card passes one device's entities. Passing several hundred is the naive extension and will be slow. Two better routes:
+
+- **Omit `entity_ids` entirely.** Home Assistant then returns everything for the period, and the card filters client-side using the machinery it already has — excluded patterns, the visibility flags, `is_system`. One request, filtering logic already written and tested.
+- **Fetch per visible area** on demand, so opening the timeline for one room costs one small request.
+
+Route one is almost certainly right for a first version; route two is the optimisation if a large install proves it necessary. Decide with a measurement, not upfront.
+
+**What to watch out for:**
+- The logbook is noisy by default. Without filtering, a house of three hundred entities produces an unreadable wall. The excluded-pattern list is the natural filter and is already user-tuned — use it rather than inventing a second one.
+- Long periods on a large install can return a lot. Cap the rendered rows and load more on scroll; the card already virtualises lists with `virtua`.
+- This is read-only. No acknowledging, no dismissing — that is the Notification Center's job, and the two should not blur into each other.
+
+**Effort:** Small to medium. The data layer is done; this is a view, a filter bar and a system-entity registration.
+
+**Why it fits:** The card already holds every piece and uses none of them at house scale. It also answers a question no other surface in the card answers — "what happened while I was out?" — without competing with the Notification Center, which answers "what needs me now?".
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **41 feature ideas + 2 parallel/long-term tracks** = 43 entries total.
+- The roadmap covers **42 feature ideas + 2 parallel/long-term tracks** = 44 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
-  - **#23–#34** — June 2026 competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes, and the Apple Home ecosystem. Each idea links a specific source.
+  - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
+  - **#44** — August 2026, prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis. Concept borrowed, nothing copied.
