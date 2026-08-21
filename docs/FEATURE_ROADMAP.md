@@ -1022,7 +1022,7 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline | Existing infrastructure, clear daily payoff |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder | Existing infrastructure, clear daily payoff |
 | **Medium effort, established patterns** | #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
@@ -1145,9 +1145,9 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ---
 
-## Part seven — 2026-08-08 addition
+## Part seven — 2026-08-08 additions
 
-One idea from a look at a neighbouring project. Same conceptual space, different product — the concept is worth having, the code is not needed.
+Two entries. One from looking at a neighbouring project, one from a user question that exposed a wrong answer.
 
 ---
 
@@ -1198,16 +1198,56 @@ Route one is almost certainly right for a first version; route two is the optimi
 
 ---
 
+---
+
+### 45. Device builder should accept entities, not only devices
+
+**Pitch:** The Universal device builder can only be pointed at an HA *device*. Anything that exists as a bare entity — template sensors, REST sensors, helpers, most YAML-era integrations — cannot be built into a device view at all, however useful the data is.
+
+**Where it came from:** A forum user rebuilding a decade-old YAML instance asked whether the card could show continuous glucose data. The answer given was "yes, use the device builder" — and that turned out to be wrong for his likely setup. The official Dexcom integration registers a device and works; Nightscout via a REST or template sensor does not appear in the picker at all. The overpromise was corrected publicly, and this entry is the fix.
+
+**The affected group is larger than it looks.** Every template sensor, every `command_line` sensor, every helper, every integration that predates the device registry. In other words: precisely the users migrating from hand-written YAML, who are also the ones most likely to want a composed view over sensors that HA does not group for them.
+
+**Verified root cause — one line:**
+
+`useDeviceList` in `src/system-entities/entities/integration/components/setup-flows/UniversalSetup/hooks.js:112` builds the picker from `Object.entries(hass.devices)`. Entities without a `device_id` are never candidates. `useDeviceEntities` (`:196`) then filters `hass.entities` by `e.device_id === selectedDeviceId`.
+
+**The precedent already exists in the same folder.** `WeatherDeviceEntity` is entity-based, not device-based — it stores `entity_id` and resolves everything from there. The plumbing around it already tolerates both shapes:
+
+- `src/system-entities/entities/integration/index.js:105-118` reads `deviceData.ha_device_id` **or** `deviceData.entity_id` when resolving the area, with an explicit comment: *"Fallback: entity_registry (Weather)"*.
+- The config format therefore already carries both variants; nothing new has to be invented at the storage layer.
+
+**Touch points, all small:**
+
+| # | File | What changes |
+|---|---|---|
+| 1 | `UniversalSetup/hooks.js:112` (`useDeviceList`) | Add a second source: entities with no `device_id`. Group by domain or by area instead of by integration. |
+| 2 | `UniversalSetup/hooks.js:196` (`useDeviceEntities`) | When the selection is entity-based, return the chosen entities directly instead of filtering by `device_id`. Keep the existing `!disabled_by && !hidden_by` guard — it is already correct. |
+| 3 | Stored config | Write an entity list rather than `ha_device_id`. Follow the Weather shape. |
+| 4 | `UniversalDeviceEntity.js:169-181` (`onMount`) | The metadata block reads `hass.devices[haDeviceId]` for name, manufacturer, model and area. Needs an entity branch — area from the entity registry, name from the user, no manufacturer/model. |
+| 5 | `UniversalDeviceView.jsx:137`, `UniversalEntityList.jsx:136` | Both read `ha_device_id`; both need the alternative path. |
+
+**What does not need to change:** hero, charts, quick-stats, icon and visible-entities all operate on entity IDs once the list exists. Steps two onward are already entity-based — that is why this is a picker problem, not an architecture problem.
+
+**The one design question:** how to group device-less entities in the picker, since there is no integration name to group under. Area is the obvious first choice — it matches how the rest of the card thinks — with domain as the fallback for entities that have neither. A search field over the list matters more here than the grouping does, because this list can be long.
+
+**Also worth doing while in there:** allow mixing. A composed view of "the three sensors I care about" spanning several devices is arguably the more common wish than "one device-less sensor", and the machinery after step one already supports an arbitrary entity list.
+
+**Effort:** Small to medium. Five touch points, an existing precedent, no new storage format.
+
+**Why it fits:** The card's pitch is that it reads your Home Assistant and builds itself. Requiring a device registry entry is exactly the kind of hidden precondition that pitch promises to remove — and it fails hardest for the users who have the messiest, most hand-built setups, who are the ones the pitch is aimed at.
+
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **42 feature ideas + 2 parallel/long-term tracks** = 44 entries total.
+- The roadmap covers **43 feature ideas + 2 parallel/long-term tracks** = 45 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
-  - **#44** — August 2026, prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis. Concept borrowed, nothing copied.
+  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards.
