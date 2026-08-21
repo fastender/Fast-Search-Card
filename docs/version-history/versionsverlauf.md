@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2339 - 2026-08-22
+
+**Title:** 🧹 Audit package 5c — the Music Assistant announce panel is its own file
+
+**Tags:** refactor, audit, music-assistant
+
+First cut into the 1,195-line `MusicAssistantPanel`: the announce ("Ansage") panel moves to
+`controls/ma/AnnouncePanel.jsx`. It was the cleanest seam — five states, three history handlers, the send
+handler and ~80 lines of JSX with no touch point to search, queue or library. The draft text deliberately
+stays in the parent (it survives closing/reopening the tab, as before); pre-announce toggle, sending state,
+history (localStorage), the auto-focus and the send logic live in the child, which reports back via
+`onSent`/`onFailed` and shares the panel's scroll surface (`scrollRef`, is-scrolling mask) so the single
+CustomScrollbar keeps working. Panel 1,195 → 1,060 lines. Small side cleanup: the TTS engine preference is
+read through the cached `readSystemSettingsSection('tts')` instead of a raw `localStorage` parse.
+
+Verified by rendering the panel stand-alone in dev: textarea with auto-focus, send disabled until text,
+a URL announcement calls `music_assistant.play_announcement` with the URL and target, the history row
+appears, clicking it re-fills the text, × removes it, and a hass without `callService` takes the failure
+path. The i18n guard learned that `controls/ma/` components receive the `musicAssistant` translator as a
+prop (the seven announce keys had dropped out of its count; back at 999).
+
+Next cuts in the panel: queue/up-next as one component with an `items` prop, search and browse tabs.
+
 ## Version 1.1.2338 - 2026-08-22
 
 **Title:** 🧹 Audit package 5b — day boundaries in one place, the entity reload pattern folded

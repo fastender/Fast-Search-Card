@@ -29,6 +29,8 @@ SPRACHEN = {
 # Skript solche Dateien gar nicht — ein Tippfehler bliebe bis zum Nutzer stehen.
 PROP_PRAEFIXE = {
     'components/tabs/SettingsTab/': 'settings',   # SettingsTab.jsx:73
+    # v1.1.2339: ma/-Unterkomponenten bekommen den musicAssistant-Übersetzer als Prop.
+    'components/controls/ma/': 'musicAssistant',
 }
 
 
