@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.2332 - 2026-08-22
+
+**Title:** ⚡ Audit package 2 — the root of the per-tick work: context split, dead search index, regex and settings caches
+
+**Tags:** performance, audit, data-provider, search, island, settings
+
+The second package from the full code audit targets the one multiplier behind almost every other
+performance finding: how much of the card re-renders and recomputes on every entity flush (150-ms batches,
+up to ~6 per second in a lively house). Five changes, measured before and after in dev with a Preact render
+counter over 40 synthetic `state_changed` flushes.
+
+- **Context split (B1).** `entities` and `notifications` left the main `contextValue` and live in their own
+  `EntitiesContext` / `NotificationsContext`. While `entities` sat in the memo's deps, every flush gave the
+  array a new identity and Preact woke *every* `useData()` subscriber — SearchField, Island, CriticalBanner,
+  DetailView, ContextTab — even those that only needed methods or settings (v1710 had fixed exactly this for
+  `hass` and left `entities` in). Two context methods (`calculateSuggestions`, `generateTestPatterns`) still
+  closed over `entities`; they read an `entitiesRef` now so their identity — and the context value — stays
+  put across flushes. `useEntities`/`useNotifications` subscribe to the new contexts; nothing else in the
+  tree destructured the moved values (grep-verified).
+- **Write-only search index removed (B4).** `searchEntities` (IndexedDB token index) had no caller anywhere —
+  all `useEntities` consumers destructure only `[entities]`; the search runs on Fuse. Yet
+  `buildSearchIndex` wrote 3,000–6,000 sequential IndexedDB `put` transactions on every entity load. The
+  builder, the context method and `src/utils/searchIndex.js` are gone; the perf dump now fires right after
+  the render mark. The `SEARCH_INDEX` store stays in the IndexedDB schema (no migration, stale rows are
+  inert).
+- **Regex compile caches (B2).** `patternMatching.js` compiled a new RegExp per entity × pattern — and
+  `filterExcludedEntities` runs up to 9× per SearchField render over all entities. A `Map<pattern, RegExp>`
+  (invalid patterns memoized as `null`, cleared on `excludedPatternsChanged` alongside the existing config
+  cache) replaces that. Same cache in `liveActivitySources.matchesAnyPattern` (pure module cache, no storage),
+  and the island's scan now runs the cheap domain/source gates *before* the pattern check and iterates with
+  `for…in` instead of allocating `Object.entries`.
+- **`systemSettings` root cache (B7).** `readSystemSettingsSection` parsed the whole blob on every call —
+  with 18 calling files, `useBentoSlots` per entity tick, the island twice a second and one
+  `startScreenSettingsChanged` event triggering six full parses. The parsed root is cached at module level,
+  invalidated in the single write path, on cross-tab `storage` events and via `clearSystemSettingsCache()`;
+  sections are returned as `structuredClone` copies so callers can mutate freely without poisoning the cache,
+  and `updateSystemSettingsSection` works on a copy. Plus: eight `useState(localStorage.getItem(…))` calls
+  in `SettingsTab` became lazy initializers (they re-read storage on every render before).
+- **Fuzzy search idles for free (B3).** The index signature (djb2 over every entity's id/name/area) was
+  recomputed on every flush even with the search closed; at idle, `frischeResults` also rebuilt an N-entry
+  map per tick. Now the signature is computed only while a search term is active and frozen otherwise, and
+  idle results return the live item array directly. The one real hazard — a rename during idle followed by a
+  cached query — is closed by moving the signature check (reindex + result-cache clear) to the top of
+  `search()`, *before* the cache lookup, instead of relying on the effect that ran after render.
+
+**Measured (dev, 40 flushes, same mock, same conditions):** total VDOM renders **5,027 → 2,896 (−42 %)**.
+Island parts dropped from 37 renders each to 2 (IslandBand 111 → 6); framer internals roughly halved.
+SearchField still renders per flush — it owns the device list, that is correct — and so does its subtree
+(BentoZenView, the four tiles, input section, banner): that is the next lever and belongs to package 3
+(memo boundaries inside SearchField, the bento comparator). Functional probes: settings cache write/read/
+copy-protection/invalidation, pattern filter with invalidation, and an isolated mount of the fuzzy hook
+covering idle, idle-tick, search, rename-during-idle (no stale hit) — all green; full vite builds after each
+wave; card boots without errors.
+
 ## Version 1.1.2331 - 2026-08-22
 
 **Title:** 🩹 Audit package 1 — four latent defects found by the full code review
