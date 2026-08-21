@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2331 - 2026-08-22
+
+**Title:** 🩹 Audit package 1 — four latent defects found by the full code review
+
+**Tags:** bugfix, audit, calendar, music-assistant, news, settings
+
+A full performance/refactoring audit of the codebase (three parallel deep scans plus manual verification)
+surfaced four real defects on the side. All four are fixed here; the performance and refactoring packages
+follow separately.
+
+- **"Reset learning data" threw a ReferenceError.** `DataProvider.resetLearningData` called
+  `clearEntitiesSnapshot()` but the import line only brought in `loadEntitiesSnapshot` — the function
+  aborted before `clearUiStateSnapshots()`, so stale boot snapshots survived the reset. One word in the
+  import. (Rollup does not flag this: an unimported name looks like a global.)
+- **Calendar event dialog crashed inside its own error path.** In `CalendarEventDialog`, `t` is the
+  legacy `TEXTS[lang]` *object*, yet both catch blocks called `t('saveFailed')` / `t('deleteFailed')` as a
+  function — a leftover from the i18n sweep. When a save/delete failed without an `err.message`, the
+  handler itself threw. Now uses `translateUI('calendar.saveFailed' | 'calendar.deleteFailed', lang)` —
+  the dictionary keys already existed in both languages.
+- **Music Assistant announce tab broke as soon as an announce history existed.** The recent-announcements
+  list mapped over `(t) =>`, shadowing the translator; `title={t('use')}` then invoked a string. Since the
+  history is persisted, the tab stayed broken after the first announcement. Parameter renamed to `txt`
+  (plus the same rename in `removeAnnounceRecent` for consistency).
+- **News settings loaded without the default merge.** `news/utils/settingsStorage.loadSettings` returned
+  the raw stored JSON (Todos and Calendar both merge). Consequence: the `autoMarkRead: true` default from
+  v1.1.1889 never applied to existing users, and a snapshot without `display` would have sent NewsView into
+  a TypeError. Now merges two levels deep over the defaults; explicit values — including `false` — still
+  win. Probed in Node: legacy snapshot gains the default while keeping its own `maxAge`/feeds, explicit off
+  stays off, missing `display` no longer throws, and the default object is returned as a copy (no aliasing).
+
+Three of the four are the same `t`-identity class as the v2311/v2313 hotfixes — worth a dedicated guard
+later (a lint for `t` bound to non-callables or shadowed by map parameters).
+
 ## Version 1.1.2330 - 2026-08-08
 
 **Title:** 🪟 STABLE — the first full release since v1.1.1931 (June 20)
