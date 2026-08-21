@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2337 - 2026-08-22
+
+**Title:** 🧹 Audit package 4b/3 + 5a — one template editor instead of two, the todo filter computed once
+
+**Tags:** refactor, audit, calendar, todos, performance
+
+- **Calendar settings: one template editor.** Title and description templates each had their own copy of
+  open/edit/delete/save handlers, their own list section (rows with pencil + trash, an add row) and their own
+  editor sub-view — line for line the same, only the state names differed. Now a `templateKind`
+  (`title` | `desc`) selects the list; one handler set, one `templateSection(kind)` renderer for both main
+  sections, one `template-edit` sub-view whose header/placeholder follow the kind. 906 → 804 lines.
+  Verified in dev: adding a description template (header "Beschreibung", Enter commits, titles untouched),
+  editing a title template (prefilled, renamed), deleting it — each change lands in the right list.
+- **TodosView: the base filter is a memo.** The settings filter (list enabled, show-completed, auto-hide
+  after N days) existed twice — inside `filterTodos` and as an unmemoized `getBaseFilteredTodos` — and the
+  latter ran from six counters plus once per list and once per profile on every render (eleven full passes
+  with three lists and three profiles). Now `baseFilteredTodos` is a `useMemo([todos, settings])`,
+  `filterTodos` starts from a copy of it, and all filter-bar counts (incomplete/today/overdue/completed,
+  per list, per profile) come from one `useMemo` that walks the base list once. 1218 → 1175 lines. Pure
+  derivation, build-checked; the list view itself was not re-rendered in a probe.
+
+- **i18n guard sees info popups now.** `check-i18n-keys.py` treats every `infoKey="…"` / `infoKey: '…'` as a
+  `settings.settingsInfo.*` reference (that is how `SettingsSectionHeader` / `SettingsInfoButton` resolve it) —
+  53 popup references checked for the first time, all present; the hard "popup text must exist" rule is
+  machine-covered from here on. The Liquid Glass slider table's footer field was renamed `footerKey` to keep
+  the two conventions apart (source-only change, ships with the next build). Guard count 946 → 999.
+
+Package 4 is complete with this; package 5 (structural cuts: `deviceConfigs.js` per domain, the
+MusicAssistant panel tabs, the shared feed shell, a settings-store factory) and B14 (SearchField handler
+factories) remain.
+
 ## Version 1.1.2336 - 2026-08-22
 
 **Title:** 🧹 Audit package 4b/2 — both form dialogs on the shared pager frame, one DangerButton

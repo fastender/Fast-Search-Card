@@ -91,6 +91,12 @@ def sammle_verwendungen():
             zeile = re.split(r'\s//\s', zeile)[0]
             for treffer in re.finditer(r"translateUI\(\s*'([\w.]+)'", zeile):
                 verwendungen.append((treffer.group(1), rel, nr))
+            # v1.1.2337: Info-Popup-Verweise — `infoKey="x"` (JSX) oder `infoKey: 'x'`
+            # (Tabellen) zeigen IMMER auf ui.settings.settingsInfo.x (so lösen
+            # SettingsSectionHeader/SettingsInfoButton auf). Damit ist die harte
+            # Katalog-Regel (Popup-Text muss existieren) erstmals maschinell gedeckt.
+            for treffer in re.finditer(r"\binfoKey\s*[:=]\s*[\"']([\w.]+)[\"']", zeile):
+                verwendungen.append((f'settings.settingsInfo.{treffer.group(1)}', rel, nr))
             if praefix:
                 for treffer in re.finditer(r"(?<![\w.])t\(\s*'([\w.]+)'", zeile):
                     schluessel = treffer.group(1)
@@ -103,7 +109,7 @@ def sammle_verwendungen():
                 # `infoKey: '…'`), die später per t(eintrag.labelKey) aufgelöst
                 # werden — sonst verlöre der Wächter sie (24 Liquid-Glass-Regler-
                 # Schlüssel wanderten in eine Tabelle).
-                for treffer in re.finditer(r"\b(?:labelKey|infoKey|titleKey)\s*:\s*'([\w.]+)'", zeile):
+                for treffer in re.finditer(r"\b(?:labelKey|titleKey|footerKey)\s*:\s*'([\w.]+)'", zeile):
                     verwendungen.append((f'{praefix}.{treffer.group(1)}', rel, nr))
     return verwendungen
 
