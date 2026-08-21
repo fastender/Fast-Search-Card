@@ -99,6 +99,12 @@ def sammle_verwendungen():
                     if zeile[treffer.end():].lstrip().startswith(('+', '$')):
                         continue
                     verwendungen.append((f'{praefix}.{schluessel}', rel, nr))
+                # v1.1.2335: Schlüssel in Spezifikations-Tabellen (`labelKey: '…'`,
+                # `infoKey: '…'`), die später per t(eintrag.labelKey) aufgelöst
+                # werden — sonst verlöre der Wächter sie (24 Liquid-Glass-Regler-
+                # Schlüssel wanderten in eine Tabelle).
+                for treffer in re.finditer(r"\b(?:labelKey|infoKey|titleKey)\s*:\s*'([\w.]+)'", zeile):
+                    verwendungen.append((f'{praefix}.{treffer.group(1)}', rel, nr))
     return verwendungen
 
 

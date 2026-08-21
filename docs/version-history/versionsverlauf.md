@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2335 - 2026-08-22
+
+**Title:** 🧹 Audit package 4b/1 — nine option pickers on one component, the Liquid Glass sliders as a table
+
+**Tags:** refactor, audit, settings, calendar, todos, appearance
+
+Second half of the refactoring package, first slice — the cuts that change rendered markup and therefore
+got a DOM-level verification (the components were rendered stand-alone in dev, rows clicked, options, check
+marks and callbacks asserted).
+
+- **Nine hand-built option pickers → `SettingsOptionPicker`.** Calendar settings (default view, sort order,
+  week start, time format, default calendar, default duration) and Todos settings (auto-hide days, default
+  filter, sort) each carried a ~36-line copy of "navbar + card + rows + check mark + tap selects and closes" —
+  the very shape `SettingsOptionPicker` was built for in v2184 and used only by the General tab since. The
+  picker learned to pass `custom` / `initial` / `transition` through to `IosPagerView` (Calendar/Todos pagers
+  are direction-aware and spring-animated; without the props nothing changes for existing callers), the
+  calendar pickers keep their static 22-px check via `checkIcon`, the six `pick*` helpers in
+  CalendarSettingsView are gone. Both files: 1065/981 → 906 lines. Verified: every picker shows the right
+  options with the check on the current value, selecting fires exactly the expected settings path and value
+  (`week`, `desc`, `sunday`, `12h`, `calendar.b`, `30`; `autoHideAfterDays=1`, `defaultFilter=incomplete`,
+  `sortBy=alphabetical`) and returns to the main view.
+- **Twelve Liquid Glass sliders → one spec table.** `AppearanceSettingsTab` called `LiquidGlassSliderSection`
+  twelve times à eleven lines, differing only in key, range, step, display format and rounding. Now a
+  module-level `LG_SLIDERS` table + one `.map()`. The `snap` functions are kept verbatim per entry on purpose —
+  `Math.round(raw * 20) / 20` and `Math.round(raw / 0.05) * 0.05` do *not* store the same float — so a generic
+  step-derived rounding would have silently changed persisted values. 1259 → 1156 lines. Verified in dev:
+  twelve range inputs render with the right bounds, the label keys resolve, and dragging Frost to 12.3 stores
+  the snapped 12.5.
+
+Still open in 4b: `IosPagerView` in the two form dialogs (14 frames), DangerButton (6×), the template editor
+(3×), the four date/time wheel sub-views — each needs the same kind of check and follows in the next slice.
+
 ## Version 1.1.2334 - 2026-08-22
 
 **Title:** 🧹 Audit package 4a — icon registry as two factories (bit-identical), RRULE out of the dialog, dead exports, the missing `useLang`
