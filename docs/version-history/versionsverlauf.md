@@ -1,5 +1,61 @@
 # Versionsverlauf
 
+## Version 1.1.2333 - 2026-08-22
+
+**Title:** ⚡ Audit package 3 — value-compared attribute updates, one listener instead of 200, bento tiles that hold still, and the quiet-state posts
+
+**Tags:** performance, audit, system-entities, bento, charts, scrollbar, island
+
+Third package from the full audit. Where package 2 removed the root multiplier (context split), this one
+takes the remaining per-flush and idle costs one by one. Measured with the same dev harness (40 synthetic
+`state_changed` flushes, render counter on Preact's `options.__r`), normalized per flush because the hidden
+preview pane coalesces flushes unpredictably: **baseline 136 renders/flush → package 2 70.6 → now 56.5**
+(−58 % overall). Island and critical banner are at zero; the four bento tiles no longer render on flushes at
+all; what remains is SearchField itself (it owns the device list) and its children — the handler-factory
+topic (B14) for a later package.
+
+- **`SystemEntity.updateAttributes` compares before it fires (B5).** 36 call sites dispatched unconditionally
+  — every News/Todos poll and every `listCalendars` (called on every `loadEvents`) ran the chain event →
+  `setEntities([...])` → EntitiesContext → SearchField render, even for identical payloads. Now a shallow
+  compare (scalars by `Object.is`, flat objects and arrays of flat objects key-by-key, deeper structures by
+  reference) decides; unchanged payloads neither replace `attributes` nor dispatch. Probed: equal scalar,
+  re-built identical literal list and same Date reference stay silent; changed scalar, changed list content,
+  new Date instance fire.
+- **One window listener instead of one per DeviceCard (B6).** `useSystemEntityAttributes` subscribed every
+  card (50–200) to `system-entity-updated` with a linear registry scan per render — and DeviceCard only
+  needs it for the calendar domain. Now a module-level map of subscribers per domain behind a single
+  listener; non-system domains (`light`, `sensor`, …) don't subscribe at all (`systemRegistry.hasDomain`),
+  and `getEntityByDomain` is O(1) through a domain index kept in `register`/`unregister` (first-registered
+  wins, rotates on unregister — probed).
+- **SubcategoryBar counts as one memo (B8).** `filterChips` in SearchField was an inline IIFE returning a
+  fresh array every render, which defeated the bar's `memo`; it is a `useMemo` now. Inside the bar the
+  counts moved from effect + two `setState` (a guaranteed second render per items change) to a single
+  `useMemo` — with `suggestions` finally in the deps.
+- **Charts (B9).** `bucketHistoryPoints` and the custom-range variant filtered all points per bucket
+  (O(buckets × points); a minute sensor over a month ≈ 1.3 M comparisons per chart); a sorted copy and a
+  running cursor make it one pass. `toLocale*` calls with options objects built a fresh `Intl.DateTimeFormat`
+  each time — cached per locale/format now, identical output. `EnergyChartsView`'s two fetch effects got the
+  cancelled-flag pattern their sibling views already used (overlapping period clicks, unmounted setState).
+- **Bento tiles hold still.** The comparator rejected on `prev.devices !== next.devices` for every tile
+  although only the rich slider reads `devices`; and `onWidgetClick` arrives from SearchField as a fresh arrow
+  per render. Now `devices` identity only matters for the slider tile, `previewItems` are compared element-
+  wise by object identity (the entity stream copies only changed devices, so this covers membership *and*
+  state), `w1Anzeige` is memoized, and BentoZenView hands the tiles a ref-stable click wrapper. Preview cards
+  render `previewItems` directly (no `devices` lookup), so freshness is unchanged.
+- **Quiet-state posts (B10).** Island tick and the 5-s reconcile skip while `document.hidden` and run once on
+  becoming visible; the sparse-states guard in DataProvider counts entity IDs at most every 5 s instead of
+  4×/s; `WebRtcHeroStream` re-assigns `hass` to the foreign card only on connection change or every 10 s;
+  `CustomScrollbar`'s scroll path reads only `scrollTop` against geometry cached from the last full update
+  (no `getComputedStyle`/`checkVisibility`/`offsetParent` per scroll frame — a pending full update always
+  wins over a light one); `ScrollingDeviceState` keeps its ResizeObserver across text changes and measures
+  with one rAF; `UniversalEntityList` keeps its 250-ms tick (the items carry live state — a registry memo
+  would have frozen displays) but `groupEntitiesByCategory` now goes through a per-`hass.entities` device
+  index instead of scanning the whole registry; `CriticalBanner` is memoized (it is a child of SearchField).
+
+One harness lesson recorded for next time: the entity stream's 150-ms minimum interval falls back to
+`setTimeout` when flushes are closer than that — in a throttled pane that silently coalesces flushes (15
+instead of 40), so measurements now space events 200 ms apart and shim `setTimeout` on `MessageChannel`.
+
 ## Version 1.1.2332 - 2026-08-22
 
 **Title:** ⚡ Audit package 2 — the root of the per-tick work: context split, dead search index, regex and settings caches
