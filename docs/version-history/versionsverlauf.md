@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.2336 - 2026-08-22
+
+**Title:** 🧹 Audit package 4b/2 — both form dialogs on the shared pager frame, one DangerButton
+
+**Tags:** refactor, audit, calendar, todos, dialogs
+
+Second slice of the visible refactors: the two form dialogs stop hand-building their page frames.
+
+- **`IosPagerView` in `CalendarEventDialog` (main + 9 sub-views) and `TodoFormDialog` (main + 5).** Every
+  page carried the same 12–15 lines — `motion.div` with slide variants, `ios-navbar` with back button,
+  title or "Fertig" action, `ios-settings-view` scroll container — while `IosPagerView` has rendered exactly
+  that for the settings pagers since v2188. The dialogs now pass `custom`/`initial`/`transition`
+  (direction-aware spring), `title`, `backLabel`, `navbarRight` (the Fertig/Save buttons, unchanged
+  markup) and `scrollbar={false}` where no scrollbar existed; the calendar main view keeps its
+  CustomScrollbar through the shared frame, which also replaces the two hand-rolled callback refs for the
+  `is-scrolling` fade mask (v1825/v1838). The 60-px spacer divs some frames used to "balance" the title are
+  gone — `.ios-navbar-title` is absolutely centered, they never did anything. The save buttons get
+  `marginLeft: 'auto'` (the old navbars carried an inline `justify-content: space-between`). Calendar dialog
+  1238 → 1123 lines, Todos 1080 → 956.
+- **`DangerButton`** (`components/common/DangerButton.jsx`): the destructive full-width button stood as a
+  20-line inline style four times in the Todos dialog and once, in a frosted glass variant, in the calendar
+  dialog. Two variants kept deliberately (`filled` / `frosted`) — the optical divergence was real, now it is
+  one place.
+
+**Verified** by rendering both dialogs stand-alone in dev and clicking through every row: calendar main
+(back "Abbrechen", save button last in the navbar, title field), all seven sub-views (calendar picker with
+title, start/end date wheels with "Fertig" as last navbar child and returning to main, location input,
+recurrence, description textarea), the frosted delete button (blur 10 px, 0.12 red, radius 14) opening its
+confirmation pair; Todos main (back label by mode, save button right), list/profile/date/time/description
+sub-views with their "Fertig" confirm buttons (last navbar child) and clear DangerButtons, the wheel/textarea
+content in place, confirm returning to main. (Probe note: a list named "Einkauf" trips the dialog's own
+shopping-list heuristic and hides date/time/description — the mock list is called "Haushalt".) Build green,
+i18n guard at 946.
+
+Left for a later slice: the calendar settings' duplicated template editor (title/description), and the
+three orphaned test entry files in `src/` (await decision).
+
 ## Version 1.1.2335 - 2026-08-22
 
 **Title:** 🧹 Audit package 4b/1 — nine option pickers on one component, the Liquid Glass sliders as a table
