@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2334 - 2026-08-22
+
+**Title:** 🧹 Audit package 4a — icon registry as two factories (bit-identical), RRULE out of the dialog, dead exports, the missing `useLang`
+
+**Tags:** refactor, audit, icons, calendar, cleanup
+
+First half of the refactoring package — only the items that can be verified mechanically, nothing that needs
+a visual check.
+
+- **iconRegistry: 864 → 377 lines, provably identical.** The icon map spelled itself out 118 times
+  (`fan: { on: { default: FanOn }, off: { default: FanOff } }`). Two factories now build it — `onOff(On, Off)`
+  and `byState({ state: Icon })` — while the domains with real variants (light/cover/binary_sensor/sensor/
+  media_player) stay literal, and the twelve near-identical `if (domain === …)` branches in `getIcon` became a
+  `DIRECT_LOOKUP` table (state key mapping, fallback keys in order, fallback icon) plus a small strict
+  on/off table. Equivalence was not eyeballed: the old and new modules were loaded side by side in dev and
+  `getIcon` compared over **224,112 domain × state × attribute × name combinations — 0 differences, identical
+  hash**. Imports and the name heuristics (desk lamp, garage, TV) are untouched.
+- **RRULE logic extracted.** ~120 lines of pure string processing (presets, parser, serializer, short label,
+  including the documented lossy-roundtrip boundary) moved from `CalendarEventDialog.jsx` into
+  `calendar/utils/rrule.js` — pure, no DOM/storage, probed in isolation (presets, parse, roundtrip, UNTIL,
+  label, invalid → null). The dialog drops to ~1,240 lines.
+- **Dead exports removed — after a second count.** The audit listed 26; an independent re-check against
+  `src/`, `tests/` and `scripts/` found 18 of them used *inside their own file* (only the `export` keyword was
+  dead, which tree-shaking already handles). Removed the 8 genuinely unreferenced symbols: `getWatches`,
+  `hasDurationWatch`, `__resetWatchStore`, `isLiveActivityRelevantEntity`, `unsnoozeNotification`,
+  `__resetNotificationState`, `HERO_COLOR_PALETTE`, `getDurationStateLabel` (the two `__reset*` test hooks
+  have no caller in the test harness either). Same lesson as every previous audit: hit counts overstate the
+  clean surface.
+- **`useLang()` exists now.** `utils/langStore.js` had documented the hook since v1.1.1869 without it ever
+  being created; three hand-copied subscriptions stood in for it. The hook is in `hooks/useLang.js` and
+  adopted in `EnergyDashboardDeviceView`. `SettingsTab` keeps its own state on purpose — it hands
+  `setLanguage` down to a child — and SearchField's variant carries extra logic; both left alone.
+- **CalendarSettingsView:** ten `backIcon={<BackIcon />}` props removed (the navbar falls back to exactly
+  that icon), the `BackIcon`/`ChevronRight` wrapper consts replaced by the shared `Chevron`.
+
+Everything build-checked; card mounts in dev without errors. Package 4b (option pickers → `SettingsOptionPicker`,
+`IosPagerView` in the two form dialogs, the LiquidGlass slider table, DangerButton, template editor) needs
+visual verification and follows separately.
+
 ## Version 1.1.2333 - 2026-08-22
 
 **Title:** ⚡ Audit package 3 — value-compared attribute updates, one listener instead of 200, bento tiles that hold still, and the quiet-state posts
