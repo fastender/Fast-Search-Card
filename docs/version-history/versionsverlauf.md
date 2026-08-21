@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2338 - 2026-08-22
+
+**Title:** 🧹 Audit package 5b — day boundaries in one place, the entity reload pattern folded
+
+**Tags:** refactor, audit, todos, calendar, utils
+
+- **`utils/dateRange.js`** — `startOfDay`, `endOfDay`, `sameDay`, `isToday`, all copying, no-arg = now. The
+  `x.setHours(0, 0, 0, 0)` idiom stood 34 times inline; the two clean shapes (`const x = new Date(…); x.setHours(…)`
+  on two lines or one) were migrated mechanically — 22 sites in the Todos entity/view/helpers, DeviceCard,
+  the bento calendar tile and the energy chart configs — and CalendarView's local `startOfDay`/`endOfDay`
+  now come from the shared module (identical semantics). The other 15 occurrences stay on purpose: they are
+  value forms (`new Date(d.setHours(…))`) or in-place mutations after other date arithmetic — forcing the helper
+  there would change semantics (memory lesson: migrate exact shapes only). Probed in Node: default now,
+  day-start/day-end, same-day across midnight.
+- **Entity reload pattern.** Calendar: "service called → reload the last loaded range" stood three times
+  word for word (create/delete/update) → `reloadLastRange(entity, hass)`. Todos: five actions (add/update/
+  toggle/delete/removeCompleted) wrapped their service call in the identical try → `getTodos({refresh})` →
+  catch/log/rethrow frame → `mitNeuladen(entity, hass, label, fn)`; bodies were checked for early returns
+  (none) so semantics are unchanged. About 30 lines of repeated frame gone from the Todos entity. Probed in dev against the real singletons
+  with a stub hass: add/delete call the right service and then reload, a failing service still rethrows, and
+  the calendar reload hits the REST range after `createEvent`.
+
+Package 5 continues with the structural cuts proper (MusicAssistant panel tabs, `deviceConfigs.js` per
+domain, the shared feed shell, the settings-store factory, PurgeCSS safelist).
+
 ## Version 1.1.2337 - 2026-08-22
 
 **Title:** 🧹 Audit package 4b/3 + 5a — one template editor instead of two, the todo filter computed once
