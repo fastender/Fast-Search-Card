@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2340 - 2026-08-22
+
+**Title:** 🧹 Audit package 5d — queue and up-next are one list; queue header texts become dictionary keys
+
+**Tags:** refactor, audit, music-assistant, i18n
+
+Second cut into the Music Assistant panel. The queue tab and the "up next" tab rendered the same
+`QueueCard` list in the same scroll surface and differed only in three details — the header (count + "clear",
+queue only), the highlight of the current track (queue only) and the empty text. They are now ONE component,
+`controls/ma/QueueList.jsx`, driven by an `items` prop; the pure helper `upcomingOf(queue, currentId)` provides
+the up-next slice (everything after the current track; without a current track, or when it is not in the
+list, the first 20 as before). The parent decides what to show and passes the texts. Panel 1,060 → 1,019 lines,
+`isQueueCommandAvailable` is evaluated once per render instead of per tab block.
+
+Along the way the four inline language switches of the queue header ("3 Titel"/"3 tracks",
+"12 in Queue · nur aktueller + nächster", "Keine Wiedergabe aktiv", "Keine weiteren Tracks in der Queue") became
+dictionary keys with placeholders (`queueCountOne`/`queueCountMany`/`queueTotalPartial`/`nothingPlaying`/
+`noMoreTracks`); the panel's translator now accepts placeholder variables. Texts are unchanged in both languages.
+
+Verified stand-alone in dev: `upcomingOf` for empty/middle/last/unknown/no-current/30-item queues, header and
+placeholder output in de/en, current-track highlight on exactly one card, click → play, trash → remove, "clear"
+callback, the up-next mode without header/highlight/actions, the empty state — and the panel itself with a stub
+hass switched into both tabs.
+
+Next: search tab and browse tab.
+
 ## Version 1.1.2339 - 2026-08-22
 
 **Title:** 🧹 Audit package 5c — the Music Assistant announce panel is its own file
