@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2347 - 2026-08-22
+
+**Title:** ⚡ Audit B14 — SearchField children stop re-rendering on every entity flush (35 → 17 renders per flush)
+
+**Tags:** performance, audit, search
+
+The last measured render lever from the August audit. On the idle start screen every entity flush (up to
+~6/s) re-rendered the whole SearchField subtree, although nothing in it had changed: the search input with
+its category window, the filter button and its window, the AI section, the (invisible) device list, the custom
+scrollbar, the detail-view wrapper, the sidebar and the dev panel — because SearchField rebuilds its handlers
+on every render (eight factory functions), so even memoized children would have seen new props.
+
+Two small, general tools and a handful of wrappers:
+- `hooks/useStableCallback.js` — the "useEvent" pattern: one function identity for the component's lifetime,
+  calling the latest rendered closure. SearchField freezes thirteen handler identities with it right before
+  rendering; the handler definitions themselves are untouched.
+- `utils/shallowEqual.js` — the flat prop comparison `memo` uses, as a building block for comparators.
+- `memo()` on SearchInputSection, FilterControlPanel, AIModeSection, DevelopmentTestPanel, CustomScrollbar and
+  SearchSidebar; GroupedDeviceList and DetailViewWrapper get a comparator that skips renders while they are
+  invisible anyway (results panel collapsed / no detail open) and compares flatly otherwise.
+
+Measured in dev with a mock hass (80 entities, 40 state_changed flushes, idle start screen): 35.0 → 17.0
+renders per flush; the whole child subtree is at 0, what remains is SearchField itself with its three
+motion wrappers, the provider chain and the Bento start view that carries `devices`. Interaction verified on
+the live app: focus expands the panel and shows the device list, typing filters, a card opens the detail
+view, Escape closes it, the clear button empties the field.
+
 ## Version 1.1.2346 - 2026-08-22
 
 **Title:** 🛡️ PurgeCSS guard — composed class names can no longer slip out of the build; safelist measured
