@@ -32,4 +32,15 @@ if ! python3 "$ROOT/scripts/check-extraction-debt.py" -q "$SRC"; then
   exit 1
 fi
 
+# v1.1.2346: PurgeCSS-Wächter — Klassennamen, die nur ZUSAMMENGESETZT vorkommen
+# (`foo-${x}`), verlieren ihre CSS-Regeln im Release-Build (v1.1.2226 bento,
+# v1.1.2344 Feed-Hülle). Das Skript rechnet PurgeCSS' Entscheidung nach; ~0.5 s.
+if ! python3 "$ROOT/scripts/check-purgecss-dynamic.py" > /dev/null 2>&1; then
+  echo ""
+  echo "❌ Pre-commit: PurgeCSS-Wächter — zusammengesetzte Klassennamen würden im Build verloren gehen."
+  echo "   Run for details:   python3 scripts/check-purgecss-dynamic.py"
+  echo "   Skip this commit:  git commit --no-verify"
+  exit 1
+fi
+
 exit 0

@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2346 - 2026-08-22
+
+**Title:** 🛡️ PurgeCSS guard — composed class names can no longer slip out of the build; safelist measured
+
+**Tags:** tooling, build, audit
+
+After yesterday's relapse (1.1.2344) the failure class now has a guard: `scripts/check-purgecss-dynamic.py`
+re-computes PurgeCSS's decision — every class in `src/**/*.css`, every token the extractor would see in
+`src/**/*.{js,jsx,html}`, the safelist read from `postcss.config.cjs` — and then looks for template fragments
+that COMPOSE class names at runtime (`foo-${x}`, `${x}-foo`, `'foo-' + x`). Any class that would be purged
+although the source composes it is reported with the composing line; `--analyse` additionally shows which
+classes survive only because of the safelist. React keys, ids, hrefs and time strings (`${n} hour…`) are
+ignored, fragments must carry the `-`/`_` glue of class names. The guard runs in the pre-commit hook next to
+the extraction-debt check (~0.5 s) and passed a self-test (sabotaging one anchored class is reported).
+
+First run found one real case: `LiquidGlassSlider` composed `fm-slider-${variant}`, so the only variant rule,
+`.fm-slider.fm-slider-dark`, was missing from every release build (no caller uses the dark variant today —
+a loaded trap rather than a visible bug). Fixed with a literal `VARIANT_CLASS` map.
+
+Safelist measured instead of guessed: 1,350 CSS classes; 85 are kept only by the safelist, 48 of them
+rightly (category-/toast-/search-chip-/bento-widget--/mode-/action-sheet- compositions) and 37 are dead rules
+(news-, article-, ios-, settings-, detail- leftovers). Tightening the broad regexes would therefore save ~37
+dead rules — not worth the risk of touching 41 patterns; the item is closed as "measured, keep". The 171
+classes that are purged today are dead CSS in the source files (a hygiene task, zero effect on the bundle).
+
 ## Version 1.1.2345 - 2026-08-22
 
 **Title:** 🩹 Feed shell: prefixed class names anchored for PurgeCSS (fixes the 1.1.2344 build)
