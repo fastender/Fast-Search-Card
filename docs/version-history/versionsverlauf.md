@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2351 - 2026-08-22
+
+**Title:** ⌨️ Typing in the search field is fluid again — the typed text no longer waits for the search
+
+**Tags:** performance, search, ux
+
+Reported: typed characters appeared with a slight delay, not quite real-time. Measured in dev (mock hass
+with 1,510 entities, ten keystrokes 150 ms apart): every keystroke ran the WHOLE chain synchronously on the
+main thread — ghost-suggestion scan, the fuzzy search (Fuse), grouping of the results and the re-render of
+the result list — about 46 component renders per keystroke, SearchField itself three times (the fuzzy hook
+set an `isSearching` flag DURING render and cleared it with a 50 ms timer), the second keystroke alone blocked
+for ~0.7 s (first search + index build), the sequence for ~1 s in total. The next keystrokes queue behind such
+work — that is the "lagging" feel.
+
+Now the typed text and the search are decoupled:
+- `searchValue` (the text, ghost suggestion, clear button) still updates immediately on every keystroke;
+  the search term for Fuse, grouping and list follows ~110 ms after the last keystroke (trailing debounce).
+  Clearing, Enter/accepting a suggestion and chip actions apply immediately and cancel a pending term, so a
+  stale search can never arrive afterwards; an empty term applies at once.
+- The result area (list, grouping, subcategory bar, "no results for …") follows the APPLIED term, so the
+  previous view stays in place until the deferred search is in — no flash in between.
+- The fuzzy hook's `isSearching` state machinery (set during render, 50 ms timer) is gone; it had no reader
+  left and cost two extra full SearchField renders per keystroke. The Fuse index is built in idle time —
+  once after the entity list arrives and again on opening the panel — instead of on the first searched
+  character (`warmUp`; only entity ids/names/areas are part of the index signature, so state ticks do not
+  invalidate it).
+- The AI section receives the text only in AI mode (otherwise it re-rendered per keystroke for nothing).
+
+After: the deterministic work per keystroke is one light SearchField render of 1–8 ms (measured inside the
+render), plus one deferred search render of a few ms after the pause; the result list renders only when the
+results change. The component tree per keystroke dropped from 46 to ~1 SearchField render plus the input
+section. (Wall-clock numbers in the hidden dev pane are noisy — the background tab pauses at random points —
+so the inside-render timings are the reliable measure here.) Behaviour checked: Enter right after typing
+accepts the ghost suggestion immediately (area → chip, device → completed name), clearing restores the normal
+list, a quickly typed-and-deleted character leaves no stale search behind.
+
 ## Version 1.1.2350 - 2026-08-22
 
 **Title:** ⚡ SearchField no longer re-renders on entity flushes while idle (17 → 6 renders per flush)
