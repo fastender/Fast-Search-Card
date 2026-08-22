@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2349 - 2026-08-22
+
+**Title:** 🧹 Audit package 5l — one settings-storage factory for News, Todos and Calendar
+
+**Tags:** refactor, audit, settings
+
+The last package of the August audit. The three system entities that keep their settings in localStorage had
+grown three maturity levels of the same idea: News (two-level merge with the defaults, a console log on save),
+Todos (two-level merge, and without a stored state it returned the SHARED defaults object — any mutation
+would have altered the defaults), Calendar (deep clone + recursive merge with prototype-pollution guard,
+immutable path setters). The calendar's version is now the standard: `utils/createSettingsStorage.js` gives
+`load/save/reset/setPath` on top of `safeStorage`; `load()` always returns a fresh object, clones the defaults
+deeply and merges the stored state over them (new default fields reach existing users, explicit `false` wins,
+unknown fields survive, arrays are replaced wholesale, `__proto__`/`constructor`/`prototype` are skipped,
+missing/invalid/non-object storage → a copy of the defaults). The three modules are thin wrappers now — same
+export names, call sites untouched; the calendar keeps its specific setters.
+
+Proven in dev against the old modules over 14 storage states per key (partial, full, extra/nested fields,
+explicit false, {}, null, broken JSON, array/string/number, pollution keys, missing): 36 of 42 results identical;
+the six differences are the intended ones — the corrupt non-object states (array/string/number), where the old
+News/Todos code spread indices or characters into the settings and the factory now falls back to the defaults,
+and the pollution-key states, where the old News/Todos merge kept `__proto__`/`constructor` as own keys and the
+factory skips them as the calendar already did. Todos' shared-object mutation leak is demonstrably gone (the old
+module leaked, the new one isolates); path setter, calendar entry/template setters and save round-trips behave
+as before; nothing reaches `Object.prototype`.
+
 ## Version 1.1.2348 - 2026-08-22
 
 **Title:** 🧹 Audit package 5k — 2,286 lines of dead CSS removed from the sources; orphaned test entries deleted
