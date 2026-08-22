@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2343 - 2026-08-22
+
+**Title:** 🧹 Audit package 5g — deviceConfigs split per domain (1,630-line file → dispatcher + 15 domain modules), proven bit-identical
+
+**Tags:** refactor, audit, device-configs
+
+`utils/deviceConfigs.js` was one 1,630-line file with two 650-line domain switches (`getControlConfig`,
+`getSliderConfig`) plus the ring helpers. It is now a 51-line dispatcher over `utils/deviceConfigs/`:
+`domains/<domain>.js` (light, climate, mediaPlayer, cover, fan, waterHeater, humidifier, vacuum, lock, switch,
+sceneScriptAutomation, universalDevice, energyDashboardDevice, sensor, binarySensor, fallback), each exporting
+`control` and/or `slider` that take one context `{ item, domain, state, attributes, t, lang, slideIndex }` —
+exactly the locals the old functions computed before their switch; `registry.js` maps domain → module; a module
+without one of the two functions falls back to `domains/fallback.js` (the old `default:` branches); `shared.js`
+holds the two helpers used by several domains; `rings.js` holds the three ring-config functions unchanged. The
+public API is unchanged (five exports, same names, same signatures), so none of the 14 importers moved. A new
+domain is now a new file plus one registry line instead of two new switch cases in a 1,600-line file.
+
+The case bodies were transplanted mechanically, line for line (a generator script did the cut; multi-line SVG
+template literals keep their indentation), and the result was proven against the old file in the dev tab:
+808 synthetic items across 23 domains (every state, feature-bitmask and attribute variant that the branches
+look at, both item shapes, de/en, every slide index), 10,352 comparisons over all five exports with `Date.now`
+frozen — 10,352 identical, zero differences, zero errors on either side. The i18n guard learned that the domain
+modules receive `t` (controls.*) from the dispatcher; a probe with a bogus key confirmed it reports them.
+
+Next: feed shell (News/Todos/schedules/MA share one load/empty/error skeleton), the settings-store factory,
+the PurgeCSS safelist, and B14 (SearchField handler factories).
+
 ## Version 1.1.2342 - 2026-08-22
 
 **Title:** 🧹 Audit package 5f — Music Assistant browse tab split into a hook and a view; panel down to 517 lines
