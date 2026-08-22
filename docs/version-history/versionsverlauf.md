@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2342 - 2026-08-22
+
+**Title:** 🧹 Audit package 5f — Music Assistant browse tab split into a hook and a view; panel down to 517 lines
+
+**Tags:** refactor, audit, music-assistant, i18n
+
+Fourth and last big cut into the Music Assistant panel: the library ("browse") tab. Loading of the six
+sections, the page limit ("load more" up to 96 per section), the loaded flag, the library probe, the cover
+pre-fetch, the drill-down level with its navigation stack and the tap/detail/container actions are now the hook
+`controls/ma/useMaBrowse.js`; the markup — scroll surface, drill-down view, spinner, "library not available"
+hint, six sections, "load more" and "refresh" — is the view `controls/ma/BrowseTab.jsx`. As with search, the hook
+runs in the PARENT panel: the library is loaded once on first visit and must survive a tab switch, and the
+drill-down reset is tied to the tab (as since v1.1.1397), not to opening/closing the announce panel, which only
+hides the tab. The view receives the hook's result as one `browse` prop; the six sections render from a table
+instead of six copied blocks. Panel 814 → 517 lines (1,195 before package 5c); `closeBrowseDetail` was
+dead code and is gone.
+
+One fix found by the probe: the old gate `!loading && loaded` hid the whole section list while paging ("load
+more"), so the library blanked for a moment and came back longer. The gate is now `loaded`: the sections stay on
+screen while the next page loads; the first-load spinner is unchanged. (The button itself still hides during the
+reload because `canLoadMore` compares against the already raised limit — as before.)
+
+Two identical inline language switches for the feedback after play_media ("Wird gespielt / Als Nächstes /
+Zur Queue") — one in the result-card handler, one in the detail-container handler — are now one
+`enqueueLabel()` on dictionary keys (`playing`, new `feedbackUpNext`, `feedbackQueued`); texts unchanged.
+
+Verified stand-alone in dev: the view with a fake browse object (sections, cards, load-more/refresh/tap
+callbacks, load-more hidden at the cap, first-load spinner, empty hint, the drill-down with
+back/play-all/add-all/track callbacks), the hook with a stub connection
+(first-visit load with limit 12, no reload on tab return, load-more raises the limit to 24 and reloads, empty
+library marks the probe, refresh resets it, tap opens a level and loads its tracks via browse_media, drill-into
+stacks levels, back walks up, radio tap plays directly, container add/replace report through the shared label
+helper incl. radio mode, leaving the tab resets the drill-down) — plus the panel mounted with a stub hass: the
+library tab loads once (14 cards), a card opens the drill-down, Queue and back drops it without reloading, and
+the sections stay visible while paging.
+
+Next: the panel is now a coordinator (tabs, now-playing, queue subscription, announce switch); remaining audit
+items are `deviceConfigs.js` per domain, the feed shell, the settings-store factory and the PurgeCSS safelist.
+
 ## Version 1.1.2341 - 2026-08-22
 
 **Title:** 🧹 Audit package 5e — Music Assistant search tab split into a hook and a view
