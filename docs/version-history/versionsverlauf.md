@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2345 - 2026-08-22
+
+**Title:** 🩹 Feed shell: prefixed class names anchored for PurgeCSS (fixes the 1.1.2344 build)
+
+**Tags:** fix, build, feeds
+
+The 1.1.2344 build lost eight CSS rules: the shared feed shell composed its class names at runtime
+(`${prefix}-loading`, `${prefix}-scroll-indicator-left`, …), and PurgeCSS — which keeps a rule only if the
+class name appears literally somewhere in the sources — dropped `todos-scroll-indicator(-left/-right)`,
+`todos-loading`, `todos-error`, `todos-empty`, `tipps-loading` and `versionsverlauf-loading` from the bundle.
+The `news-*` variants survived only because other literal occurrences exist. It is the same trap that once
+hid `bento-widget--${size}` for months; the dist cross-check after the build caught it this time, but the
+1.1.2344 build and tag were already pushed by the build script, so this release replaces it.
+
+Fix: `FeedShell.jsx` now holds every generated class literally in a per-prefix table (`KLASSEN`) and resolves
+`cls(prefix, key)` from it; an unknown prefix still works at runtime but warns in the dev build that its rules
+are not anchored. Verified by counting the selectors in the built bundle: all 27 shell classes present again.
+
+## Version 1.1.2344 - 2026-08-22
+
+> ⚠️ This build lost eight prefixed CSS rules to PurgeCSS (todos/tipps/changelog loading, error, empty and
+> scroll-arrow styles); 1.1.2345 restores them. Content below is otherwise accurate.
+
+**Title:** 🧹 Audit package 5h — one feed shell for News, schedules, todos, tips and changelog
+
+**Tags:** refactor, audit, feeds
+
+The feed views had copied their shell from each other: the scroll arrows over the filter bar (three times,
+~40 lines each), the search row that replaces the filter bar (News and "All schedules", identical), the loading
+and error screens (News, Todos, Tips, Changelog) and the fade-in empty wrapper of the feed (three times). They
+are now one file, `components/common/feed/FeedShell.jsx`, with five small building blocks —
+`FeedScrollIndicators`, `FeedSearchRow`, `FeedLoading`, `FeedError`, `FeedEmpty`. Each takes the view's class
+PREFIX (`news`, `todos`, `tipps`, `versionsverlauf`), so every stylesheet keeps working unchanged: this shares
+markup, it does not move styles. Texts arrive translated as props; the views keep their own `t`. The Todos
+search field has its own, different markup (own classes, inline icons) and deliberately stays where it is; the
+filter bars themselves differ per view and stay too. NewsView 1,061 → 984 lines, AllSchedulesView 758 → 701,
+TodosView 1,169 → 1,112, TipsView 307 → 291, ChangelogView 288 → 272.
+
+Verified in dev: the five blocks rendered stand-alone (prefix classes and SVG paths, left/right callbacks,
+search input/clear callbacks, loading text, error with and without icon plus retry, empty wrapper), and the
+views mounted with stub entities inside the ViewRef provider — News, Todos, Tips and Changelog reach the error
+screen through the new `FeedError` when the entity rejects; with a stub entity that returns an empty list, News,
+schedules and Todos render their filter bar plus the new `FeedEmpty`, and toggling the search through the
+registered view handler swaps in the new `FeedSearchRow` (typing, clear, toggle back) for News and schedules.
+
+Next: settings-store factory, PurgeCSS safelist, B14 (SearchField handler factories).
+
 ## Version 1.1.2343 - 2026-08-22
 
 **Title:** 🧹 Audit package 5g — deviceConfigs split per domain (1,630-line file → dispatcher + 15 domain modules), proven bit-identical
