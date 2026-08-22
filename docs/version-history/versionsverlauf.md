@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.2352 - 2026-08-22
+
+**Title:** 🐛 Six user-reported fixes — ocean on first start, full-screen island dimming, island tap/hover behaviour, idle media players, history date picker with D/W/M/Y
+
+**Tags:** fix, bento, island, charts, ux
+
+1. **Ocean background appeared only after opening an item and coming back.** The W1 tile receives the
+   ocean config only once the Zen start is revealed (`coverOcean`: null → config), and the tile's memo
+   comparator compared `coverImage` but not `coverOcean`, so the change was swallowed until the next mount.
+   `coverOcean` is compared now. On top, a failed first WebGL scene creation (GPU not ready at page start)
+   gets one retry after 1.2 s before falling back to the static waves.
+2. **Island dimming covered only the card rectangle.** The dimmer is `position: fixed` now (inset 0, no
+   radius) — like the info popup it spans the whole screen; it still portals into `.main-container`
+   (no transform), never into the holder.
+3. **Island panel closed on a tap into its own header.** With the panel open, a tap on the head (title,
+   counters) no longer collapses it; only a click outside (the dimming), the close button under the panel
+   or the swipe do. "Open notification center" got a little more bottom padding (13 → 19 px).
+4. **Island buttons lacked the chip press effect.** The source pills inside the panel now scale like the
+   search category chips (grow on hover, shrink on press — the whole button, not only the text); the round
+   button (knopf state) and the mini capsule got the same hover/press scaling.
+5. **Idle media players were shown as active (white).** `isMediaPlayerActive` no longer treats idle/unknown
+   with a leftover media title as active — only playing, paused, buffering and on are; used by the device
+   cards and the circular rings alike.
+6. **The history date picker did not open — and D/W/M/Y moves into it.** Two causes: the date popover had
+   lost its translator in the dictionary migration — `t('today')`/`t('done')` threw "t is not defined" on every
+   open, so the popover crashed silently (that is why it "no longer appeared"); and the single-sensor history
+   header never had the calendar wired at all (only the multi-sensor view did). The translator is back, and the
+   i18n guard now also flags `t('…')` calls in files without a translator definition (it had skipped such files
+   entirely). The calendar now belongs to
+   `ChartPeriodHeader` itself, so every embedding gets it: tapping the date opens the centered popover in the
+   detail view; the D/W/M/Y (T/W/M/J) choice moved from the header into the popover's top row; the header shows
+   only ← date →. Picking a two-tap range applies immediately (the popover stays open until "Done"), choosing
+   a timeframe clears a custom range; the single-sensor view now keeps a locally picked range as well.
+
+Verified in dev: island dimmer computed `position: fixed`, head tap keeps the panel open while an outside
+click closes it, footer padding 19 px, `isMediaPlayerActive('idle', {media_title})` → false, and the period
+header rendered stand-alone: no D/W/M/Y in the header, the date opens the popover with the T/W/M/J row, "W"
+switches the range (label follows), two day taps report the range and disable the scrubber, "T" restores the
+day mode, "Done" closes. The ocean fix is a one-line comparator change with a clear root cause; visual
+confirmation needs the device.
+
 ## Version 1.1.2351 - 2026-08-22
 
 **Title:** ⌨️ Typing in the search field is fluid again — the typed text no longer waits for the search

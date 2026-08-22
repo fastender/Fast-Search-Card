@@ -62,15 +62,34 @@ def lies_schluessel(pfad):
     return schluessel
 
 
+ohne_uebersetzer = []  # Dateien, die t('…') rufen, ohne t zu definieren/zu bekommen
+
+
 def sammle_verwendungen():
     """Findet Schlüssel im Quelltext — direkt und über lokale t()-Helfer."""
     verwendungen = []  # (schluessel, datei, zeilennr)
+    global ohne_uebersetzer
     for datei in sorted(WURZEL.glob('src/**/*.js')) + sorted(WURZEL.glob('src/**/*.jsx')):
         text = datei.read_text(errors='ignore')
         rel = str(datei.relative_to(WURZEL))
         # Dateien ohne eigenen translateUI-Import können ihr `t` als Prop
         # bekommen — dann entscheidet PROP_PRAEFIXE, ob wir sie prüfen.
         if 'translateUI' not in text and not any(o in rel for o in PROP_PRAEFIXE):
+            # v1.1.2352: ruft so eine Datei trotzdem t('…') auf, hat sie weder
+            # Übersetzer noch Prop — zur Laufzeit „t is not defined" (so stürzte
+            # das Kalender-Popover der Charts seit der Migration bei jedem Öffnen).
+            # Lokale Helfer namens t (z.B. Datums-Lambdas) werden nur gemeldet,
+            # wenn sie mit einem String-Literal aufgerufen werden.
+            code = '\n'.join(re.sub(r'^\s*(//|\*).*', '', z) for z in text.split('\n'))
+            # Ohne translateUI in der Datei kann eine lokale `const t` kein
+            # Übersetzer sein (im Popover war es ein Datums-Lambda) — nur ein
+            # Import oder ein Prop/Parameter namens t gilt als Versorgung.
+            # Ein bewusst lokaler Zweisprach-Helfer `const t = (de, en) => …`
+            # (NotificationsView) oder ein eigener Schlüssel-Übersetzer zählt
+            # ebenfalls als Versorgung — am Parameternamen erkannt.
+            versorgt = re.search(r"import[^;]*\bt\b[^;]*from|[{,]\s*t\s*[,}]|^\s*t,\s*$|\bconst\s+t\s*=\s*\(\s*(key|k|de|en|schluessel|id)\b", code, re.M)
+            if re.search(r"(?<![\w.])t\(\s*'[\w.]+'", code) and not versorgt:
+                ohne_uebersetzer.append(rel)
             continue
 
         # Präfix eines lokalen t()-Helfers: translateUI(`praefix.${key}`, …)
@@ -150,11 +169,17 @@ def main():
             fehlend.append((schluessel, datei, nr, fehlt_in))
 
     verdreht = deutsche_reste_im_englischen()
-    if not fehlend and not verdreht:
+    ohne = sorted(set(ohne_uebersetzer))
+    if not fehlend and not verdreht and not ohne:
         gesamt = len(set(k for k, _, _ in sammle_verwendungen()))
         print(f'check-i18n-keys: {gesamt} Schlüssel, alle in de + en vorhanden, '
               f'kein deutscher Text in en.js.')
         return 0
+    if ohne:
+        print(f'check-i18n-keys: {len(ohne)} Datei(en) rufen t(\'…\') ohne Übersetzer — zur Laufzeit „t is not defined":\n')
+        for rel in ohne:
+            print(f'  {rel}')
+        print()
     if verdreht:
         print(f'check-i18n-keys: {len(verdreht)} verdächtige Einträge in en.js '
               f'(sieht deutsch aus):\n')
@@ -163,9 +188,10 @@ def main():
         if fehlend:
             print()
 
-    print(f'check-i18n-keys: {len(fehlend)} fehlende Schlüssel\n')
-    for schluessel, datei, nr, fehlt_in in fehlend:
-        print(f'  {schluessel}  ({datei}:{nr})  fehlt in: {", ".join(fehlt_in)}')
+    if fehlend:
+        print(f'check-i18n-keys: {len(fehlend)} fehlende Schlüssel\n')
+        for schluessel, datei, nr, fehlt_in in fehlend:
+            print(f'  {schluessel}  ({datei}:{nr})  fehlt in: {", ".join(fehlt_in)}')
     return 1
 
 
