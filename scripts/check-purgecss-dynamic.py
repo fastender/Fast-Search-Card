@@ -20,13 +20,16 @@ Was das Skript tut:
 
 Aufruf:  python3 scripts/check-purgecss-dynamic.py            (Wächter, exit 1 bei Fehlern)
          python3 scripts/check-purgecss-dynamic.py --analyse  (zusätzlich: was hält NUR die Safelist?)
+         python3 scripts/check-purgecss-dynamic.py --json     (nur JSON: gepurgte/nur-Safelist-Klassen — für Werkzeuge)
 """
+import json
 import re
 import sys
 from pathlib import Path
 
 WURZEL = Path(__file__).resolve().parent.parent
 ANALYSE = '--analyse' in sys.argv
+JSON_AUSGABE = '--json' in sys.argv
 
 # ---------------------------------------------------------------- 1) CSS-Klassen
 CLASS_RX = re.compile(r'\.(-?[_a-zA-Z][_a-zA-Z0-9-]*)')
@@ -167,6 +170,18 @@ for k in sorted(gepurgt):
     treffer = [(art, frag, rel, zeile) for (art, frag, rel, zeile) in fragmente if passt(k, art, frag)]
     if treffer:
         fehler[k] = treffer
+
+if JSON_AUSGABE:
+    # Maschinenlesbar für Werkzeuge (z. B. scripts/strip-dead-css.cjs): welche
+    # Klassen PurgeCSS entfernt (ohne Token, ohne Safelist) und welche nur die
+    # Safelist hält. `komponiert` = gepurgt, aber im Quelltext zusammengesetzt.
+    print(json.dumps({
+        'gepurgt': sorted(gepurgt),
+        'komponiert': sorted(fehler),
+        'nurSafelist': sorted(nur_safelist),
+        'cssDateien': {k: sorted(v) for k, v in css_klassen.items() if k in gepurgt},
+    }, ensure_ascii=False))
+    sys.exit(1 if fehler else 0)
 
 print(f'check-purgecss-dynamic: {len(css_klassen)} CSS-Klassen, {len(tokens)} Tokens, Safelist {len(standard)} exakt + {len(regexe)} Regexe; '
       f'{len(gepurgt)} Klassen würden gepurgt (kein Token, keine Safelist), {len(nur_safelist)} hängen NUR an der Safelist.')

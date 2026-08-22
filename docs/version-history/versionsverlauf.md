@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2348 - 2026-08-22
+
+**Title:** 🧹 Audit package 5k — 2,286 lines of dead CSS removed from the sources; orphaned test entries deleted
+
+**Tags:** cleanup, audit, css
+
+Hygiene with a proof. The PurgeCSS guard (1.1.2346) had reported 171 classes that never appear in the
+sources and are not safelisted — PurgeCSS already dropped their rules from every release, so they only lived
+on as leftovers in the CSS files (a whole dead todo detail dialog, old settings panels, calendar and news
+remnants). New tool `scripts/strip-dead-css.cjs` takes that list from the guard's new `--json` mode and removes
+every selector that names such a class (postcss; rules with no selector left go, empty @media blocks go;
+classes the guard flags as "composed at runtime" are never touched). Result: 327 rules / 367 selectors across
+20 files, source CSS 20,829 → 18,543 lines; the guard now reports 0 purged classes.
+
+Proof: the production CSS was built before and after and compared rule by rule — 2,008 → 2,006 top-level
+rules, identical except for two: `.search-input.has-icon` and `.search-input.has-ghost-pill`. Those survived in
+the old build only because the `deep` safelist entry `/^search/` keeps compound selectors with a safelisted
+ancestor; `has-icon`/`has-ghost-pill` occur nowhere, so the element can never carry them — dead in the build as
+well. Bundle effect therefore ≈ zero (−1 KB raw CSS); the point is source hygiene.
+
+Also gone, as approved: the three orphaned dev test entries `src/circular-test.jsx`, `src/uct-test.jsx`,
+`src/info-popup-test.jsx` and their HTML pages `circular-test.html`, `uct-test.html`, `info-popup-test.html`
+(all untracked, referenced nowhere).
+
 ## Version 1.1.2347 - 2026-08-22
 
 **Title:** ⚡ Audit B14 — SearchField children stop re-rendering on every entity flush (35 → 17 renders per flush)
