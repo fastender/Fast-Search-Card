@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2350 - 2026-08-22
+
+**Title:** ⚡ SearchField no longer re-renders on entity flushes while idle (17 → 6 renders per flush)
+
+**Tags:** performance, architecture, search
+
+The architectural follow-up to the August audit: SearchField itself — 1,280 lines, the biggest component of the
+card — still re-rendered on every entity flush because it consumed the entity list through context, even on
+the idle start screen where nothing it renders depends on it. Now the consumption moves down to where it is
+needed:
+
+- `providers/entitiesStore.js` — a module store next to the context: the DataProvider publishes every flush into
+  it (`useLayoutEffect`); `getEntitiesSnapshot()` for event handlers and tick drivers, `subscribeEntities()` for
+  conditional subscribers. All existing `useEntities()` consumers keep the context untouched.
+- `hooks/useEntitiesWhen(active)` — returns the current snapshot on every render but subscribes only while
+  `active` (and until the first entities arrive). SearchField uses it with `isExpanded || showDetail || aiMode`:
+  panel open, detail open or AI mode → live as before; idle start screen → no render per flush.
+- The island's tick driver (`useIslandDaten`) now derives the fallback weather itself from `getDevices()`
+  (`utils/weatherEntity.js`, identity-stable as before) instead of receiving it as a prop from SearchField; the
+  island's `getDevices` and the five window deep-link handlers (`fsc-open-entity/-energy/-notifications/
+  -settings/-appearance`) and the sidebar click read the store getter — always fresh, independent of the last
+  SearchField render.
+- `BentoZenView` subscribes to the entity list itself and derives favorites subset and weather (it gets the
+  `favorites` set instead of `devices`/`favoriteDevices`/`weatherEntity`); `useSearchResults` loses the two
+  derivations that only served those props.
+
+Measured in dev (mock hass, 40 state_changed flushes, idle start screen): 17.0 → 9.0 renders per flush right
+after boot and 5.8 once settled; SearchField 0 — what remains is the DataProvider with its provider chain and
+the Bento start view that now carries the live data on its own. With the panel open SearchField renders per flush as before (list and
+subcategory counts live), with a detail open likewise; collapsing returns to 0. Deep links still open the
+detail view through the store getter.
+
 ## Version 1.1.2349 - 2026-08-22
 
 **Title:** 🧹 Audit package 5l — one settings-storage factory for News, Todos and Calendar
