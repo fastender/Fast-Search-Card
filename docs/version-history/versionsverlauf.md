@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2341 - 2026-08-22
+
+**Title:** 🧹 Audit package 5e — Music Assistant search tab split into a hook and a view
+
+**Tags:** refactor, audit, music-assistant, i18n
+
+Third cut into the Music Assistant panel, and the biggest: the search tab. Its logic — debounced search
+through the hass ref, results, type filter (reset on every query change), searching flag, the localStorage
+search history — is now the hook `controls/ma/useMaSearch.js`; the markup — input row, type pills, the scroll
+surface with spinner pill, status/empty states, history pills and result cards — is the view
+`controls/ma/SearchTab.jsx`. The hook deliberately runs in the PARENT panel, not inside the tab: results, filter
+and history must survive a tab switch (come back from "Queue" and your hits are still there; the silent
+background refresh on returning to the tab behaves as before). The
+query itself and the input ref also stay in the parent — the external pre-fill via `initialQuery` and the focus
+effect on tab change depend on them. The tab view receives the hook's result as one `search` prop. Panel
+1,019 → 814 lines (from 1,195 before package 5c); nine now-unused imports pruned.
+
+The type-pill labels ("Alle/Titel/Alben/…") and the "Keine Titel in dieser Suche" sentence were inline
+language switches and are now dictionary keys (existing `albums/artists/playlists/radio`, new `all`, `tracks`,
+`noTypeInSearch` with a placeholder). Small fix on the way: `TYPE_ORDER` contains podcast and audiobook, but the
+label table did not — those pills showed only a number; they now use the existing `podcasts`/`audiobooks` keys.
+
+Verified stand-alone in dev: the view with a fake search object (input, clear button, pills incl. the podcast
+label, filter clicks, card actions, all five empty states, history pills with re-fill/remove/clear, both
+spinners) and the hook with a stub connection (debounce, interleaved results, history persisted, filter reset on a new
+query, inactive tab does not search, empty query clears, history remove/clear) — plus the panel mounted with a
+stub hass: typing yields cards and pills after one search call, Queue and back keeps input and cards, pill
+filter narrows the list, a new query resets it.
+
+Next: browse tab (data, pagination, drill-down stack).
+
 ## Version 1.1.2340 - 2026-08-22
 
 **Title:** 🧹 Audit package 5d — queue and up-next are one list; queue header texts become dictionary keys
