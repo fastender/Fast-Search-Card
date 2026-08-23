@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.2353 - 2026-08-23
+
+**Title:** ✨ Depth transition — the search panel recedes into depth, the detail panel comes forward (two panels, no blur on glass, frozen list behind)
+
+**Tags:** ux, animation, performance, detail-view, bento
+
+The transition between the search panel and the detail view is rebuilt as a **depth transition**
+("Depth", two panels — chosen by the card's author from five interactive mockups):
+
+1. **Choreography.** On open, the search panel (search row *and* the Zen start page's widget panel)
+   recedes into depth (scale 1 → 0.86), its content softens slightly (6 px) and it fades out within
+   ≈ 230 ms; the detail panel comes forward from 0.93 + 8 px and fades in between 12 % and 60 % of a
+   190/25 spring (520 ms). From the first moment it is visible, the detail panel is always larger
+   than the receding search panel — so there is never a "frame" behind it, only one panel vanishing
+   behind the other. Inside the detail panel the photo/video (and the sharp cover art) zooms 1.05 → 1
+   and sharpens, the icon area and the control pane come forward from 0.96 (with a short 8 → 0 px
+   blur), and the tab content settles 80 ms later. Closing is the mirror image in 460 ms: the detail
+   panel sinks (0.94 + 6 px) and is gone at 50 %, the search panel comes forward again; the list no
+   longer replays its card entrance ("fairy lights") on every back.
+2. **What was wrong before.** `.search-panel.hidden { opacity: 0 }` never had an effect — framer writes
+   `opacity: 1` inline after the appear animation and inline beats the class — so the search panel
+   stayed fully painted behind the detail view: two full-size backdrop filters stacked permanently, plus
+   the list kept re-rendering on every entity flush behind it. Opening layered three nested fades
+   including `filter: blur(25px → 0)` on the glass panel itself (the most expensive combination CSS
+   offers), closing was a `setTimeout` relay (exit 320 ms → 400 ms → panel fade → card re-entrance)
+   with a visible hole and no way to interrupt it.
+3. **Architecture.** A small state machine (`closed → opening → open → closing`) lives in SearchField
+   (`data-detail-phase` on `.main-container`). The search side is pure CSS transitions keyed on that
+   attribute (with `linear()` spring easing where supported, `cubic-bezier` fallback); the detail side
+   runs on the Web Animations API in `DetailViewWrapper` (`utils/depthTransition.js`) — no framer
+   variants, no timers, interruptible (back during opening or a new tile during closing retargets from
+   the current frame). Rules kept on purpose: transform only on the wrapper (so the mobile bottom sheet
+   portaled into it moves along), opacity only on the glass elements themselves (an ancestor with
+   opacity < 1 would be a backdrop root and flatten the glass during the fade), blur only on content
+   layers (≤ 8 px, ≈ 150 ms), never on the glass; layers with their own static transform/filter
+   (`.detail-left-cover-art`) are left alone; after the ride all animations are cancelled so nothing
+   stays inline. Detail → detail navigation (context tab, schedules) keeps a light content fade-in
+   (`.detail-content--swap`). The wrapper keeps the last item during the closing ride (Home button /
+   search row can null the selection) and the bento overlay is back to a fixed 672 px height (the Zen
+   page stays mounted while receding, which made the container 754 instead of 732 px — with `bottom: 0`
+   the overlay would have jumped when the widgets were torn down; the measured `top` still handles the
+   Safari 72 px header). The overlay top is measured via `offsetTop` now, immune to the receding
+   transform.
+4. **Performance.** While the detail view is open the search panel is `visibility: hidden` and the
+   device list is frozen (`GroupedDeviceList` memo gate `frozen`, next to the existing `!isExpanded`
+   gate) — zero list renders per entity flush behind the detail; in steady state exactly one backdrop
+   filter is alive, two only during the ≈ 150 ms overlap. The card entrance animations
+   (`deviceList/GridItemVariants`, `actionsItemVariants`, all system-entity appearance configs) lost
+   their `filter: blur(4px)` — framer left a `filter: blur(0px)` inline on every card, most likely one
+   render surface per card, permanently. Reduced-motion users get instant switches.
+
 ## Version 1.1.2352 - 2026-08-22
 
 **Title:** 🐛 Six user-reported fixes — ocean on first start, full-screen island dimming, island tap/hover behaviour, idle media players, history date picker with D/W/M/Y
