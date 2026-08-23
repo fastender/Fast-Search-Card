@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2360 - 2026-08-23
+
+**Title:** ✨ Round two — schedule editor and history calendar in the glass window, typewriter keeps typing greetings, white icon circles and the settings-style check for tasks
+
+**Tags:** ux, popup, schedule, charts, todos, animation
+
+1. **Schedule tab (device detail): editor in the glass window.** "+ New" and tapping an existing
+   entry open the picker as a MorphPopup growing out of the button/row (auto height — the window
+   breathes with the accordions, capped to the visible area; body scrolls, Cancel/Create pinned at
+   the bottom). Filter and list stay visible behind the dim instead of being swapped out. The
+   inline edit page used by the all-schedules system entity is untouched.
+2. **History date picker in the glass window.** `ChartDatePopover` (D/W/M/Y + month grid +
+   two-tap range) lost its own dark box and `absolute inset:0` backdrop; it is now a MorphPopup
+   growing out of the date button, dim over the whole card, ✕ below, "Pick date" eyebrow. Same
+   content and behavior (Today/Done, range selection stays open).
+3. **The resting search bar keeps typing.** The one-shot "Search or Ask" entrance is now a loop:
+   it types the sentence, holds, deletes itself backwards, types a greeting ("Time to relax,
+   Name!" — same phrases and name source as the greeting bar), deletes, types the sentence again,
+   alternating. Any interaction (expanding the panel, typing, AI mode) ends it immediately;
+   returning to rest starts it again. The one-time button/category entrance (`data-eingang`)
+   still runs only with the very first sentence. 🔥 Heat: the loop obeys the card's idle gate —
+   `data-dekor="still"` (island, 3 min without touch) pauses it like the blinking caret and the
+   island ticker; without the island the attribute never appears and it keeps typing (same scope
+   as v1.1.2312).
+4. **Task lists: white icon circles.** The list icon sits on a white round background again
+   (cards and rows) — the coloured SVG icons read much stronger than on the translucent grey.
+5. **Tasks: completed check = the settings check.** A completed row shows the same bare white
+   checkmark as the settings lists (CheckmarkIcon; the filled white circle with a black hook is
+   gone). Open items keep the subtle empty circle; hovering a completed one hints the circle for
+   "tap to reopen".
+
 ## Version 1.1.2359 - 2026-08-23
 
 **Title:** 🐛 Six fixes from the tablet — raw `UI.SCHEDULE.*` labels, the hint sheet's tiny dimmed rectangle, calendar/tasks "+" as a glass popup, task list overview cards + plain rows, island no longer jumps to the button in the detail view
