@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2358 - 2026-08-23
+
+**Title:** ⚡ Smoother depth transition — less work per frame, no main-thread hitches at the start of the ride or on the way back
+
+**Tags:** performance, animation, detail-view, bento
+
+Same choreography as v1.1.2356/2357, trimmed where frames were expensive:
+
+1. **Search glass yields faster.** Its fade is 180 ms ease-out (was 234 ms ease-in): while it is visible
+   the browser filters *two* glasses per frame, so it leaves early and at full speed from the first frame.
+   The receding transform still runs its 520 ms spring, invisibly.
+2. **No blur on the search content any more.** The results area was the single largest filter pass of the
+   ride and barely visible during a 180 ms fade.
+3. **Zen start page: shorter fade (160 ms, ease-out).** Every Zen tile carries its own glass — each visible
+   frame of the receding start page costs one blur pass per tile.
+4. **Control pane without blur.** The right pane (rings, sliders, text — the biggest content layer) comes
+   forward with scale/offset only; the icon area and photo/video keep a 6 px (was 8 px) blur-to-sharp.
+5. **Start page remounts after the ride, not at its start.** Building the Zen page (widgets, the ocean's
+   WebGL) was the biggest main-thread cost of going back — right at the first frames of the close
+   animation. It was invisible during the ride anyway (its own reveal animation starts 594 ms after
+   mount), so it mounts at `closed` now. The container class and greeting logic are unchanged (otherwise
+   the greeting bar flashed).
+6. **First frame of the open ride.** The tab body (controls, rings, charts) renders one frame after the
+   panel — glass, left pane and tab header paint immediately and the animation starts without waiting for
+   the heavy tree; "open with target tab" waits for that frame (the settings tab switches via a ref).
+
 ## Version 1.1.2357 - 2026-08-23
 
 **Title:** 🐛 Island: the expanded panel no longer appears transparent first and frosted a moment later — its glass sits on the pill itself now
