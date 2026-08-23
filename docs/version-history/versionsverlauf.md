@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2356 - 2026-08-23
+
+**Title:** ✨ Depth transition is back (the v1.1.2353 two-panel ride) — and the "transparent first, then blurred" jump on back is fixed at its root
+
+**Tags:** ux, animation, detail-view, fix
+
+On reflection the v1.1.2353 depth transition was the right one; its single flaw was the way the
+search panel came back: for a few milliseconds it looked transparent, then the frost popped in. This
+build restores the v1.1.2353 choreography (rebuilt from the v1.1.2352 source: phase state machine
+`data-detail-phase`, WAAPI ride of the detail panel in `utils/depthTransition.js`, frozen and hidden
+list behind the detail, fixed 672 px bento overlay, card entrance blur removed, no framer variants on
+panel/content) and fixes that flaw:
+
+1. **Root cause.** The search panel was faded through its *parent* (`.search-row`). An ancestor with
+   `opacity < 1` is a backdrop root: during the fade the panel's backdrop filter could only see the
+   content of that ancestor, not the wallpaper — so the glass rendered flat/transparent and the blur
+   jumped in the moment opacity reached 1. Opening hid the effect behind the detail panel; closing
+   showed it.
+2. **Fix.** The fade now runs on the glass element itself: `.search-panel` carries the backdrop filter
+   and tint directly (like `.detail-panel`, whose fade was always clean) — its `::before` is only a
+   placeholder now — and the phase rules fade `.search-panel` (with `!important` against framer's
+   inline opacity) while the recede transform stays on the container (`transform` is not a backdrop
+   root). The Zen widget panel keeps its own fade (its return is governed by the Zen reveal animation
+   anyway).
+3. Everything else is the v1.1.2353 ride unchanged: search side recedes 1 → 0.86 with a 6 px content
+   blur and fades within ≈ 230 ms; detail panel comes forward from 0.93 + 8 px and fades in between
+   12 % and 60 % of a 190/25 spring (520 ms); content depth inside (icon/controls 0.96, media 1.05,
+   tab body 80 ms later); closing in 460 ms. v1.1.2354 (one-panel edition) and v1.1.2355 (rollback)
+   are superseded.
+
 ## Version 1.1.2355 - 2026-08-23
 
 **Title:** ⏪ Rollback to the v1.1.2352 state — the depth transition (v1.1.2353/2354) is withdrawn
