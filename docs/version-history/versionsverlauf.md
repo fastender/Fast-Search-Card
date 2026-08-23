@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2357 - 2026-08-23
+
+**Title:** 🐛 Island: the expanded panel no longer appears transparent first and frosted a moment later — its glass sits on the pill itself now
+
+**Tags:** fix, island, glass
+
+Same root cause as the search panel in v1.1.2356, different place: when the island expands into its
+panel, the pill runs `island-panel-ein` (opacity 0 → 1 **and** `filter: blur(14px → 0)` on the pill).
+Its glass, however, lived on the pill's `::before`. An element with opacity < 1 or a filter is a
+backdrop root for its children — so for the 420 ms of the entrance the `::before` glass could not see
+the wallpaper (flat/transparent), and the frost popped in when the animation ended (v1.1.2290 had only
+fixed the *permanent* loss with `backwards`; the transient one stayed).
+
+- The pill now carries `backdrop-filter` and the tint directly (like `.detail-panel`, and
+  `.search-panel` since v1.1.2356); the `::before` is a placeholder. Fade and blur of the entrance now
+  include the glass — no jump. The dense replacement glass used while a detail view is open and the
+  island is collapsed (no live blur over a playing video, v1.1.2207) moved to the element as well.
+- The island's appear fade at boot was on the holder — an ancestor of pill and values capsule, same
+  effect at load. It now fades the two glass bodies themselves (`data-appeared` on the holder still
+  drives it; the capsule brings its own opacity transition).
+
 ## Version 1.1.2356 - 2026-08-23
 
 **Title:** ✨ Depth transition is back (the v1.1.2353 two-panel ride) — and the "transparent first, then blurred" jump on back is fixed at its root
