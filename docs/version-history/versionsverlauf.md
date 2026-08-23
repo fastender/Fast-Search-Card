@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2354 - 2026-08-23
+
+**Title:** ⚡ Depth transition, one-panel edition — glass never moves (Safari), 120 ms glass crossfade, content depth on top, tab body one frame later
+
+**Tags:** performance, animation, detail-view, safari, ux
+
+Follow-up to v1.1.2353 after testing on the device: the two-panel ride rendered too slowly, most of all
+in Safari. Every transform or fade of a backdrop-filter surface — and everything that moves *behind*
+one — forces WebKit to re-filter the backdrop per frame; two full-size glasses scaling and fading plus
+blurred content layers were too much. The choreography is therefore rebuilt as the single-panel
+variant the author preferred in the mockups ("glass stays"):
+
+1. **The glass never moves.** Search panel and detail panel are identical and congruent, so they are
+   only cross-faded for 120 ms (opacity only, no transform, no blur on glass) — seven frames, then exactly
+   one glass stands still and nothing moves behind it: the search row and the Zen widget panel fade out in
+   those 120 ms and are hidden (`visibility`) at `open`. The wrapper is not transformed at all any more.
+2. **Depth lives in the content.** Inside the detail panel the icon area and the control pane come forward
+   from 0.96 + 8 px (with a short 6 px → 0 blur over 200 ms), photo/video zooms 1.05 → 1, the tab content
+   settles 60 ms later and everything fades in over 260 ms (spring 190/25, 400 ms). Closing: the content
+   sinks and fades in 180 ms, then the glass crosses back in 120 ms while the search side returns.
+3. **Faster first frame.** The tab body (controls, rings, charts — the expensive part of the mount) is
+   rendered one frame after the panel, so glass, left pane and tab header paint immediately and the
+   transition starts without waiting for the heavy tree; the content fades in over 260 ms anyway. The
+   "open with target tab" path waits for that frame (the settings tab switches via a ref that would still
+   be empty).
+4. **Removed from the search side:** the scale/blur on the receding list (pointless while fading in 120 ms,
+   costly in WebKit) and the `linear()` spring block that went with it.
+
 ## Version 1.1.2353 - 2026-08-23
 
 **Title:** ✨ Depth transition — the search panel recedes into depth, the detail panel comes forward (two panels, no blur on glass, frozen list behind)
