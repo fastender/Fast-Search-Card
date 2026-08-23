@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2361 - 2026-08-24
+
+**Title:** 🐛 Island standby folds again (it had been silently dead), the search bar starts complete, and eleven greeting variants per time of day
+
+**Tags:** fix, island, animation, search, i18n
+
+1. **Island: "Fold automatically" works again.** The v1.1.2240 standby cascade died silently with the
+   stages/two-body rebuild (v2286/v2289) — the settings UI survived as a zombie. Until v1.1.2358 this was
+   masked because every page change hard-reset the island to the rest button; since v1.1.2359 it keeps its
+   stage, and the collapsed capsule never returned to the button ("although I set 1 min" — user report).
+   The cascade is reimplemented for today's bodies: open panel (alerts/live) → after *miniMs* → collecting
+   capsule → after *knopfMs* → status line (values + button; on the Zen start page the capsule *is* the
+   rest, nothing folds there). Any touch/scroll/key anywhere re-arms the clock; a running announcement
+   ring blocks folding. Settings texts and the info popup now name the current bodies (panel → capsule →
+   status line; catalog updated). Verified with short clocks: `meldungen → mini → knopf`, re-arm resets.
+2. **Search bar: complete from the first frame.** The v1.1.2275/2280 entrance hid the category button and
+   the filter while the first sentence typed itself, then blur-faded them in. Both now stand from the
+   start and the typewriter simply types between them (user decision, tablet screenshots); the
+   `data-eingang` machinery and its CSS are gone.
+3. **Five more greeting variants per time of day, German and English** (6 → 11 each) — used by the
+   greeting bar and by the typing loop of the resting search bar.
+
 ## Version 1.1.2360 - 2026-08-23
 
 **Title:** ✨ Round two — schedule editor and history calendar in the glass window, typewriter keeps typing greetings, white icon circles and the settings-style check for tasks

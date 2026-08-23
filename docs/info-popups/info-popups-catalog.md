@@ -752,32 +752,35 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 > NEU v1.1.2242: Standby-Kaskade der Insel (v2240) bekommt UI — Schalter +
 > zwei Zeit-Zeilen (Tipp wechselt den Wert) in den Insel-Einstellungen.
+> v1.1.2361: Text an die Zwei-Koerper-Insel angepasst (Panel → Kapsel →
+> Statuszeile) — die Kaskade selbst wurde in dieser Version neu verdrahtet
+> (sie war seit dem Stadien-Umbau v2286 still tot).
 
 **DE**
 > ## Standby
 >
-> Nach einer Weile ohne Berührung macht sich die Insel klein — in zwei Stufen:
+> Nach einer Weile ohne Berührung macht sich die Insel von selbst klein — in zwei Stufen:
 >
-> 1. **Mini-Pille** – nur noch die Dauerwerte und die Meldungs-Knöpfe.
-> 2. **Knopf ganz rechts** – ein kleiner runder Knopf mit der Gesamtzahl der Meldungen in der Farbe der höchsten Stufe.
+> 1. **Sammel-Kapsel** – ein offenes Panel (Meldungen oder Live-Liste) faltet zur kompakten Kapsel.
+> 2. **Statuszeile** – die Kapsel tritt ab; übrig bleiben die Dauerwerte links und der Meldungs-Knopf rechts (mit der Gesamtzahl in der Farbe der höchsten Stufe).
 >
-> Ein Klick auf die freie Kartenfläche faltet sofort zur Mini-Pille. **Zurück** kommt die volle Karte durch einen Tipp auf Pille oder Knopf — und von selbst bei jeder neuen Meldung.
+> Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück; solange eine Ankündigung (Zeitring) läuft, faltet nichts. Zurück kommt alles durch einen Tipp auf Kapsel oder Knopf.
 >
-> Die beiden Zeiten lassen sich hier einstellen (Tippen auf die Zeile wechselt den Wert). Solange die aufgeklappte Live-Liste offen ist oder eine Übernahme läuft, faltet nichts.
+> Die beiden Zeiten lassen sich hier einstellen (Tippen auf die Zeile wechselt den Wert).
 >
 > *Warum wichtig:* Auf dem Wandtablet soll die Insel da sein, wenn etwas los ist — und sonst dem Hintergrund den Platz lassen.
 
 **EN**
 > ## Standby
 >
-> After a while without touch the island gets out of the way — in two stages:
+> After a while without touch the island folds itself away — in two stages:
 >
-> 1. **Mini pill** – just the standing values and the alert buttons.
-> 2. **Button far right** – a small round button carrying the total alert count in the color of the highest severity.
+> 1. **Capsule** – an open panel (alerts or live list) folds to the compact capsule.
+> 2. **Status line** – the capsule steps back; what remains are the standing values on the left and the alert button on the right (carrying the total count in the color of the highest severity).
 >
-> A click on the card's free area folds to the mini pill immediately. The full card **returns** with a tap on the pill or button — and by itself with every new alert.
+> Every touch, scroll or key press resets the wait; while an announcement ring is running, nothing folds. Everything comes back with a tap on the capsule or the button.
 >
-> Both durations are set here (tapping a row cycles its value). While the expanded live list is open or a takeover ring is running, nothing folds.
+> Both durations are set here (tapping a row cycles its value).
 >
 > *Why it matters:* on a wall tablet the island should be there when something is happening — and otherwise leave the stage to the background.
 
