@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2355 - 2026-08-23
+
+**Title:** ⏪ Rollback to the v1.1.2352 state — the depth transition (v1.1.2353/2354) is withdrawn
+
+**Tags:** rollback, detail-view, animation
+
+Both depth-transition builds were rejected on the device (flicker, blurred/smeared frames): v1.1.2353
+(two panels in depth) and v1.1.2354 (one-panel edition). This build restores the search-panel ↔ detail
+transition exactly as in v1.1.2352 — framer variants on panel and content, the `.hidden` class on the
+search panel, the wrapper's timed back handler, the card entrance blur, the bento overlay with
+`bottom: 0` — and removes `utils/depthTransition.js`, the `data-detail-phase` state machine and the
+one-frame deferral of the tab body. Only the version number differs from v1.1.2352. The transition is
+going to be rethought from scratch; the analysis of the old implementation (search panel staying
+painted behind the detail view, double glass, blur animation on glass) still stands and will inform the
+next attempt.
+
 ## Version 1.1.2354 - 2026-08-23
 
 **Title:** ⚡ Depth transition, one-panel edition — glass never moves (Safari), 120 ms glass crossfade, content depth on top, tab body one frame later
