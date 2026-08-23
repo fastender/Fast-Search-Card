@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.2359 - 2026-08-23
+
+**Title:** 🐛 Six fixes from the tablet — raw `UI.SCHEDULE.*` labels, the hint sheet's tiny dimmed rectangle, calendar/tasks "+" as a glass popup, task list overview cards + plain rows, island no longer jumps to the button in the detail view
+
+**Tags:** fix, ui, popup, todos, calendar, island, i18n
+
+1. **Schedule editor: raw keys.** The section titles read `UI.SCHEDULE.GENERAL` / `UI.SCHEDULE.DEVICESETTINGS`
+   (cover schedule, screenshot). `SchedulePickerTable` asks the schedule translator for `general` and
+   `deviceSettings`, but the two keys only existed under `ui.controls`. Added to `ui.schedule` (de + en).
+2. **One window primitive for the whole card: `components/common/MorphPopup.jsx`.** The glass window of the
+   info popup (v1.1.2262: grows out of its trigger into the middle, dim over the whole card, free-standing ✕
+   below, measured morph) is now a reusable component; `SettingsInfoButton` renders its content through it
+   (same look, same timings). Portal target is `.main-container`, found with `closest()` from an invisible
+   span of its own — works inside HA's shadow DOM where `document.querySelector` sees nothing. Height is
+   either measured from the content (info text) or fixed (forms with their own pager). `TabNavigation`
+   passes the tapped action button to `handleAdd(el)` (`data-action` on the buttons) so a window can grow
+   out of the "+" it was opened from.
+3. **Hint sheet (context tab → hints → "+ Hint").** It portaled into `document.querySelector('.detail-panel')`
+   — null in the shadow DOM — fell back to `position: fixed` and was caught by the next transformed
+   ancestor: the dim was a small rectangle over the tab content. It is now a `MorphPopup` growing out of
+   the "+ Hint" button (or the row being edited): glass, dim over the whole card, ✕ below, roomier layout
+   (suggestion chips, one-line sentence with the value stepper, "More options", blue pill action). The
+   sheet stays mounted (needed for the exit animation); the form itself mounts fresh on every open.
+4. **Calendar "+".** "New event" opens as the same glass popup (fixed 600 px, capped to the visible area, the
+   dialog's own pager scrolls/slides inside). Editing an event (tap on an entry) still opens the inline page.
+5. **Tasks "+" and list.** "New task" opens as the glass popup (480 px). The view's home for **All lists**
+   now shows one card per list (list icon, name, "N open · M done", overdue in red, chevron) when there are
+   two or more lists; tapping a card selects that list's tab with all its items. A status/profile filter or
+   a search still shows the flat list across all lists. Task rows lost their coloured backgrounds: they
+   are plain rows like the device list items (rgba(255,255,255,.1), radius 24, icon circle with the list
+   icon in the list colour, small uppercase list name, title, due date — red when overdue — check circle;
+   completed = struck through and dimmed).
+6. **Island in the detail view.** (a) Opening a detail view forced the island onto the rest button
+   (`knopf`), even when it stood there as the collapsed capsule — only the expanded *panel* needs to fold
+   (it would cover the new page); it now folds to the capsule and leaves capsule/button as they are.
+   (b) "Why are island and weather/power darker in the detail view?" — the v1.1.2207 replacement glass
+   (dense tint, no blur; introduced when the detail view covered the island and a playing video ran under
+   its blur) still applied, but in the Bento layout the island sits in its own band (0–44 px) above the
+   detail panel (from 60 px) — nothing under it. The replacement glass is now limited to the classic
+   (non-Bento) layout; in Bento the island keeps its real glass over the detail view.
+
 ## Version 1.1.2358 - 2026-08-23
 
 **Title:** ⚡ Smoother depth transition — less work per frame, no main-thread hitches at the start of the ride or on the way back
