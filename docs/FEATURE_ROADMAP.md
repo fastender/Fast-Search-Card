@@ -1023,7 +1023,7 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 | Bucket | Ideas | Why |
 |---|---|---|
 | **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar | Existing infrastructure, clear daily payoff |
-| **Medium effort, established patterns** | #46 Settings search · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
+| **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
@@ -1147,7 +1147,7 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ## Part seven — 2026-08-08 additions
 
-Five entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
+Six entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
 
 ---
 
@@ -1333,16 +1333,80 @@ Building the ladder here, on a contained surface with an obvious right answer, p
 **Why it fits:** A calendar view the card lacks, on top of a responsive pattern the card needs elsewhere and does not yet have anywhere.
 
 
+---
+
+### 49. Screen behaviour — the settings surface for ambient mode
+
+**Pitch:** A Screen section in Settings that governs what the display does when nobody is looking: dim after a while, drop into the ambient screen, come back on movement, follow the room's light level.
+
+**Relationship to #9.** Entry #9 describes the ambient *view* — what is on screen while the card rests. This entry is the *control panel* for it, plus the dimming and wake behaviour around it. They can ship in either order; the settings are useless without a view, but the view is unusable without them.
+
+**The model to follow** is what dedicated wall panels already offer, because people arriving from those devices expect it:
+
+| Setting | Shape |
+|---|---|
+| Auto brightness | Toggle |
+| Dim screen after | Off / a few choices |
+| Ambient screen after | Off / a few choices |
+| Wake on movement | Toggle |
+
+**Use minutes, not seconds.** Panel firmware offers 5/10/30 seconds because those devices are intercoms answered in passing. A wall dashboard that dims after ten seconds is broken. Sensible choices are somewhere around 1, 5, 15 and 30 minutes, plus Off.
+
+---
+
+**The honest split — and this is the part that matters.**
+
+Some of this the card can do in the browser. Some of it it fundamentally cannot, and pretending otherwise produces a feature that looks right and saves nothing.
+
+**What the card can do alone:**
+
+- **Dim after N.** The mechanism already exists: `--background-brightness` is a CSS variable, set from `appearance.backgroundBrightness` in `src/index.jsx:110-115`, and already feeds the glass backdrop filter (`DetailView.css:31`). Dimming is a value change on a variable that is already wired end to end.
+- **Ambient screen after N.** That is #9.
+- **Wake on interaction.** Pointer, touch, key. Trivial, and needed regardless.
+- **Wake on movement — with a caveat.** The browser cannot see the room. It *can* watch an HA motion `binary_sensor` and treat a state change as a wake signal. So the setting is not "wake on movement" but "wake when this sensor triggers", with a picker. Which is arguably better, because the sensor can be anywhere useful — the hallway leading to the panel, not just the panel itself.
+- **Auto brightness — same shape.** No usable ambient-light API exists in browsers. Bind it to an illuminance sensor instead and map lux onto the brightness variable. **Apply hysteresis**, or the display will pulse every time a cloud passes. The card already has a hysteresis pattern for this in `src/utils/watchStore.js:65-69`.
+
+**What the card cannot do alone:**
+
+- **Actually turning the display off.** A black overlay in a browser is still a lit backlight showing black. It saves no power, prevents no burn-in on an LCD, and looks identical to a real screen-off only in a photograph. Do not ship it as "turn screen off".
+- **Real device brightness.** Same reason — CSS dims the page, not the panel.
+
+**The delegation target.** [Fully Kiosk Browser's integration](https://www.home-assistant.io/integrations/fully_kiosk/) is in Home Assistant core and exposes exactly the missing half:
+
+- A **`light` entity** that does screen on/off *and* brightness in one — which is the right abstraction and worth mirroring in the settings language.
+- **Switch entities** for Fully's own screensaver, maintenance mode and kiosk lock.
+- A **camera with motion detection** (only active when motion detection is enabled inside Fully), which is one candidate source for the wake sensor above.
+- Battery, charging and wifi sensors.
+
+So the real Screen section is two-layered: what the card does to itself, and an optional handoff to whatever controls the panel. The handoff is just a service call to an entity the user picks — no integration-specific code, which means it also works with Wallpanel, an Android tablet exposing brightness some other way, or nothing at all.
+
+---
+
+**One conflict to resolve deliberately.** Fully already has its own screensaver, switchable from HA. Two screensavers fighting over the same display is a worse outcome than either alone. The settings should make the choice explicit rather than letting both run: *card ambient screen* or *hand off to the device*, not both. If the device path is chosen, the card's own idle timer should drive the handoff and then stop worrying about it.
+
+**What ships:**
+- A **Screen** section under Settings → Appearance, structured as above.
+- Timers for dim and for ambient, independently settable, Off included.
+- Wake on interaction always on; wake on sensor optional with an entity picker.
+- Optional auto-brightness bound to an illuminance sensor, with hysteresis and a floor so it never dims to unreadable.
+- An optional **screen handoff**: pick a `light` or `switch` entity that represents the panel's display, and let the card turn it off on the ambient timer instead of drawing black.
+- Info popups for the section — several of these need the browser-versus-device distinction explained, and the ⓘ is the right place for it.
+
+**Effort:** Small for the card-side timers and dimming, since the brightness variable and settings plumbing exist. Medium once the handoff, the sensor pickers and the hysteresis are included.
+
+**Why it fits:** Wall tablets are stated to be the primary target going forward, and this is the single most-expected settings group on that class of device. It is also the honest version of a feature that is easy to fake badly.
+
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **46 feature ideas + 2 parallel/long-term tracks** = 48 entries total.
+- The roadmap covers **47 feature ideas + 2 parallel/long-term tracks** = 49 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
-  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code.
+  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer.
