@@ -1032,8 +1032,8 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics | Existing infrastructure, clear daily payoff |
-| **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups | Existing infrastructure, clear daily payoff |
+| **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #54 Event rules · #55 Person lanes · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
@@ -1157,7 +1157,7 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ## Part seven — 2026-08-08 additions
 
-Nine entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
+Twelve entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
 
 ---
 
@@ -1491,16 +1491,104 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 **Why it fits:** It is missing everywhere rather than in one place, which usually means it is a primitive rather than a feature.
 
 
+---
+
+### 53. Calendar groups — one toggle for several calendars
+
+**Pitch:** Name a group, put several calendar entities in it, give it a colour and an icon. The settings list and any per-calendar filter then show the group instead of its members.
+
+**Status quo:** `CALENDAR_SETTINGS_DEFAULTS.calendars` is a flat map, `{ [entity_id]: { enabled, color } }`. Every calendar is its own row and its own toggle. That is correct and fine with four calendars. With a household running one per person plus school, bins, work and holidays, the settings list becomes a wall and the useful action — "show me only family stuff" — takes six taps.
+
+**What ships:**
+- A group layer above the existing map: `id`, display name, member entity ids, colour, icon.
+- One toggle per group in the calendar settings and in the filter row.
+- The group colour overrides the per-calendar colour for its members, so a group reads as one thing visually. Individual overrides stay available for anyone who wants them.
+- Ungrouped calendars keep behaving exactly as they do now — this is additive, and an install that never makes a group should notice nothing.
+
+**Keep the ids stable and unique.** Groups will later be referenced by rules (see #54) and possibly by lanes (#55), so a generated-once stable id beats using the display name as the key. Renaming a group must not break anything that points at it.
+
+**Effort:** Small. A layer over an existing map plus a settings screen.
+
+**Why it fits:** The calendar is the app most likely to accumulate entities in a family install, and it is the only place in the card where the entity count grows with the number of *people* rather than devices.
+
+---
+
+### 54. Event rules — colour, mark and hide events by what they are
+
+**Pitch:** "Anything with 'Geburtstag' in the title gets a cake icon." "Events from the bins calendar show as a badge on the day, not a row." "Hide anything titled 'Declined'." Rules that match on what an event *is*, not on which calendar it came from.
+
+**Status quo:** Styling is per calendar only. Colour comes from `calSettings.calendars[id].color`, or a hash of the calendar id. Two events from the same calendar always look identical, however different they are.
+
+**What ships — matching:**
+- Match on event **title**, **description**, **location**, **all-day or timed**, **past or future**, **source calendar or group**.
+- Text matching: case-insensitive substring by default, with exact and regex available for people who want them.
+- Combine with **all / any / not**, because "birthdays but not work ones" is the second rule everybody writes.
+
+**What ships — effects:**
+- Colour and text colour, an icon, reduced emphasis for past or declined items, and **hide**.
+- **Promote to day badge:** render a matching event as a small chip on the day cell instead of a row. The month grid already renders per-day dots at `CalendarView.jsx:900-911`, so there is a rendering anchor; a badge is a richer dot.
+
+**Conflict resolution worth copying exactly:** give rules a priority and resolve **each style property independently** to the highest-priority rule that sets it. A rule that only sets an icon then layers cleanly over a rule that only sets a colour, instead of one rule winning wholesale. It is a small decision that prevents a category of confusion.
+
+---
+
+**The design constraint that matters more than the feature.**
+
+Cards that ship this usually ship it as YAML — a rule DSL the user writes by hand. The card has no YAML. Everything is configured in-card, which means these rules need a **UI**, and a UI cannot express arbitrary boolean algebra without becoming a programming environment with a worse keyboard.
+
+So the scope is: **ship the common cases as first-class UI, not a general rule engine.**
+
+A worked list of what people actually want, each of which is a form rather than an expression:
+
+- Title contains X → colour and icon
+- From this calendar or group → colour
+- All-day → show as badge instead of row
+- Past → dim
+- Title contains X → hide
+
+Five forms cover almost everything. If a general matcher grammar exists underneath, that is an implementation detail — it should not surface as the primary way to configure this. The related lesson is already visible elsewhere in the ecosystem: when maintainers answer "just write a template", users keep asking for the toggle.
+
+**Effort:** Medium, and most of it is the settings UI rather than the matching.
+
+**Why it fits:** It is the difference between a calendar that shows your events and one that shows you *your* events. And it stays honest to the card's premise that configuration happens in the card, not in a file.
+
+---
+
+### 55. Person lanes — a family week, side by side
+
+**Pitch:** A week view with one lane per person instead of one lane per day. Who is doing what, when, at a glance — the question a shared household calendar exists to answer.
+
+**Status quo:** The card has no person dimension at all. Verified: `person` appears once in the entire source, as a domain label in `translations/helpers.js:227`. There is no person card, no per-person filter, no avatar anywhere. A forum user rebuilding a decade-old instance named person cards as one of three gaps keeping him from adopting the card.
+
+**Why this is the version worth building.** A person *card* — one tile showing where someone is — is a small feature that many cards already do. A person *lane* in the calendar is the thing the family-calendar appliances are actually bought for, and no HA card does it well. It is also the only one of the two that uses data the card already has.
+
+**What ships:**
+- A view mode where columns are people rather than days: each person's events for the chosen range in their own lane.
+- Person derived from **calendar ownership**, not from `person.*` entities. `calendar.mom` belongs to Mum because the user says so, once, in settings — mapping calendars (or groups from #53) to people. Trying to infer it from attendee lists will fail on most HA calendar integrations.
+- Optional avatar and colour per person, reusing the picture from the matching `person.*` entity when there is one.
+- A shared lane for events belonging to nobody in particular — bins, holidays, school terms.
+- Tapping a lane header filters the whole calendar to that person, which doubles as the per-person filter that is missing today.
+
+**Depends on and feeds:**
+- **#53** supplies the grouping; a person is usually "these two calendars".
+- **#15** (multi-user profiles) wants the same person model. Building it here first, concretely, is better than designing it abstractly there — the calendar gives it a reason to exist and a place to be wrong cheaply.
+- **#48**'s column layout and its narrowing ladder apply directly. Lanes and day columns have the same width problem and should share the same answer.
+
+**Effort:** Medium. The lane layout is straightforward once #48's column work exists; the person mapping is a settings screen; the honest cost is in deciding what happens with five people on a phone.
+
+**Why it fits:** It is the one calendar capability that turns the card from a personal dashboard into a household one, and it is the exact gap a credible long-time user named out loud.
+
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **50 feature ideas + 2 parallel/long-term tracks** = 52 entries total.
+- The roadmap covers **53 feature ideas + 2 parallel/long-term tracks** = 55 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
-  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only.
+  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only. #53-#55 came from two family-calendar cards; #55 also answers a gap a forum user named directly.
