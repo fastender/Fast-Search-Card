@@ -1022,8 +1022,8 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder | Existing infrastructure, clear daily payoff |
-| **Medium effort, established patterns** | #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar | Existing infrastructure, clear daily payoff |
+| **Medium effort, established patterns** | #46 Settings search · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
@@ -1147,7 +1147,7 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ## Part seven — 2026-08-08 additions
 
-Two entries. One from looking at a neighbouring project, one from a user question that exposed a wrong answer.
+Five entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
 
 ---
 
@@ -1238,16 +1238,111 @@ Route one is almost certainly right for a first version; route two is the optimi
 **Why it fits:** The card's pitch is that it reads your Home Assistant and builds itself. Requiring a device registry entry is exactly the kind of hidden precondition that pitch promises to remove — and it fails hardest for the users who have the messiest, most hand-built setups, who are the ones the pitch is aimed at.
 
 
+---
+
+### 46. Search your own settings
+
+**Pitch:** A search field at the top of Settings. Type `week`, `glass`, `defaultRange` — matching controls surface immediately, wherever they live. Plus a "Changed only" filter that hides everything still at its default.
+
+**Why this one first.** The card is search-first for the whole house and offers no search over its own configuration. That gap cost real credibility this month: a forum user asked for a calendar default-view setting that already existed, buried in Calendar → Settings → Display. The honest reply was "that's my fault, not yours" — this is the fix for the underlying cause rather than for that one setting.
+
+**Status quo:** Configuration is spread across **20 surfaces** — 14 components under `src/components/tabs/SettingsTab/` plus 6 system-entity settings views. Each holds its labels inline. Nothing indexes them, so nothing can find them.
+
+**What we already have, and it is more than expected:**
+
+| Search dimension | Where it already exists |
+|---|---|
+| Explanatory sentence per setting | **128 bilingual keys** under `ui.settings.settingsInfo.*` in `de.js` / `en.js` — already written, already maintained |
+| Key paths | Documented per section in `docs/info-popups/info-popups-catalog.md` |
+| Fuzzy matching | Fuse.js already in the bundle, already tuned for the entity search |
+| Option values | The picker lists inside each settings component |
+
+The corpus is written. That is the unusual part — normally a feature like this starts by writing 128 descriptions.
+
+**What ships:**
+- A search field in the Settings header, in the card's existing search styling.
+- Matching across four dimensions: the setting's **label**, its **info text**, its **option values**, and its **key path** — so a key copied out of the catalog leads straight to its control.
+- Behaviour while typing: filter down to matches, **drop sections that have nothing left**, and **auto-expand what survives**. A match must never hide behind a collapsed heading — that failure mode is the whole reason the feature exists.
+- A **"Changed only"** toggle: show exactly what this install has altered. Normalise before comparing, so `"3"` stored as a string counts as untouched when `3` is the default. Invaluable in bug reports — "show me what you changed" is the first question every time.
+
+**The actual work is an index, not a search box.** Settings labels live inline in 20 components today. Search needs a registry: for each setting, its label key, its `settingsInfo` key, its option values, and where it lives. Building that registry is the bulk of the effort — and it pays off twice, because it becomes the single source of truth that `info-popups-catalog.md` currently tracks by hand.
+
+**Do not** try to auto-derive the index by parsing the components. Declare it explicitly next to the components, and add a guard script in the pre-commit hook that fails when a settings key exists without a registry entry — the same shape as `check-i18n-keys.py`.
+
+**Effort:** Medium. The search itself is an afternoon; the registry is the rest.
+
+**Why it fits:** It is the card's own thesis applied to itself. It also quietly fixes a whole class of "missing feature" reports that are really "buried feature" reports.
+
+---
+
+### 47. Weather inside the calendar
+
+**Pitch:** A condition icon and temperature in each day header, and an hourly forecast beside timed events. "Football at 16:00" reads differently with rain next to it.
+
+**Status quo:** The calendar shows events. The weather lives in its own widget and its own system entity. Neither knows about the other, even though the one question people actually ask of a calendar — should I move this outdoors — needs both.
+
+**Both data paths already exist and are proven twice:**
+
+| Piece | Where |
+|---|---|
+| Hourly forecast fetch | `WeatherDeviceView.jsx:98` — `weather.get_forecasts` with `type: 'hourly'` |
+| Hourly with module-level cache | `BentoRichWeather.jsx:91-92` — the caching pattern that survives widget remounts |
+| Daily forecast | Same service, `type: 'daily'` |
+
+Nothing new has to be wired to Home Assistant.
+
+**What ships:**
+- **Day header:** condition icon plus the day's high, from the **daily** forecast.
+- **Event row:** temperature and icon beside timed events, from the **hourly** forecast.
+- **The fallback that makes it work:** hourly forecasts typically reach about two days ahead, daily forecasts six or more. Beyond the hourly horizon, fall back to that day's daily forecast rather than showing nothing. All-day events use daily regardless — an all-day event has no hour to look up.
+- A setting with four states rather than a boolean: **off / day headers only / event rows only / both**. Different users want different densities, and a single toggle forces the wrong choice on half of them.
+- Reuse the module-level cache pattern from `BentoRichWeather` — the calendar remounts often, and one forecast fetch per remount would be wasteful and visible.
+
+**Watch out for:** which weather entity. The card may know several. Default to the one the weather widget already uses rather than asking again, and let it be overridden in Calendar → Settings.
+
+**Effort:** Small to medium. Data layer done, cache pattern done; this is placement, the fallback rule, and one setting.
+
+**Why it fits:** The calendar is one of the card's strongest apps and currently answers only half of what a calendar is asked. Both halves are already in the bundle.
+
+---
+
+### 48. Column view for the calendar — and a degradation ladder worth generalising
+
+**Pitch:** A week that reads across the card instead of down it: one column per day, side by side. Plus the narrowing behaviour underneath it, which is the more valuable half.
+
+**Status quo:** `rangeForView(mode, anchor, weekStartsOn)` at `CalendarView.jsx:99` handles `day`, `week`, `month`, `year`. The week view stacks days vertically. There is no side-by-side layout, and no graceful behaviour when a view runs out of width — it just gets cramped.
+
+**What ships — the view:**
+- A fifth mode: days as columns, one per day, count following the chosen range.
+- **Empty days stay visible in this mode**, inverting the list behaviour. Hiding them would slide the columns out of alignment with their date headings and break the week-at-a-glance reading. The default follows from the layout rather than being global — worth stating in the settings text, because it looks like an inconsistency until explained.
+
+**What ships — the ladder, which matters more:**
+
+A width cascade with three stages instead of one break:
+
+1. **Minimum readable width per column** (around 140 px). While every day fits, render columns.
+2. **Below that, drop trailing days one at a time** rather than abandoning the layout. Five columns become four, then three. The layout survives longer than the day count does.
+3. **At the floor, one explicit choice:** fall back to the list, or hold the minimum column count and let them narrow past the comfortable width. Both are defensible; the point is that it is a decision rather than an accident.
+
+**Why the ladder is the real prize.** The card's most-reported open issue is the fixed-height layout cutting off on wall tablets — point 8 of the forum feedback, acknowledged and still open. That problem needs exactly this kind of thinking: not a breakpoint where the layout flips, but a staged retreat that keeps the composition intact as long as possible and then degrades on purpose.
+
+Building the ladder here, on a contained surface with an obvious right answer, produces the pattern. Applying it to the Bento grid afterwards is then a port rather than an invention.
+
+**Effort:** Medium for the view. The ladder is the interesting part and worth its own careful pass.
+
+**Why it fits:** A calendar view the card lacks, on top of a responsive pattern the card needs elsewhere and does not yet have anywhere.
+
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **43 feature ideas + 2 parallel/long-term tracks** = 45 entries total.
+- The roadmap covers **46 feature ideas + 2 parallel/long-term tracks** = 48 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
-  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards.
+  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code.
