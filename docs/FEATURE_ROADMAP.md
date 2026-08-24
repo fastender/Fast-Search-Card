@@ -334,6 +334,16 @@ UX gains, then the two that need care (autoplay policy, speech discipline), then
 - `src/utils/cameraStreamManager.js` (new, connection pool)
 - `src/components/bento/widgets/BentoRichCamera.jsx` (new)
 
+**Amendments from studying a mature camera gallery *(added 2026-08-08)*.** Five patterns worth adopting before this is designed, because each one is a decision that is expensive to change later:
+
+- **Three source modes, not one.** Files on disk (written by an automation), HA media sources (Frigate, Reolink, a NAS), or both merged into one timeline. Picking only the media browser looks cleaner and excludes everyone whose snapshots come from a `camera.snapshot` automation — which is most people who built this before an NVR existed.
+- **Paired items.** When a still and a clip share a filename stem, render them as **one** entry with the image as the thumbnail. Two rows for the same moment is the default outcome, and it looks broken.
+- **Walk the date hierarchy, do not crawl it.** Recordings live in nested date folders. Read the structure and descend only where needed; a blind recursive crawl over months of footage is a hang, not a delay.
+- **Never delete files directly — call a service the user defines.** A frontend card has no business touching the filesystem. The right shape is a user-configured `shell_command` or `rest_command` with a templated path, which keeps deletion inside HA's own permission model and out of the card entirely.
+- **Controls that fade.** On a live view, controls should be an overlay that recedes after inactivity, with a fixed mode for anyone who wants them permanently. Especially relevant on the wall tablets that are the stated primary target.
+
+Two-way audio via go2rtc backchannel also appears here, and is the same capability the doorbell idea needs.
+
 ---
 
 ### 5. Floorplan / map view
@@ -1022,8 +1032,8 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar | Existing infrastructure, clear daily payoff |
-| **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics | Existing infrastructure, clear daily payoff |
+| **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
@@ -1147,7 +1157,7 @@ Housekeeping surfaced by the GitHub sweep: issue [#10](https://github.com/fasten
 
 ## Part seven — 2026-08-08 additions
 
-Six entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
+Nine entries. Two from looking at neighbouring projects, one from a user question that exposed a wrong answer, and two — #47 and #48 — where the data layer or the pattern already exists in the bundle and only the surface is missing.
 
 ---
 
@@ -1397,16 +1407,100 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 **Why it fits:** Wall tablets are stated to be the primary target going forward, and this is the single most-expected settings group on that class of device. It is also the honest version of a feature that is easy to fake badly.
 
 
+---
+
+### 50. Video-background doctor — stop the silent no-show
+
+**Pitch:** A button in the video settings that reads the folder, lists what it found, and says which files the card will actually use and which it will ignore and why.
+
+**Status quo — this is the card's most reliable source of confusion.** Background videos resolve by filename through a six-step hierarchy in `src/utils/videoHelpers.js`. A single typo produces nothing: no error, no hint, no video. The current documentation ends with "only exactly-named files are found — a typo in the name = no video", which is accurate and useless, because the user cannot see what the card sees.
+
+**The idea worth taking** is the auto-detect button: instead of teaching a naming convention and hoping, look at the actual files and report. Guessing from real data beats documenting a syntax.
+
+**What already exists — this is mostly UI over a working function:**
+
+- `browseMediaFolder` in `src/services/mediaSourceService.js`, already imported and used by `videoHelpers.js:13,295`. The card can already list a media folder.
+- The full resolution hierarchy, including the weather bypass, the `device_class` layers and the `default_1…10` pool, is implemented and documented.
+- `videoDefaultsCache:<basePath>` already caches folder discovery for 24 hours per path.
+
+**What ships:**
+- A **"Check folder"** action in Settings → Appearance → Video Backgrounds.
+- Output in three groups:
+  - **Will be used** — filename, and which of the six steps it satisfies, and for which domain or state.
+  - **Ignored** — filename plus the reason. "`light-on.mp4` — hyphen instead of underscore." "`Light_On.mp4` — the card lowercases states." "`climate_heating.mp4` — `heating` normalises to `on`, so name it `climate_on.mp4`."
+  - **Missing but expected** — domains present in this install with no matching file. That turns the panel from a validator into a shopping list.
+- A **plain-language "did you mean"** for near misses. Levenshtein distance of one or two against the expected set catches nearly every real mistake.
+- Optional: for the domains found, show which states this install actually produces, so nobody makes a `vacuum_returning.mp4` that will never match.
+
+**Also fix the cache trap while in there.** Default discovery caches per folder for 24 hours. Changing the folder invalidates correctly, because the path is in the key — but **adding files to the same folder does not**. Today the user waits a day or clears storage. The check action should clear that cache as a side effect, which is both obvious and the reason people will press it twice.
+
+**Effort:** Small. Folder listing exists, the rules exist; this is a report and a diff.
+
+**Why it fits:** It converts the card's least discoverable feature into its most self-explanatory one, and it removes a support question rather than answering it.
+
+---
+
+### 51. Diagnostics panel
+
+**Pitch:** A screen in Settings → About that shows what state this install is actually in — versions, what is reachable, what was measured, which settings deviate from default — and a copy button.
+
+**Status quo:** Diagnostics exist but only for developers. `window.__fsc_perf.dump()` prints a timing table to the console (`src/utils/perfMarks.js:106`). Asking a user to open dev tools is asking most users to stop.
+
+**What ships:**
+- Card version and build, Home Assistant version, browser and platform.
+- **Capability probe:** does this browser do live refraction, WebGL, `:has()`? That single block would have answered the Echo Show question in the forum immediately, and it turns every unknown device into a self-reporting one.
+- **Counts:** entities loaded, entities filtered out and by which rule, system entities registered.
+- **Boot timings** from the existing perf marks, rendered as a small table rather than console output.
+- **Non-default settings**, which is where this meets #46: the "Changed only" filter and this panel want exactly the same data.
+- **Copy to clipboard**, formatted as markdown so it can be pasted into a forum post or an issue without reformatting.
+
+**Redact by default.** The panel must not leak entity names, area names or anything identifying. Counts and capabilities, not contents. If a specific entity id is genuinely needed for a diagnosis, ask for it separately rather than shipping it in every paste.
+
+**Effort:** Small to medium. Most values are already computed somewhere; this is collection and presentation.
+
+**Why it fits:** Support currently depends on the user's ability to describe what they see. This replaces description with evidence — and it pairs with the security posture, because a diagnostics dump that shows counts rather than contents is itself a demonstration of the privacy claim.
+
+---
+
+### 52. Multi-select and bulk actions as a card-wide primitive
+
+**Pitch:** Long-press a row to enter selection mode, tap to add more, act on all of them at once. One implementation, used by every list in the card.
+
+**Status quo:** The card has none. Verified: no `selectedIds`, no `multiSelect`, no selection mode anywhere in `src/`. Every list is single-tap only, so anything repetitive is repeated.
+
+**Where it would immediately pay off:**
+
+| Surface | Bulk action |
+|---|---|
+| Notification Center | Acknowledge or snooze several at once — the most obvious gap, since alerts arrive in groups |
+| Todos | Complete or move several items |
+| Excluded patterns | Remove several patterns |
+| Sidebar items, Bento slots | Reorder or clear several |
+| Search results | Add several devices to favourites in one pass |
+
+**What ships:**
+- A shared hook and a shared action bar, not five implementations. Long-press enters selection mode; the bar appears with the actions the host list declares.
+- **Escape hatches that matter on touch:** a visible Cancel, tapping outside exits, and the count is always shown. Selection modes that are hard to leave feel like traps.
+- **Destructive actions confirm**, and confirmation names the count rather than saying "these items".
+- The hosting list declares which actions it offers. The primitive owns selection state and presentation; it knows nothing about what the actions do.
+
+**One thing to be careful about.** The card already binds long-press to hold-to-confirm in Quick Control (~1 s, amber ring, `QuickControlIcon.jsx:19`). Two different long-press meanings on nearby surfaces is a real collision. Selection mode belongs on list *rows*, never on the device icon — and the entry should stay that way even if it later feels convenient to blur it.
+
+**Effort:** Medium. The primitive is a day; the value comes from adopting it in three or four places, which is the rest of the effort.
+
+**Why it fits:** It is missing everywhere rather than in one place, which usually means it is a primitive rather than a feature.
+
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **47 feature ideas + 2 parallel/long-term tracks** = 49 entries total.
+- The roadmap covers **50 feature ideas + 2 parallel/long-term tracks** = 52 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
   - **#22** — Companion Integration (long-term, the path to real HA Quality Scale grading — see [QUALITY.md](QUALITY.md)).
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
-  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer.
+  - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only.
