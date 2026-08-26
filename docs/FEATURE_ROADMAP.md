@@ -1579,12 +1579,102 @@ Five forms cover almost everything. If a general matcher grammar exists undernea
 **Why it fits:** It is the one calendar capability that turns the card from a personal dashboard into a household one, and it is the exact gap a credible long-time user named out loud.
 
 
+## Part eight — 2026-08-24 code-analysis pass (#56–#60)
+
+Five additions from a code-first review after the v1.1.2353–2361 rounds (depth transition, MorphPopup
+window, typewriter loop, island standby). Each grew out of a seam or gap the code itself exposed.
+
+### 56. Live to-dos — push updates and optimistic toggling
+
+**Pitch:** The tasks view (and the Bento tasks widget) updates itself the moment a list changes anywhere — companion app, voice assistant, another wall tablet — and checking an item off feels instant.
+
+**Status quo:** `TodosView` loads once per open via `entity.executeAction('getTodos')`; every mutation round-trips and re-fetches *all* lists; a change made outside the card is invisible until the manual refresh button. Toggling an item waits for the full re-fetch — on a slow backend the checkbox lags visibly.
+
+**What ships:**
+- Subscribe to `state_changed` for `todo.*` entities (their state is the item count; any edit bumps `last_updated`) → re-fetch only the affected list, debounced.
+- Optimistic checkbox toggle with a pending lock (the exact pattern from `pattern_ha_card_state_management`: flip locally, reconcile when HA confirms).
+- The Bento tasks widget reads the same freshened store instead of its own schedule.
+
+**Effort:** Small–Medium. The subscription plumbing exists for devices; todos just never joined it.
+
+**Why it fits:** The tasks surface got a design pass in v1.1.2359/60 (list cards, plain rows, glass add window) — freshness is now the weakest part of that surface.
+
+---
+
+### 57. Context lines in the typing loop
+
+**Pitch:** The resting search bar already types greetings (v1.1.2360). Sometimes, instead of a pleasantry, it types one *true* sentence: "Um 10:00 Zahnarzt", "2 Aufgaben heute fällig", "Regen ab 17 Uhr".
+
+**Status quo:** The loop alternates "Search or Ask" with random time-of-day greetings. All the context it could speak is already in the card: calendar events (fetched for the widget), todos counters (`incompleteCount`/`overdueCount` live on the view ref and in the system entity), the weather entity.
+
+**What ships:**
+- A small provider that yields at most one context sentence per cycle (priority: imminent event > due tasks > weather change), falling back to a greeting when nothing is worth saying.
+- Same typing mechanics, same idle gate (`data-dekor`), same interruption rules — content only.
+- A settings toggle under Start Screen (off = greetings only), and the sentences come from the dictionary (de/en).
+
+**Effort:** Medium. The delicate part is *restraint* — one sentence per cycle, never two data lines in a row.
+
+**Why it fits:** It turns the new ambience feature into an information surface — the wall-tablet line between "decoration" and "briefing" (#13) without building a widget.
+
+---
+
+### 58. Tasks and appointments feed the notification lanes
+
+**Pitch:** "Bins tomorrow", "task overdue", "event in 15 minutes" appear where every other alert lives: island chips, notification center, badges — with the same dismiss/snooze verbs.
+
+**Status quo:** The three-lane notification model (#3 infrastructure) and the watch engine cover sensors and HA notifications. Due/overdue todos and imminent calendar events — the most human alerts in the card — never reach the island; they only tint numbers inside their own views.
+
+**What ships:**
+- A source adapter mapping "task due today" / "task overdue" / "event starts in N minutes" onto the existing notification objects (INFO/WARNING; overdue escalates once per day, events announce once).
+- Local acknowledge/snooze semantics like `alert.*` sources (nothing is written back to HA).
+- Per-source toggles in the notification settings; N minutes configurable.
+
+**Effort:** Medium. The lanes, chips, takeover and center all exist — this is a new *source*, not a new surface.
+
+**Why it fits:** The island standby (v1.1.2361) made the island the card's resting attention surface; this gives it the two alert types a family actually cares about.
+
+---
+
+### 59. Period comparison in history charts
+
+**Pitch:** A "compare" toggle in the history header lays the previous period under the current one — today vs yesterday, this week vs last week — as a dimmed second line, with the delta summarized in the header.
+
+**Status quo:** Charts render exactly one period; the period math (`calculatePeriodDates`) and the statistics fetch are pure and parameterized, so fetching `periodIndex - 1` alongside is mechanical. The new glass calendar (v1.1.2360) already owns period selection.
+
+**What ships:**
+- Second fetch for the previous period, rendered as a 40 %-opacity line/bars behind the current data (no second axis).
+- Header delta ("+12 % vs. last week") using the existing summary math.
+- Off by default; remembered per entity like other chart preferences.
+
+**Effort:** Medium. Purely additive to the chart pipeline.
+
+**Why it fits:** It is the first analysis feature energy/temperature users ask for once plain history exists, and it needs no new data source.
+
+---
+
+### 60. Undo for destructive taps
+
+**Pitch:** Deleting a task, an event or a schedule shows a six-second toast with "Undo" instead of being instantly irreversible.
+
+**Status quo:** `deleteTodo`, calendar `deleteEvent` and scheduler delete all fire their service immediately on tap. On a wall tablet with guest fingers, that is the sharpest edge in the card. (The todos edit dialog wraps delete in a confirm sheet; list-level deletes and the calendar do not.)
+
+**What ships:**
+- A card-wide undo primitive: perform-later (timer) where safe, compensate (re-create from the held payload) where the service has no delay — per domain.
+- One toast surface (reuses the existing toast lane) with the item name and "Undo".
+- Consumers: todos delete, calendar event delete, schedule delete, notification dismiss-all.
+
+**Effort:** Medium. One primitive, four call sites; the compensation payloads (the deleted object) are already in hand at every call site.
+
+**Why it fits:** Every destructive action in the card currently trusts the finger. Undo is cheaper than confirm dialogs and calmer than both.
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **53 feature ideas + 2 parallel/long-term tracks** = 55 entries total.
+- The roadmap covers **58 feature ideas + 2 parallel/long-term tracks** = 60 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -1592,3 +1682,4 @@ Five forms cover almost everything. If a general matcher grammar exists undernea
   - **#23–#34** — competitive + community research pass. Multi-agent dive across r/homeassistant, the HA forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes and the Apple Home ecosystem. Each idea links a specific source.
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
   - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only. #53-#55 came from two family-calendar cards; #55 also answers a gap a forum user named directly.
+  - **#56–#60** — 2026-08-24 code-analysis pass after the v1.1.2353–2361 UI rounds: seams the new code itself exposed (stale todos, the typing loop as an information surface, notification lanes without human sources, one-period charts, irreversible deletes).
