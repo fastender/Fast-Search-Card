@@ -110,6 +110,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 |---|---|---|
 | `island` | Insel (Detail) | Die Insel / The Island |
 | `islandSources` | Insel (Detail) | Dauerwerte / Standing values |
+| `zenRueckkehr` | Start Screen (Detail) | Bildschirmschoner |
 | `islandStandby` | Insel (Detail) | Standby |
 | `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
@@ -747,6 +748,33 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Power** – Automatic takes the strongest power sensor by magnitude (in most homes the total consumption). Manual lets you pick any sensor with `device_class: power`.
 >
 > "Automatic" is the safe choice; the picker helps when the heuristic guesses wrong (e.g. a single strong consumer instead of the mains feed). If the chosen entity disappears later, the display silently falls back to automatic.
+
+## zenRueckkehr
+
+> NEU v1.1.2369 (Roadmap #9/#49, pragmatischer Kern): Bildschirmschoner-Sektion
+> im Start-Screen-Tab — Schalter + Zeit-Zeile (Tipp wechselt den Wert).
+
+**DE**
+> ## Bildschirmschoner
+>
+> Die verriegelte Startseite mit der großen Uhr **ist** der Bildschirmschoner der Karte — ruhig, dunkel, nur Uhr, Gruß und Hintergrund.
+>
+> Diese Einstellung baut den Weg **zurück** dorthin: Nach der eingestellten Zeit ohne Berührung räumt die Karte auf — eine offene Detail-Ansicht schließt, die Suche klappt zu, Fenster verschwinden — und die Startseite verriegelt wieder. Die nächste Berührung deckt sie wie gewohnt auf.
+>
+> Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück.
+>
+> *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds.
+
+**EN**
+> ## Screensaver
+>
+> The locked start page with the big clock **is** the card's screensaver — calm, dark, just clock, greeting and background.
+>
+> This setting builds the way **back**: after the configured time without touch the card tidies up — an open detail view closes, the search collapses, windows disappear — and the start page locks again. The next touch reveals it as usual.
+>
+> Every touch, scroll or key press resets the wait.
+>
+> *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face.
 
 ## islandStandby
 

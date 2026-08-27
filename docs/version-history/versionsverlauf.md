@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2369 - 2026-08-27
+
+**Title:** ✨ Screensaver — after idle the card returns to the locked start page with the big clock (the pragmatic core of roadmap #9/#49)
+
+**Tags:** feature, ux, start-screen, ambient
+
+The user's insight, taken literally: the locked Zen start page **is** the screensaver — calm, dark,
+clock, greeting, background. Nothing new is built; only the way *back* was missing (`resetZen()` in
+the zenStore had been waiting for exactly this caller since v1.1.2219).
+
+1. **`hooks/useZenRueckkehr.js`** — one clock, re-armed by any gesture (pointerdown/wheel/keydown,
+   composed out of the shadow DOM); after firing it stops until the next gesture (no periodic idle
+   tick). Reads its own settings (`startScreen.zenRueckkehr`, same source/bell as the island).
+2. **`zenSchlafen` in SearchField** — the tidy-up: detail view closes (through the normal depth
+   ride), search collapses and clears, filter window closes, AI mode exits, then the start page
+   locks. The category window closes itself when the page locks (it portals into the container and
+   would float over the clock). 🔑 Deliberately **no** "already locked" short-circuit: the zenStore
+   is module-global and more than one hook instance can fire (double render/dev page) — if the first
+   locks the store, the second must still do its tidy-up. All setters are idempotent. (Found the
+   hard way: with the guard, the detail view stayed open while the page locked.)
+3. **Settings: Start Screen → Screensaver** — toggle "Return to the start page" + time row
+   (tap cycles 1/2/5/10/15/30 min; default off, 5 min). Info popup `settingsInfo.zenRueckkehr`
+   (de+en), catalog updated.
+
+Verified in the test house (2.5 s clock): open detail + idle → detail closes, page locks, the clock
+face stands (`data-revealed=false`); reveal works again afterwards; expanded search with open filter
+window + idle → window closed, search cleared, locked. A pending undo pill (v2368) keeps floating
+above the clock for its remaining seconds — intended.
+
 ## Version 1.1.2368 - 2026-08-24
 
 **Title:** ✨ Undo for deletions (roadmap #60) — deleting a task, event or schedule now floats for six seconds with an undo pill

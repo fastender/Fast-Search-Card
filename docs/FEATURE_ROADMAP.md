@@ -439,6 +439,8 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ### 9. Ambient mode — a fifth *state* of Bento, not a new view *(worked-out design, 2026-07-12)*
 
+> ◐ **Partial — v1.1.2369** (2026-08-27): the pragmatic core shipped as "Screensaver" — after configurable idle the card tidies up (detail/search/windows) and returns to the *locked Zen start page*, which acts as the ambient face. The full fifth-state design (ambientStore, dimming, data-ambient choreography) remains open.
+
 **Pitch:** After X min idle, a wall tablet drifts into a calm, glanceable ambient face — big clock, a few quiet tiles, the one live activity, a notification count — and wakes on touch.
 
 **The core reframe (confirmed by code analysis):** ambient is **not a new subsystem or a parallel view.** It is a **state of the existing Bento start view.** The widgets, the slot layout, the auto-slider rotation, and all the data reuse *as-is*. The only thing we build is the **mechanism that flips Bento into the ambient state and back.** An earlier standalone-mockup pass rebuilt Bento from scratch before this was noticed — this entry supersedes any "separate `AmbientMode.jsx` view" idea.
@@ -1346,6 +1348,8 @@ Building the ladder here, on a contained surface with an obvious right answer, p
 ---
 
 ### 49. Screen behaviour — the settings surface for ambient mode
+
+> ◐ **Partial — v1.1.2369** (2026-08-27): first slice of this surface exists as Start Screen → Screensaver (return-to-start toggle + idle time). The broader screen-behaviour surface (brightness, wake sources, schedules) remains open.
 
 **Pitch:** A Screen section in Settings that governs what the display does when nobody is looking: dim after a while, drop into the ambient screen, come back on movement, follow the room's light level.
 
