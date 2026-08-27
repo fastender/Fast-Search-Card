@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2365 - 2026-08-24
+
+**Title:** 🔧 Island split, round two — swipe, announcement moments, standby fold and the measured dimensions live as hooks (1102 → 926 lines)
+
+**Tags:** refactor, island
+
+Behavior-preserving extraction of the blocks that had grown back into `Island.jsx` since the v2244
+split (stages model, takeover, v2361 standby):
+
+- **`hooks/useIslandWisch.js`** — the swipe-right apparatus (capture-only-when-dragging rule from
+  v2290, iOS trigger thresholds, direct DOM transform on the pill), exposing `wischWarGerade()` for
+  the trailing-click swallow in the head tap.
+- **`hooks/useIslandMomente.js`** — the two announcement moments: takeover (C1, boot grace, cancel
+  when the alert disappears) and the green "done" flash when the front live activity ends; returns
+  `{ takeover, done, showDone }`.
+- **`hooks/useIslandStandby.js`** — the v2361 fold cascade, now with its own settings reader/listener
+  (`startScreen.islandStandby`). The name is a rebirth: the original file of this name carried the
+  v2240 cascade and died with the stages rebuild.
+- **`hooks/useIslandMasse.js`** — the three *measured* dimensions (holder width via ResizeObserver,
+  `--island-formhoehe` for the ✕, capsule text width); the pill width itself stays computed.
+- Deleted: `takeoverRef` — written every render since the hero removal (v2292), read by nobody.
+
+Verified in the test house: tap → capsule, capsule → panel, swipe right → button (including the
+trailing-click swallow — no view opens), standby cascade `mini → knopf` with short clocks.
+
 ## Version 1.1.2364 - 2026-08-24
 
 **Title:** 🐛 Hotfix for v1.1.2363: the category window lost its glass — it shared the deleted `.filter-modal-*` material and now runs on MorphPopup too (`anchor-left`)
