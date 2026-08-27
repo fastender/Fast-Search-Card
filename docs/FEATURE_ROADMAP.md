@@ -1586,6 +1586,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ### 56. Live to-dos — push updates and optimistic toggling
 
+> ✅ **Shipped v1.1.2367** (2026-08-24) — watcher on `todo.*` state signatures via the hassStore line, debounced reload through the existing `getTodos` path, optimistic toggle in view and widget. One deviation from the sketch: full parallel reload instead of per-list partial fetch (same observable result, no new merge machinery).
+
 **Pitch:** The tasks view (and the Bento tasks widget) updates itself the moment a list changes anywhere — companion app, voice assistant, another wall tablet — and checking an item off feels instant.
 
 **Status quo:** `TodosView` loads once per open via `entity.executeAction('getTodos')`; every mutation round-trips and re-fetches *all* lists; a change made outside the card is invisible until the manual refresh button. Toggling an item waits for the full re-fetch — on a slow backend the checkbox lags visibly.

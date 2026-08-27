@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2367 - 2026-08-24
+
+**Title:** ✨ Live to-dos (roadmap #56) — external changes appear by themselves, and checking off is instant
+
+**Tags:** feature, todos, performance
+
+1. **Push instead of poll.** New watcher `todos/liveTodos.js`: every `todo.*` entity carries its open-item
+   count as state; any add/complete/delete changes it (edits bump `last_updated`), and that already flows
+   through the card's `state_changed` line (hassStore). The watcher compares per-tick signatures
+   (todo-id list cached — no per-tick key scan), debounces 400 ms, and reloads through the same
+   `getTodos` path every mutation already uses (parallel fetch of all lists — with 2–5 lists the cheapest
+   honest route; no partial-merge machinery). Results flow to both surfaces: `updateAttributes` →
+   `system-entity-updated` keeps the Bento widget fresh, a new `fsc-todos-geaendert` window event keeps an
+   open tasks view fresh. The card's own mutations register themselves (`eigeneMutationMerken`, called
+   once inside `mitNeuladen`) so their own `state_changed` doesn't trigger a second reload. No timers,
+   no polling — the watcher only runs when hass changes anyway. Honest limit: a pure rename may not
+   signal on every integration; the refresh button stays as the safety net.
+2. **Optimistic check-off** (the `pattern_ha_card_state_management` pattern): in the tasks view the
+   check fills immediately (local flip + pending lock against double taps, revert on error), the server
+   truth from the action result reconciles afterwards. The Bento widget's circle fills instantly too
+   (per-uid status override, new `is-done` state) and the row stays until the server truth clears it.
+   Before, the checkbox waited for service call + full reload of *all* lists.
+
+Verified in the test house: an externally added item ("Blumen gießen" via mutated `todo.haushalt`
+state + list response) appears in the open view with no interaction; with the mock service delayed
+400 ms, the check shows after 80 ms and the server truth confirms it.
+
 ## Version 1.1.2366 - 2026-08-24
 
 **Title:** 🔧 Form twins — both dialogs speak from the dictionary (last two inline text objects gone) and share one wheel sub-page
