@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2363 - 2026-08-24
+
+**Title:** 🔧 Refactoring round — the filter window runs on MorphPopup (anchor placement), and the header action dispatch is one registry instead of ten hand-written chains
+
+**Tags:** refactor, popup, filter, detail-view
+
+Part two of the 2026-08-24 analysis, behavior-preserving:
+
+1. **Filter window → MorphPopup.** The filter window (v1.1.2258) was the *template* the info popup —
+   and later the card-wide `MorphPopup` — mirrored its glass, curves and ✕ from; the mirrored values
+   lived twice. The primitive gained a `placement="anchor"` mode (the window unfolds AT its button:
+   top edge and right edge stay pinned — left and width share one easing, so their sum, the right
+   edge, stands still; max height measured down to the visible edge). `FilterModal` is now content
+   only (view + filter-by groups with their fold-out info texts); `.filter-modal-fenster`,
+   `-verdunkler`, `-schliesser` and `-inhalt` CSS are deleted. Filter specifics kept via modifier
+   class: the 21 px ✕ glyph (v1.1.2289; sibling selector — the ✕ is the window's sibling), the
+   tighter mobile padding, and the ✕ hover-scale is now shared by every window. Verified: right
+   edge/top pinned to the button (1219.0 = 1219.0), window grows with the info text (308 → 428 px),
+   choices toggle, dim and ✕ close.
+2. **TabNavigation: action dispatch as a table.** Every header action hand-listed all ten views
+   ("news? else todos? else …" — ~100 lines, and the bug class "forgot view X in chain Y" struck
+   twice: v1831 integration, v2235 notifications). Now an action names its handler and one loop takes
+   the first registered view that has it; `back`/`overview` keep their close-fallback (v1861), `add`
+   keeps passing the tapped button as morph anchor. The handler matrix was checked against every
+   view's `useRegisterViewRef` before the switch — no handler exists on a view an old chain skipped,
+   so the dispatch is behavior-identical (the active-button poll now uses the same registry and no
+   longer skips `integration`, which registers no `getActiveButton` today anyway). Verified on the
+   tasks view: search toggles, ＋ opens the glass window from the button, settings opens with the
+   active circle, overview returns.
+
 ## Version 1.1.2362 - 2026-08-24
 
 **Title:** ⚡ Resting-state work cut by ~8× — the typing loop renders as a leaf, and the last two decorative blur animations are gone
