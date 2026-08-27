@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2362 - 2026-08-24
+
+**Title:** ⚡ Resting-state work cut by ~8× — the typing loop renders as a leaf, and the last two decorative blur animations are gone
+
+**Tags:** performance, search, bento, detail-view
+
+Follow-up to the 2026-08-24 analysis pass (its numbers, measured with a render counter on `options.__r`
+in the test house):
+
+1. **The typing loop is now a leaf component (`TippZeile`).** Every typed character is a state update;
+   living inside `SearchInputSection`, each one re-rendered the whole input row — category button,
+   (closed) category modal, mirror spans, two `AnimatePresence` — measured **~110 renders/s** at rest.
+   The loop, its text, its own mirror span and its caret now live in one tiny component rendered inside
+   the overlay; per character only that fragment renders. Measured after: **19.5 renders/s** at rest
+   (152 of 195 are the three-span leaf), and with the idle gate closed (`data-dekor="still"`)
+   **0.0 renders/s** — the audited quiet baseline is intact. Behavior unchanged (same guards, same
+   resume, focus hands the caret to real typing; verified: types, stops on click, resumes on collapse).
+2. **Bento slider: cross-fade without blur.** Slides changed every 10 s with a 0.7 s `blur(20 px)` on
+   *both* cards — a recurring GPU pass over the whole tile at rest, plus framer's leftover inline
+   `filter: blur(0px)` on every slide (a permanent extra render surface, the v2353 lesson). The melt
+   the user chose in v1.1.1655 stays: `mode="sync"` keeps both cards overlapping and the fade got
+   slightly longer (0.85 s), just without the filter.
+3. **Detail header title/subtitle: fade + small rise instead of `blur(10px → 0)`** on every detail open
+   (600 ms filter animation, leftover inline `filter: blur(0px)` afterwards).
+
+Measurement hygiene note: the dev page's own hidden card instance kept its typing loop running and
+polluted the first in-page numbers — probes now unmount it (`render(null, #app)`) before counting.
+
 ## Version 1.1.2361 - 2026-08-24
 
 **Title:** 🐛 Island standby folds again (it had been silently dead), the search bar starts complete, and eleven greeting variants per time of day
