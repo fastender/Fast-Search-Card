@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2364 - 2026-08-24
+
+**Title:** 🐛 Hotfix for v1.1.2363: the category window lost its glass — it shared the deleted `.filter-modal-*` material and now runs on MorphPopup too (`anchor-left`)
+
+**Tags:** fix, popup, search
+
+v1.1.2363 deleted the filter window's material CSS (`.filter-modal-fenster`, `-verdunkler`,
+`-schliesser`, `-inhalt`) after moving the filter onto MorphPopup — missing that `CategoryModal`
+(the category chooser growing from the category button, v1.1.2273) deliberately reused exactly those
+classes ("1:1 wie beim Filter"). For one beta build the category window rendered without glass, dim
+and ✕ styling.
+
+- `CategoryModal` is now a MorphPopup consumer like the filter: new `placement="anchor-left"` (this
+  button sits on the LEFT, so the window's left edge and top stay pinned while it unfolds), width 360,
+  same `morph-popup--filter` modifier (21 px ✕ glyph, mobile padding). Content classes
+  (`filter-modal-gruppe/-kopfzeile/-wahl/…`) unchanged and still styled.
+- Verified: window unfolds pinned to the button (left edge 61.0 = 61.0), four choices render, a choice
+  selects and closes, dim and ✕ work.
+- Lesson recorded: before deleting CSS rules, grep every selector for *all* consumers — the guard
+  scripts can't catch "class used in JSX but its rules deleted", because the class token still exists.
+
 ## Version 1.1.2363 - 2026-08-24
 
 **Title:** 🔧 Refactoring round — the filter window runs on MorphPopup (anchor placement), and the header action dispatch is one registry instead of ten hand-written chains
