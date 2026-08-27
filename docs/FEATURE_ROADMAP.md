@@ -10,7 +10,7 @@ Concrete feature proposals tied to open threads in the session notes, unused HA 
 
 ## Original ten — status check
 
-The first ten proposals from May 2026 are still mostly open, with two partial deliveries:
+The first ten proposals from May 2026 are still mostly open, with three partial deliveries:
 
 | # | Idea | Status |
 |---|---|---|
@@ -22,7 +22,7 @@ The first ten proposals from May 2026 are still mostly open, with two partial de
 | 6 | Energy cost tracking | **partial** — Energy Dashboard polished v1862–1865, cost layer not built |
 | 7 | Routines / modes engine | open |
 | 8 | Global search across system entities | open |
-| 9 | Standby / ambient mode | open |
+| 9 | Standby / ambient mode | **partial** — screensaver core v1.1.2369; expansion sliced as #61–#64 |
 | 10 | Calendar: multi-day events + custom RRULE | open |
 
 What got built instead between May and June: **Quick Control** (issue #10), **custom wallpapers + gallery**, **visibility filters**, **Bento list view**, **weather + device_class video backgrounds**, **iOS-style schedule picker rebuild**, and a stack of cross-browser fixes. None of these were on the original roadmap. The roadmap survives — it just got out-prioritised by community-driven work.
@@ -439,7 +439,7 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ### 9. Ambient mode — a fifth *state* of Bento, not a new view *(worked-out design, 2026-07-12)*
 
-> ◐ **Partial — v1.1.2369** (2026-08-27): the pragmatic core shipped as "Screensaver" — after configurable idle the card tidies up (detail/search/windows) and returns to the *locked Zen start page*, which acts as the ambient face. The full fifth-state design (ambientStore, dimming, data-ambient choreography) remains open.
+> ◐ **Partial — v1.1.2369** (2026-08-27): the pragmatic core shipped as "Screensaver" — after configurable idle the card tidies up (detail/search/windows) and returns to the *locked Zen start page*, which acts as the ambient face. The full fifth-state design (ambientStore, dimming, data-ambient choreography) remains open — the remainder is sliced into shippable steps as **#61–#64** (Part nine, 2026-08-27).
 
 **Pitch:** After X min idle, a wall tablet drifts into a calm, glanceable ambient face — big clock, a few quiet tiles, the one live activity, a notification count — and wakes on touch.
 
@@ -1349,7 +1349,7 @@ Building the ladder here, on a contained surface with an obvious right answer, p
 
 ### 49. Screen behaviour — the settings surface for ambient mode
 
-> ◐ **Partial — v1.1.2369** (2026-08-27): first slice of this surface exists as Start Screen → Screensaver (return-to-start toggle + idle time). The broader screen-behaviour surface (brightness, wake sources, schedules) remains open.
+> ◐ **Partial — v1.1.2369** (2026-08-27): first slice of this surface exists as Start Screen → Screensaver (return-to-start toggle + idle time). The broader screen-behaviour surface (brightness, wake sources, schedules) remains open — sliced into shippable steps as **#61–#64** (Part nine, 2026-08-27); the honest-split analysis below stays the reference for all of them.
 
 **Pitch:** A Screen section in Settings that governs what the display does when nobody is looking: dim after a while, drop into the ambient screen, come back on movement, follow the room's light level.
 
@@ -1622,6 +1622,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 **Why it fits:** It turns the new ambience feature into an information surface — the wall-tablet line between "decoration" and "briefing" (#13) without building a widget.
 
+*2026-08-27 addition:* the same single sentence has a second natural surface — the **locked Zen page** (the screensaver face since v1.1.2369). One provider, two consumers, identical restraint rules; on the locked page it must survive the deep-rest dim of #61 (i.e. it belongs to the normal locked stage, not to deep rest).
+
 ---
 
 ### 58. Tasks and appointments feed the notification lanes
@@ -1677,12 +1679,123 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ---
 
+## Part nine — 2026-08-27 screensaver expansion pass (#61–#64)
+
+v1.1.2369 shipped the pragmatic core of #9/#49: after configurable idle the card tidies itself up and
+returns to the **locked Zen start page** — that page *is* the ambient face now. This pass slices the
+open remainder (dimming, wake sources, schedules, device handoff, ambient content) into steps that
+each ship alone. #49's honest-split analysis (what the browser can and cannot do to the panel)
+remains the reference for all of them.
+
+**Shared foundation — one idle service.** Three separate idle clocks run today, each with its own
+document-listener set: the decor gate (`data-dekor`, 3 min), the island standby cascade
+(`useIslandStandby`), and the screensaver return (`useZenRueckkehr`). Before the slices below, merge
+them into a single module-level idle store (last gesture + derived stages: decor-still → island
+folds → screensaver → deep rest). One listener set instead of three, and the wake sources of #62 get
+exactly one place to hook in. Refactor, invisible, makes everything after it cheap.
+
+### 61. Deep rest — a second idle stage that dims the locked page
+
+**Pitch:** After the screensaver has returned the card to the locked clock page, a further stretch of
+stillness takes it one stage deeper: the wallpaper darkens noticeably, the clock drops to ~60 %
+opacity, greeting/status line step off, the island folds to its button. Any touch — or a wake source
+from #62 — lifts it back.
+
+**Status quo:** v1.1.2369 locks the page but leaves it at full brightness forever. #9 names dimming
+and burn-in protection, #49 names "dim after N" — neither has a mechanism yet. The intended rail is
+the `data-ambient` attribute choreography from #9's design, the same pattern `data-zen-revealed` and
+`data-dekor` already ride.
+
+**What ships:**
+- A `data-ambient` deep-rest stage driven by the idle service: CSS-only dim (token/overlay change,
+  zero runners at rest — the thermal rule stays law).
+- **Burn-in protection:** the clock drifts a few pixels every few minutes — single transform events,
+  the Nest-Hub/StandBy standard (#9's burn-in section, finally concrete).
+- **Night coupling — the schedules axis without new schedule UI:** within the existing Quiet Hours
+  window, dim deeper (optionally a warmer clock tone — the island night face is the precedent), and
+  a second, shorter screensaver-return time applies ("during quiet hours: after 1 min"). Reuses the
+  quiet-hours window the card already has; no new time-range editor.
+
+**Effort:** Small–Medium. **Why it fits:** the thermally free half of #9's remaining design, and the
+piece that makes an always-on wall tablet livable at night.
+
+---
+
+### 62. Wake sources — sensors and alerts wake the screensaver
+
+**Pitch:** Besides touch, chosen HA signals wake the resting card: motion in the room lifts deep
+rest, a critical alert always breaks through, a doorbell rings the display awake.
+
+**Status quo:** v1.1.2369 wakes on gesture only. #49 already argues the honest form — not "wake on
+movement" but "wake when this sensor triggers", with an entity picker (the sensor may sit in the
+hallway, which is better anyway). The live-todos watcher (v1.1.2367) is the exact
+signature-watching pattern to reuse; the CriticalBanner renders above everything but does not lift
+the dim today.
+
+**What ships:**
+- Settings rows "Wake by: touch (always) · motion/presence ⟨entity picker⟩ · critical alerts ⟨toggle⟩
+  · doorbell ⟨entity⟩" — the islandSources picker pattern.
+- **Stage discipline:** motion lifts *one* stage (deep rest → normal locked page), never straight to
+  the revealed page; a critical alert lifts to full brightness with the banner; doorbell wake couples
+  forward to #4 (camera live-view) once that exists — until then it just wakes.
+- The inversion for free: "nobody present" may *shorten* the idle times.
+
+**Effort:** Medium overall, small per source once the idle service exists. **Why it fits:** it is the
+half of #49's wake story the card can do entirely alone, and the first consumer that justifies the
+idle-service refactor.
+
+---
+
+### 63. Display handoff — services on sleep and wake
+
+**Pitch:** Two optional HA actions — one fired when the screensaver locks the page, one on wake — so
+the card can drive the panel's *real* display: Fully Kiosk's screen light entity, Wallpanel, or any
+helper script. The card stops pretending CSS black is "off" and becomes the conductor instead.
+
+**Status quo:** #49's honest split stands: a browser cannot set device brightness or switch the
+display off; Fully Kiosk's core integration exposes exactly that missing half as entities.
+v1.1.2369 created the two moments (sleep/wake) to hang the calls on — nothing listens there yet.
+
+**What ships:**
+- An action/entity picker pair in the Screensaver settings section ("on sleep call …", "on wake
+  call …").
+- #49's conflict rule made explicit: *card screensaver* **or** *device handoff* — the card's idle
+  timer drives whichever is chosen; never two screensavers fighting over one display.
+- The ⓘ popup carries the browser-versus-device explanation (#49 wrote it; this is where it lands).
+
+**Effort:** Small–Medium. **Why it fits:** the single most-expected behavior class on wall tablets,
+and the step that turns the screensaver from decoration into real panel control.
+
+---
+
+### 64. Photo frame — the deep-rest slideshow
+
+**Pitch:** In deep rest the locked page cycles through the user's wallpaper folder — the Nest-Hub
+moment. The clock stays; the picture behind it changes every few minutes.
+
+**Status quo:** The wallpaper gallery and its folder infrastructure exist (media browsing, the
+`/local/` alias). The documented trap applies: `media_source` URLs expire, `/local/` URLs are the
+durable ones (`memory/project_wallpaper_gallery_plan.md`). A picture swap every 1–5 minutes is a
+single event — compatible with the zero-runners rest rule; a WebGL scene (ocean) as screensaver
+background stays a deliberate opt-in for exactly that reason.
+
+**What ships:**
+- Toggle + interval + source folder (default: the wallpaper folder) in the Screensaver section.
+- Crossfade as one opacity transition per swap; active only in deep rest — the normal locked page
+  keeps the user's chosen wallpaper.
+- Reuses the gallery's file listing; no new media plumbing.
+
+**Effort:** Medium. **Why it fits:** the highest visible payoff of the pass, built on the existing
+gallery instead of a new media system.
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **58 feature ideas + 2 parallel/long-term tracks** = 60 entries total.
+- The roadmap covers **62 feature ideas + 2 parallel/long-term tracks** = 64 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -1691,3 +1804,4 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
   - **#35–#43** — July 2026 momentum-driven pass (post-Liquid-Glass, post-Batch-5). Mostly continuations of active work or activations of half-wired code seams, not net-new subsystems. Each has a code-verified hook.
   - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only. #53-#55 came from two family-calendar cards; #55 also answers a gap a forum user named directly.
   - **#56–#60** — 2026-08-24 code-analysis pass after the v1.1.2353–2361 UI rounds: seams the new code itself exposed (stale todos, the typing loop as an information surface, notification lanes without human sources, one-period charts, irreversible deletes).
+  - **#61–#64** — 2026-08-27 screensaver expansion pass. v1.1.2369 shipped the pragmatic core of #9/#49 (idle → locked Zen page); these slice the open remainder — deep-rest dimming with quiet-hours coupling, wake sources, display handoff, photo frame — into individually shippable steps, on a shared idle-service foundation that consolidates the card's three existing idle clocks.
