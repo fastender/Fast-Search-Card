@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2370 - 2026-08-28
+
+**Title:** ✨ Roadmap #58 — tasks & appointments feed the notification lanes ("task overdue", "2 tasks due today", "Dentist · Starts at 10:00")
+
+**Tags:** feature, notifications, todos, calendar, island
+
+The most human alerts in the card finally reach the island, the bell and the notification center —
+as a new **source** of the existing alert lane, not a new surface. Dismiss, snooze, badge, history,
+quiet hours and toasts are all inherited.
+
+1. **`utils/reminderSources.js`** (new, pure) — builds the three reminder kinds from todo items and
+   calendar events. Tasks aggregate (one WARNING for overdue, one INFO for due-today) and escalate
+   once per day: a new day or *more* items than before today bumps `created_at` → fresh unread
+   instance (ack is instance-bound, so dismissing keeps it quiet otherwise). Events announce once
+   per occurrence (INFO, `created_at` = window start, gone at event start); all-day events don't
+   announce. Messages are static ("Starts at 10:00") so the list signature doesn't churn.
+2. **`utils/reminderStore.js`** (new, glue) — reads the inputs from system-entity attributes: todos
+   stay fresh via #56's live watcher, calendar events via widget/view loads. 🔑 The CalendarView
+   overwrites `attrs.events` while browsing foreign months — the store only adopts events when
+   `last_range` covers the now-window, otherwise the last good snapshot serves on (reminders don't
+   vanish because someone browses the calendar). If nothing loads events at rest (no calendar
+   widget), the store refreshes the *canonical* widget range (−30/+14 days) itself, at most every
+   30 minutes — deliberately the same shape the Bento widget loads, so nothing foreign appears.
+3. **Lane wiring** (`useNotificationLane`) — reminder source merged as source 5 in
+   `buildNotificationList`; `system-entity-updated` (todos/calendar) and `toastSettingsChanged`
+   trigger targeted refreshes; the existing 30 s duration-watch tick now also covers the reminders'
+   pure time transitions (event enters the lead window, midnight rollover).
+4. **Settings → Notifications → Reminders** — per-source toggles (overdue / due today / upcoming
+   events) + lead-time row (tap cycles 5/10/15/30/60 min), stored as
+   `systemSettings.toasts.reminders`. Info popup `settingsInfo.reminders` (de+en), catalog updated.
+   Source tag "Erinnerung"/"Reminder" in center and island (island's origin tabs pick it up
+   automatically; the missing "Wächter" label in the center got added along the way).
+
+Verified via dev-harness probe: 1 overdue + 2 due-today todos + event starting in 10 min → exactly
+three reminders (WARNING + INFO + INFO) with correct texts, completed items filtered; center mirror
+`active=3/unread=3`; island capsule "3 Mitteilungen · 1 Warnung"; source toggles act immediately;
+a second overdue task escalates to "2 Aufgaben überfällig" with a fresh instance. Screenshot of the
+center shows all three rows with the "Erinnerung" tag.
+
 ## Version 1.1.2369 - 2026-08-27
 
 **Title:** ✨ Screensaver — after idle the card returns to the locked start page with the big clock (the pragmatic core of roadmap #9/#49)

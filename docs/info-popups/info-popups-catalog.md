@@ -117,6 +117,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
 | `quietHours` | Toasts (Detail) | Ruhezeiten / Quiet hours |
+| `reminders` | Toasts (Detail) | Erinnerungen / Reminders |
 | `privacySecure` | About | „Your data is secure"-Karte |
 
 ### Außerhalb des Settings-Systems (kartenweit)
@@ -993,6 +994,32 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Always allow critical** – leak, smoke, gas & co. (severity 1) still appear at night. On by default.
 >
 > *Why it matters:* a wall tablet in the hallway/bedroom shouldn't flash for every little thing at night – but safety-critical alerts should.
+
+## reminders
+
+**DE**
+> ## Erinnerungen
+>
+> Aufgaben und Termine erscheinen dort, wo alle anderen Meldungen wohnen: Insel, Glocke und Mitteilungen-Center – mit denselben Verwerfen- und Schlummern-Gesten.
+>
+> - **Überfällige Aufgaben** – eine Warnung, solange offene Aufgaben ein vergangenes Fälligkeitsdatum haben. Nach dem Verwerfen bleibt sie still; erst ein neuer Tag oder eine **weitere** überfällige Aufgabe weckt sie erneut.
+> - **Heute fällige Aufgaben** – ein Hinweis mit den heutigen Aufgaben, gleiche Ruhe-Regel.
+> - **Anstehende Termine** – ein Hinweis kurz vor Terminbeginn („Zahnarzt · Beginnt um 10:00"); der **Vorlauf** bestimmt, wie früh. Ganztägige Termine melden nicht.
+> - Verwerfen wirkt nur lokal auf der Karte – in Home Assistant wird nichts verändert. Auch die Ruhezeiten gelten wie für alle Meldungen.
+>
+> *Warum wichtig:* Die Meldungen, die eine Familie wirklich betreffen – „Aufgabe überfällig", „Termin in 15 Minuten" – erreichen damit die Insel, nicht nur die jeweilige Ansicht.
+
+**EN**
+> ## Reminders
+>
+> Tasks and appointments appear where every other alert lives: island, bell and notification center – with the same dismiss and snooze verbs.
+>
+> - **Overdue tasks** – a warning while open tasks have a past due date. Dismissing keeps it quiet; only a new day or an **additional** overdue task wakes it again.
+> - **Tasks due today** – a notice listing today's tasks, same quiet rule.
+> - **Upcoming events** – a notice shortly before an event starts ("Dentist · Starts at 10:00"); **lead time** sets how early. All-day events don't announce.
+> - Dismissing is local to the card – nothing changes in Home Assistant. Quiet hours apply as they do to every alert.
+>
+> *Why it matters:* the alerts a family actually cares about – "task overdue", "event in 15 minutes" – now reach the island, not just their own view.
 
 ## newsFeeds
 
