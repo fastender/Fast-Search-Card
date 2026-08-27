@@ -1656,6 +1656,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ### 60. Undo for destructive taps
 
+> ✅ **Shipped v1.1.2368** (2026-08-24) — perform-later store with a single floating action, bottom-center glass pill, tombstone filter shared with #56's live data. Consumers: task delete, calendar event delete, schedule delete. Deviations from the sketch: notification dismiss-all not wired (open), existing confirm steps kept in front of the undo for now.
+
 **Pitch:** Deleting a task, an event or a schedule shows a six-second toast with "Undo" instead of being instantly irreversible.
 
 **Status quo:** `deleteTodo`, calendar `deleteEvent` and scheduler delete all fire their service immediately on tap. On a wall tablet with guest fingers, that is the sharpest edge in the card. (The todos edit dialog wraps delete in a confirm sheet; list-level deletes and the calendar do not.)

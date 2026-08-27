@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2368 - 2026-08-24
+
+**Title:** ✨ Undo for deletions (roadmap #60) — deleting a task, event or schedule now floats for six seconds with an undo pill
+
+**Tags:** feature, ux, todos, calendar, schedule
+
+1. **The primitive (`utils/undoStore.js`).** At most ONE floating action: the entry disappears from the
+   view immediately, but the service call is *held* for six seconds. Undo means nothing ever happened —
+   the safe direction (a crash during the window leaves the item alive on the server). A new deletion
+   executes the previous one at once (iOS behavior, no queue). `istGrabstein(art, id)` is the shared
+   filter for renderers AND for live data (#56): a fresh reload arriving mid-float keeps the doomed
+   entry hidden.
+2. **The pill (`components/common/UndoLeiste.jsx`).** Bottom-center glass pill ("„Rechnung zahlen"
+   gelöscht · Rückgängig") with a draining base line (one-shot transform animation — no perpetual
+   runner), mounted once in the card next to the critical banner; new dictionary keys
+   `general.undoDeleted` / `general.undo`.
+3. **Three consumers:** task delete (editor; tombstone filter in the base list keeps counts, chips and
+   list consistent — the `todos` state is never touched, undo simply lifts the tombstone), calendar
+   event delete (editor closes immediately, tombstone in `visibleEvents`), and schedule delete — which
+   was the card's only deletion with *no* safeguard at all (row × fired the service instantly).
+   Existing confirm steps (todos ActionSheet, calendar inline confirm) remain in front for now;
+   dropping them in favor of pure delete+undo is a one-liner if wanted.
+
+Verified in the test house: tasks — pill appears, entry gone, undo restores it with **zero** service
+calls, expiry fires exactly one `todo.remove_item` and the pill leaves; schedules — row gone + pill,
+undo reloads the row back with zero `scheduler` calls, expiry fires `scheduler.remove`. The calendar
+consumer shares the identical mechanics (same store, same tombstone pattern); its editor path could
+not be end-to-end mocked (the test house's events carry no `calendar_id`).
+
 ## Version 1.1.2367 - 2026-08-24
 
 **Title:** ✨ Live to-dos (roadmap #56) — external changes appear by themselves, and checking off is instant
