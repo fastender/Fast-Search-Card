@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2366 - 2026-08-24
+
+**Title:** 🔧 Form twins — both dialogs speak from the dictionary (last two inline text objects gone) and share one wheel sub-page
+
+**Tags:** refactor, i18n, calendar, todos
+
+Part two of the analysis, final round. Behavior-preserving:
+
+1. **Dictionary migration (the last two deliberate inline bilingual objects).**
+   `CalendarEventDialog`'s `TEXTS` (48 keys) moved to `ui.calendar.*`, `TodoFormDialog`'s `texts`
+   (29 keys) to `ui.todos.*`; both dialogs now use a `t('key')` translator, and `rrule.js`'s label
+   builders call the translator instead of reading object properties. Collisions got their own keys
+   (`descriptionLabel`; `formDate`/`formProfiles`/`formNoProfilesAvailable`), the two mode-dependent
+   placeholders became four keys resolved once per mount, and the title quick-chips stay local as
+   data (`TITEL_MUSTER`). Per the migration playbook: existing keys reused where identical
+   (`back`, `allDay`, `list`, `none`), and every migrated key was resolved in BOTH languages against
+   the original strings (proof run — zero deviations). `check-i18n-keys` now guards these texts
+   (1014 → 1080 keys), closing the `t is not defined`-class of runtime crashes (v2352) for the
+   dialogs.
+2. **`components/common/WheelSubPage.jsx`** — the wheel sub-page written six times across the two
+   dialogs (pager wiring + navbar confirm + optional clear button) is one component now.
+   Deliberately thin: the wheel comes as a child (calendar renders it bare, todos wrapped in its
+   `.todo-picker-container`), each dialog keeps its own confirm-button class — unifying those would
+   change visible layout. Calendar 1121 → 1019 lines, todos 955 → 878.
+
+Verified in the test house: calendar dialog fully German from the dictionary (main rows, title
+chips, Start·Datum wheel page with Fertig round-trip, recurrence options Nie/Täglich/…/Eigene…),
+todos dialog (add placeholder, Datum/Uhrzeit wheel pages with title, wheel, red Löschen button,
+Fertig round-trip) — and zero raw `ui.*` paths anywhere in either window.
+
 ## Version 1.1.2365 - 2026-08-24
 
 **Title:** 🔧 Island split, round two — swipe, announcement moments, standby fold and the measured dimensions live as hooks (1102 → 926 lines)
