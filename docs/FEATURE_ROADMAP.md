@@ -1609,6 +1609,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ### 57. Context lines in the typing loop
 
+> ✅ **Shipped v1.1.2371** (2026-08-28) — provider (`kontextZeilen.js`) riding #58's data paths, rotation over available truths, greeting always follows a context line, settings toggle under Status & Greetings. Deviations from the sketch: weather-change lines deliberately left out (need forecast data; current weather already lives in the Zen status line); the locked-page second surface (2026-08-27 note below) remains open.
+
 **Pitch:** The resting search bar already types greetings (v1.1.2360). Sometimes, instead of a pleasantry, it types one *true* sentence: "Um 10:00 Zahnarzt", "2 Aufgaben heute fällig", "Regen ab 17 Uhr".
 
 **Status quo:** The loop alternates "Search or Ask" with random time-of-day greetings. All the context it could speak is already in the card: calendar events (fetched for the widget), todos counters (`incompleteCount`/`overdueCount` live on the view ref and in the system entity), the weather entity.
@@ -1627,6 +1629,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 ---
 
 ### 58. Tasks and appointments feed the notification lanes
+
+> ✅ **Shipped v1.1.2370** (2026-08-28) — reminder source (source 5) of the alert lane: overdue/due-today task aggregates with once-per-day escalation, per-event lead-window announcements, settings section with per-source toggles + lead time. Deviation from the sketch: tasks aggregate into one notification per kind (calmer than per-item), and the calendar input rides the existing entity attributes with a canonical-range self-refresh instead of a per-list partial fetch.
 
 **Pitch:** "Bins tomorrow", "task overdue", "event in 15 minutes" appear where every other alert lives: island chips, notification center, badges — with the same dismiss/snooze verbs.
 

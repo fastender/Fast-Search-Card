@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2371 - 2026-08-28
+
+**Title:** ✨ Roadmap #57 — context lines in the typing loop: sometimes, instead of a greeting, one true sentence ("Um 10:00 Zahnarzt", "2 Aufgaben heute fällig")
+
+**Tags:** feature, ux, search, ambient
+
+The resting search bar's typewriter (v1.1.2360/62) becomes an information surface — content only,
+the mechanics, idle gate and interruption rules stay untouched.
+
+1. **`utils/kontextZeilen.js`** (new) — yields at most ONE true sentence per request, or null (then
+   the greeting runs). Sources ride the #58 data paths: next upcoming timed event within 12 h from
+   the reminderStore's vetted event stock ("Um 10:00 Zahnarzt"), and open tasks from the todos
+   entity (overdue wins over due-today; texts shared with the reminder dictionary bucket). When
+   several truths exist, a module-level pointer rotates through them so consecutive context slots
+   don't repeat themselves. Weather *change* lines ("rain at 17:00") stay out deliberately — they
+   need forecast data, and the current weather already lives in the Zen status line.
+2. **Restraint in the loop** (`TippZeile`) — the greeting slot asks the provider first, but after a
+   context line the next slot is ALWAYS a greeting again (never two data lines in a row, per the
+   roadmap's design note). Context lines hold ~800 ms longer than greetings; provider errors fall
+   silently back to the greeting (the idle loop must never die of content).
+3. **Shared foundation with #58** — `offeneAufgaben()` extracted in reminderSources (one truth, two
+   consumers), `naechsterTermin()` + the settings gate in reminderStore; the 30-min calendar
+   freshness fetch now also serves context lines when event reminders are off.
+4. **Settings** — toggle "Context lines" in General → Status & Greetings (default on; off =
+   greetings only), stored as `startScreen.tippKontext`. The `statusGreetings` info popup gained
+   the matching bullet (de+en), catalog updated.
+
+Verified via dev-harness probe (48 s live observation): typed sequence was "Suchen oder fragen" →
+"Aufgabe überfällig" → sentence → greeting → sentence → "Um 01:52 Zahnarzt" → sentence → greeting —
+both truths rotate, greetings interleave, never two data lines consecutively; after switching the
+toggle off, only greetings were typed for 26 s.
+
 ## Version 1.1.2370 - 2026-08-28
 
 **Title:** ✨ Roadmap #58 — tasks & appointments feed the notification lanes ("task overdue", "2 tasks due today", "Dentist · Starts at 10:00")
