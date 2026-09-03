@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2376 - 2026-09-03
+
+**Title:** ✨ Roadmap #28 — severe-weather warnings as the sixth source of the alert lane (red banner for free, snooze until the warning expires)
+
+**Tags:** feature, notifications, weather, island
+
+Built the way the 2026-09-03 concretization asked: not a separate banner, but a **source**. The user
+picks the warning entities; level becomes severity; everything else — the red `CriticalBanner`
+(split off in v2159 precisely for this), island chips, center, badge, quiet hours, snooze — is
+inherited.
+
+1. **`utils/weatherAlertSources.js`** (new, pure) — reads what the usual integrations expose without
+   knowing them by name: DWD Warnwetter (`*_current_warning_level` 0–4 with `warning_1_*` details),
+   Meteoalarm (`binary_sensor` on + `severity`/`awareness_level`, headline, expires), NWS (count state +
+   title/severity), anything else (on / numeric > 0 = warning). Level map, words before numbers:
+   extreme/red/"Unwetter" → CRITICAL, severe/orange/"markant" → WARNING, moderate/minor/yellow → INFO.
+   Title/description/expiry from the attributes; `id weather:<entity>`, instance = `last_changed`.
+2. **Lane wiring** — merged as source 6 in `buildNotificationList`; the state_changed gate
+   (`isNotificationRelevantEntity`) learns the chosen ids from the merger, so a warning ending is
+   reflected on the next state change. Source tag "Unwetter"/"Weather" in center and island.
+3. **"Mute until expires"** — `snoozeDurationFor(n)`: snoozing a warning lasts until its expiry
+   (min 5 min), everything else keeps the hour. Both snooze buttons (island, center) use it.
+4. **Settings → Notifications → Weather alerts** — one toggle per candidate entity (sensor/
+   binary_sensor whose id or name says warn/alert/meteoalarm/nws/unwetter), hint row when none is
+   found; stored as `systemSettings.toasts.weatherAlerts.entities`. Info popup `settingsInfo.
+   weatherAlerts` (de+en), catalog updated.
+
+Verified via dev-harness probe: candidates list the three warning entities and not the temperature
+sensor; Meteoalarm "Extreme" → severity 1 with the red banner "Rote Warnung: Orkan", DWD level 2 →
+severity 2 "Amtliche WARNUNG vor STURMBÖEN", NWS at 0 → nothing; island "2 Mitteilungen"; snooze 3 h
+with expiry / 1 h without / 5 min when already expired; warning switched off → banner gone, list down
+to the DWD entry.
+
 ## Version 1.1.2375 - 2026-09-03
 
 **Title:** ✨ Roadmap #58b — tomorrow's all-day events announce the evening before ("Morgen: Restmüll · Elternabend")

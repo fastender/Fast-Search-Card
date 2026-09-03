@@ -904,6 +904,8 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 ### 28. Severe Weather Banner
 
+> ✅ **Shipped v1.1.2376** (2026-09-03) — as the sixth source of the alert lane per the concretization below: entity picker in the notification settings, level → severity map (DWD/Meteoalarm/NWS/generic), red banner inherited from #3, "mute until expires" = snooze until the warning's end. Not built: the polygon-area sheet and time-in-effect progress bar (the lanes' own row + snooze cover the need).
+
 **Pitch:** A persistent top-of-card banner for active weather alerts with severity color, polygon area, and "mute until expires".
 
 **Status quo:** [Weather Alerts Card](https://community.home-assistant.io/t/weather-alerts-card/1010189), [MeteoalarmCard](https://github.com/MrBartusek/MeteoalarmCard), and [NWS Alerts Card](https://community.home-assistant.io/t/nws-alerts-card/986761) all active. Three independent implementations in six months = strong signal. Not the same as the Notification Center (#3) — alerts need urgency, persistence, and typed severity.

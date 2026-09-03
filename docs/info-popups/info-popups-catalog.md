@@ -118,6 +118,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
 | `quietHours` | Toasts (Detail) | Ruhezeiten / Quiet hours |
 | `reminders` | Toasts (Detail) | Erinnerungen / Reminders |
+| `weatherAlerts` | Toasts (Detail) | Unwetterwarnungen / Weather alerts |
 | `privacySecure` | About | „Your data is secure"-Karte |
 
 ### Außerhalb des Settings-Systems (kartenweit)
@@ -1025,6 +1026,32 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - Dismissing is local to the card – nothing changes in Home Assistant. Quiet hours apply as they do to every alert.
 >
 > *Why it matters:* the alerts a family actually cares about – "task overdue", "event in 15 minutes" – now reach the island, not just their own view.
+
+## weatherAlerts
+
+**DE**
+> ## Unwetterwarnungen
+>
+> Warnungen deiner Wetter-Integration erscheinen als Meldungen – dort, wo alle anderen wohnen: Insel, Glocke, Mitteilungen-Center.
+>
+> - **Entities wählen** – jede Warn-Entity (DWD Warnwetter, Meteoalarm, NWS …) per Schalter. Die Karte liest Stufe, Titel und Beschreibung aus deren Attributen.
+> - **Stufe → Wichtigkeit** – Unwetter/Extrem (rot) = kritisch, der rote Banner erscheint; markant/schwer (orange) = Warnung; Wetterwarnung (gelb) = Info.
+> - **Schlummern** wirkt bei Warnungen bis zu ihrem Ablauf („stumm bis Ablauf"), sonst eine Stunde.
+> - Ruhezeiten gelten wie für alle Meldungen – Kritisches darf nachts durch, wenn du das so eingestellt hast.
+>
+> *Warum wichtig:* Ein Wandtablet sollte Sturm, Glatteis oder Gewitter melden, bevor man aus dem Fenster schaut – ohne eigene Automation.
+
+**EN**
+> ## Weather alerts
+>
+> Warnings from your weather integration appear as alerts – where all the others live: island, bell, notification center.
+>
+> - **Pick entities** – any alert entity (DWD Warnwetter, Meteoalarm, NWS …) via its toggle. The card reads level, title and description from its attributes.
+> - **Level → importance** – severe-weather/extreme (red) = critical, the red banner appears; marked/severe (orange) = warning; weather advisory (yellow) = info.
+> - **Snoozing** a warning lasts until it expires ("mute until expires"), otherwise one hour.
+> - Quiet hours apply as they do to every alert – critical ones may still come through at night if you set it that way.
+>
+> *Why it matters:* a wall tablet should announce storms, black ice or thunderstorms before you look out of the window – without an automation of your own.
 
 ## newsFeeds
 
