@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2381 - 2026-09-03
+
+**Title:** ✨ Roadmap #55 — person lanes: the family week side by side (columns are people, not days), plus the per-person filter that was missing
+
+**Tags:** feature, calendar, family
+
+1. **People in the settings** (`people[]` with stable ids): name, colour, their calendars **and
+   groups** (#53 ids, multi-select; a source already claimed by another person is dimmed and says
+   so), optionally a Home Assistant `person.*` for the picture. Ownership is *stated* here, not
+   inferred from attendee lists — most HA calendar integrations don't carry them.
+2. **"Personen" view** (`components/PeopleLanes.jsx`): a fifth mode tab that only appears once at
+   least one person exists (so nobody else notices). The anchor week, one lane per person: avatar
+   (entity picture or the initial in the person's colour), name, then the events grouped by day with
+   time and title — rule colours/icons/dim from #54 apply. A **"Gemeinsam"** lane collects events
+   that belong to nobody (bins, holidays), only when there are any. The right-hand list column
+   yields to the lanes; ‹ › step by week.
+3. **Tap a lane header → the whole calendar filters to that person** in every view; a chip
+   "Nur Anna ×" in the chip row clears it. This doubles as the per-person filter the card never had.
+4. Visible-views settings gained the People row (guard counts it); texts `ui.calendar.person*`,
+   info popup `settingsInfo.calPeople` (de+en), `calVisibleViews` popup mentions the new tab; catalog
+   updated.
+
+Verified via dev-harness probe (two calendars, a `person.anna`): without people the tabs stay
+Tag/Woche/Monat/Jahr; person "Anna" ← calendar Familie + person.anna stored; the "Personen" tab
+appears; lanes "Anna" (Zahnarzt, Elternabend) and "Gemeinsam" (Standup), list column hidden; tapping
+Anna's header then Monat → only "Zahnarzt" with the chip "Nur Anna ×"; chip tap → both rows back.
+Screenshot: the two lanes.
+
 ## Version 1.1.2380 - 2026-09-03
 
 **Title:** ✨ Roadmap #54 — event rules: colour, icon, dim, day chip or hide by what an event *is* (four forms, no rule engine)

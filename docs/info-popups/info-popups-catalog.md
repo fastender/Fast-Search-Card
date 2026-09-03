@@ -132,6 +132,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `energyCircular` | **Energy-Dashboard → Einstellungen** | CIRCULAR |
 | `calCalendars` | **Kalender → Einstellungen** | KALENDER / CALENDARS |
 | `calEventRules` | **Kalender → Einstellungen** | REGELN / RULES |
+| `calPeople` | **Kalender → Einstellungen** | PERSONEN / PEOPLE |
 | `calDisplay` | **Kalender → Einstellungen** | ANZEIGE / DISPLAY |
 | `calVisibleViews` | **Kalender → Einstellungen** | SICHTBARE ANSICHTEN / VISIBLE VIEWS |
 | `calNewEvents` | **Kalender → Einstellungen** | NEUE TERMINE / NEW EVENTS |
@@ -1371,6 +1372,34 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - No rule editor with "and/or": four forms cover what people actually need.
 >
 > *Why it matters:* the difference between a calendar that shows your events and one that shows you **your** events — birthdays with a cake, bins as a small chip, the past kept quiet.
+
+## calPeople
+
+> Kalender → Einstellungen. ⓘ am „Personen"-Sektionskopf (v1.1.2381, Roadmap #55).
+
+**DE**
+> ## Personen
+>
+> Ordne Kalender oder Gruppen einer Person zu — dann bekommt der Kalender einen **Personen**-Reiter: eine Woche, aber die Spalten sind Personen statt Tage. Wer macht was, wann.
+>
+> - **Person anlegen** – Name, Farbe, ihre Kalender und Gruppen (Mehrfachwahl), optional eine Home-Assistant-Person fürs Bild.
+> - Der Besitz wird hier **gesagt**, nicht aus Teilnehmerlisten geraten — die liefern die meisten Kalender-Integrationen nicht.
+> - Termine, die niemandem gehören, stehen in der Spalte **Gemeinsam** (Müll, Feiertage, Schulferien).
+> - **Tipp auf einen Spaltenkopf** filtert den ganzen Kalender auf diese Person — in jeder Ansicht; der Chip oben hebt den Filter wieder auf.
+>
+> *Warum wichtig:* Das ist die Ansicht, für die Familien-Kalender überhaupt gekauft werden — und die kein Kalender im Dashboard bisher gut kann.
+
+**EN**
+> ## People
+>
+> Assign calendars or groups to a person — the calendar then gets a **People** tab: one week, but the columns are people instead of days. Who is doing what, when.
+>
+> - **Create person** – name, colour, their calendars and groups (multi-select), optionally a Home Assistant person for the picture.
+> - Ownership is **stated** here, not guessed from attendee lists — most calendar integrations don't provide them.
+> - Events that belong to nobody sit in the **Shared** column (bins, holidays, school terms).
+> - **Tap a column header** to filter the whole calendar to that person — in every view; the chip at the top clears the filter.
+>
+> *Why it matters:* this is the view family calendars are bought for — and the one no dashboard calendar does well yet.
 
 ## calDisplay
 

@@ -1578,6 +1578,8 @@ Five forms cover almost everything. If a general matcher grammar exists undernea
 
 ### 55. Person lanes — a family week, side by side
 
+> ✅ **Shipped v1.1.2381** (2026-09-03) — people mapped from calendars/groups (#53 ids) with colour and optional `person.*` picture, a "Personen" mode tab (appears only once people exist) with one lane per person + a "Gemeinsam" lane, lane-header tap = per-person filter in every view (chip clears it). Not built: #48's narrowing ladder for five people on a phone — lanes have a 150 px minimum and scroll horizontally for now.
+
 **Pitch:** A week view with one lane per person instead of one lane per day. Who is doing what, when, at a glance — the question a shared household calendar exists to answer.
 
 **Status quo:** The card has no person dimension at all. Verified: `person` appears once in the entire source, as a domain label in `translations/helpers.js:227`. There is no person card, no per-person filter, no avatar anywhere. A forum user rebuilding a decade-old instance named person cards as one of three gaps keeping him from adopting the card.
