@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2383 - 2026-09-04
+
+**Title:** ✨ Roadmap #44, stage 2 — the house timeline gets its filter axes, flap folding, "durch wen" and an honest header count
+
+**Tags:** feature, notifications, timeline
+
+1. **Two filter axes, built from the data** — a second chip row under the mode chips: domain
+   families (Licht · Schalter · Rollos & Tore · Sensoren · Schlösser · Klima · Medien · Automationen ·
+   Personen · Sauger · Sonstiges, at most six, most frequent first) and rooms (entity area, else the
+   device's area, via `hass.entities` / `hass.devices` / `hass.areas`). One choice per axis, the
+   active chip again = off; the row hides itself when there is nothing to choose.
+2. **Flap folding** (`utils/timelineFolding.js`, pure): a chain of ≥3 consecutive events of the same
+   entity with gaps under 30 min becomes one row — "Bewegung Flur · 5× zwischen 01:12 und 01:25".
+   Two toggles stay two rows; that is information, not noise.
+3. **"durch wen"** under the name: automation/script name from the logbook context ("durch
+   Nachtmodus"), the own user id → "durch dich", another user → "manuell". Carried fields from
+   stage 1, now shown.
+4. **Header count** — on the Verlauf tab the detail header now counts the chronicle in the chosen
+   window (alerts + house rows after folding and filtering), not just the alert history.
+
+Verified via dev-harness probe (eight logbook entries incl. a five-step motion chain, contexts and
+areas): chips Sensoren · Licht · Rollos & Tore | Küche · Wohnzimmer; rows "Wohnzimmer Licht [durch
+dich]", "Rolladen [durch Nachtmodus]", "Wohnzimmer Licht [manuell]", "Bewegung Flur · 5× zwischen
+01:12 und 01:25"; family chip Sensoren → only the folded row; room chip Wohnzimmer → the three
+Wohnzimmer rows with the header at "5 Einträge" (6 unfiltered).
+
 ## Version 1.1.2382 - 2026-09-04
 
 **Title:** ✨ Roadmap #44, stage 1 — the House Timeline as the Notification Center's "Verlauf" tab: what the whole house did, day by day
