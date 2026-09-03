@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.2373 - 2026-09-03
+
+**Title:** 🐛 Period comparison — delta computed from the buckets, ghost series drawn on top (legible over the fill)
+
+**Tags:** bugfix, charts, history
+
+Two corrections from the v1.1.2372 probe, before anyone met them on a device:
+
+1. **Delta was "±0.0 %" on measurement sensors.** The headline value of a measurement sensor
+   (temperature, humidity, power) is the *current* reading, not a period aggregate — comparing it
+   with the "previous period's" headline compared the same number with itself. The delta now comes
+   from the buckets both periods already carry: Ø of the buckets for measurement sensors (absolute,
+   in the unit — "Ø +1.2 °C vs. Vortag"), sum of the buckets for counters (percent). This also
+   removes the second headline fetch — the comparison costs exactly one extra chart request.
+2. **Ghost series drawn on top instead of behind.** Behind the filled day area the dashed line was
+   barely visible, and same-height ghost bars vanished completely. The previous period is now a
+   thin dashed white line (day) / a narrow light inner bar (week/month/year) at the same x —
+   drawn last, still clearly secondary by dash, opacity and width.
+
+Verified via dev-harness probe (history mock: today ≈ 50 %, yesterday ≈ 40 %): delta reads
+"Ø +8.1 % vs. Vortag" (partial day), week view "Ø +0.4 % vs. Vorwoche"; screenshots show the
+dashed ghost line over the day fill and the inner bars in the week view.
+
+## Version 1.1.2372 - 2026-09-03
+
+**Title:** ✨ Roadmap #59 — period comparison in history charts: the previous period as a ghost series behind the current one, delta in the header
+
+**Tags:** feature, charts, history
+
+1. **"Compare with previous period"** — a pill toggle in the glass calendar of the history header
+   (where D/W/M/Y already live). On: a second `getChartData` fetch for `periodIndex − 1` renders
+   the previous day/week/month/year as a dimmed dataset over the same axis (no second axis); the
+   tooltip labels its line "Vorperiode: …". Off by default; the choice is remembered **per sensor**
+   (`fsc-chart-vergleich-v1`), like other chart preferences — turning it on for the meter doesn't
+   force it on every thermometer.
+2. **Header delta** — "+12 % vs. Vorwoche" next to the headline value (percent for counters,
+   absolute with unit for measurement sensors); the suffix follows the range (Vortag / Vorwoche /
+   Vormonat / Vorjahr, de+en).
+3. Boundaries: free date spans have no "previous period" — the toggle is hidden there; the
+   two-bar year chart of cumulative meters already compares (previous vs. current year) and gets
+   no ghost series. Works in both embeddings — the shared history header (`ChartsHistoryView`,
+   controlled) and the standalone `SensorChartView` (universal devices, uncontrolled).
+
+Verified via dev-harness probe on the humidity sensor: toggle → second dataset (24 hourly points
+day / 7 week, `grouped: false`), one extra history request only while on, persistence written and
+cleared, toggle off → single dataset again. (The delta's measurement-sensor case turned out wrong
+in this build — fixed in v1.1.2373.)
+
 ## Version 1.1.2371 - 2026-08-28
 
 **Title:** ✨ Roadmap #57 — context lines in the typing loop: sometimes, instead of a greeting, one true sentence ("Um 10:00 Zahnarzt", "2 Aufgaben heute fällig")

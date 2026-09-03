@@ -919,6 +919,14 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 
 **Why it fits:** Slot at the top of the Bento grid where StatsBar lives. Glass aesthetic suits urgency without screaming.
 
+*Concretization 2026-09-03 (after #58):* build it as the **sixth source of the alert lane**, not as a
+separate banner. The user picks the warning entities (DWD Warnwetter / Meteoalarm / NWS sensors,
+`islandSources`-style picker); a level → severity map (red/extreme → CRITICAL, orange/severe →
+WARNING, yellow/moderate → INFO) feeds `buildNotificationList`. Then the red `CriticalBanner`
+(v2159, split off precisely for this) shows a red warning by itself, the island chips/center/quiet
+hours/snooze come for free, and "mute until expires" is simply snooze with the warning's end time.
+Effort stays small; the only new UI is the picker row.
+
 ---
 
 ### 29. Live Activities strip
@@ -1645,9 +1653,21 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 **Why it fits:** The island standby (v1.1.2361) made the island the card's resting attention surface; this gives it the two alert types a family actually cares about.
 
+#### 58b. All-day events of tomorrow announce the evening before *(added 2026-09-03)*
+
+The shipped source announces only *timed* events ("Starts at 10:00"). The events a household
+actually wants warned about — bins, school-free days, birthdays — are **all-day and tomorrow**.
+One rule closes the gap: from a configurable evening hour (default 18:00) an INFO reminder lists
+tomorrow's all-day events ("Morgen: Restmüll · Elternabend"), once per evening (instance = that
+day), gone at midnight when the day itself arrives. This is the real "bins tomorrow" — and makes the
+dedicated waste widget (#18) largely unnecessary. *Effort: small* (same store, one more builder, one
+settings row).
+
 ---
 
 ### 59. Period comparison in history charts
+
+> ✅ **Shipped v1.1.2372/2373** (2026-09-03) — toggle in the glass calendar of the history header, second fetch for `periodIndex − 1`, ghost series over the same axis, header delta (Ø absolute for measurement sensors, percent for counters), remembered per sensor. Deviations from the sketch: the ghost series is drawn *on top* as a thin dashed white line / narrow inner bar (behind the fill it was illegible), and the delta is computed from the buckets rather than the headline values.
 
 **Pitch:** A "compare" toggle in the history header lays the previous period under the current one — today vs yesterday, this week vs last week — as a dimmed second line, with the delta summarized in the header.
 
