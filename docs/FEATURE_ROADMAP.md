@@ -1686,7 +1686,7 @@ settings row).
 
 ### 60. Undo for destructive taps
 
-> ✅ **Shipped v1.1.2368** (2026-08-24) — perform-later store with a single floating action, bottom-center glass pill, tombstone filter shared with #56's live data. Consumers: task delete, calendar event delete, schedule delete. Deviations from the sketch: notification dismiss-all not wired (open), existing confirm steps kept in front of the undo for now.
+> ✅ **Shipped v1.1.2368** (2026-08-24) — perform-later store with a single floating action, bottom-center glass pill, tombstone filter shared with #56's live data. Consumers: task delete, calendar event delete, schedule delete. **Closed v1.1.2374** (2026-09-03): the confirmation steps in front of the undo (task action sheet, event confirm pair) are removed — delete acts at once, the pill catches the mistake. The "notification dismiss-all" consumer named in the sketch does not exist in the card, so nothing to wire.
 
 **Pitch:** Deleting a task, an event or a schedule shows a six-second toast with "Undo" instead of being instantly irreversible.
 

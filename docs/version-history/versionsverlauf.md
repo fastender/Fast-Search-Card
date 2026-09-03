@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2374 - 2026-09-03
+
+**Title:** ✨ Roadmap #60 closed — delete without a confirmation step; the undo pill is the safety net
+
+**Tags:** ux, todos, calendar, undo
+
+Since v1.1.2368 every deletion floats for six seconds behind a "Rückgängig" pill — but the task
+editor still asked "Todo löschen?" in an action sheet first, and the event editor unfolded a
+"Wirklich löschen" button pair. Two steps in front of an action that can be taken back were double
+stitching, so both confirmation stages are gone:
+
+- **Tasks** (`TodoFormDialog`): "Löschen" calls the delete handler directly; the action sheet,
+  its state and import are removed.
+- **Appointments** (`CalendarEventDialog`): "Termin löschen" deletes directly (button shows "…"
+  while busy); the inline cancel/confirm pair is removed.
+- Schedules never had a confirmation step, and a "dismiss all notifications" action — listed as a
+  fourth undo consumer in the roadmap sketch — turns out not to exist in the card at all, so there
+  is nothing to wire; #60 is closed as-is.
+
+Verified via dev-harness probe: task "Rechnung zahlen" → edit → Löschen: no sheet, undo pill at once,
+0 `todo` service calls, rows 3 → 2; Rückgängig → 3 rows, still 0 calls. Event "Zahnarzt" → edit →
+Termin löschen: no confirm button, undo pill at once, 0 `calendar/event/delete` messages; Rückgängig
+restores the row.
+
 ## Version 1.1.2373 - 2026-09-03
 
 **Title:** 🐛 Period comparison — delta computed from the buckets, ghost series drawn on top (legible over the fill)
