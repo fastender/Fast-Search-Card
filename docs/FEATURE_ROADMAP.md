@@ -1655,6 +1655,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 #### 58b. All-day events of tomorrow announce the evening before *(added 2026-09-03)*
 
+> ✅ **Shipped v1.1.2375** (2026-09-03) — builder + evening-hour setting, one instance per evening, local-day parsing of all-day dates.
+
 The shipped source announces only *timed* events ("Starts at 10:00"). The events a household
 actually wants warned about — bins, school-free days, birthdays — are **all-day and tomorrow**.
 One rule closes the gap: from a configurable evening hour (default 18:00) an INFO reminder lists

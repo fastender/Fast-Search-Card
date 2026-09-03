@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2375 - 2026-09-03
+
+**Title:** ✨ Roadmap #58b — tomorrow's all-day events announce the evening before ("Morgen: Restmüll · Elternabend")
+
+**Tags:** feature, notifications, calendar
+
+The #58 reminder source announced only *timed* events ("Starts at 10:00"); the events a household
+actually wants warned about — bins, school-free days, birthdays — are **all-day and tomorrow**.
+
+1. **New builder** (`buildAllDayTomorrowReminders` in reminderSources): from a configurable
+   evening hour (default 18:00) one INFO reminder lists tomorrow's all-day events — "Morgen: Restmüll"
+   for one, "Morgen: 2 Termine" + names for several. Instance = the evening (`created_at` =
+   today HH:00), so dismissing keeps it quiet until the next evening; at midnight "tomorrow" is today
+   and the reminder drops out. Today's and the day-after's all-day events are excluded, timed events
+   stay with the lead-window reminder. 🔑 All-day starts arrive as plain dates ("2026-09-04") — parsed
+   as *local* days, not `new Date(iso)` (UTC midnight, the previous day west of Greenwich).
+2. **Store/lane** — same vetted event stock (it holds +48 h), the 30-min freshness fetch also serves
+   this source, `remindersActive()` includes it.
+3. **Settings → Notifications → Reminders** — toggle "Ganztägiges von morgen" + evening-hour row (tap
+   cycles 16–21 h). Info popup `settingsInfo.reminders` gained the bullet (de+en), catalog updated.
+   This makes the dedicated waste widget (#18) largely unnecessary.
+
+Verified via dev-harness probe (13:00 local, evening hour forced to 12 / 23): gate open → exactly one
+reminder "Morgen: 2 Termine | Restmüll · Elternabend" (today's all-day, the day-after's and the timed
+"Zahnarzt" excluded); gate closed → none; single event → "Morgen: Restmüll"; source off → none.
+
 ## Version 1.1.2374 - 2026-09-03
 
 **Title:** ✨ Roadmap #60 closed — delete without a confirmation step; the undo pill is the safety net
