@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2380 - 2026-09-03
+
+**Title:** ✨ Roadmap #54 — event rules: colour, icon, dim, day chip or hide by what an event *is* (four forms, no rule engine)
+
+**Tags:** feature, calendar, settings
+
+Built to the roadmap's design constraint: the common cases as first-class UI, not a matcher grammar.
+
+1. **Pure logic** (`calendar/utils/eventRules.js`): four conditions — *title contains* (case-
+   insensitive substring), *from calendar or group* (`group:<id>` uses #53's stable ids), *all-day*,
+   *past* (effective end before now). Effects: colour, icon (fixed set of twelve), dim, day chip,
+   hide. **Conflict resolution copied from the roadmap:** rank = list position, and each property
+   resolves independently to the topmost rule that sets it — an icon-only rule layers cleanly over a
+   colour-only rule.
+2. **Settings → Kalender → Regeln** — rows read as sentences ("Titel enthält „Geburtstag" → 🎂 ·
+   Farbe"), with ▲▼ rank buttons, an enable switch and a chevron; "＋ Regel anlegen" opens the editor
+   at once. Editor: WENN as four pills (+ text field or a calendar/group picker), DANN as palette dots
+   (∅ = none), icon row, and the three switches (dimmed / day chip / hide), "Regel löschen".
+3. **Calendar view**: rows take rule colour and icon and dim; "hide" removes matches from all
+   views; "day chip" pulls a match out of the lists and shows it as a small chip on its day in the
+   month grid (icon, or the first letter, in the rule/calendar colour); week bars take rule colour.
+4. Texts `ui.calendar.rule*` (de+en), info popup `settingsInfo.calEventRules`, catalog updated.
+
+Verified via dev-harness probe (three events today, one all-day): rule "Titel enthält Zahnarzt →
+🩺 + rot" → row "🩺 Zahnarzt" with the red dot; "Ganztägig → Tages-Chip" → "Müll" leaves the list
+and appears as an orange "M" chip on its day(s); "Vergangen → abgeblendet" → past rows at half
+opacity; "Titel enthält Standup → ausblenden" → gone. Stored rules
+`title:Zahnarzt🩺#FF3B30 · allDay badge · past dim`. Screenshots: editor, calendar with all effects.
+
 ## Version 1.1.2379 - 2026-09-03
 
 **Title:** ✨ Roadmap #53 — calendar groups: several calendars, one switch ("Familie"), group colour, filter chips in the calendar view

@@ -1535,6 +1535,8 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 
 ### 54. Event rules — colour, mark and hide events by what they are
 
+> ✅ **Shipped v1.1.2380** (2026-09-03) — the four forms (title contains / from calendar or group / all-day / past) with colour, icon, dim, day chip and hide; per-property resolution by rank exactly as sketched; sentence-style rows with ▲▼ rank. Deliberately not built: description/location matching, exact/regex modes and all/any/not combinators — the forms cover the worked list, and a grammar would surface as a programming environment.
+
 **Pitch:** "Anything with 'Geburtstag' in the title gets a cake icon." "Events from the bins calendar show as a badge on the day, not a row." "Hide anything titled 'Declined'." Rules that match on what an event *is*, not on which calendar it came from.
 
 **Status quo:** Styling is per calendar only. Colour comes from `calSettings.calendars[id].color`, or a hash of the calendar id. Two events from the same calendar always look identical, however different they are.
