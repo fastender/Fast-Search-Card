@@ -1619,7 +1619,7 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ### 57. Context lines in the typing loop
 
-> ✅ **Shipped v1.1.2371** (2026-08-28) — provider (`kontextZeilen.js`) riding #58's data paths, rotation over available truths, greeting always follows a context line, settings toggle under Status & Greetings. Deviations from the sketch: weather-change lines deliberately left out (need forecast data; current weather already lives in the Zen status line); the locked-page second surface (2026-08-27 note below) remains open.
+> ✅ **Shipped v1.1.2371** (2026-08-28) — provider (`kontextZeilen.js`) riding #58's data paths, rotation over available truths, greeting always follows a context line, settings toggle under Status & Greetings. Deviations from the sketch: weather-change lines deliberately left out (need forecast data; current weather already lives in the Zen status line). **Second surface shipped v1.1.2377** — the locked Zen page shows the same sentence under the greeting (3-minute slices on the 15-s clock, no typing).
 
 **Pitch:** The resting search bar already types greetings (v1.1.2360). Sometimes, instead of a pleasantry, it types one *true* sentence: "Um 10:00 Zahnarzt", "2 Aufgaben heute fällig", "Regen ab 17 Uhr".
 

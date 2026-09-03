@@ -197,7 +197,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **Insel** – die helle Karte oben: Dauerwerte und Meldungs-Knöpfe in Zeile 1, Live-Ticker (Timer, Sauger, Medien …) in Zeile 2. Details im ⓘ der Insel-Einstellungen.
 > - **Begrüßungs-Leiste (GreetingsBar)** – zeigt eine tageszeitabhängige Begrüßung. Rein dekorativ, jederzeit ein- und ausschaltbar.
-> - **Kontextzeilen** – die Tipp-Schleife der Suchzeile nennt gelegentlich statt eines Grußes einen wahren Satz: „Um 10:00 Zahnarzt", „2 Aufgaben heute fällig". Höchstens jede zweite Zeile, nie zwei Datenzeilen nacheinander; aus = nur Grüße.
+> - **Kontextzeilen** – die Tipp-Schleife der Suchzeile nennt gelegentlich statt eines Grußes einen wahren Satz: „Um 10:00 Zahnarzt", „2 Aufgaben heute fällig". Höchstens jede zweite Zeile, nie zwei Datenzeilen nacheinander. Die verriegelte Startseite zeigt denselben Satz still unter dem Gruß (wechselt alle paar Minuten). Aus = nur Grüße, Ruheseite ohne Zeile.
 >
 > *Warum wichtig:* Die Insel bringt das Wichtigste auf einen Blick nach oben.
 
@@ -208,7 +208,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **Island** – the light card on top: standing values and alert buttons in line 1, the live ticker (timers, vacuums, media …) in line 2. Details in the island settings' ⓘ.
 > - **Greetings bar (GreetingsBar)** – shows a time-of-day greeting. Purely decorative, toggle on or off anytime.
-> - **Context lines** – the search bar's typing loop occasionally types one true sentence instead of a greeting: "Dentist at 10:00", "2 tasks due today". At most every other line, never two data lines in a row; off = greetings only.
+> - **Context lines** – the search bar's typing loop occasionally types one true sentence instead of a greeting: "Dentist at 10:00", "2 tasks due today". At most every other line, never two data lines in a row. The locked start page shows the same sentence quietly under the greeting (changes every few minutes). Off = greetings only, no line on the locked page.
 >
 > *Why it matters:* the island surfaces what matters most at a glance.
 

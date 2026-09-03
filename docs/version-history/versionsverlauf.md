@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2377 - 2026-09-03
+
+**Title:** ✨ Roadmap #57, second surface — the context line on the locked start page ("Um 10:00 Zahnarzt" under the greeting)
+
+**Tags:** feature, start-screen, ambient, ux
+
+The locked Zen page (the screensaver face since v1.1.2369) now carries the same single true
+sentence the search bar's typing loop got in v1.1.2371 — quietly, under the greeting.
+
+1. **`BentoZenView`** — asks the shared `holeKontextZeile()` provider from the existing 15-second
+   clock tick, but only when the 3-minute slice changes (every tick would burn the typing loop's
+   rotation pointer); while nothing stands it asks every tick, so the line appears seconds after
+   boot as soon as tasks/events arrive. Nothing worth saying → no line. Provider errors stay silent.
+   The island's resting position is re-measured with the line (it sits below the greeting block).
+2. **Style** (`.bento-zen-kontext`) — 0.46 × the greeting size, 66 % white, same shadow edge, the
+   greeting's materialize animation a beat later; wraps on mobile. No runner at rest — the text
+   swaps every few minutes, otherwise it stands.
+3. Governed by the same **Context lines** toggle (General → Status & Greetings); the
+   `statusGreetings` info popup mentions the second surface (de+en), catalog updated.
+
+Verified via dev-harness probe (test house with an overdue task): locked page → after one tick
+"Aufgabe überfällig" under the greeting, island shift 367 → 403 px, 20.7 px / rgba(255,255,255,.66)
+/ 12 px gap; toggle off → provider yields null.
+
 ## Version 1.1.2376 - 2026-09-03
 
 **Title:** ✨ Roadmap #28 — severe-weather warnings as the sixth source of the alert lane (red banner for free, snooze until the warning expires)
