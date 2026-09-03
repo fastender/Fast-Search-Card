@@ -227,6 +227,8 @@ critical banner. Refresh the `src` on open (the token URL is cache-busted by HA 
 
 #### E2 — Sound on critical
 
+> ✅ **Shipped v1.1.2378** (2026-09-03) — Web Audio double ping on a new CRITICAL instance, opt-in toggle + test row under Notifications → Critical alerts, quiet hours respected, 1.5 s debounce.
+
 **Pitch:** on a wall tablet this is the difference between "I saw it" and "I didn't".
 
 **The real obstacle is not the audio, it's autoplay policy.** Browsers block `Audio.play()` until
@@ -275,6 +277,8 @@ instance. Keep it in the pure source layer so it stays node-testable like the re
 **Effort:** Small. Highest correctness value of the six.
 
 #### E5 — Snooze duration menu
+
+> ✅ **Shipped v1.1.2378** (2026-09-03) — glass menu at the center's clock button: 15 min · 1 h · until tomorrow 7 am · until the warning expires (when known). Island keeps the one-tap default.
 
 Today snooze is a fixed 1 h. "Until this evening" is a different wish from "not right now".
 Offer 30 min / 1 h / 4 h / 8 h / tomorrow morning, keeping one-tap 1 h as the default action and the

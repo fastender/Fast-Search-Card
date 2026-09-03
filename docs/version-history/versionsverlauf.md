@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2378 - 2026-09-03
+
+**Title:** ✨ Roadmap #3b E2 + E5 — a double tone when a critical alert first appears (opt-in), and a snooze menu in the notification center (15 min · 1 h · until tomorrow 7 am · until the warning expires)
+
+**Tags:** feature, notifications, escalation, ux
+
+1. **E2 — sound on critical** (`utils/kritischTon.js`): two short sine pings (880 → 1175 Hz,
+   ~140 ms each) via Web Audio — no file, no runner. Played from the alert lane's diff when a **new**
+   CRITICAL instance appears (leak, smoke, gas, red weather warning …), independent of the toast
+   switch, but never for snoozed items and never inside quiet hours (the "always allow critical"
+   exception applies). Debounced to one tone per 1.5 s, so several criticals in one breath don't
+   fire a salvo. Browsers allow sound only after a touch: the context is created lazily and
+   resumed if suspended; if that fails it stays silent. **Opt-in** — Settings → Notifications →
+   "Critical alerts": toggle + "Play the tone" row for a test.
+2. **E5 — snooze menu** (notification center): the clock button no longer snoozes an hour blindly
+   but opens a small glass window (MorphPopup at the button): 15 minutes · 1 hour · until tomorrow
+   7 am · and, for warnings with an end time, "until the warning expires". The island keeps its
+   one-tap default (hour, or until expiry since v1.1.2376).
+3. Texts in `ui.notifications.*` (the bucket had been empty) and `ui.settings.critical*` (de+en).
+
+Verified via dev-harness probe with an AudioContext spy: sound off + critical → 0 oscillators;
+on + critical (gas) → exactly 2; warning → still 2; quiet hours without the critical exception →
+still 2; menu shows the three durations for a sensor alert; "15 Minuten" removes the row and stores
+`snoozes[...] ≈ +15 min`. Screenshot: the menu as a glass window at the clock button.
+
 ## Version 1.1.2377 - 2026-09-03
 
 **Title:** ✨ Roadmap #57, second surface — the context line on the locked start page ("Um 10:00 Zahnarzt" under the greeting)
