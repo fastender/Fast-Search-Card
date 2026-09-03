@@ -1513,6 +1513,8 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 
 ### 53. Calendar groups — one toggle for several calendars
 
+> ✅ **Shipped v1.1.2379** (2026-09-03) — groups layer with stable ids, one-switch rows in the settings (members collapse into their group), editor (name / palette / members / dissolve), group colour precedence, chip row in the calendar view, Bento widget honours visibility + colours. Not built: a per-group icon (the colour carries the identity; an icon can join with #55's person lanes).
+
 **Pitch:** Name a group, put several calendar entities in it, give it a colour and an icon. The settings list and any per-calendar filter then show the group instead of its members.
 
 **Status quo:** `CALENDAR_SETTINGS_DEFAULTS.calendars` is a flat map, `{ [entity_id]: { enabled, color } }`. Every calendar is its own row and its own toggle. That is correct and fine with four calendars. With a household running one per person plus school, bins, work and holidays, the settings list becomes a wall and the useful action — "show me only family stuff" — takes six taps.

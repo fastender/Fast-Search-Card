@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2379 - 2026-09-03
+
+**Title:** ✨ Roadmap #53 — calendar groups: several calendars, one switch ("Familie"), group colour, filter chips in the calendar view
+
+**Tags:** feature, calendar, settings
+
+1. **Data layer** (`calendarSettingsStorage`): a `groups` layer above the flat calendar map —
+   `{ id, name, members, color, enabled }` with a generated-once stable id (rules #54 and lanes #55
+   will point at it; renaming never breaks anything). Pure helpers `upsertGroup`, `removeGroup`,
+   `groupForCalendar`, `isCalendarVisible` (calendar on AND its group on); ungrouped calendars behave
+   exactly as before — an install without groups notices nothing.
+2. **Settings → Kalender**: groups appear first as one row each (colour square, name, members as
+   subtitle, **one switch**, chevron); their members leave the individual list. "＋ Gruppe anlegen"
+   creates a group and opens the editor at once (no half states): name field, palette dots, member
+   checkmarks (calendars already in another group are dimmed and say so), "Gruppe auflösen". Every
+   change saves immediately; Back is enough.
+3. **Colour**: calendar override > group colour > palette — a group reads as one thing; a deliberate
+   per-calendar override still wins.
+4. **Calendar view**: a chip row under the toolbar (only when groups exist); tapping a chip toggles
+   the group — the same truth the settings switch flips — and the members' events vanish/return.
+5. **Bento calendar widget** now honours the same visibility and colours (disabled calendars/groups
+   are hidden, group colour tints) via a `calendarSettingsChanged` window event — before, the widget
+   showed every calendar regardless of the settings.
+6. Texts `ui.calendar.group*` (de+en); the `calCalendars` info popup gained the groups bullet,
+   catalog updated.
+
+Verified via dev-harness probe (two calendars): create group "Familie" with both members and the
+light-blue colour → stored `{id: g_…, members: [familie, arbeit], color: #5AC8FA, enabled: true}`;
+settings list shows "Familie" + add row instead of two calendar rows; calendar view shows the chip;
+chip tap → "Zahnarzt" and "Standup" gone, chip dimmed; tap again → both back. Screenshots: group
+editor, chip row with group-coloured event dots.
+
 ## Version 1.1.2378 - 2026-09-03
 
 **Title:** ✨ Roadmap #3b E2 + E5 — a double tone when a critical alert first appears (opt-in), and a snooze menu in the notification center (15 min · 1 h · until tomorrow 7 am · until the warning expires)

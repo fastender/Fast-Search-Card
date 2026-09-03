@@ -1327,8 +1327,9 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Schalter** rechts: Kalender ein-/ausblenden — ausgeblendete Termine verschwinden aus allen Ansichten.
 > - **Tippen auf die Zeile** öffnet die **Farbauswahl** — überschreibt die automatisch vergebene Farbe (oder „Standard" für die Auto-Farbe).
 > - In **Home Assistant versteckte oder deaktivierte** Kalender tauchen gar nicht erst auf — gesteuert über Einstellungen → Filter → Sichtbarkeit.
+> - **Gruppen** („Gruppe anlegen"): mehrere Kalender unter einem Namen, einer Farbe und **einem Schalter** — z. B. „Familie". Die Mitglieder erscheinen dann nur noch als Gruppe; in der Kalender-Ansicht schaltet ein Chip die Gruppe ein und aus. Die Gruppenfarbe färbt ihre Mitglieder, ein eigener Farb-Override bleibt möglich.
 >
-> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe.
+> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe — und „nur Familie zeigen" ist ein Tipp statt sechs.
 
 **EN**
 > ## Calendars
@@ -1338,8 +1339,9 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Switch** on the right: show/hide a calendar — hidden events disappear from all views.
 > - **Tap the row** to open the **color picker** — overrides the auto-assigned color ("Default" restores it).
 > - Calendars **hidden or disabled in Home Assistant** don't appear at all — controlled via Settings → Filters → Visibility.
+> - **Groups** ("Create group"): several calendars under one name, one color and **one switch** — e.g. "Family". Members then show up only as their group; in the calendar view a chip toggles the group. The group color tints its members; an individual color override stays possible.
 >
-> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color.
+> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color — and "family only" becomes one tap instead of six.
 
 ## calDisplay
 
