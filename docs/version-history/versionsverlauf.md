@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2382 - 2026-09-04
+
+**Title:** ✨ Roadmap #44, stage 1 — the House Timeline as the Notification Center's "Verlauf" tab: what the whole house did, day by day
+
+**Tags:** feature, notifications, timeline, logbook
+
+Placement revised with the user: the center already answers three tenses (Übersicht = what needs
+me, Live = what runs, Verlauf = what was) — and "Verlauf" showed only the alert history. Now it is
+the house chronicle; no second entity, no second bell.
+
+1. **`getHouseLogbookEvents`** (`services/logbookService.js`): `logbook/get_events` **without**
+   `entity_ids` — one request for the whole period — filtered client-side through the user's
+   exclusion list (Settings → Filter, `isExcluded`) plus a handful of system domains nobody reads as
+   a house event (`persistent_notification`, `sun`, `zone`, `update`, `tts`, `conversation`).
+   Newest first, capped at 1000; the trigger context (`context_name`/`domain`/`user_id`) is
+   carried for stage 2's "durch wen".
+2. **Verlauf tab** (`NotificationsView`): chips **Alle · Meldungen · Haus** and the charts'
+   period header (← Datum →, D/W/M/Y + free span in the glass calendar). Alert history is cut to
+   the same window and merged with the house events, grouped under day headings (Heute · Gestern ·
+   weekday + date); house rows show time · icon · name · logbook message and open the entity on tap
+   (`fsc-open-entity`), alert rows stay read-only. 150 rows rendered, "Mehr laden (+n)" beneath.
+3. Texts `ui.notifications.chronik*` (de+en); roadmap #44 rewritten to the new placement.
+
+Verified via dev-harness probe (logbook mock with eight entries across three days incl. noise and an
+excluded light): day view → "Heute" with three alert rows + two house rows, noise and the excluded
+entity absent; chip "Haus" → house rows only, "Meldungen" → alert rows only; week → Heute / Gestern /
+Mittwoch 2. September with 5 / 1 / 2 rows; every request went out without `entity_ids`; tapping a house
+row emitted `fsc-open-entity` for `light.wohnzimmer`.
+
 ## Version 1.1.2381 - 2026-09-03
 
 **Title:** ✨ Roadmap #55 — person lanes: the family week side by side (columns are people, not days), plus the per-person filter that was missing

@@ -1179,6 +1179,10 @@ Twelve entries. Two from looking at neighbouring projects, one from a user quest
 
 ### 44. House Timeline — one chronological view of everything that happened
 
+> **Revised 2026-09-04 — it is the Notification Center's "Verlauf" tab, not a second entity.** The center already answers three tenses: *Übersicht* = what needs me, *Live* = what is running, *Verlauf* = what was — and "Verlauf" showed only the alert history. The timeline is that tab grown to house scale: chips **Alle · Meldungen · Haus**, the charts' period header (D/W/M/Y + free span), day groups, tappable rows. No new system entity, sidebar entry or header: the tab dispatch, the row style and the entity seam exist. What stays deliberately separate: the timeline is read-only — dismiss/snooze live in Übersicht only.
+>
+> ◐ **Stage 1 shipped v1.1.2382** (2026-09-04): house logbook without `entity_ids` in one request, filtered through the user's exclusion list + a handful of system domains, merged with the alert history, day headings, 150-row cap with "Mehr laden". **Stage 2 open:** area/domain chips, flap folding ("Bewegung Flur · 40×"), "durch wen" (the context fields are already carried), optional Bento tile.
+
 **Pitch:** A single scrollable list of what your home did today. Every state change worth reading, house-wide, newest first, grouped by day. Not per device — the whole house.
 
 **Status quo:** The card can already tell you what *one* device did. It cannot tell you what *the house* did. To reconstruct an evening you open six detail views and read six History tabs.
@@ -1197,12 +1201,12 @@ The idea comes from [home-status](https://github.com/biggiebytes/home-status) (M
 
 Every layer needed already works. What is missing is a caller that passes the *house* instead of one device, plus a place to put it.
 
-**What ships:**
-- A new system entity `timeline` (mirrors `notifications` in shape) with its own view and sidebar entry.
+**What ships** *(placement revised 2026-09-04, see note above)*:
+- The Notification Center's **Verlauf** tab becomes the timeline: chips Alle · Meldungen · Haus, day headings, newest first.
 - Reuses the existing period header — D/W/M/Y and custom range — so it behaves like the charts people already know.
-- Filters along two axes: by area, and by domain. Same chip pattern the search toolbar uses.
+- Filters along two axes: by area, and by domain. Same chip pattern the search toolbar uses. *(stage 2)*
 - Rows are tappable and open the entity's detail view, exactly like the notification Live rows do.
-- Optional Bento widget: the last five events, for the small W3/W4 slots.
+- Optional Bento widget: the last five events, for the small W3/W4 slots. *(stage 2)*
 
 **The one real design question — scope of the fetch.**
 
