@@ -1344,6 +1344,8 @@ Nothing new has to be wired to Home Assistant.
 
 ### 48. Column view for the calendar — and a degradation ladder worth generalising
 
+> ◐ **The ladder shipped v1.1.2386** — on the person lanes (#55): measured per-lane width → full / compact / stacked, with the stacked rung as the explicit floor choice (chip row + one lane). `leiterStufe()` is pure and meant to be ported to the Bento grid. **Open:** the day-column view itself (days as columns for the chosen range).
+
 **Pitch:** A week that reads across the card instead of down it: one column per day, side by side. Plus the narrowing behaviour underneath it, which is the more valuable half.
 
 **Status quo:** `rangeForView(mode, anchor, weekStartsOn)` at `CalendarView.jsx:99` handles `day`, `week`, `month`, `year`. The week view stacks days vertically. There is no side-by-side layout, and no graceful behaviour when a view runs out of width — it just gets cramped.

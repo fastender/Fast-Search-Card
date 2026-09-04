@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2386 - 2026-09-04
+
+**Title:** ✨ Roadmap #48, the ladder — person lanes degrade in three measured stages instead of one break (full → compact → stacked)
+
+**Tags:** feature, calendar, responsive, family
+
+The half of #48 the roadmap itself calls the real prize: a width cascade that keeps the composition
+as long as possible and then degrades on purpose. Built on the person lanes (#55), written so it
+ports to the Bento grid later.
+
+1. **Measured, not guessed** — a ResizeObserver on the lane container; `leiterStufe(width, lanes)`
+   (pure) computes the per-lane width and picks the rung:
+   - **voll** (≥ 150 px per lane): avatar + name in the head, times on the rows;
+   - **kompakt** (≥ 105 px): avatar-only heads, tighter rows without times — all lanes still side
+     by side;
+   - **gestapelt** (below): the one explicit choice — a chip row of people (avatar + name) and a
+     single full-width lane; a chip switches the person. "Gemeinsam" is a chip like the others.
+2. Class names are emitted literally per rung (the PurgeCSS guard caught the assembled
+   `calendar-people--${stufe}` before it could ship blank styles).
+
+Verified via dev-harness probe (people pre-seeded, lane container 522 px wide): three people →
+"voll" with three named heads; four → "kompakt" with four lanes and no visible names; five →
+"gestapelt" with chips Anna* · Ben · Clara · David · Emma and one lane, chip "Ben" swaps the lane;
+same at 860 px page width. Screenshots of the stacked and compact rungs.
+
 ## Version 1.1.2385 - 2026-09-04
 
 **Title:** ✨ Calendar leftovers — text rules may match the location, the description or anywhere; groups can carry an icon
