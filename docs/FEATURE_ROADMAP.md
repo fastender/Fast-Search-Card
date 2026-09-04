@@ -809,6 +809,19 @@ A first-party `fast-search-card` integration would be the third companion — br
 - `custom_components/fast_search_card/` (new — eventual Core path)
 - New WS API endpoints documented in card-side `src/utils/companionApi.js`
 
+**Requirements input from the household-task ecosystem *(added 2026-09-04)*.** Three mature HA task integrations were read end to end. Each one is an integration precisely because the features people ask for need per-task persistence — which makes them free requirements analysis for this entry.
+
+**What a backend has to hold** before any of it works: per-task assignee, priority, sub-tasks, tags, reminder times, completion history with timestamps, streak state per period, rotation position, and recurrence rules the provider does not support. Note that none of this is exotic — it is all *per-task metadata*, which is exactly the shape HA's `todo` platform does not carry and the reason every one of these projects had to build a backend.
+
+**Two design contracts worth copying rather than rediscovering:**
+
+- **Shared assignment and rotation are opposites, not variants.** A task assigned to several people is *one shared task* — everyone sees it, the first completion completes it for all. Rotation is the inverse: exactly one owner at a time, handed to the next after each completion. Modelling both as "assignees: []" and hoping produces a system that is wrong in one of the two cases, and it is expensive to unpick later.
+- **Separate missing from skipping.** For anything streak-shaped, a *missed* period should break the streak and increment a "missed" count, while a *deliberate skip* freezes the streak instead. Collapsing the two turns a tool into a punishment machine, and the distinction costs one extra state.
+
+**A scope warning, and it points the other way.** All three of these integrations emit standard `todo.*` **and** `calendar.*` entities. A household running one of them already sees its lists in the card's to-dos app and its recurring tasks in the card's calendar. The card is their display, not their competitor.
+
+So this integration should **not** grow a chore system. That ground is well covered by people who have been at it longer. Its scope stays what only it can do: sketchpad sync, notification history beyond the browser cache, cross-device favourites and profiles, sensor-roll storage. Rendering someone else's household layer well is the better use of the same effort — see #65, which does exactly that with no backend at all.
+
 ---
 
 ## Part five — twelve new ideas from competitive + community research
@@ -1050,7 +1063,7 @@ Effort stays small; the only new UI is the picker row.
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups | Existing infrastructure, clear daily payoff |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse | Existing infrastructure, clear daily payoff |
 | **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #54 Event rules · #55 Person lanes · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
@@ -1308,6 +1321,8 @@ The corpus is written. That is the unusual part — normally a feature like this
 **Effort:** Medium. The search itself is an afternoon; the registry is the rest.
 
 **Why it fits:** It is the card's own thesis applied to itself. It also quietly fixes a whole class of "missing feature" reports that are really "buried feature" reports.
+
+**A companion idea, cheaper than search and worth doing alongside it *(added 2026-09-04)*:** **per-feature off switches.** Several HA integrations in this space ship a toggle list — priorities, sub-tasks, assignment, tags, mirror entities — so an install that wants a plain list gets a plain list. The card's settings grow every release, and search makes a large surface navigable without making it smaller. Letting a household switch off the parts it does not use makes it *actually* smaller, and it interacts well with the settings registry this entry needs anyway: a feature that is off can be excluded from the index rather than surfacing results that lead nowhere.
 
 ---
 
@@ -1677,6 +1692,8 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 **Why it fits:** The island standby (v1.1.2361) made the island the card's resting attention surface; this gives it the two alert types a family actually cares about.
 
+**A rule worth adopting with it *(added 2026-09-04)*:** **an empty summary sends nothing.** Task integrations that ship daily digests learned to suppress the message entirely when there is nothing open, rather than sending "0 tasks today". The same applies here: a lane that reports "nothing due" every morning trains people to stop reading the lane. Silence is the correct output for an empty set, and it is the cheapest way to keep the surface credible.
+
 #### 58b. All-day events of tomorrow announce the evening before *(added 2026-09-03)*
 
 > ✅ **Shipped v1.1.2375** (2026-09-03) — builder + evening-hour setting, one instance per evening, local-day parsing of all-day dates.
@@ -1840,12 +1857,94 @@ gallery instead of a new media system.
 
 ---
 
+## Part ten — 2026-09-04 household-task research pass (#65–#67)
+
+Three household task-manager projects were read end to end. All three are **integrations** with a Python backend, because points, streaks, rotation and habits need per-task persistence that a card cannot hold. What follows is only what works over Home Assistant's standard `todo` platform — the five fields the card actually has: `summary`, `description`, `due`, `status`, `uid`.
+
+The rest became requirements input for #22 rather than entries here.
+
+---
+
+### 65. Todos: find it before you add it, and see whose it is
+
+**Pitch:** Two small changes to the to-dos app. Typing in the add row searches the existing items as you go, so you notice "Milch kaufen" already exists before adding it twice. And a person filter, derived from which list an item lives on.
+
+**Status quo:** The to-dos app drives HA's standard platform — `add_item`, `update_item`, `remove_item`, `remove_completed_items`. The add row is a plain text field with no lookahead, and there is no person dimension anywhere: HA to-do items carry no assignee field, and the card never looks for one.
+
+---
+
+**Half one — the add row searches.**
+
+The card is a search card. The one input where it does not search is the one where a user types a phrase that very likely already exists somewhere in their lists. Fuse.js is already bundled and already tuned.
+
+- While typing, show matching open items **from all visible lists**, not just the current one — the duplicate is usually on the *other* list.
+- Show which list a match lives on, so the answer to "it's already there" includes *where*.
+- Tapping a match jumps to it instead of adding. That is the whole feature: turning an accidental duplicate into a navigation.
+- Completed items match too, dimmed — "you did this last week" is useful information for a recurring chore.
+
+**Half two — person from list.**
+
+HA to-do items have no assignee. But the household pattern is one list per person: `todo.max`, `todo.anna`, plus shared lists for the house. So the assignment already exists — in the list, not in the item.
+
+- Map lists to people once in settings. Ungrouped lists stay unassigned and behave as now.
+- Person chips filter the view, in the same chip pattern the search toolbar uses.
+- Reuse the picture and colour from the matching `person.*` entity where one exists.
+
+**This is the same person model as #55** (person lanes in the calendar), and the two should share it rather than each inventing their own. Whichever ships first defines it; the second one is then nearly free. Building it in two places also keeps the abstraction honest — a person model that only ever serves one view tends to grow the wrong shape.
+
+**Effort:** Small. Both halves are UI over data the card already loads.
+
+**Why it fits:** The first half is the card's own premise applied to the place it was missing. The second turns a personal list into a household one without needing anything HA does not already give.
+
+---
+
+### 66. Dictate a task
+
+**Pitch:** A microphone button in the add row. Speak the task, it appears as text, you confirm.
+
+**Status quo:** The card has no voice anywhere. #12 is the full voice-control entry and is correspondingly heavy — intent parsing, device targeting, confirmation semantics, failure modes.
+
+**Why this one is worth splitting out.** Dictating a task title is the smallest possible piece of voice with a genuinely useful outcome and almost no risk. There is no intent to parse and no device to target: the words become a string, the user sees the string before anything happens, and a wrong transcription costs one backspace rather than an unintended action.
+
+**What ships:**
+- A microphone button in the to-dos add row, using **Home Assistant's Assist speech-to-text** where it is configured, with the browser's own speech recognition as a fallback where available.
+- The transcription lands in the text field as editable text. **It never submits on its own** — the user confirms. Voice input that acts immediately is how you end up with "Milch kaufen und äh nein warte" on a list.
+- Hidden entirely when neither path is available, rather than showing a button that does nothing.
+
+**Watch out for:** the permission prompt. A microphone request that appears without explanation reads as alarming on a wall tablet that a household shares. Ask on first use, from a visible button press, never on load.
+
+**Effort:** Small.
+
+**Why it fits:** It is a real feature on its own, and it is the cheapest possible way to find out how Assist behaves inside the card before #12 depends on that answer.
+
+---
+
+### 67. Overdue should not stack
+
+**Pitch:** A monthly task ignored for three months is one task marked "3× due", not three tasks.
+
+**Status quo:** Recurrence is handled by whichever to-do provider the user runs, and several of them reopen a recurring item per missed period. The card renders what it is given, so a neglected chore turns into a wall of identical rows — and a list that looks like a wall of failures is a list people stop opening.
+
+**What ships:**
+- Collapse items that share a summary and a list into **one row with a count** when they differ only by due date.
+- Show the **oldest** due date, since that is the one that says how bad it has got, and the count beside it.
+- Completing the collapsed row completes them all — that is what the user means.
+- Expandable, because occasionally the individual dates matter.
+
+**The matching rule needs care.** Identical summaries in one list are almost always the same recurring chore, but not always — a shopping list can legitimately hold "Milch" twice. Collapse only when the items also carry due dates that fit a regular interval, and never collapse items without due dates at all.
+
+**Effort:** Small. Grouping and rendering over data already loaded.
+
+**Why it fits:** It fixes a display artefact that makes the app feel worse the longer someone uses it, which is the worst direction for that feeling to run.
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **62 feature ideas + 2 parallel/long-term tracks** = 64 entries total.
+- The roadmap covers **65 feature ideas + 2 parallel/long-term tracks** = 67 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -1855,3 +1954,4 @@ gallery instead of a new media system.
   - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only. #53-#55 came from two family-calendar cards; #55 also answers a gap a forum user named directly.
   - **#56–#60** — 2026-08-24 code-analysis pass after the v1.1.2353–2361 UI rounds: seams the new code itself exposed (stale todos, the typing loop as an information surface, notification lanes without human sources, one-period charts, irreversible deletes).
   - **#61–#64** — 2026-08-27 screensaver expansion pass. v1.1.2369 shipped the pragmatic core of #9/#49 (idle → locked Zen page); these slice the open remainder — deep-rest dimming with quiet-hours coupling, wake sources, display handoff, photo frame — into individually shippable steps, on a shared idle-service foundation that consolidates the card's three existing idle clocks.
+  - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. Ideas only.
