@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2389 - 2026-09-04
+
+**Title:** 📐 The height ladder — the card fits low wall tablets in measured stages instead of cutting off at the bottom (the #48 ladder ported to the Bento grid)
+
+**Tags:** feature, layout, responsive, wall-tablet, bento
+
+The most-reported open issue (point 8 of the forum feedback): the desktop layout was a fixed stack —
+island band 84 + search row 72 + 24 + grid 576 = 756 px, plus a 672-px search panel and detail panel —
+and a 1024×768 tablet with the HA header has about 700 px. The bottom tile row hung below the screen
+edge. Same thinking as the calendar's column ladder: measure, then retreat in rungs.
+
+1. **One measured store** (`utils/hoehenLeiter.js`, pattern isMobileStore): the card root's top in
+   the window plus the scroll offsets of its ancestors (so scrolling never re-rungs), the window
+   height and the island band (the search row's offset) give a panel budget. Writes `--fsc-panel-h`,
+   `--fsc-grid-h` and `data-hoehe` on the card root and notifies only on change. Triggers: window
+   resize, the mobile bucket flipping, `fsc-layout-changed` (kiosk mode hides the header without a
+   resize — kioskMode.js now dispatches it) and a few re-measure ticks after mount. No periodic
+   runner; the thermal rule stands.
+2. **Rungs** (`leiterStufeHoehe()`, pure; phones stack and stay on "voll"):
+   - **voll** — budget ≥ 672: unchanged.
+   - **kompakt** — the panel shrinks to the budget in 8-px steps (grid = panel − 96) while the 2×2
+     composition stands (grid ≥ 340). The small tiles become landscape rectangles: `useSquareBottomRow`
+     now caps the row at 243/576 of the grid height (exactly the old square at 576), W2 takes the rest.
+   - **abwerfen** — below 436 the small tiles W3/W4 go (one row W1 | W2); search and detail panels
+     hold the compact minimum 436.
+   - **boden** — below 336 the minimums hold and the page scrolls. A decision, not an accident.
+3. **Consumers** of the one variable: bento grid and panel height, `.main-container--bento`
+   min-height, the sidebar's centre, the detail wrapper's height and min-heights, the results list's
+   max-height, the toast anchor, the card root's own height and the search panel's animated height
+   (`usePanelHoehe()` in SearchField). The mobile-only sheet clip keeps its 672.
+4. Keyboard guard: if an input inside the card is focused and the budget shrinks (Android keyboard
+   changing innerHeight), the rung stays.
+
+Verified via dev-harness probe (no HA header in the harness; 1024-wide desktop layout):
+
+| Window | Rung | Panel / grid | Grid bottom | W3 | Detail bottom |
+|---|---|---|---|---|---|
+| 1280×800 | voll | 672 / 576 | 760 | 238×243 | 784 |
+| 1024×768 | voll | 672 / 576 | 728 | 192×198 | 752 |
+| 1024×600 | kompakt | 504 / 408 | 562 | 192×172 | 584 |
+| 1024×500 | abwerfen | 436 / 304 | 462, W3/W4 hidden | — | 484 |
+| 1024×400 | boden | 436 / 240 | 362 | — | 440 (page scrolls) |
+
+The expanded search panel equals the panel height in every row. Screenshots of the compact and
+dropped rungs. Harness note: at low windows the island sits exactly where `revealStart` places the
+wheel (75 % of the Zen height), so the probe wheeled just under the search row instead.
+
 ## Version 1.1.2388 - 2026-09-04
 
 **Title:** 🎨 Day columns — an event is a small card (colour bar, time line, two-line title) instead of a truncated one-liner
