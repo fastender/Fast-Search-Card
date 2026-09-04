@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2394 - 2026-09-04
+
+**Title:** 🧹 House chronicle speaks device classes ("Fenster Küche → Offen" instead of "Aktiv"); the About tab's build date is stamped by the build
+
+**Tags:** fix, timeline, notifications, i18n, tooling
+
+1. **Chronicle state texts.** The stream-fed house chronicle (#44: Verlauf tab, "Zuletzt im Haus" tile,
+   the Zen context line) built its texts with `getStateText`, which says "Aktiv/Inaktiv" for every
+   binary sensor — a window read "Fenster Küche Aktiv". The card has had a device-class table for ages
+   (door/window "Offen/Geschlossen", motion "Bewegung/Keine Bewegung", …) that the DeviceCard uses via
+   `translateState`. New shared formula `utils/chronikText.js`: device-class table when the class has
+   an entry → `getStateText` (lights with brightness, switches, climate …) → generic state table → raw
+   state. Used by the stream vault and — new — by the logbook seed: `logbook/get_events` returns state
+   changes without any text (only `state`), so those rows showed "on/off"; they now get the same formula
+   with the device class from the current state. HA's own messages ("wurde ausgelöst") are kept.
+2. **Build date.** The About tab carried a hard-coded "2026.05.24" since May, and `build.sh` copied
+   exactly that line into every release note. The build script now stamps today's date into that row.
+   In this release the stamp still ran after the bundle had been built, so the release note is right
+   while the tab inside v1.1.2394 still shows the old date; the stamp has been moved in front of the
+   bundle build, so from the next release on both agree.
+
+Verified via dev-harness probe (fresh dev server, module import of the chronicle store): stream
+events → "Fenster Küche → Offen", "Garage Bewegung → Bewegung", "Roh → Aktiv" (no device class),
+"Pumpe → Aus"; logbook seed → "Terrassentür → Offen", "Garage Bewegung → Keine Bewegung",
+"Flur → An - 50%", "Abend → wurde ausgelöst" (HA text kept). Build output shows `📅 Build: 2026.09.04`.
+
 ## Version 1.1.2393 - 2026-09-04
 
 **Title:** 🖼️ Roadmap #64 — photo frame: in deep rest the picture behind the clock cycles through the wallpaper folder; Part nine complete
