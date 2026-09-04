@@ -1063,7 +1063,7 @@ Effort stays small; the only new UI is the picker row.
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse | Existing infrastructure, clear daily payoff |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse · #68 Stale-build banner | Existing infrastructure, clear daily payoff |
 | **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #54 Event rules · #55 Person lanes · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
@@ -1754,7 +1754,9 @@ open remainder (dimming, wake sources, schedules, device handoff, ambient conten
 each ship alone. #49's honest-split analysis (what the browser can and cannot do to the panel)
 remains the reference for all of them.
 
-**Shared foundation — one idle service.** Three separate idle clocks run today, each with its own
+**Shared foundation — one idle service.** ✅ *Shipped v1.1.2390 as `utils/leerlaufStore.js`
+(`nachLeerlauf` / `subscribeGeste` / `weckeLeerlauf`); the three clocks below were rewired 1:1.*
+Three separate idle clocks ran before, each with its own
 document-listener set: the decor gate (`data-dekor`, 3 min), the island standby cascade
 (`useIslandStandby`), and the screensaver return (`useZenRueckkehr`). Before the slices below, merge
 them into a single module-level idle store (last gesture + derived stages: decor-still → island
@@ -1762,6 +1764,8 @@ folds → screensaver → deep rest). One listener set instead of three, and the
 exactly one place to hook in. Refactor, invisible, makes everything after it cheap.
 
 ### 61. Deep rest — a second idle stage that dims the locked page
+
+> ✅ **Shipped v1.1.2390** (2026-09-04) — `data-ambient="tief"` after N minutes of stillness on the locked page (default 2, only with the screensaver on): full-screen dim overlay, clock at 72 %, greeting/status/context/grip off, island folded to its centred button; burn-in drift (eight-step pattern off the 15-s clock tick); night coupling to the existing quiet hours (deeper dim, warmer clock tone, shorter return time, no new schedule UI). Settings + ⓘ text under Start Screen → Bildschirmschoner.
 
 **Pitch:** After the screensaver has returned the card to the locked clock page, a further stretch of
 stillness takes it one stage deeper: the wallpaper darkens noticeably, the clock drops to ~60 %
@@ -1857,7 +1861,7 @@ gallery instead of a new media system.
 
 ---
 
-## Part ten — 2026-09-04 household-task research pass (#65–#67)
+## Part ten — 2026-09-04 household-task research pass (#65–#68)
 
 Three household task-manager projects were read end to end. All three are **integrations** with a Python backend, because points, streaks, rotation and habits need per-task persistence that a card cannot hold. What follows is only what works over Home Assistant's standard `todo` platform — the five fields the card actually has: `summary`, `description`, `due`, `status`, `uid`.
 
@@ -1939,12 +1943,50 @@ HA to-do items have no assignee. But the household pattern is one list per perso
 
 ---
 
+---
+
+### 68. Tell me when I am running stale code
+
+**Pitch:** When Home Assistant has a newer build of the card on disk than the one this browser is executing, say so once and offer a reload button. Not "an update is available" — "you already updated, this tab did not".
+
+**Status quo:** The card has no version checking of any kind. Verified: no `latestVersion`, no `updateAvailable`, nothing comparing anything. The version shown in Settings → About is a hardcoded string in `AboutSettingsTab.jsx`; it reports what this bundle *is*, never whether it is current.
+
+**Why this matters more here than for most cards:**
+
+- The card ships as **one bundle of roughly 1.9 MB**. The larger the file, the more stubbornly it sits in a browser cache.
+- **Wall tablets never get a hard refresh.** A kiosk browser keeps one page alive for weeks; nobody presses Ctrl+F5 on a panel screwed to a wall. A stale build can run there indefinitely while the household believes it is up to date.
+- Symptoms are indistinguishable from bugs. "I updated and the new feature isn't there" arrives as a bug report, and both sides then debug the wrong thing.
+
+---
+
+**The constraint that defines this feature.** This must fire **only when the running code is provably stale** — never as an advert that a release exists.
+
+That distinction is not a nicety. The card ships pre-releases continuously and deliberately stays quiet about them; a banner announcing every published version would undo exactly the restraint that policy buys. The message is "your browser is behind what you already installed", which the user can fix with one tap, and it should be impossible to see it while genuinely up to date.
+
+**Three candidate mechanisms, in order of preference:**
+
+1. **Ask Home Assistant what it thinks is installed.** The Lovelace resource registry holds the card's resource URL, and HACS stamps a version onto it. Comparing that against the compiled-in version is precise and cheap: HA says 2400, this code says 2389, therefore the browser is stale. Caveat to check first — reading the resource registry over the websocket may require admin, so a non-admin household member might get nothing.
+2. **Re-fetch the bundle with a cache-buster and read its embedded version.** Precise and permission-free, but it pulls the whole file to learn one string. Acceptable as a once-per-session fallback where route one is unavailable; not acceptable on a timer.
+3. **Compare against the changelog the card already fetches.** `versionsverlauf.md` is pulled from GitHub at runtime and cached in `localStorage` — cheap, already wired. **But it answers the wrong question:** it reports what has been *released*, not what is *installed*. It cannot tell "HACS has not updated yet" apart from "the browser is stale", so it would nag about releases the user never chose. Listed here to be explicitly rejected, not adopted.
+
+**What ships:**
+- A quiet, dismissible line — not a modal — with a **Reload** button that does a cache-busting reload rather than a soft one.
+- Shown **once per detected version change**, not once per session. Dismissing it means dismissed until the next mismatch.
+- A matching state in Settings → About: the version row gains a quiet "up to date" or "reload to finish updating", so the answer exists in the obvious place even if the banner was dismissed.
+- Nothing at all in the normal case. An "up to date ✓" badge that is always present is noise.
+
+**Effort:** Small, once the mechanism is chosen. The choice is most of the work — spend it on confirming whether route one is available to non-admin users, because that determines everything after.
+
+**Why it fits:** It removes a class of bug report that costs both sides real time, and it is the only place where saying something about versions is unambiguously welcome — because the user already asked for the update by installing it.
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **65 feature ideas + 2 parallel/long-term tracks** = 67 entries total.
+- The roadmap covers **66 feature ideas + 2 parallel/long-term tracks** = 68 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -1954,4 +1996,4 @@ HA to-do items have no assignee. But the household pattern is one list per perso
   - **#44–#45** — August 2026. #44 prompted by [home-status](https://github.com/biggiebytes/home-status) (MIT), which arrived independently at the same "surface only what matters" thesis — concept borrowed, nothing copied. #45 came out of answering a forum question incorrectly and checking the code afterwards. #46-#48 came from reading Calendar Card Pro's feature docs — ideas only, nothing taken from its code. #49 is the settings surface for #9, modelled on what dedicated wall panels already offer. #50-#52 came from studying a mature camera-gallery card — ideas only. #53-#55 came from two family-calendar cards; #55 also answers a gap a forum user named directly.
   - **#56–#60** — 2026-08-24 code-analysis pass after the v1.1.2353–2361 UI rounds: seams the new code itself exposed (stale todos, the typing loop as an information surface, notification lanes without human sources, one-period charts, irreversible deletes).
   - **#61–#64** — 2026-08-27 screensaver expansion pass. v1.1.2369 shipped the pragmatic core of #9/#49 (idle → locked Zen page); these slice the open remainder — deep-rest dimming with quiet-hours coupling, wake sources, display handoff, photo frame — into individually shippable steps, on a shared idle-service foundation that consolidates the card's three existing idle clocks.
-  - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. Ideas only.
+  - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. #68 came from the discussion under one of those projects rather than its README — a user stuck on a cached build after updating. Ideas only.

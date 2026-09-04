@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.2390 - 2026-09-04
+
+**Title:** 🌙 Roadmap #61 — deep rest: the locked clock page dims after further stillness; one idle service replaces three idle clocks
+
+**Tags:** feature, screensaver, wall-tablet, thermal, settings
+
+Part nine of the roadmap begins. Two things in one release, in the order the roadmap asked for:
+
+1. **The foundation — one idle service** (`utils/leerlaufStore.js`). The decor gate (3 min, `data-dekor`),
+   the island standby cascade (`useIslandStandby`) and the screensaver return (`useZenRueckkehr`) each
+   ran their own document listener trio (pointerdown / wheel / keydown). Now there is one listener set
+   and any number of timers: `nachLeerlauf(ms, cb)` arms a timer now, every gesture re-arms it, after
+   firing it rests until the next gesture (no periodic tick). `ms` may be a function asked at every
+   arming. `subscribeGeste(fn)` is the immediate wake call, `weckeLeerlauf(source)` is the entry point
+   for the wake sources of #62 — a sensor counts like a gesture. The three consumers were rewired 1:1.
+2. **Deep rest** (`hooks/useTiefeRuhe.js`, `utils/tiefeRuheStore.js`). When the screensaver has returned
+   the card to the locked clock page and it stays quiet for another N minutes (default 2), the card
+   steps one stage deeper: a full-screen dim overlay (one fixed element on `<body>`, opacity 0.45,
+   pointer-events none — the tap goes through), the clock at 72 %, date / status / greeting / context
+   line / grip fade out, the grip's breathing pauses, and the island folds to its button, alone and
+   centred under the clock. **Burn-in protection:** the text block drifts by a few pixels every three
+   minutes through an eight-step pattern read off the existing 15-second clock tick — one transform
+   change per slot, no extra timer. Any gesture lifts it to the normal locked page; only the usual
+   swipe reveals. Attribute rail: `data-ambient="tief"` / `data-nacht="ja"` on the main container.
+3. **Night coupling without a new schedule.** Inside the notifications' quiet hours the dim is deeper
+   (0.62) with a warmer clock tone, and the screensaver returns after a shorter time (default 1 min
+   instead of the day value) — the return duration is now a function evaluated at each arming.
+4. **Settings** under Start Screen → Bildschirmschoner: "Tiefe Ruhe" toggle (default on, only with the
+   screensaver) + "Tiefe Ruhe nach" (30 s … 15 min), "Nachts früher und dunkler" toggle + "Nachts zurück
+   nach" (30 s … 5 min); the night row shows a hint when quiet hours are off. Stored under
+   `startScreen.zenRueckkehr.tief` / `.nacht`. The `zenRueckkehr` ⓘ popup (de/en) gained the two
+   paragraphs; catalog updated. Texts `ui.settings.deepRest*` / `night*` (de+en).
+
+Verified via dev-harness probe (return 1.5 s, deep rest 1.2 s, decor 0.9 s): after 3 s of stillness
+`data-ambient="tief"`, overlay 0.45, clock 0.72, greeting/grip 0, island `knopf`, decor `still`,
+drift set; a tap lifts everything (overlay 0, island `mini`, decor `wach`) without revealing; 2 s later
+deep rest again; the reveal swipe lifts it immediately; the screensaver returns through the service
+after ≈1.5 s and deep rest follows. Night run with quiet hours covering now: `data-nacht="ja"`, overlay
+0.62, clock rgb(242,223,196) at 0.66, return after ≈0.7 s. Screenshot of the dimmed page.
+
 ## Version 1.1.2389 - 2026-09-04
 
 **Title:** 📐 The height ladder — the card fits low wall tablets in measured stages instead of cutting off at the bottom (the #48 ladder ported to the Bento grid)

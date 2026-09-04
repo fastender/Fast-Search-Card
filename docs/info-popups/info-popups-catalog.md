@@ -760,6 +760,10 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 > NEU v1.1.2369 (Roadmap #9/#49, pragmatischer Kern): Bildschirmschoner-Sektion
 > im Start-Screen-Tab — Schalter + Zeit-Zeile (Tipp wechselt den Wert).
+> v1.1.2390 (Roadmap #61): tiefe Ruhe (Schalter + „Tiefe Ruhe nach") und
+> Nachtkopplung (Schalter + „Nachts zurück nach", Hinweis wenn Ruhezeiten aus)
+> als Zeilen unter dem Schoner; Text um die Absätze „Tiefe Ruhe" und „Nachts"
+> erweitert, „Warum wichtig" um den Nacht-Satz.
 
 **DE**
 > ## Bildschirmschoner
@@ -770,7 +774,11 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück.
 >
-> *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds.
+> **Tiefe Ruhe** – die zweite Stufe: Bleibt es nach der Rückkehr weiter still, dunkelt der Bildschirm, die Uhr wird blasser, Gruß und Statuszeile treten ab und die Insel faltet sich zum Knopf. Die Uhr rückt dabei alle paar Minuten um ein paar Pixel (Einbrennschutz). Ein Tipp holt die normale Uhrseite zurück; aufgedeckt wird wie immer erst mit der Bewegung.
+>
+> **Nachts** – in den Ruhezeiten der Meldungen – kehrt die Karte schneller zurück und dunkelt tiefer. Das nutzt das vorhandene Zeitfenster, ohne eigenen Zeitplan.
+>
+> *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds. Und ein Bildschirm, der die ganze Nacht hell leuchtet, ist kein Ruhebild.
 
 **EN**
 > ## Screensaver
@@ -781,7 +789,11 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Every touch, scroll or key press resets the wait.
 >
-> *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face.
+> **Deep rest** – the second stage: if it stays quiet after the return, the screen dims, the clock fades, greeting and status line step back and the island folds to its button. The clock shifts by a few pixels every few minutes (burn-in protection). A tap brings the normal clock page back; revealing still takes the usual gesture.
+>
+> **At night** – during the notifications' quiet hours – the card returns sooner and dims deeper. It reuses that time window; there is no separate schedule.
+>
+> *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face. And a screen glowing at full brightness all night is no resting face.
 
 ## islandStandby
 
