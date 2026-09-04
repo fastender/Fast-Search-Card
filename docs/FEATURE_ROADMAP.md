@@ -1523,7 +1523,7 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 
 ### 53. Calendar groups — one toggle for several calendars
 
-> ✅ **Shipped v1.1.2379** (2026-09-03) — groups layer with stable ids, one-switch rows in the settings (members collapse into their group), editor (name / palette / members / dissolve), group colour precedence, chip row in the calendar view, Bento widget honours visibility + colours. Not built: a per-group icon (the colour carries the identity; an icon can join with #55's person lanes).
+> ✅ **Shipped v1.1.2379** (2026-09-03) — groups layer with stable ids, one-switch rows in the settings (members collapse into their group), editor (name / palette / members / dissolve), group colour precedence, chip row in the calendar view, Bento widget honours visibility + colours. **v1.1.2385:** optional per-group icon (twelve-glyph set), shown in the settings row and on the chip.
 
 **Pitch:** Name a group, put several calendar entities in it, give it a colour and an icon. The settings list and any per-calendar filter then show the group instead of its members.
 
@@ -1545,7 +1545,7 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 
 ### 54. Event rules — colour, mark and hide events by what they are
 
-> ✅ **Shipped v1.1.2380** (2026-09-03) — the four forms (title contains / from calendar or group / all-day / past) with colour, icon, dim, day chip and hide; per-property resolution by rank exactly as sketched; sentence-style rows with ▲▼ rank. Deliberately not built: description/location matching, exact/regex modes and all/any/not combinators — the forms cover the worked list, and a grammar would surface as a programming environment.
+> ✅ **Shipped v1.1.2380** (2026-09-03) — the four forms (title contains / from calendar or group / all-day / past) with colour, icon, dim, day chip and hide; per-property resolution by rank exactly as sketched; sentence-style rows with ▲▼ rank. Deliberately not built: exact/regex modes and all/any/not combinators — the forms cover the worked list, and a grammar would surface as a programming environment. **v1.1.2385:** the text form can target title, location, description or anywhere.
 
 **Pitch:** "Anything with 'Geburtstag' in the title gets a cake icon." "Events from the bins calendar show as a badge on the day, not a row." "Hide anything titled 'Declined'." Rules that match on what an event *is*, not on which calendar it came from.
 

@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2385 - 2026-09-04
+
+**Title:** ✨ Calendar leftovers — text rules may match the location, the description or anywhere; groups can carry an icon
+
+**Tags:** feature, calendar, settings
+
+1. **Rules (#54)**: the "Titel enthält" form gained a field choice under the text — *Titel*
+   (default, unchanged for existing rules) · *Ort* · *Beschreibung* · *Überall*. "Praxis" in the
+   location now tints the dentist, "Überall" also catches it in a description. The rule row reads
+   accordingly ("Ort enthält „Praxis""). Still no regex or and/or — the forms stay forms.
+2. **Groups (#53)**: optional icon from the same twelve-glyph set as the rules ("Symbol" in the group
+   editor); shown before the name in the settings row and on the calendar chip ("🏫 Schule").
+3. Texts `ui.calendar.ruleField*`, `ruleContains`, `groupIcon` (de+en); the `calEventRules` popup
+   mentions the fields, catalog updated.
+
+Verified via dev-harness probe: rule "Praxis" + 🩺 with field Titel → no match; field Ort → "🩺
+Zahnarzt" (location "Praxis Dr. Meier"); field Überall → both events (Standup via its description);
+group "Schule" with 🏫 → settings row "🏫 Schule" and chip "🏫 Schule".
+
 ## Version 1.1.2384 - 2026-09-04
 
 **Title:** ✨ Roadmap #44 complete — the Bento tile "Zuletzt im Haus" (stream-fed, no polling) and the last house event as a context line on the locked page

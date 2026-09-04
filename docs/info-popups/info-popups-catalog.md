@@ -1354,7 +1354,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Regeln färben, markieren oder verstecken Termine nach dem, **was** sie sind — nicht nur, woher sie kommen.
 >
-> - **Wenn** – eine von vier Bedingungen: *Titel enthält* („Geburtstag"), *aus Kalender / Gruppe*, *ganztägig*, *vergangen*.
+> - **Wenn** – eine von vier Bedingungen: *Titel enthält* („Geburtstag" – wahlweise im Titel, Ort, in der Beschreibung oder überall), *aus Kalender / Gruppe*, *ganztägig*, *vergangen*.
 > - **Dann** – Farbe, Symbol (🎂 🗑️ …), *abgeblendet*, *als Tages-Chip statt Zeile* (klein am Tag im Monatsgitter) oder *ausblenden*.
 > - **Rang** – die Reihenfolge der Liste. Passt mehr als eine Regel, gewinnt je Eigenschaft die oberste, die sie setzt: eine Regel, die nur ein Symbol setzt, legt sich sauber über eine, die nur färbt.
 > - Kein Regel-Editor mit „und/oder": vier Formulare decken ab, was man wirklich braucht.
@@ -1366,7 +1366,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Rules colour, mark or hide events by **what** they are — not just where they come from.
 >
-> - **When** – one of four conditions: *title contains* ("Birthday"), *from calendar / group*, *all-day*, *past*.
+> - **When** – one of four conditions: *title contains* ("Birthday" – in the title, location, description or anywhere), *from calendar / group*, *all-day*, *past*.
 > - **Then** – colour, icon (🎂 🗑️ …), *dimmed*, *as day chip instead of row* (small on the day in the month grid) or *hide*.
 > - **Rank** – the order of the list. If several rules match, the topmost rule that sets a property wins for that property: a rule that only sets an icon layers cleanly over one that only colours.
 > - No rule editor with "and/or": four forms cover what people actually need.
