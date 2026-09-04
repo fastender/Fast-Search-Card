@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2393 - 2026-09-04
+
+**Title:** 🖼️ Roadmap #64 — photo frame: in deep rest the picture behind the clock cycles through the wallpaper folder; Part nine complete
+
+**Tags:** feature, screensaver, wall-tablet, wallpaper, settings
+
+The Nest-Hub moment, built on what the card already had: the gallery's folder listing
+(`browseImageFolder` via `media_source/browse_media`), `resolveMediaUrl` (signed URLs expire, so every
+change resolves afresh and no URL is ever stored) and `applyFullscreenWallpaper`, which sets and holds
+Home Assistant's view background.
+
+1. **Behaviour** (`utils/fotorahmen.js`): when deep rest (#61) begins and the frame is on, the folder
+   is listed (cached for 30 min per folder) and the first picture is shown; every N minutes (default
+   3) the next one follows — in folder order or random (never the same twice in a row). On wake
+   `applyWallpaperFromSettings()` restores the chosen wallpaper or HA's original. Only image entries
+   count; sub-folders and other files are skipped.
+2. **The change is a dip through dark**, not a cross-fade: HA's background is one element and
+   `background-image` is not animatable, so the deep-rest overlay closes to 0.92 in 420 ms, the picture
+   swaps behind it, and it reopens to the rest level in 1.1 s (`tiefeRuheStore.blende`). Two opacity
+   transitions per change, nothing moving in between — the thermal rule stands.
+3. **Settings** under Start Screen → Bildschirmschoner (with deep rest on): "Fotorahmen" toggle
+   (default **off** — it replaces the wallpaper), "Bildwechsel alle" (1 … 15 min), "Zufällige
+   Reihenfolge", and a folder field (empty = the wallpaper folder from Appearance → Background; same
+   media-source rule as the gallery: the label is the last path segment). Stored under
+   `startScreen.zenRueckkehr.fotorahmen`. ⓘ text gained the "Fotorahmen" paragraph (de/en); catalog
+   updated. Texts `ui.settings.photoFrame*` (de+en).
+
+Verified via dev-harness probe (mock media source with a.jpg / b.jpg / c.png / a text file / a
+sub-folder, a stand-in `hui-view-background` element, deep rest 1 s, interval 5 s, folder order): on
+entry `--view-background` = a.jpg (one browse, one resolve); after the interval b.jpg with the overlay
+back at 0.45 and the listing still cached; a tap restores the empty original background; the next deep
+rest continues with c.png, then a.jpg. Settings rows and the folder field render.
+
+With #64, Part nine of the roadmap (#61–#64) is complete: idle service, deep rest with night coupling,
+wake sources, display handoff, photo frame.
+
 ## Version 1.1.2392 - 2026-09-04
 
 **Title:** 🖥️ Roadmap #63 — display handoff: the card switches the real screen off on sleep and on on wake; About tab now states the GPL licence

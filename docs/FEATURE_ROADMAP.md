@@ -1748,6 +1748,8 @@ settings row).
 
 ## Part nine — 2026-08-27 screensaver expansion pass (#61–#64)
 
+> ✅ **All four shipped 2026-09-04** — foundation + #61 (v1.1.2390), #62 (v1.1.2391), #63 (v1.1.2392), #64 (v1.1.2393).
+
 v1.1.2369 shipped the pragmatic core of #9/#49: after configurable idle the card tidies itself up and
 returns to the **locked Zen start page** — that page *is* the ambient face now. This pass slices the
 open remainder (dimming, wake sources, schedules, device handoff, ambient content) into steps that
@@ -1844,6 +1846,8 @@ and the step that turns the screensaver from decoration into real panel control.
 ---
 
 ### 64. Photo frame — the deep-rest slideshow
+
+> ✅ **Shipped v1.1.2393** (2026-09-04) — `utils/fotorahmen.js` on the deep-rest moments: folder listing via the gallery's media-source path (cached), fresh `resolveMediaUrl` per change, `applyFullscreenWallpaper` for the swap, `applyWallpaperFromSettings` on wake. The change is a dip through the dim overlay rather than a cross-fade (one background element, `background-image` not animatable). Toggle (default off) + interval + random + folder field under Start Screen → Bildschirmschoner. **Part nine (#61–#64) complete.**
 
 **Pitch:** In deep rest the locked page cycles through the user's wallpaper folder — the Nest-Hub
 moment. The clock stays; the picture behind it changes every few minutes.
