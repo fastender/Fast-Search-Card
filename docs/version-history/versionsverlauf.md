@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2400 - 2026-09-05
+
+**Title:** 🪟 STABLE release — the first since 1.1.2330 (8 August 2026); everything from 1.1.2331 to 1.1.2399 reaches every HACS user
+
+**Tags:** release, stable
+
+No code changes beyond the version bump. Published with `--latest` (not a pre-release), so HACS shows it
+to everyone; the GitHub release carries a hand-written summary of the window since the last stable:
+the height ladder and the complete screensaver line (deep rest, wake sources, display handoff, photo
+frame), the stale-code line, reminders / weather alerts / context lines / critical tone in the
+notification lane, the house timeline, the calendar family (groups, rules, person lanes, day columns,
+all-day timezone fix), the to-dos round (live updates, undo, overdue stacking, search-before-add, person
+per list, dictation), chart period comparison, the audit round under the hood, and the licence display
+(GPL-3.0). Per-build detail: the entries below.
+
 ## Version 1.1.2399 - 2026-09-05
 
 **Title:** 🎙️ Roadmap #66 — dictate a task (Assist speech-to-text, browser recognition as fallback); two fixes: profiles could not be saved, stale caret in the search bar. Part ten complete.
