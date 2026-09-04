@@ -764,6 +764,9 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > Nachtkopplung (Schalter + „Nachts zurück nach", Hinweis wenn Ruhezeiten aus)
 > als Zeilen unter dem Schoner; Text um die Absätze „Tiefe Ruhe" und „Nachts"
 > erweitert, „Warum wichtig" um den Nacht-Satz.
+> v1.1.2391 (Roadmap #62): Weckquellen-Zeilen („Wecken durch": Bewegung/
+> Anwesenheit-Picker mehrfach, Schalter kritische Meldung, Türklingel-Picker,
+> Schalter „Bei Abwesenheit früher zurück"); Text um den Absatz „Wecken" erweitert.
 
 **DE**
 > ## Bildschirmschoner
@@ -777,6 +780,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **Tiefe Ruhe** – die zweite Stufe: Bleibt es nach der Rückkehr weiter still, dunkelt der Bildschirm, die Uhr wird blasser, Gruß und Statuszeile treten ab und die Insel faltet sich zum Knopf. Die Uhr rückt dabei alle paar Minuten um ein paar Pixel (Einbrennschutz). Ein Tipp holt die normale Uhrseite zurück; aufgedeckt wird wie immer erst mit der Bewegung.
 >
 > **Nachts** – in den Ruhezeiten der Meldungen – kehrt die Karte schneller zurück und dunkelt tiefer. Das nutzt das vorhandene Zeitfenster, ohne eigenen Zeitplan.
+>
+> **Wecken** – neben der Berührung können gewählte Signale wecken: Bewegung oder Anwesenheit hebt die tiefe Ruhe um eine Stufe (auf die normale Uhrseite, nie bis zur aufgedeckten Seite), eine kritische Meldung weckt immer, eine Türklingel ebenso. Und umgekehrt: Sind alle gewählten Sensoren aus, ist niemand da – dann kehrt die Karte schneller zurück.
 >
 > *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds. Und ein Bildschirm, der die ganze Nacht hell leuchtet, ist kein Ruhebild.
 
@@ -792,6 +797,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **Deep rest** – the second stage: if it stays quiet after the return, the screen dims, the clock fades, greeting and status line step back and the island folds to its button. The clock shifts by a few pixels every few minutes (burn-in protection). A tap brings the normal clock page back; revealing still takes the usual gesture.
 >
 > **At night** – during the notifications' quiet hours – the card returns sooner and dims deeper. It reuses that time window; there is no separate schedule.
+>
+> **Waking** – besides touch, chosen signals can wake the card: motion or presence lifts deep rest by one stage (to the normal clock page, never to the revealed page), a critical alert always wakes, a doorbell too. And the inverse: if all chosen sensors are off, nobody is home – then the card returns sooner.
 >
 > *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face. And a screen glowing at full brightness all night is no resting face.
 

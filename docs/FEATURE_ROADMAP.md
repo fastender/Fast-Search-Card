@@ -1794,6 +1794,8 @@ piece that makes an always-on wall tablet livable at night.
 
 ### 62. Wake sources — sensors and alerts wake the screensaver
 
+> ✅ **Shipped v1.1.2391** (2026-09-04) — `utils/weckquellen.js` on the state stream: motion/presence entities (edge off → on/home, one stage up: deep rest → locked page, never revealed), critical alerts (toggle, always through), a doorbell entity (binary_sensor / event / button), and the inversion — all chosen presence entities off shortens the screensaver return to the night time. Settings rows under Start Screen → Bildschirmschoner (multi-select motion picker, critical toggle, doorbell picker, away toggle). Doorbell → camera coupling waits for #4.
+
 **Pitch:** Besides touch, chosen HA signals wake the resting card: motion in the room lifts deep
 rest, a critical alert always breaks through, a doorbell rings the display awake.
 

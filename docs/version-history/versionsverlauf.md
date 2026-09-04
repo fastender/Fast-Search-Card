@@ -1,5 +1,42 @@
 # Versionsverlauf
 
+## Version 1.1.2391 - 2026-09-04
+
+**Title:** 🔔 Roadmap #62 — wake sources: motion, a doorbell and critical alerts wake the resting card; "nobody home" shortens the return
+
+**Tags:** feature, screensaver, wall-tablet, settings, notifications
+
+The first consumer of the idle service's `weckeLeerlauf(source)`: a chosen Home Assistant signal counts
+like a touch — every idle timer re-arms, deep rest lifts — and nothing gets revealed.
+
+1. **Sources** (`utils/weckquellen.js`, settings under `startScreen.zenRueckkehr.wecken`):
+   - **Motion / presence** — any number of entities (binary_sensor motion / occupancy / presence /
+     moving, `person.*`, `device_tracker.*`). Only the edge off → on/home wakes; a sensor that stays on
+     does not keep waking. **Stage discipline:** deep rest → the normal locked clock page, never the
+     revealed page.
+   - **Critical alert** (toggle, default on) — a new severity-1 notification wakes regardless of tone
+     or quiet hours ("safety beats rest"); the CriticalBanner stands on full brightness. Hooked where
+     the lane diff already plays the critical tone (`useNotificationLane`).
+   - **Doorbell** — one entity: `binary_sensor` (edge off → on), `event.*` or `button.*` (state = last
+     trigger timestamp changes). Until the camera live-view (#4) exists it simply wakes.
+   - **The inversion for free** (toggle, shown once motion entities are chosen): if every chosen
+     motion/presence entity is off / not home, nobody is home — the screensaver returns after the short
+     night time instead of the day value. Evaluated at every arming of the return timer.
+2. **Stream gate:** `useEntityStream` calls `beobachteWeckquellen()` for every `state_changed`; the
+   first thing it does is a Set lookup on the configured ids, so the cost is nil for the rest.
+3. **Settings** under Start Screen → Bildschirmschoner, below the night rows: "Wecken durch — Berührung
+   weckt immer, dazu wahlweise:", motion picker (multi-select, "n gewählt"), critical toggle, doorbell
+   picker (doorbell-named entries first), "Bei Abwesenheit früher zurück". The `zenRueckkehr` ⓘ text
+   gained the "Wecken" paragraph (de/en); catalog updated. Texts `ui.settings.wake*` (de+en).
+
+Verified via dev-harness probe (stream callback captured through a patched mock connection): after
+stillness `data-ambient="tief"`; motion off → on → `wach`, page still locked, island `mini`; on → on does
+not wake and deep rest returns; doorbell off → on → `wach`; a smoke sensor turning on (danger whitelist →
+critical) → `wach`; return after reveal with the motion sensor off = 690 ms (short time 700), with it on
+= 1501 ms (day value 1500). Settings probe: "Wecken durch" rendered, two motion candidates listed,
+selecting a person stores `bewegung: [flur, person.ender]`, doorbell picker lists the bell. Screenshot
+of the settings rows.
+
 ## Version 1.1.2390 - 2026-09-04
 
 **Title:** 🌙 Roadmap #61 — deep rest: the locked clock page dims after further stillness; one idle service replaces three idle clocks
