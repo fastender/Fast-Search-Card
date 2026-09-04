@@ -10,13 +10,13 @@ Concrete feature proposals tied to open threads in the session notes, unused HA 
 
 ## Original ten — status check
 
-The first ten proposals from May 2026 are still mostly open, with three partial deliveries:
+The first ten proposals from May 2026 — status refreshed 2026-09-04: one shipped (#3), three partial (#6, #9, #49), the rest open:
 
 | # | Idea | Status |
 |---|---|---|
 | 1 | LLM conversation | open — mock still in place |
 | 2 | Spotlight / Cmd+K | open |
-| 3 | Notification Center system entity | open |
+| 3 | Notification Center system entity | **shipped** — v1.1.2156–2169 (three lanes, center, banner, watches, quiet hours), tests v2199; human sources #58/#28 and the timeline tab #44 built on it in Sept 2026 |
 | 4 | Camera live-view system entity | open |
 | 5 | Floorplan / map view | open |
 | 6 | Energy cost tracking | **partial** — Energy Dashboard polished v1862–1865, cost layer not built |
@@ -937,6 +937,8 @@ Effort stays small; the only new UI is the picker row.
 
 ### 29. Live Activities strip
 
+> ✅ **Shipped v1.1.2161** (strip above the Bento grid: timer/vacuum/cover/media/script/automation, hold-then-prune, tap → device), **v1.1.2164** (per-source settings incl. opt-in light/switch/climate), **v1.1.2205** (the "Live" tab of the Notification Center shares the source). Marker added in the 2026-09-04 status pass. Open from the sketch: long-press stop/cancel, non-Bento placement.
+
 **Pitch:** A horizontal "Live" strip above the grid for any automation, script, timer, or vacuum currently in a non-idle state.
 
 **Status quo:** Apple Wallet boarding-pass Live Activities (iOS 26) is the pattern. HA has no equivalent surface — running automations/timers are invisible unless you happen to look at their detail view.
@@ -1099,6 +1101,8 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 ### 36. Playwright-WebKit smoke + visual-regression harness (closes QUALITY Gap 1)
 
+> ◐ **Partial — v1.1.2191 onward**: a committed Playwright harness exists (`tests/harness/card.js` mock-hass mount + 111 serial Chromium tests covering every visible surface, ~8 min) and WebKit is installable locally for one-off checks. Not built: the cross-engine visual-regression assertions for the glass regressions named below. Marker added in the 2026-09-04 status pass.
+
 **Pitch:** Turn the ad-hoc WebKit tooling into a committed test suite. Boot the card with a mock hass, open the detail view per domain, screenshot across Chromium+WebKit, assert the known glass regressions ("blur flat during transform", "nested backdrop-filter", "url() filter WebKit-only") don't reappear.
 
 **Hook (verified):** `playwright ^1.61.1` is already in devDependencies (added for the v2091 WebKit refraction verification) but there is **no committed `tests/` dir** — it's thrown away after each use. The dev-mode mock-hass harness (v2082) is the fixture. This is the *only* idea that closes **QUALITY.md Gap 1** (automated tests — the single blocker for Bronze/Silver/Gold-equivalent) **and** the recurring glass-QA pain in one move.
@@ -1146,6 +1150,8 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 **Effort:** Small to medium.
 
 ### 42. Fix `DeviceCard.isEntityActive(device)` always-false bug
+
+> ⏸ **Deliberately kept** (decision recorded in the 2026-06-25 cleanup audit, reaffirmed 2026-09-04): the surrounding card styling leans on the always-false result, and the v1704 fix had to be reverted in v1705. It stays on the list as "small fix, medium per-domain visual verification" — not forgotten, just not free.
 
 **Pitch:** Not a feature — a verified latent bug worth a slot per the "cleanups find real bugs" pattern (SolarCarousel, initialTabName, dev-mode blank).
 
