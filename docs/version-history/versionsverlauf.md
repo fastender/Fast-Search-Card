@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2384 - 2026-09-04
+
+**Title:** ✨ Roadmap #44 complete — the Bento tile "Zuletzt im Haus" (stream-fed, no polling) and the last house event as a context line on the locked page
+
+**Tags:** feature, bento, timeline, ambient
+
+1. **`utils/hausChronikStore.js`** — the stock of the latest house events, **fed by the stream**:
+   seeded once per connection from today's logbook (one request), then appended from the
+   `state_changed` stream the card already holds — cheap gates only (readable state transition,
+   no continuous values with a unit, noise domains out, exclusion list cached per entity), state text
+   via the card's own `getStateText`, listeners woken at most every 250 ms, capped at 200. No timer,
+   no fetch in the tile — the slider remounts tiles every ten seconds, and a request per remount
+   would be exactly the runner six thermal rounds removed.
+2. **Tile** (`BentoRichTimeline`): the rich variant of the **Mitteilungen** entity in the middle
+   slot (W2) — pick "Mitteilungen" for W2 and get "Zuletzt im Haus": unread badge in the head, the
+   last five events (time · icon · name · what), flap chains folded ("Fenster · 4×"). Row tap opens
+   the device; tile tap opens the center **on the Verlauf tab** (pending-tab seam). Opt-in by slot
+   choice — no default slot changes, nothing added to the slider rotation.
+3. **Locked page**: the context line gained a third truth — "Zuletzt: Haustür verriegelt · 21:42"
+   (only within the last 12 h), rotating with events and tasks.
+
+Verified via dev-harness probe (W2 = notifications, patched connection): after seeding two logbook
+rows and the badge "2" with exactly one logbook request; streaming a light change, four window
+toggles, a humidity value and a sun change → "Fenster · 4×" and "Wohnzimmer Licht · Aus" on top,
+the noise absent; context line "Zuletzt: Fenster … · 13:41" among the truths; row tap →
+`fsc-open-entity` for the window sensor; tile tap → the center opened with the chronicle chips.
+
 ## Version 1.1.2383 - 2026-09-04
 
 **Title:** ✨ Roadmap #44, stage 2 — the house timeline gets its filter axes, flap folding, "durch wen" and an honest header count
