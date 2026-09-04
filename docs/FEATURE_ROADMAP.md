@@ -1821,6 +1821,8 @@ idle-service refactor.
 
 ### 63. Display handoff — services on sleep and wake
 
+> ✅ **Shipped v1.1.2392** (2026-09-04) — `utils/displayUebergabe.js` on the deep-rest moments (#61): screen entity off + sleep script on entry, on + wake script on lift (wake only after an own sleep). Conflict rule as a settings hint (kiosk app's own screensaver off); the screen entity doubles as a wake source (#62) so the app turning the display on lifts the card's rest. Settings + ⓘ paragraph under Start Screen → Bildschirmschoner.
+
 **Pitch:** Two optional HA actions — one fired when the screensaver locks the page, one on wake — so
 the card can drive the panel's *real* display: Fully Kiosk's screen light entity, Wallpanel, or any
 helper script. The card stops pretending CSS black is "off" and becomes the conductor instead.

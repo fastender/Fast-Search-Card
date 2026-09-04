@@ -1,5 +1,39 @@
 # Versionsverlauf
 
+## Version 1.1.2392 - 2026-09-04
+
+**Title:** 🖥️ Roadmap #63 — display handoff: the card switches the real screen off on sleep and on on wake; About tab now states the GPL licence
+
+**Tags:** feature, screensaver, wall-tablet, kiosk, settings, docs
+
+1. **Display handoff** (`utils/displayUebergabe.js`). A browser cannot switch a display off (#49's
+   honest split), so the card becomes the conductor: on the **entry into deep rest** it turns a chosen
+   screen entity off (switch / light / input_boolean — Fully Kiosk's "Screen", a Wallpanel helper …) and
+   runs an optional script; on the **lift** it turns the entity on and runs the wake script. Wake only
+   fires after an own sleep, so loading the card never switches on what nobody switched off. Whoever
+   wants the display off sooner sets "Tiefe Ruhe nach" shorter — one moment pair, no second timer.
+2. **Conflict rule made explicit:** card screensaver *or* device handoff — the card's idle timer drives
+   both; the settings show the hint to turn the kiosk app's own screensaver off once a screen entity is
+   chosen. And the screen entity is a **wake source** at the same time: if the kiosk app turns the
+   display on itself (its own motion detection), the card lifts deep rest with it; the card's own
+   turn_on arrives on the same path but finds the rest already lifted — no loop.
+3. **Settings** under Start Screen → Bildschirmschoner (shown while deep rest is on): "Display-Übergabe"
+   with pickers for the screen entity (screen/kiosk/tablet-named entries first), "Beim Schlafen
+   ausführen" and "Beim Wecken ausführen" (scripts), plus the conflict hint. Stored under
+   `startScreen.zenRueckkehr.uebergabe`. The `zenRueckkehr` ⓘ text gained the "Display-Übergabe"
+   paragraph (de/en); catalog updated. Texts `ui.settings.handoff*` (de+en).
+4. **Licence display corrected.** The About tab still showed "MIT"; the repository's LICENSE has been
+   the GNU GPL v3 for a while and the switch was public — the card's own display had been overlooked.
+   Now "GPL-3.0"; the HACS info page (`info.md`) said "MIT License" too and now names the GPL with a
+   link to LICENSE. (Reported by the user.)
+
+Verified via dev-harness probe (deep rest 1 s, screen `switch.tablet_screen`, scripts `gute_nacht` /
+`guten_morgen`): after mount no service calls; deep rest → `homeassistant.turn_off(switch.tablet_screen)`
++ `script.turn_on(script.gute_nacht)`; a tap → `turn_on` + `guten_morgen`; deep rest again → off +
+night script; the switch going off → on from outside (stream) → rest lifted, `turn_on` + morning
+script. Settings: "Display-Übergabe" rendered with the conflict hint, the screen entity listed first.
+`GPL-3.0` present in the built bundle, no `MIT` value left.
+
 ## Version 1.1.2391 - 2026-09-04
 
 **Title:** 🔔 Roadmap #62 — wake sources: motion, a doorbell and critical alerts wake the resting card; "nobody home" shortens the return

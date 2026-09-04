@@ -767,6 +767,9 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > v1.1.2391 (Roadmap #62): Weckquellen-Zeilen („Wecken durch": Bewegung/
 > Anwesenheit-Picker mehrfach, Schalter kritische Meldung, Türklingel-Picker,
 > Schalter „Bei Abwesenheit früher zurück"); Text um den Absatz „Wecken" erweitert.
+> v1.1.2392 (Roadmap #63): Display-Übergabe-Zeilen (Bildschirm-Entity, Skript beim
+> Schlafen, Skript beim Wecken, Konflikt-Hinweis) unter der tiefen Ruhe; Text um den
+> Absatz „Display-Übergabe" erweitert.
 
 **DE**
 > ## Bildschirmschoner
@@ -782,6 +785,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **Nachts** – in den Ruhezeiten der Meldungen – kehrt die Karte schneller zurück und dunkelt tiefer. Das nutzt das vorhandene Zeitfenster, ohne eigenen Zeitplan.
 >
 > **Wecken** – neben der Berührung können gewählte Signale wecken: Bewegung oder Anwesenheit hebt die tiefe Ruhe um eine Stufe (auf die normale Uhrseite, nie bis zur aufgedeckten Seite), eine kritische Meldung weckt immer, eine Türklingel ebenso. Und umgekehrt: Sind alle gewählten Sensoren aus, ist niemand da – dann kehrt die Karte schneller zurück.
+>
+> **Display-Übergabe** – ein Browser kann das Display nicht selbst abschalten. Dafür kann die Karte beim Eintritt in die tiefe Ruhe eine Bildschirm-Entity ausschalten (etwa „Screen" von Fully Kiosk) und ein Skript ausführen, beim Wecken das Gegenteil. Dann führt die Karte das Display – der eigene Schoner der Kiosk-App gehört aus, sonst kämpfen zwei um ein Display. Schaltet die App das Display selbst ein, wacht die Karte mit auf.
 >
 > *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds. Und ein Bildschirm, der die ganze Nacht hell leuchtet, ist kein Ruhebild.
 
@@ -799,6 +804,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **At night** – during the notifications' quiet hours – the card returns sooner and dims deeper. It reuses that time window; there is no separate schedule.
 >
 > **Waking** – besides touch, chosen signals can wake the card: motion or presence lifts deep rest by one stage (to the normal clock page, never to the revealed page), a critical alert always wakes, a doorbell too. And the inverse: if all chosen sensors are off, nobody is home – then the card returns sooner.
+>
+> **Display handoff** – a browser cannot switch the display off itself. Instead, when deep rest begins the card can turn a screen entity off (such as Fully Kiosk's "Screen") and run a script, and do the opposite on wake. The card then drives the display – the kiosk app's own screensaver belongs off, or two fight over one display. If the app turns the display on itself, the card wakes with it.
 >
 > *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face. And a screen glowing at full brightness all night is no resting face.
 
