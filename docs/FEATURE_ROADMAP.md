@@ -1344,7 +1344,7 @@ Nothing new has to be wired to Home Assistant.
 
 ### 48. Column view for the calendar — and a degradation ladder worth generalising
 
-> ◐ **The ladder shipped v1.1.2386** — on the person lanes (#55): measured per-lane width → full / compact / stacked, with the stacked rung as the explicit floor choice (chip row + one lane). `leiterStufe()` is pure and meant to be ported to the Bento grid. **Open:** the day-column view itself (days as columns for the chosen range).
+> ✅ **Shipped v1.1.2386 → v1.1.2388** (2026-09-04). The ladder first (v1.1.2386, on the person lanes of #55): measured per-lane width → full / compact / stacked, the stacked rung as the explicit floor choice (chip row + one lane). Then the view (v1.1.2387): **"Woche" itself became the column view** — no fifth mode; seven day columns with empty days kept visible, day-specific thresholds (120/66 px), trailing days dropped 7 → 5 → 3 around the selected day, and the previous week presentation (cells + bars + list) as the floor. v1.1.2388 turned the column entries into small cards (colour bar, time line, two-line title) because a 68-px column cannot carry the lane's one-line format. `leiterStufe()` / `passendeSpalten()` are pure and meant to be ported to the Bento grid — that port is the remaining "generalising" half and lives with the wall-tablet cut-off problem, not here.
 
 **Pitch:** A week that reads across the card instead of down it: one column per day, side by side. Plus the narrowing behaviour underneath it, which is the more valuable half.
 

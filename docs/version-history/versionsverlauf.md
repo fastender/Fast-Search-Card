@@ -1,5 +1,62 @@
 # Versionsverlauf
 
+## Version 1.1.2388 - 2026-09-04
+
+**Title:** 🎨 Day columns — an event is a small card (colour bar, time line, two-line title) instead of a truncated one-liner
+
+**Tags:** calendar, ui, responsive
+
+Follow-up to v1.1.2387 straight from its own screenshot: a day column in the detail panel is about
+68 px wide, and the person-lane row format ("● Zahnarzt", time hidden on the compact rung) rendered
+as "● Zah…" — no time, no readable title, useless for a week at a glance.
+
+1. `LaneColumns` gained `art="tage"` (class `calendar-people--tage`, emitted literally). In that
+   mode an event row becomes a card: 3 px colour bar on the left (the dot goes away; the colour
+   travels as a `--ev-farbe` custom property), the time as its own small line **also on the compact
+   rung** (the rule sits after the `--kompakt` one at equal specificity), the title wrapping to two
+   lines with hyphenation and a clamp; the full title stays in the tooltip.
+2. Person lanes are untouched — they are ≥ 105 px wide and keep the one-line format.
+
+Verified via dev-harness probe at 640 px (row 529 px, 7 columns, compact): three cards "15:00 /
+Zahn-arzt", "17:30 / Kiefer-ortho…" (clamped), "19:00 / Eltern-abend", 50 px wide, orange colour
+bar, column direction, time visible; screenshot.
+
+## Version 1.1.2387 - 2026-09-04
+
+**Title:** ✨ Roadmap #48 complete — "Woche" now reads across the card as day columns with the ladder underneath; all-day dates parsed as local days
+
+**Tags:** feature, calendar, responsive, bugfix
+
+1. **Week as columns.** The "Woche" tab renders one column per day (seven, starting on the
+   configured first weekday): weekday and number in the head (today's number highlighted, the
+   selected day's column marked), all-day events as colour pills at the top, timed events below in
+   order. **Empty days stay visible** ("Frei") so the columns keep their alignment with their dates —
+   the one place the calendar inverts its hide-empty-days rule, as the roadmap entry asked. Tapping
+   a head selects that day, tapping an event opens it. No sixth tab: the previous week presentation
+   (cells + bars + list) is the floor of the ladder rather than a competing mode.
+2. **The ladder, day edition.** The person-lane renderer from v1.1.2386 became the shared
+   `LaneColumns` (a column is a person or a day); `PeopleLanes` and the new `DayColumns` only build
+   columns. Day columns have their own thresholds (full ≥ 120 px, compact ≥ 66 px) because a day
+   carries only a number and titles. Rungs: seven full → compact → **drop trailing days** (7 → 5 → 3
+   via `passendeSpalten()` on the measured main row; the visible window follows the selected day,
+   so choosing the last visible column shifts the window) → **floor** below three columns: the
+   previous week view, unchanged.
+3. **All-day bug fixed on the way.** Calendar all-day events arrive as plain dates ("2026-09-06");
+   `new Date(iso)` reads that as UTC midnight, which east of Greenwich is 01:00/02:00 of the same
+   day — so the exclusive end slid into the next day and a one-day all-day event was drawn on two
+   days (west of Greenwich it would have started a day early). `normalizeEvent` now composes plain
+   dates locally; timestamps are untouched. Affects every all-day rendering (month dots, week bars,
+   lists, lanes) and the reminder stock.
+4. The `calVisibleViews` popup (de/en) now says that Woche shows the days as columns while the width
+   allows and ends in the cell view; new text `ui.calendar.freeDay` ("Frei"/"Free");
+   `.calendar-main-row--people` renamed `--lanes` (shared by people and week columns).
+
+Verified via dev-harness probe (mocked events: timed today, timed tomorrow, all-day tomorrow):
+1280 px page / 522 px row → 7 compact columns with heads 31 … 6, four free days, one "Müll" pill
+(two before the date fix), list hidden; 900 px / 352 px → 4 columns, selecting the last visible head
+shifts the window to 3 · 4 · 5 · 6; 640 px / 529 px → still 7 columns; 430 px / 319 px → 4 columns;
+300 px / 189 px → floor: previous week view and list visible, no columns. Screenshots at each width.
+
 ## Version 1.1.2386 - 2026-09-04
 
 **Title:** ✨ Roadmap #48, the ladder — person lanes degrade in three measured stages instead of one break (full → compact → stacked)
