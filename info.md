@@ -129,7 +129,7 @@ Deutsch • English • Español • Français • Italiano • Nederlands • P
 
 ## 📄 Lizenz
 
-MIT License
+GNU General Public License v3.0 (GPL-3.0-or-later) – siehe [LICENSE](LICENSE)
 
 ---
 
