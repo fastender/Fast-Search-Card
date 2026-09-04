@@ -1879,6 +1879,8 @@ The rest became requirements input for #22 rather than entries here.
 
 ### 65. Todos: find it before you add it, and see whose it is
 
+> ✅ **Shipped v1.1.2396** (2026-09-04) — add form searches all visible lists while typing (open first, completed dimmed, tap = jump instead of add); lists map to a person in the list settings, people = the calendar's #55 model (no second model), person chips with avatar and count in the filter bar.
+
 **Pitch:** Two small changes to the to-dos app. Typing in the add row searches the existing items as you go, so you notice "Milch kaufen" already exists before adding it twice. And a person filter, derived from which list an item lives on.
 
 **Status quo:** The to-dos app drives HA's standard platform — `add_item`, `update_item`, `remove_item`, `remove_completed_items`. The add row is a plain text field with no lookahead, and there is no person dimension anywhere: HA to-do items carry no assignee field, and the card never looks for one.
@@ -1933,6 +1935,8 @@ HA to-do items have no assignee. But the household pattern is one list per perso
 
 ### 67. Overdue should not stack
 
+> ✅ **Shipped v1.1.2395** (2026-09-04) — `todos/utils/stapeln.js`: open + overdue + same list/title + regular interval → one row with the oldest date and "n× fällig"; expandable in place; ticking completes all members via one `completeMany` action. Future repetitions, same-day duplicates and undated items never stack.
+
 **Pitch:** A monthly task ignored for three months is one task marked "3× due", not three tasks.
 
 **Status quo:** Recurrence is handled by whichever to-do provider the user runs, and several of them reopen a recurring item per missed period. The card renders what it is given, so a neglected chore turns into a wall of identical rows — and a list that looks like a wall of failures is a list people stop opening.
@@ -1954,6 +1958,8 @@ HA to-do items have no assignee. But the household pattern is one list per perso
 ---
 
 ### 68. Tell me when I am running stale code
+
+> ✅ **Shipped v1.1.2397/2398** (2026-09-04) — `utils/versionWaechter.js`: registry route first (`lovelace/resources` URL vs the URL the page's own `<script>` loaded — HACS tag included; reading the list needs no admin), bundle re-fetch with the literal `fsc-version:` marker as the fallback, the GitHub changelog rejected as designed. Quiet line with Reload/Later (dismissed per target), About row states "aktuell" / "neu laden". Checks at +8 s, every 6 h, and on becoming visible after ≥ 1 h.
 
 **Pitch:** When Home Assistant has a newer build of the card on disk than the one this browser is executing, say so once and offer a reload button. Not "an update is available" — "you already updated, this tab did not".
 

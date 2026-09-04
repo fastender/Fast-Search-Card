@@ -1,5 +1,113 @@
 # Versionsverlauf
 
+## Version 1.1.2398 - 2026-09-04
+
+**Title:** 🔧 Stale-code watcher: the version marker is now a literal in the bundle (the fetch fallback of v1.1.2397 could never match)
+
+**Tags:** fix, tooling
+
+v1.1.2397 built the marker from two parts (`'fsc-version:' + version`), so the shipped bundle contained
+"fsc-version:" without a number and the fallback route — re-fetch the bundle, read its version — found
+nothing for installations without a HACS tag. `src/version.js` now carries both the version and the
+marker as literal strings, and the watcher pins the marker to `window` so the bundler keeps it.
+Verified: `fsc-version:1.1.2398` is present in the built bundle. Nothing else changed.
+
+## Version 1.1.2397 - 2026-09-04
+
+**Title:** 🔔 Roadmap #68 — "you already updated, this tab did not": a quiet line with a Reload button when the running code is provably older than the installed one
+
+**Tags:** feature, kiosk, wall-tablet, settings
+
+The card is one bundle of about 1.9 MB, and a wall tablet keeps its page alive for weeks; nobody
+presses reload there. After a HACS update the server holds the new build while the browser keeps
+executing the old one — and reports it as a bug.
+
+1. **The constraint that defines it:** the line fires **only when the running code is provably
+   stale**, never as an advert that a release exists (the card ships pre-releases and stays quiet
+   about them). Three routes, in order (`utils/versionWaechter.js`):
+   - **Registry** — `lovelace/resources` says which URL Home Assistant lists for the card; HACS stamps
+     `?hacstag=<id><version>` onto it. The card's own `<script>` element carries the URL this page
+     loaded. Different URL → the browser is behind what HA installed. Precise, cheap, no version
+     parsing. Reading the list needs no admin — the frontend fetches it for every user to load cards;
+     should it fail anyway, the watcher falls back silently.
+   - **Bundle re-fetch** — once per session, `cache: 'no-store'`, read the `fsc-version:` marker — for
+     YAML resources without a HACS tag. (Broken in this build, fixed in v1.1.2398.)
+   - **Changelog from GitHub** — explicitly rejected: it says what was released, not what is installed.
+2. **When:** 8 s after mount, then every 6 h, and when the tab becomes visible again after an hour
+   or more hidden. One websocket call per check.
+3. **The line** (`components/StaleLeiste.jsx`): "Update installiert – dieser Tab läuft noch Version X",
+   with **Neu laden** (for the same-URL case the bundle's cache entry is refreshed first) and **Später**.
+   Dismissed means dismissed until the next *different* target (`localStorage` remembers the target
+   URL). It sits above the locked start page's curtain so it stays tappable there.
+4. **Settings → About:** the version row gains "Aktuell – dieser Tab führt die installierte Version
+   aus" or "Neu laden, um das Update abzuschließen" (tap = reload), so the answer exists in the
+   obvious place even after dismissing. `src/version.js` is the new single runtime source of the
+   version (the About row literal stays because build.sh reads it). Texts `ui.settings.stale*` /
+   `version*` (de+en).
+
+Verified via dev-harness probe (fake `<script src=…?hacstag=…96>` + mocked `lovelace/resources`):
+registry tag …97 → line shown with the text and both buttons; "Später" hides it and stores the target;
+the same target on re-check stays dismissed; a newer target …98 shows it again; "Neu laden" reloads
+the page; identical URLs → no line. Screenshot of the line.
+
+## Version 1.1.2396 - 2026-09-04
+
+**Title:** ✨ Roadmap #65 — the add row searches before you add; a person per list, with the calendar's people
+
+**Tags:** feature, todos, search, family, settings
+
+Two small changes to the to-dos app, both UI over data the card already loads.
+
+1. **Half one — "Gibt es schon".** While typing a new task's title, the form searches the existing
+   items of **all visible lists** (Fuse, threshold 0.35, from two characters) and lists up to five
+   matches under the title field with the list they live on — the duplicate is usually on the *other*
+   list. Open items first; completed ones follow dimmed and struck through with "· erledigt" ("you did
+   this last week" is useful for a recurring chore). Tapping a match closes the form and opens that
+   item instead of adding a new one — an accidental duplicate becomes a navigation.
+2. **Half two — person from list.** HA to-do items carry no assignee, but the household pattern is one
+   list per person. So the assignment lives in the list: each list can be mapped to a person in the
+   list's settings ("Person" row next to icon and colour). The people are **the calendar's people from
+   #55** — same names, colours and `person.*` pictures, defined once under Kalender → Einstellungen →
+   Personen (the picker says so when none exist). Person chips appear in the filter bar with avatar
+   and open-item count, and filter to that person's lists; ungrouped lists behave as before.
+3. New texts `ui.todos.matchesExisting` / `matchDone` / `person*` (de+en); helper
+   `todos/utils/personen.js`; `todosSettings.lists[id].personId`. No new storage for people.
+
+Verified via dev-harness probe (two lists, calendar people Anna Beispiel / Ben pre-seeded, lists
+mapped): chips "AB Anna Beispiel 2" and "B Ben 2" with initials in the person colours; the Anna chip
+shows only her two items; typing "Rechn" in the add form lists "Rechnung zahlen · Haushalt", typing
+"Müll" lists the completed "Müll rausbringen · Haushalt · erledigt" dimmed; tapping it opens that
+item's detail; the list settings offer "Keine / Anna Beispiel / Ben" and store `personId`. Screenshots.
+
+## Version 1.1.2395 - 2026-09-04
+
+**Title:** ✨ Roadmap #67 — overdue does not stack: identical overdue tasks in a rhythm become one row with "3× fällig"
+
+**Tags:** feature, todos, ui
+
+Part ten begins. Several to-do providers reopen a recurring item per missed period, so a neglected
+monthly chore turned into three identical rows — a list that looks like a wall of failures.
+
+1. **The rule** (`todos/utils/stapeln.js`, pure): only **open, overdue** items with a due date, same
+   list + same title (case-insensitive, trimmed), and due dates in a **regular interval** — every gap
+   ≥ 1 day and the gaps alike (day/week/month). Planned future repetitions stay separate (they are plan,
+   not failure), two "Milch" on the same day stay separate (no rhythm), items without a due date are
+   never stacked. Display logic only; the data is untouched.
+2. **The row** shows the **oldest** due date (that is the one that says how bad it has got) plus a
+   badge "3× fällig". Tapping the badge expands the members ("1 von 3", "2 von 3", …) in place;
+   tapping again collapses. Tapping the row opens the oldest item's detail as before.
+3. **Ticking the stacked row completes them all** — that is what the user means: optimistic for all
+   members, one `completeMany` entity action (`todo.update_item` per member, one reload at the end),
+   all reverted on error.
+4. Texts `ui.todos.stackDue` / `stackMember` / `stackHint` (de+en). The header counters keep counting
+   real items; only the list is folded.
+
+Verified via dev-harness probe (mocked list): "Fenster putzen" ×3 at −92/−61/−31 days → one row
+"Überfällig seit 92 Tagen · 3× fällig"; "Milch" at −40/−1 → "2× fällig"; "Rechnung zahlen" ×2 on the same
+day and "Gießen" ×2 in the future stay separate; expand → "1 von 3 / 2 von 3 / 3 von 3", collapse works;
+ticking the stack fires three `todo.update_item … completed` calls (the static mock then hands the
+items back as open, which is the mock, not the card). Screenshot of the stacked list.
+
 ## Version 1.1.2394 - 2026-09-04
 
 **Title:** 🧹 House chronicle speaks device classes ("Fenster Küche → Offen" instead of "Aktiv"); the About tab's build date is stamped by the build
