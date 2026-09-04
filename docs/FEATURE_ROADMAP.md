@@ -1871,6 +1871,8 @@ gallery instead of a new media system.
 
 ## Part ten — 2026-09-04 household-task research pass (#65–#68)
 
+> ✅ **All four shipped** — #67 (v1.1.2395), #65 (v1.1.2396), #68 (v1.1.2397/2398), #66 (v1.1.2399).
+
 Three household task-manager projects were read end to end. All three are **integrations** with a Python backend, because points, streaks, rotation and habits need per-task persistence that a card cannot hold. What follows is only what works over Home Assistant's standard `todo` platform — the five fields the card actually has: `summary`, `description`, `due`, `status`, `uid`.
 
 The rest became requirements input for #22 rather than entries here.
@@ -1913,6 +1915,8 @@ HA to-do items have no assignee. But the household pattern is one list per perso
 ---
 
 ### 66. Dictate a task
+
+> ✅ **Shipped v1.1.2399** (2026-09-05) — `utils/diktat.js`: Assist pipeline STT over the existing websocket (binary PCM frames, text from `stt-end`) where a pipeline with an STT engine exists, browser `SpeechRecognition` as fallback, no button when neither is available; microphone only on button press, text never auto-submitted. **Part ten (#65–#68) complete.**
 
 **Pitch:** A microphone button in the add row. Speak the task, it appears as text, you confirm.
 

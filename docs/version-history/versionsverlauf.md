@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.2399 - 2026-09-05
+
+**Title:** 🎙️ Roadmap #66 — dictate a task (Assist speech-to-text, browser recognition as fallback); two fixes: profiles could not be saved, stale caret in the search bar. Part ten complete.
+
+**Tags:** feature, todos, voice, bugfix, ui
+
+1. **Dictate a task** (`utils/diktat.js`). A microphone button in the to-dos add row — the smallest
+   useful piece of voice: the words become a string, the user sees it before anything happens, a wrong
+   transcription costs one backspace. Two routes, in order:
+   - **Home Assistant Assist** where a pipeline with a speech-to-text engine exists
+     (`assist_pipeline/pipeline/list`): the card runs `assist_pipeline/run` with start and end stage
+     `stt`, streams the microphone as 16 kHz mono 16-bit PCM frames over the existing websocket
+     (first byte = the run's binary handler id) and takes the text from `stt-end`. Stopping sends the
+     empty end-of-audio frame; if HA stops answering, the card cleans up after 8 s.
+   - **The browser's own recognition** (`SpeechRecognition`) where available — interim results land
+     live, the final result stays.
+   - Neither available → **no button** at all, rather than one that does nothing.
+   The microphone is requested only from the visible button press (never on load), the transcription
+   lands in the title field as editable text and is **never submitted on its own**. The placeholder
+   reads "Sprich jetzt …" while listening; errors show a small line under the field. Texts
+   `ui.todos.dictate*` (de+en).
+2. **Fix — profiles could not be saved.** The "Neues Profil" / "Profil bearbeiten" pages in the
+   to-dos settings had lost their "Fertig" button in the pager refactor: the save handlers existed, no
+   control called them. Both pages carry the button again (disabled while the name is empty). Reported
+   by the user with a screenshot.
+3. **Fix — a caret without text in the search bar after returning from a detail view.** When the
+   idle typing loop became inactive (the decor gate after three minutes without touch while reading a
+   detail, or the search collapsing), it cleared its text while the leaf rendered nothing — the mirror
+   span used for measuring was unmounted, so the caret offset kept the width of the last sentence.
+   On the next activation (the "back" tap wakes the gate) a lone caret stood at the old position until
+   the first character was typed 900 ms later. The offset now resets whenever the loop deactivates and
+   whenever the text is empty; the focus caret got the same guard. Reported by the user with a
+   screenshot.
+
+Verified via dev-harness probe: (A) fake browser recognition → button with `data-weg="browser"`,
+listening state and placeholder, interim "Milch kaufen", final "Milch kaufen und Brot" in the field,
+no service call; (B) mocked pipeline list + socket + synthetic microphone → `data-weg="assist"`,
+pipeline message with `pipeline: 'p1'`, four PCM frames (32 772 bytes, handler byte 7), "Wäsche
+aufhängen" from `stt-end`, unsubscribed and idle afterwards; (C) no route → no button. Caret: decor
+gate forced during a detail view, then back → caret at 0 px while the text is empty (previously the
+stale width). Profiles: both pages render the confirm button wired to add/update.
+
 ## Version 1.1.2398 - 2026-09-04
 
 **Title:** 🔧 Stale-code watcher: the version marker is now a literal in the bundle (the fetch fallback of v1.1.2397 could never match)
