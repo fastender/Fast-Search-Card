@@ -1,5 +1,79 @@
 # Versionsverlauf
 
+## Version 1.1.2401 - 2026-09-11
+
+**Title:** 🌙 The locked page was blank after the screensaver — the curtain latch is two-way again; three heat fixes (grip breathing, weather refetch, excluded-pattern regexes)
+
+**Tags:** bugfix, screensaver, performance, ui
+
+### Screensaver return left a blank page
+
+`BentoZenView` unmounts the curtain (clock, greeting, context line, grip) 420 ms after the page is
+revealed — a v1.1.2285 heat decision, because its two endless animations kept the compositor awake
+for a whole bento session. That path was explicitly one-way: "the curtain does not come back until
+the next load". Then v1.1.2369 added the screensaver, which calls `setZenRevealed(false)` after idle.
+`revealed` went false, the latch stayed false: the tiles dropped to opacity 0 via `data-revealed`,
+the curtain never returned, and what remained on screen was the wallpaper and the island pill.
+Deep rest (v1.1.2390) then dimmed that empty page and the photo frame (v1.1.2393) changed pictures
+behind nothing. Everyone who switched the screensaver on was affected (default: off).
+
+A second effect next to the existing one now re-hangs the curtain when `revealed` goes false. The
+420 ms unmount path on reveal is untouched. The returning curtain carries
+`bento-zen-curtain--rueckkehr`: the staged entrance (date → clock → status → greeting → grip, 800 ms
+each with blur) belongs to the card's first appearance and looked like a restart after a quiet
+screen — the return is one opacity transition over 400 ms instead, with `@starting-style` supplying
+the start value so no timer is needed (where a browser does not know it, the curtain is simply there
+at once — never blank).
+
+Probe, two rounds: reveal → wait for `data-revealed="false"` → curtain present, clock reading
+`23:05`, greeting, context line and grip present, tile opacity 0 → wheel again → revealed, curtain
+gone. Before: `{"vorhang":false,"uhr":null,"griff":false,"panelOpazitaet":"0"}` after every
+fall-back. Neighbours checked: the 15 s clock interval is alive again after the return (0 while
+revealed), the wheel listener reveals a second and third time, the fade ramp measured per frame runs
+0.00 → 1.00 (no pop, entrance animation reports `none`), and deep rest now lies over the clock page —
+`data-ambient="tief"` with the curtain present, grip faded to 0 and its breathing paused.
+
+### Grip breathing now pauses under the decor gate
+
+`.bento-zen-grip i` breathes endlessly and only paused under `[data-ambient="tief"]`, which requires
+the screensaver — off by default. So on a wall tablet without the screensaver the grip kept breathing
+forever, long after the search caret (v1.1.2312) and the island ticker had stopped. It now hangs on
+the island's decor gate as well (`.main-container[data-dekor="still"]`, set after three minutes
+without a gesture). Same for the empty-slot pulse in `BentoGrid.css`. Measured: with the gate set,
+`animationPlayState` is `paused` for both, `running` again when it is removed — before, both read
+`running` in every state.
+
+### Weather tile refetched forecasts on every state tick
+
+The forecast effect in `BentoRichWeather` listed `hass` in its dependencies. `hass` changes object
+identity on every HA push, so every state change of the weather entity that passed the `BentoWidget`
+comparator tore the effect down and started it again — and every start sent two `weather.get_forecasts`
+calls straight away, so the ten-minute interval below never survived a tick. The module cache
+(v1.1.1521) was read for the initial state only, never as a freshness brake.
+
+`hass` now lives in a ref, the dependencies are `[weatherEntityId, hass?.connection, !!hass]` (restart
+on reconnect, or when hass first arrives), and a cached forecast younger than ten minutes delays the
+first fetch by the remaining time instead of refetching. Measured over 30 weather-entity ticks at
+100 ms (two card instances live on the dev page, so halve for one tile): 12 → 4 calls with the test
+house's fresh `connection` per update, and 16 → 4 with a stable `connection` as real HA has it. The
+four are the single refill right after the cache was cleared — per tile exactly the two calls a first
+load costs. Ticks on an unrelated entity were 0 before and after. The forecast still lands in the
+cache (`{"imCache":true,"stunden":1,"hoch":21}`).
+
+### Small heat fixes
+
+- `isExcluded` (`utils/actionUtils.js`) built a fresh `RegExp` per entity and pattern. It got the
+  compile cache its siblings have had since v1.1.2332 (`utils/patternMatching.js`,
+  `utils/liveActivitySources.js`): module map pattern → RegExp, a broken pattern remembered as `null`
+  so it neither recompiles nor logs again. 10 000 calls with 20 patterns: **55.2 ms → 6.3 ms**, same
+  answers for hit, miss, exact, wildcard and invalid pattern.
+- The 1 s media position ticker (`hooks/useMediaPlayerSlides.js`) already stopped unless a player was
+  `playing`; what was missing was the hidden window. A hidden tab throttles the timer but keeps firing
+  it — one full detail-view render per second for nobody, for hours on a wall tablet with a dark
+  screen. The interval now stops on `visibilitychange` and resumes when the page comes back (position
+  is derived from `media_position_updated_at`, so nothing is lost). Measured over 3 s: playing and
+  visible 3 ticks, playing and hidden **3 → 0** (no live interval), visible again 3 ticks, paused 0.
+
 ## Version 1.1.2400 - 2026-09-05
 
 **Title:** 🪟 STABLE release — the first since 1.1.2330 (8 August 2026); everything from 1.1.2331 to 1.1.2399 reaches every HACS user

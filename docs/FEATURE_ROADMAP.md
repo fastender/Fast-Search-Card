@@ -1768,6 +1768,8 @@ exactly one place to hook in. Refactor, invisible, makes everything after it che
 ### 61. Deep rest — a second idle stage that dims the locked page
 
 > ✅ **Shipped v1.1.2390** (2026-09-04) — `data-ambient="tief"` after N minutes of stillness on the locked page (default 2, only with the screensaver on): full-screen dim overlay, clock at 72 %, greeting/status/context/grip off, island folded to its centred button; burn-in drift (eight-step pattern off the 15-s clock tick); night coupling to the existing quiet hours (deeper dim, warmer clock tone, shorter return time, no new schedule UI). Settings + ⓘ text under Start Screen → Bildschirmschoner.
+>
+> 🔧 **v1.1.2401: curtain latch made two-way; the locked page was blank after the screensaver since v1.1.2369.** The curtain (clock, greeting, context line, grip) unmounts 420 ms after revealing — a v1.1.2285 heat decision on an explicitly one-way path. The screensaver locks the page again, so the latch had to reopen: the tiles went to opacity 0 and nothing took their place. Deep rest was dimming an empty page, the photo frame changing pictures behind nothing. A second effect re-hangs the curtain when `revealed` goes false, and the return fades in over 400 ms (`bento-zen-curtain--rueckkehr`) instead of replaying the staged entrance.
 
 **Pitch:** After the screensaver has returned the card to the locked clock page, a further stretch of
 stillness takes it one stage deeper: the wallpaper darkens noticeably, the clock drops to ~60 %
