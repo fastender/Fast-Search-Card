@@ -1,5 +1,80 @@
 # Versionsverlauf
 
+## Version 1.1.2404 - 2026-09-12
+
+**Title:** 🧯 Error boundaries — a throw while drawing no longer empties the whole card; the broken part shows a quiet fallback with "Retry" and heals itself on the next tick
+
+**Tags:** reliability, ui, i18n
+
+The card renders exactly **once** (`index.jsx`); after that only data flows in through the store. A
+throw during a render therefore left Preact's tree half-built with no way back except reloading the
+page — on a wall tablet that means a black card until somebody walks over. There was no
+`componentDidCatch`, no `getDerivedStateFromError`, no `window.onerror` anywhere in `src/`.
+
+### How well guarded is it today? (the honest measurement first)
+
+Before building anything, seven malformed shapes were pushed at a running card: `todos` as a string,
+weather `temperature` as an object, `friendly_name` as an object, `media_position` as an object,
+`supported_features` as a string, a sensor value as an object, `climate` attributes as `null` — plus
+opening the detail view of a broken device. Result: **0 throws**, the card kept reacting to further
+pushes. The entity pipeline normalises, and the rich tiles all guard their arrays with
+`Array.isArray`. That is a good result, and it means the boundaries are insurance, not a patch over
+a known crash. Everything below was therefore verified with a temporary probe switch, removed again
+before the build (`grep -rn "SONDE-2404\|__sondeWirf" src` → 0).
+
+### The boundary
+
+`components/common/Fehlergrenze.jsx`, a Preact class component with `getDerivedStateFromError` and
+`componentDidCatch` (logging name, error and component stack through `logger.error`). It catches what
+throws while **rendering**; rejected promises from effects belong to the service wrapper of v1.1.2403.
+
+- **Self-healing:** when `resetKey` changes, the boundary tries again by itself. For the tiles the key
+  is entity id + `last_updated` + a generation counter, so the next state for that tile is a fresh
+  attempt.
+- **The retry clock is a one-shot, not a runner:** the generation counter is bumped by a single 1.5 s
+  timer that is only created when something actually crashed. An effect with `hass` in its
+  dependencies would be a data-tick runner (the heat rule), and `devices` does not change on every
+  state push, so it is useless as a signal — both were tried and measured.
+- **Loop protection:** after three catches within 60 seconds the boundary stops healing on its own —
+  otherwise a permanently broken value would make it re-render into the same throw on every tick and
+  heat the device instead of standing still. From then on only the button helps.
+
+### Where they sit, and what the user sees
+
+| Place | Fallback |
+|---|---|
+| Each of the four bento tiles | the tile's own glass surface and size class (so the grid does not jump), "Kachel konnte nicht gezeichnet werden" + **Erneut** |
+| The detail view | centred "Ansicht konnte nicht gezeichnet werden" + **Erneut** / **Zurück** (closes the detail) |
+| System views (`SystemEntityLazyView`) | the same, "Zurück" goes back |
+| The glass window (`MorphPopup`) | the same, "Zurück" closes the window |
+| The island | the bare pill shape, **no text** — an island that suddenly carries an error message in the middle of the resting screen is worse than one that is quiet |
+| The root, both render paths | full surface "Die Karte ist abgestürzt"; the first tap re-renders the tree, only the second one reloads the page — a reload loses every bit of state and should be the last answer, not the first |
+
+New keys in both dictionaries: `errors.tileCrashed`, `errors.viewCrashed`, `errors.cardCrashed`,
+`errors.viewLoadFailed`, `errors.viewUnavailable`, `errors.reload`, `general.retry`, `general.back`.
+The two hard-coded English strings in `SystemEntityLazyView` ("Error Loading View", "View Not
+Available") are gone with them — on a German card the user read them in English.
+
+### Measured
+
+| | |
+|---|---|
+| Tile throws | 1 fallback tile, **3** real tiles still drawn, search and island keep working |
+| Self-healing | probe switch off + next tick → fallback gone, 4 tiles back, no further throws |
+| Loop protection | switch left on: two automatic retries, then the boundary stops (no further throws across four more ticks); switch off + tick → fallback **stays**; "Erneut" → tile returns |
+| Detail throws | fallback with both buttons, search and island alive, "Zurück" closes the detail |
+| Smoke test | 4 tiles, 0 fallbacks, search 2 hits, detail opens, settings 16 rows, `pageerror` 0, `console.error` 0 |
+
+One thing worth writing down for the next audit: in the **dev server** a caught error still shows up
+as a `pageerror`. That is `preact/debug`, which the Vite preset injects in development only and which
+deliberately re-throws handled boundary errors through `setTimeout(() => { throw error; })` "to make
+the Next.js dev overlay work" (its own comment). Measured: exactly as many such scheduled throw
+callbacks as page errors, with the fallback already in the DOM — and `preact/debug` does not exist in
+the shipped bundle (`grep` → 0).
+
+Bundle 2 186 598 → 2 191 038 bytes raw, 599 691 → 600 962 gzip: the whole safety net costs about
+1.2 KB gzip.
+
 ## Version 1.1.2403 - 2026-09-12
 
 **Title:** 🔔 Service calls now report failures — one wrapper, an error toast, optimistic states rolled back, and two subscriptions that rejected into nowhere
