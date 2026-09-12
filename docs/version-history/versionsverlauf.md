@@ -1,5 +1,99 @@
 # Versionsverlauf
 
+## Version 1.1.2402 - 2026-09-12
+
+**Title:** 🧹 Cleanup round — three orphaned files, 18 dead exports, three commented-out remnants, 46 CSS classes only the safelist kept alive, and 13 safelist prefixes gone
+
+**Tags:** cleanup, css, purgecss, maintenance
+
+Pure subtraction: nothing behaves differently. Every cut was grepped first (`\bname\b` across `src`
+and `tests`) and only made at zero hits outside the definition; a build proves nothing here, because
+dead code is shaken out and a missing import only fails at runtime.
+
+### Removed dead files
+
+`components/ActionSheet.jsx` (115 lines) with `ActionSheet.css` (134 lines) — five self-references,
+nothing else in the tree — and `SearchField/components/CategoryButtonsPanel.jsx` (58 lines), reachable
+only through the barrel file that `SearchField.jsx` imports eight other names from. 307 lines, plus the
+barrel line.
+
+### Removed dead exports
+
+18 symbols with zero references outside their own definition: `ChevronLarge`, `MegaphoneIcon`,
+`RadioIcon`, `BoltIcon`, `TilesGlyph`, `getEntitiesVersion`, `ruleHasEffect`, `personFuerListe`,
+`fotorahmenLaeuft`, `getLetzteGeste`, `getLeerlaufMs`, `clearSystemSettingsCache`, `staleSichtbar`,
+`__resetHausChronik`, `__resetReminderStore`, `getPanelHoehe`, and `highlightMatches` (~30 lines that
+built a `<mark>` HTML string nobody displays) with the constant `HIGHLIGHT_KEY_PRIORITY` that existed
+only for it. The two `__reset*` helpers looked like test hooks; no test uses them. Three module
+variables went with their only reader: `version` in `entitiesStore`, `letzteGeste` and `letzteQuelle`
+in `leerlaufStore` — all three were written and never read again. `useHoehenLeiter`'s header comment,
+which pointed at `getPanelHoehe`, now names `getHoehenLeiter`.
+
+Roughly 90 further exports are only used inside their own file (the `export` keyword is superfluous,
+the code lives). Those were deliberately left alone — churn without value.
+
+### Removed commented-out remnants
+
+The three blocks over five lines that existed in the whole project: 53 lines of `printer3d` appearance
+config (the old Bambu manager, out since v1.1.1724, superseded by `printer3d_device`), its 10-line SVG
+in `DeviceCardIntegration.jsx`, and 48 lines of a removed header in `WeatherDeviceView.css`. Each left
+a one-line tombstone.
+
+### Removed CSS only the safelist kept alive
+
+`scripts/check-purgecss-dynamic.py --analyse` listed 84 classes with no token anywhere in the source —
+they survived purging only because a safelist prefix covered them. 49 of those were checked one by one
+(including fragment matches inside template literals) and their rules removed; group selectors were
+only trimmed of the dead member, never dropped whole:
+
+- the old search bar's chips, keyboard hints, mobile confirm button and the two measuring mirrors
+  (`SearchFieldV4.css`, 584 → 395 lines) and the unused `.search-group` container (the groups render
+  as `.grouped-search-results`);
+- the old news surface — header, back/refresh/settings/action buttons, settings tabs and content, the
+  article card's favourite button, unread dot and meta line, the article detail header (`NewsView.css`,
+  1073 → 849 lines) — dead since the view moved to `FeedShell` in v1.1.2344/2345;
+- `.ios-select`, `.ios-input`, `.ios-divider-inset`, `.ios-item-label-small`, `.ios-text-medium` in the
+  old news settings (`iOSSettingsView.css`, 938 → 884), `.ios-list-item` trimmed out of a shared
+  selector in `perceivedSpeed.css`;
+- `.detail-left-now-playing-text/-title/-artist` (the title under the cover art has been gone since
+  v1.1.2076 at the user's request) and `.history-tab-container` in two `:has()` chains
+  (`DetailView.css`, 1146 → 1123);
+- `.energy-ring-chart` and `.energy-sources` (rendered is `.energy-sources-bar`) and
+  `.bento-rich-news-thumb` (rendered is `.bento-rich-news-more-thumb`).
+
+Source CSS 19 289 → 18 628 lines, 536.8 → 527.8 KB. Whole source (CSS + JS + JSX) −905 lines,
+−13.9 KB.
+
+### Narrowed the PurgeCSS safelist
+
+13 prefixes left `postcss.config.cjs`: `/^ios-/`, `/^search/`, `/^settings/`, `/^detail/`,
+`/^history/`, `/^energy/`, `/^news-/`, `/^article-/`, `/^greeting/`, `/^stats/`, `/^splash/`,
+`/^apple-hello/` and `/^action-sheet/` (41 → 28 regexes). None of them protects a class that is
+actually composed: every live class under those prefixes stands as a complete literal in the source
+and the extractor finds it. The guard confirms it — **0 classes would be purged**, and the
+safelist-only count fell **84 → 35**. The 35 left are the true composed names (`category-${…}`,
+`toast-${type}`, `bento-widget--${size}`, `mode-${…}`), which is what a safelist is for: from now on a
+new corpse under those prefixes shows up in the guard instead of hiding.
+
+### Verified
+
+Smoke probe before and after the cuts, identical: card mounts and reveals, search "licht" returns 2
+hits, the media player detail opens with the same text, settings shows 16 menu rows — `pageerror` 0,
+`console.error` 0. After the build, every live sample class is still in the bundle
+(`bento-widget--large`, `toast-error`, `category-climate`, `mode-quellen`, `search-input`, `ios-item`,
+`ios-number-input`, `ios-settings-view`, `ios-chevron`, `detail-panel`, `settings-view`,
+`energy-sources-bar`, `greetings-bar` — each ≥ 1) and every removed one is gone. Class-by-class diff
+of the v1.1.2401 bundle against this one: 46 classes disappeared, all of them on the deletion list
+(plus `refreshing`, which only existed as `.news-refresh-button.refreshing`) — nothing unexpected.
+Bundle 2 192 149 → 2 183 952 bytes raw, 599 984 → 598 832 gzip.
+
+### Also in this release
+
+`tools/spiegel.sh` (not part of the shipped card): `src/` and the other git-ignored build inputs now
+mirror into a private repository on every release, so the sources of each version have a history.
+`build.sh` calls it right after the tag push, guarded with `||` so the mirror can never block a
+release.
+
 ## Version 1.1.2401 - 2026-09-11
 
 **Title:** 🌙 The locked page was blank after the screensaver — the curtain latch is two-way again; three heat fixes (grip breathing, weather refetch, excluded-pattern regexes)
