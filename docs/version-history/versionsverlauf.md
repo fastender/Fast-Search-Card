@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.2405 - 2026-09-12
+
+**Title:** 🃏 Two cards on one page — the height ladder runs per root, the wallpaper survives a closing preview, and deep rest is only cleared by the last card
+
+**Tags:** bugfix, reliability, layout
+
+Two cards on the same page is not an exotic case: it is what happens the moment the Home Assistant
+editor shows a preview while the live card keeps running behind it. Three things did not survive that.
+
+### The height ladder was a single global
+
+`utils/hoehenLeiter.js` kept `wurzel`, `aktuell`, `abmelder` and `ticks` as module singletons, and
+`beobachteKartenhoehe(root)` began by calling a global `stoppen()`. So card B mounting tore card A's
+`resize` and `fsc-layout-changed` listeners off, pointed `wurzel` at itself, and left A frozen at
+whatever `--fsc-panel-h` it had last written. Unmounting B stopped A altogether.
+
+Now there is one instance per root in a `Map`, and the stop function only dismantles its own. The
+window listeners are **one shared set for all instances** (not one per card), created with the first
+and removed with the last. Reading stays correct per card through a new `HoehenLeiterContext`, which
+`App` fills with its own root (`index.jsx` passes it in on both render paths); `useHoehenLeiter` and
+`usePanelHoehe` read from it. Without a context — the dev page, probes, older call sites — the old
+behaviour remains: the last registered instance whose root is still connected. `getHoehenLeiter()`
+and `subscribeHoehenLeiter()` are unchanged in signature, and every exported constant
+(`PANEL_VOLL`, `GRID_VOLL`, `RAHMEN`, `GRID_KOMPAKT_MIN`, `GRID_ABWERFEN_MIN`, `PANEL_MIN`,
+`leiterStufeHoehe`) is untouched.
+
+Measured with two cards (window 1400×800, second card in a 520 px container):
+
+| | before | after |
+|---|---|---|
+| Card 1 / card 2 at 800 px | 672 voll / 436 boden | 672 voll / 436 boden |
+| after the window drops to 700 | card 1 **frozen at 672 voll** | card 1 **600 kompakt**, card 2 still 436 |
+| card 2 unmounted, window to 620 | card 1 still frozen at 672 | card 1 **520 kompakt** — still measuring |
+| expanded search panel, card 1 / card 2 | — | **672 px / 436 px**, each from its own root (card 2 is the *last* registered instance, so 672 for card 1 can only come from the context) |
+
+### The wallpaper was wiped by whichever card left first
+
+`unmount` called `applyFullscreenWallpaper('', false)` unconditionally, and that layer lives in HA's
+`hui-view-background` — it belongs to the view, not to a card. Opening the editor preview and closing
+it again left the still-running card without its background until the page reloaded. There is now a
+reference count in `viewWallpaper.js` (`wallpaperKarteAn` / `wallpaperKarteAb`, never negative); only
+the last card clears it. Measured: unmounting the second card used to leave `--view-background` empty,
+now the value is still there.
+
+### Deep rest is shared on purpose — but only the last card may clear it
+
+The `#fsc-tiefe-ruhe` overlay dims the *screen*, not a card, so one per page is right. What was wrong
+is that any zen view unmounting removed it. `tiefeRuheAnmelden()` / `tiefeRuheAufraeumen()` now count
+users, and `BentoZenView` registers and deregisters symmetrically.
+
+Two more page-wide singletons were checked and deliberately left alone: **`fotorahmen`** (it sets the
+page's wallpaper during deep rest, and both cards are in deep rest together — one subscription is
+correct) and **`displayUebergabe`** (it switches the physical screen through Home Assistant, which
+must happen exactly once per page). Both already latch with an `initialisiert` flag, so a second mount
+does not double them. The idle service (`leerlaufStore`) and the version watchdog are page-wide by
+design and unchanged, as are `window.FastSearchCardApp`, `window._hass` and the wrapper in `build.sh`.
+
+### Single card unchanged
+
+Mount → resize → unmount → mount → resize returns 672 voll and the wallpaper comes back, exactly as
+before. Smoke test: 4 tiles, search 2 hits, detail opens, settings 16 rows, `pageerror` 0,
+`console.error` 0.
+
 ## Version 1.1.2404 - 2026-09-12
 
 **Title:** 🧯 Error boundaries — a throw while drawing no longer empties the whole card; the broken part shows a quiet fallback with "Retry" and heals itself on the next tick
