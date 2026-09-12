@@ -1,5 +1,107 @@
 # Versionsverlauf
 
+## Version 1.1.2406 - 2026-09-13
+
+**Title:** 🪟 Popups are real dialogs now — role and name, focus in and back, Escape, a Tab loop, short motion under "reduce motion", and the last hard-coded aria texts moved into the dictionary
+
+**Tags:** accessibility, i18n, ui
+
+`MorphPopup` is the one glass window behind the card's popups (filter, category, info, date picker,
+scheduler, snooze menu, hint form, new event, new to-do). To a keyboard or a screen reader it was an
+anonymous cluster of elements: no role, no `aria-modal`, focus stayed on the trigger behind the dim,
+Tab walked straight into the result list behind the window, and Escape did nothing.
+
+### One hook for every dialog
+
+`hooks/useDialogFokus.js` (`useDialogFokus(open, rootRef, close)`) does what a dialog needs:
+
+- **Remembers the trigger** in a layout effect. Not via `document.activeElement` — inside Home
+  Assistant that is the card's *host*, always the same element. `tiefAktiv()` walks down through the
+  shadow roots to the element that really has focus.
+- **Focus in**, one frame later (focusing in the same frame would scroll the page to the half-grown
+  window): a field with `autofocus` first, as the native `<dialog>` does, otherwise the first
+  focusable element, otherwise the dialog itself. If focus is already inside, it stays.
+- **Escape** on the dialog element, not on `document`, with `stopPropagation` — so neither Home
+  Assistant nor the search field's own Escape handler (which clears the query and chips) ever sees it.
+- **Tab / Shift+Tab loop** between the first and the last focusable element.
+- **Focus back** to the trigger when the dialog closes, if the trigger is still connected.
+
+Found on the way: the to-do and calendar forms have carried `autoFocus` on their title field for a long
+time, and it never took effect — the "+" button still held focus when the form mounted, and then the
+browser silently drops `autofocus`. With the hook the title field now really gets the caret.
+
+### MorphPopup: the dialog shell wraps the window *and* the ✕
+
+`role="dialog"` directly on the window would have been wrong: `aria-modal` hides everything outside the
+dialog from the screen reader, and the ✕ is a *sibling* below the window (the window clips its content —
+that clipping is the morph). A new shell `div.morph-popup-dialog` now holds both. It is
+`position: absolute; inset: 0` without z-index or transform, and `pointer-events: none` (the children
+take their clicks back), so every child keeps its coordinates: measured, the shell's box equals
+`.main-container` exactly (44, 43, 1192 × 93). `.morph-popup--filter ~ .morph-popup-x` still matches.
+
+- **Name:** a new optional prop `titel`, filled by every caller with the header text the dialog already
+  shows — Kategorie, Ansicht, Info, Datum wählen, Timer/Zeitplan, Schlummern, Hinweis/Hinweis
+  bearbeiten, Neuer Termin; the to-do form has no header, so it uses its visible prompt "Was möchtest
+  du erledigen?". Without `titel` the shell points `aria-labelledby` at the first `h1`–`h3` of the
+  content, and failing that says "Dialog".
+- **✕ label** from the dictionary (`controls.close`) instead of a hard "Close".
+- **Reduced motion:** 0.18 s `easeOut` without overshoot, opening *and* closing; content fade 40 + 120 ms
+  instead of 120 + 220 ms; the ✕ fades in correspondingly faster. The morph itself stays — it tells
+  where the window came from — it is only shortened.
+
+### The other surfaces
+
+- **Controls sheet** (phone): `role="dialog"`, `aria-modal`, named after the expanded control
+  ("Helligkeit"), same hook. Its grabber closes the sheet on tap, so it now carries `role="button"` and
+  "Schließen" — otherwise a screen reader would have had no recognisable way out of a modal sheet.
+- **ⓘ window in "Sidebar-Einträge":** modal dialog named after the item; the × button, until now read out
+  as "multiplication sign", is labelled.
+- **Overflow menu of the shortcut bar** (phone, more than five entries): a dialog, but deliberately **not
+  modal** — it has no close button of its own, and a modal dialog would hide the ⋮ button that folds it
+  away again. List items get `role="none"`, since the list is now a dialog.
+- **Detail sheet (`DetailRightSheet`) deliberately unchanged.** It is not a popup but the permanent main
+  area of the mobile detail view (full / half / peek, nothing to close). As a modal dialog it would hide
+  the detail view's back button from the screen reader and lock keyboard users inside.
+
+### aria texts into the dictionary
+
+New section `ui.a11y` in de and en: `dialog`, `previous`, `next`, `previousYear`, `nextYear`,
+`scrollLeft`, `scrollRight`, `saving`, `previousSlide`, `nextSlide`, `acceptSuggestion`, `page` (`{nr}`),
+`slide` (`{nr}`), `removeChip` (`{name}`), `showEntityId`, `hideEntityId`. Moved over: calendar arrows
+("prev"/"next"), date picker arrows (incl. "prev year"/"next year"), scroll arrows, "saving", slide
+arrows, "Vorschlag übernehmen", `Page ${i + 1}` — plus four the inventory had missed because they were
+template literals or HTML strings: `Slide ${i + 1}` (hero pager, segmented ring, circular slider),
+`${chip.label} entfernen` (filter chips), "Hide/Show entity id" and the toast's hard "Schließen".
+Settings headers: "Toasts" → `settings.toasts`; "Standby" and "CIRCULAR" had no key and got
+`settings.standby` / `settings.circular` with the same text.
+
+`grep -rn 'aria-label="' src --include='*.jsx'` → **0**, template-literal and quoted-expression forms →
+**0**. The i18n guard already matches `translateUI('…')` anywhere in a line, so aria expressions were
+covered without a new pattern; one `translateUI(cond ? 'a' : 'b')` was split into two literal calls so
+the guard sees both keys.
+
+### Measured (probes, deleted before the build)
+
+| Probe | Result |
+|---|---|
+| A — filter popup, German | `role="dialog"`, `aria-modal="true"`, name "Ansicht", focus inside; Escape closes, focus back on the filter button, Escape reached `document` **0×**, search text unchanged |
+| B — Tab loop | 20 presses with Shift+Tab mixed in: focus always inside; one plain Tab round visits all 8 focusable elements, ✕ included |
+| C — reduce motion (median of 3, 60 fps) | morph **168 ms**, content fade **101 ms**; from insertion to fully open **254 ms** (normal: 456 ms) — the remaining ~70 ms is the first frame of the glass |
+| D — languages | ✕ "Schließen" / "Close"; filter dialog "Ansicht" / "View"; calendar arrows "Zurück, Weiter" / "Previous, Next" |
+| E — same as A inside a shadow root | identical; `document.activeElement` is the host, focus still returns to the button |
+| Controls sheet (390 × 844) | modal, name "Helligkeit", focus inside, grabber `role="button"` "Schließen"; Escape → focus back on "Helligkeit" |
+| ⓘ window / overflow menu | modal "Energie-Dashboard" with focus on the labelled ×; menu non-modal "Mehr", focus on the first entry; both return focus on Escape |
+| To-do / calendar form | focus in the title field; Escape → back on "+" |
+
+`pageerror` 0 in every run. Guards green (i18n 1300 keys, extraction debt clean, PurgeCSS 0).
+
+### Not verified
+
+No real screen reader (VoiceOver, TalkBack) and no iOS Safari in the probe environment. On Android the
+forms' title field now getting focus may open the on-screen keyboard right away — that is what their
+`autoFocus` always asked for, but it is new in practice. Seen in passing and left alone: the popup
+content's opacity dips to 0 for one frame about 430 ms after opening; v1.1.2405 does exactly the same.
+
 ## Version 1.1.2405 - 2026-09-12
 
 **Title:** 🃏 Two cards on one page — the height ladder runs per root, the wallpaper survives a closing preview, and deep rest is only cleared by the last card
