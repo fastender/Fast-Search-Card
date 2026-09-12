@@ -1,5 +1,102 @@
 # Versionsverlauf
 
+## Version 1.1.2403 - 2026-09-12
+
+**Title:** 🔔 Service calls now report failures — one wrapper, an error toast, optimistic states rolled back, and two subscriptions that rejected into nowhere
+
+**Tags:** bugfix, reliability, ux, i18n
+
+Until now a control could pretend a command had worked when it had not. Of 45 `callService` sites,
+about a dozen ran without `await`, without `try` and without `.catch`: a rejected call ended as an
+unhandled promise rejection in the console and nothing else. The picker closed, the vacuum's selected
+areas were cleared, the time counted as saved — exactly in the cases where Home Assistant says no
+(integration gone, entity unavailable, reconnect).
+
+### One wrapper for every call from a user action
+
+`utils/dienstAufruf.js` — `dienstAufruf(hass, domain, service, data, opts)` and `dienstNachricht(hass,
+message, opts)` for `connection.sendMessagePromise`. Neither ever throws; both return `{ ok, fehler }`
+and the caller takes its optimistic state back. A missing `hass` or a missing `connection` (the
+reconnect case, where even dereferencing threw) returns `{ ok: false }` instead of blowing up. On
+failure: `logger.warn` with domain, service and entity, plus an error toast reading "Befehl
+fehlgeschlagen — Wohnzimmer Licht (light.turn_on)" — the service name stays in even when a friendly
+name exists, because it is the only thing a bug report can use. New keys `errors.serviceFailed` and
+`errors.schedulerMissing` in both dictionaries.
+
+**Toast throttle:** at most one error toast per target per 3 seconds. A slider sends a dozen calls
+while dragging and a text field one per keystroke; without the throttle a broken integration would
+bury the screen in toasts and the user would see as little as before.
+
+No global `unhandledrejection` listener: the card lives inside Home Assistant's page, and a listener
+on the window would read other people's rejections.
+
+### What now rolls back
+
+- **Select picker** closes only on success — the checkmark follows the entity state, so the old value
+  simply stays selected and the toast explains why.
+- **Vacuum area picker** clears the selection only on success. Before, the tapped areas vanished in
+  every case and left the user with an empty picker and a vacuum that did not move.
+- **Time picker** marks a time as saved only after a success. Before, `lastSavedRef` was set *before*
+  the call, so a second attempt with the same time was discarded as a duplicate — no second chance and
+  no hint.
+- **Number slider** re-hangs itself (key counter) so it snaps back to the entity value; the slider
+  only follows its `value` prop when that prop changes, and after a failure it has not.
+- **Text field** writes the entity's value back into the input; the display comes from `stateObj.state`
+  and nothing re-renders without a state change, so the typed text would otherwise look saved.
+- **Schedule tab**: the four `scheduler` calls run through the wrapper, and the form only resets and
+  reloads when the call succeeded — the input is no longer lost. If the `scheduler` integration is not
+  installed at all, the card says so *before* the call ("Scheduler integration not found") instead of
+  failing on the save tap. A failed delete now reloads the list, which brings back the row that was
+  optimistically removed.
+- **To-dos** (add, update, toggle, complete-many, delete, remove-completed): each call goes through the
+  wrapper and the list is reloaded even on failure, so the real state is visible. The error is still
+  re-thrown on purpose — `TodosView` takes its optimistic checkmark back on it and keeps the dialog
+  open. Tombstones (`undoStore`) need nothing: the store clears the pending action before running it,
+  so a failed delete no longer keeps the entry hidden.
+- **Calendar**: create/update go through the wrapper with `still: true`, because the event dialog shows
+  the failure inline itself — a toast on top would be the second message for one failure. Delete gets
+  the toast, because it runs out of the undo window where no dialog is left to show anything; before,
+  a failed delete disappeared silently into the undo store's log.
+- **Entity control view**: the comment that said the toast layer was deliberately bypassed is no longer
+  true — the wrapper *is* that layer now.
+- **Music Assistant** play/pause goes through the wrapper.
+
+### Two subscriptions that rejected into nowhere
+
+Measured with a connection whose `subscribeMessage`/`subscribeEvents` reject: mounting and unmounting
+produced **two uncaught rejections**. Both had their `.catch` in the wrong place.
+
+- `useEntityStream`: the cleanup attached `.then(unsub => unsub())` at unmount — but V8 reports a
+  rejection as unhandled at the end of the same microtask turn, minutes earlier. The catch now hangs on
+  the subscription itself and yields a no-op unsubscriber.
+- `news/index.jsx`: the subscription promise was parked in a field with no handler at all.
+
+After: **0**.
+
+`diktat.js` got the missing guard on `hass.connection.socket` — between the pipeline check and the tap
+on the microphone there can be a reconnect, and the dereference sat inside an async function.
+
+### Verified (probes, deleted before the build)
+
+| | |
+|---|---|
+| Error path | `{ok: false}`, exactly one error toast reading "Befehl fehlgeschlagen — Sonden-Licht (light.turn_on)", nothing thrown |
+| No `hass` / no connection | `{ok: false, fehler: 'kein hass'}` / `{ok: false}` — no throw |
+| Success path | `{ok: true}`, arguments passed through unchanged, no toast |
+| Throttle | 20 rejected calls in 2 s → **1** toast |
+| Unmount with a rejecting subscription | unhandled rejections **2 → 0** |
+| To-do "add" against a rejecting service | toast "Befehl fehlgeschlagen — Haushalt (todo.add_item)", error still re-thrown (so the view rolls back), list reloaded once |
+| Smoke test | search 2 hits, detail opens, schedule tab opens, settings 16 rows, `pageerror` 0, `console.error` 0 |
+
+### Left alone, on purpose
+
+`playOnMusicAssistant` and `unjoinPlayer` keep throwing / returning `false`: all their callers already
+catch and show their own feedback line in the MA panel, so a toast would be a second message for one
+failure. `logbookService` and `WeatherDeviceEntity.getForecast` already had both a connection guard and
+a try/catch. `DataProvider.callService` (used by the quick-control tap and the list-view controls) has
+its own catch and returns `false`, but shows nothing — since v1.1.1216 that is a deliberate decision to
+avoid double toasts with the detail view's own toast gate. That one is a product call, not a cleanup.
+
 ## Version 1.1.2402 - 2026-09-12
 
 **Title:** 🧹 Cleanup round — three orphaned files, 18 dead exports, three commented-out remnants, 46 CSS classes only the safelist kept alive, and 13 safelist prefixes gone
