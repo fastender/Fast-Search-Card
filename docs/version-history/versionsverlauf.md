@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2408 - 2026-09-13
+
+**Title:** 🔧 The keyboard focus ring from 1.1.2407 now also exists in the built card
+
+**Tags:** bugfix, accessibility
+
+In 1.1.2407 the focus ring was designed but was not in the delivered CSS. PurgeCSS 7 drops a rule whose selector begins with
+`:is(…)` or `:where(…)`, and a selector made only of pseudo-classes (`:focus:not(:focus-visible)`). The dev
+server does not purge, which is why every probe passed.
+
+`styles/shared.css` now spells the selectors out (`.ios-item-clickable:focus-visible, .device-card:focus-visible, …,
+[role="button"]:focus-visible`) and uses `*:focus:not(:focus-visible)`. Same meaning, same specificity order.
+Checked before the build by running `shared.css` and `perceivedSpeed.css` through the build's own PostCSS chain
+(PurgeCSS + cssnano): all three rules survive, and so does `[role='button']:not(:where([data-tastatur]))`,
+where `:where()` sits *inside* `:not()`. After the build the bundle contains the ring rule, the rule that
+suppresses it on part surfaces, and `:focus:not(:focus-visible){outline:none}`.
+
+Lesson for later CSS: never lead a selector with `:is()`/`:where()` in this project, and never rely on the
+dev server for anything PurgeCSS might remove — run the file through `postcss.config.cjs` with
+`NODE_ENV=production`, or grep the built bundle.
+
 ## Version 1.1.2407 - 2026-09-13
 
 **Title:** ⌨️ Keyboard and screen-reader pass, part 1/2 — settings rows and device tiles can be reached with Tab, have names, and respond to Enter or Space
