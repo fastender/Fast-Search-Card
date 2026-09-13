@@ -1,5 +1,102 @@
 # Versionsverlauf
 
+## Version 1.1.2409 - 2026-09-13
+
+**Title:** ⌨️ Keyboard and screen-reader pass, part 2/2 — chips, list rows, detail tabs, dots, small targets and input fields
+
+**Tags:** accessibility, i18n, ui
+
+Part 1 covered settings rows and device tiles. This part does the rest of the list.
+
+### Click surfaces
+
+- **Search bar:** the category/mode button is a button with its tooltip as its name ("Kategorie wählen", "Zurück",
+  "KI-Modus beenden"). The search field is named after its real placeholder (also while the idle typing loop
+  hides it). The clear button is called "Suche leeren".
+- **Subcategory chips** are buttons with `aria-pressed`. All **12 scroll arrows** (subcategories, tips,
+  versions, chart history, feed shell, hourly forecast) are buttons named "Nach links/rechts schieben".
+- **Detail tabs** form a real tablist (`role="tablist"`/`"tab"`, `aria-selected`, names from their tooltip).
+  They follow the APG pattern: only the active tab is in the Tab order, ←/→/Home/End move between tabs, and
+  Enter activates. The system-view action buttons ("Hinzufügen", "Aktualisieren") stay buttons, because they are
+  actions, not tabs, and now carry their name explicitly.
+- **Lists:** news articles, calendar event rows (only when clickable), to-do list cards and the rich news and
+  calendar rows are buttons named by their visible text.
+- **Rows that contain their own controls get the role on a part**, the same rule as in part 1:
+  - to-do cards (stack buttons + checkbox): role on the list icon, named after the task;
+  - rich to-do rows (check button): role on the text;
+  - the "Zuletzt im Haus" timeline (tile opens history, rows open devices): the head carries the tile's
+    role, each row its own, and the list becomes `role="none"`;
+  - rich W2 tiles (tile opens the view, rows open entries): a visually hidden button (the existing sr-only
+    class) as first child.
+
+  In each case `:has()` draws the ring around the whole card, row or tile. Device tiles inside the bento
+  carousel and live tiles were already covered by part 1 (their text part is the button, the click bubbles).
+- **Music Assistant search history:** the ✕ is a real `<button>` with a name. The pill carries `aria-label` so the two
+  names do not merge ("Beatles Entfernen").
+- The **to-do checkbox** was already a real (invisible) `<input type="checkbox">`. It gets the task title as its name and a
+  visible focus ring on its mark, instead of a second checkbox role on the wrapper.
+
+### Hit areas
+
+A **transparent border** that a negative margin takes back, with the fill held in its old size by `background-clip: padding-box`. That clip is
+`!important`, because hover and active rules set `background` as a shorthand and would reset it.
+
+| Target | Visible | Hit area |
+|---|---|---|
+| carousel dot / active dot | 6 × 6 / 36 × 6 | **12 × 24 / 42 × 24** |
+| grid/list toggle | 26 × 22 | 26 × 24 |
+| ⓘ in the filter window | 16 × 16 | 24 × 24 |
+| ✕ in filter chips | 18 × 18 (touch 22) | 24 × 24 (touch 28) |
+| ✕ in MA search history | 18 × 18 | 24 × 24 |
+| toast ✕ on phones | 20 × 20 | 24 × 24 |
+
+The dots do not reach 24 px in width. They sit 12 px apart, so 24 px-wide areas would overlap. The probe showed a tap on
+dot 1 landing on dot 2. The areas now tile exactly into the gap. A `::before` (the original plan) would not have
+worked either: the dot has `overflow: hidden` for its progress bar, and that clips a pseudo-element's hit area.
+The announce toggle's 14 px checkbox needed nothing, because its `<label>` with text is the target.
+
+Pixel check: each element rendered with the new CSS versus the old metrics, on desktop and phone, at rest and on
+hover: **identical**.
+
+### Input fields: 41 without a name → 0
+
+- **27 fields** now use their dictionary placeholder as their name.
+- **By hand:**
+  - the wallpaper, video and photo-frame path fields use their section or row title (their placeholder is an
+    example path);
+  - the max-entities stepper uses "Maximale Anzahl Entities";
+  - the quiet-hours time fields use the new `a11y.quietFrom` / `a11y.quietTo` ("Ruhezeit von/bis");
+  - the calendar's "until"/"count" fields use their option label;
+  - the dictation title field uses its stable title placeholder (not "listening…");
+  - the goal field uses "Ziel", and text entities use their friendly name;
+  - the weather location select uses the new `a11y.weatherLocation`;
+  - the power switch uses the entity name (passed through `CircularSlider` and the ring center).
+- **`LiquidGlassSwitch`** takes an optional `label`; without one, it points `aria-labelledby` at the
+  `.ios-item-label` of its row. That names all 21 direct uses and every `SettingsToggleRow` without touching them.
+
+New dictionary keys (de/en): `a11y.clearSearch`, `a11y.quietFrom`, `a11y.quietTo`, `a11y.weatherLocation`.
+
+### Measured
+
+| | Result |
+|---|---|
+| Search bar | field "Geräte", category button "Kategorie wählen" (tab stop), clear "Suche leeren" |
+| Detail tabs (cover) | 4 tabs, 1 tab stop, → moves focus to "Zeitplan", Enter selects it |
+| To-dos | icon parts named "Rechnung zahlen" …, checkboxes named, ring on the card, Enter opens the task |
+| Start page | rich tile button "Aufgaben", 0 visible `role="button"` without a name |
+| Settings fields | General 7 of 7 named, Toasts (quiet hours on) 17 of 17 named — "Ruhezeit von", "Ruhezeit bis" |
+| Source | `knopfAttribute(` 12 → 35, `aria-label={` 84 → 136; static scan: 47 fields, 0 without a name |
+
+All new rules were checked through the production PostCSS chain before the build and found in the bundle
+afterwards. `pageerror` 0 in every probe.
+
+### Side effects worth knowing
+
+- The rich slider (`BentoRichSlider`) does not advance when a tap lands on `[role="button"]`. Taps on rich rows open
+  the entry and no longer advance the slider behind it; the view changes anyway.
+- The dots' hit areas are 12 px wide, not 24.
+- No real screen reader and no iOS Safari were used in the probes.
+
 ## Version 1.1.2408 - 2026-09-13
 
 **Title:** 🔧 The keyboard focus ring from 1.1.2407 now also exists in the built card
