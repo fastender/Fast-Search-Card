@@ -2,7 +2,7 @@
 
 This document is for users and contributors who want to understand where Fast Search Card stands on Home Assistant's quality bar — and where it doesn't.
 
-If you just want the short version: **Fast Search Card is a Lovelace card, not an integration. Home Assistant's official [Integration Quality Scale](https://www.home-assistant.io/docs/quality_scale/) classifies every third-party card as `Custom` — the special tier outside the formal grading system. Measured against the same principles as graded integrations, the card would meet Silver across the board, with Gold-equivalent quality in every area except automated tests.**
+If you just want the short version: **Fast Search Card is a Lovelace card, not an integration. Home Assistant's official [Integration Quality Scale](https://www.home-assistant.io/docs/quality_scale/) classifies every third-party card as `Custom` — the special tier outside the formal grading system. Measured against the same principles as graded integrations, the card meets Bronze, most of Silver and Gold, and falls short in three places: automated tests cover the main surfaces but not the newest modules, there is no dedicated troubleshooting guide, and the code is not typed.**
 
 The rest of this document is the long version, so you can verify that for yourself.
 
@@ -26,22 +26,22 @@ This document does not claim one. It maps the Scale's criteria onto Fast Search 
 |---|---|---|
 | Easy UI setup | ✅ | HACS install + one line of YAML |
 | Source adheres to basic coding standards | ✅ | Refactor discipline (13-pass session model, ~75k LOC source, consistent patterns) |
-| Automated tests | ❌ | **None.** Only blocker for Bronze-equivalent status |
+| Automated tests | ✅ | Playwright suite since v1.1.2191: 13 spec files, 107 tests, one shared harness (`tests/harness/card.js`), Chromium, run serially |
 | Basic end-user documentation | ✅ | README, FEATURES.md, SECURITY.md, PERFORMANCE.md, in-card Tips system entity |
 
-**Result: 3/4.** Tests are the missing piece.
+**Result: 4/4.**
 
 ### 🥈 Silver — robustness
 
 | Criterion | Status | Notes |
 |---|---|---|
-| Stable UX under various conditions | ✅ | Cross-browser tested via community feedback (Safari, Firefox, Chromium) |
+| Stable UX under various conditions | ✅ | Cross-browser tested via community feedback (Safari, Firefox, Chromium); failed service calls report themselves and roll back (v1.1.2403); a render error is contained to the broken tile or view (v1.1.2404) |
 | One or more active code owners | ✅ | Single active maintainer, 2,000+ releases since 2025-12 |
 | Auto-recover from connection errors | ✅ | `hassRetryService` singleton + rAF-batched state updates |
 | Auto-trigger re-authentication | n/a | Card runs in HA's already-authenticated browser context |
-| Detailed docs + troubleshooting | ✅ | README has a Troubleshooting section, SECURITY.md is audit-grade |
+| Detailed docs + troubleshooting | ⚠️ | README, FEATURES.md and SECURITY.md are detailed; there is no dedicated troubleshooting section yet |
 
-**Result: 4/4 met** (auth row is n/a for the card context).
+**Result: 3/4 met, 1 partial** (auth row is n/a for the card context). Troubleshooting documentation is the gap.
 
 ### 🥇 Gold — full feature
 
@@ -53,10 +53,10 @@ This document does not claim one. It maps the Scale's criteria onto Fast Search 
 | Translations | ⚠️ | English and German today; eight more on the roadmap ([#21](FEATURE_ROADMAP.md#21-localization-expansion)) |
 | Extensive non-technical docs | ✅ | README, FEATURES.md, in-card Tips, demo videos and GIFs |
 | Software updates through HA | ✅ | HACS handles versioning + update notifications |
-| Full automated test coverage | ❌ | **None.** Same blocker as Bronze |
+| Full automated test coverage | ⚠️ | **Partial.** The suite covers the main surfaces (see Gap 1); modules added after v1.1.2317 have no tests yet |
 | Required for "Works with Home Assistant" program | n/a | Program reserved for device-providing integrations |
 
-**Result: 5/6 met** (auth, auto-discovery, and program row are n/a). Tests block Gold-equivalent status.
+**Result: 5/6 met** (auth, auto-discovery, and program row are n/a). Test coverage is the open criterion.
 
 ### 🏆 Platinum — code excellence
 
@@ -87,19 +87,18 @@ Four Quality Scale criteria simply don't translate to the Lovelace card context.
 
 ## Roadmap to higher quality alignment
 
-Two real gaps separate the card from full Gold/Platinum alignment.
+Three gaps separate the card from full Gold/Platinum alignment: test coverage, troubleshooting documentation and typing.
 
-### Gap 1 — automated tests (the Bronze/Silver/Gold blocker)
+### Gap 1 — test coverage (the Gold gap)
 
-The biggest improvement available. A first set of critical-path tests would unblock everything except Platinum at once.
+The card has an end-to-end suite: **Playwright, 13 spec files, 107 tests** (`tests/`, added in v1.1.2191, last changed 2026-08-08 at v1.1.2317). Every test mounts the real card through one harness (`tests/harness/card.js`) with a mock Home Assistant, in Chromium, one worker, serially — roughly eight minutes for a full run. It covers the bento start screen and its zen curtain, search and sensor subcategories, the detail view, calendar and to-dos, the notification center and watches, the island, the sidebar, settings, the ocean and weather tiles, and the data provider. One spec checks that class names survive the production CSS build.
 
-What to test first:
-- **DataProvider** — state shape, selector hooks, 3-tier-cache invalidation.
-- **System-Entity Registry** — register/unregister, lookup by domain/id/category, multi-instance handling.
-- **Search pipeline** — Fuse setup, intent parser, chip-input state machine.
-- **Quick Control state machine** — Tap/Hold timings, amber-ring threshold, per-domain mode.
+What it does not cover yet:
+- the modules added after the suite's last update (v1.1.2317): the height ladder (`hoehenLeiter`), the idle service (`leerlaufStore`), deep rest, wake sources, display handoff, photo frame, the version watcher and its stale-code line, dictation, people per list, the house chronicle, the undo store and the `MorphPopup` window;
+- Shadow DOM: the harness mounts the card without a shadow root, so event-retargeting problems stay invisible;
+- WebKit/Safari: the suite runs Chromium only.
 
-Roughly 4–8 hours of work for an initial suite covering the four critical paths. Stack: Vitest + Preact Testing Library. Lazy until then, but on the long list.
+Tests run when the maintainer asks for a run; they are not part of the release script.
 
 ### Gap 2 — TypeScript (the Platinum gap)
 
@@ -131,6 +130,7 @@ Where the card meets or exceeds the Quality Scale principles without needing cha
 | Date | Card version | Scope | Notes |
 |---|---|---|---|
 | 2026-06-21 | v1.1.1924 | Initial Quality Scale alignment assessment | Bronze 3/4 · Silver 4/4 · Gold 5/6 · Platinum 4/5. Tests + TypeScript are the only material gaps. |
+| 2026-09-13 | v1.1.2409 | Refresh against the current code | Bronze 4/4 (Playwright suite since v1.1.2191) · Silver 3/4 + 1 partial (no troubleshooting section — the earlier ✅ claimed one that does not exist) · Gold 5/6 (coverage partial) · Platinum 4/5. |
 
 ---
 

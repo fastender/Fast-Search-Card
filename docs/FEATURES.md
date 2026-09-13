@@ -4,7 +4,7 @@
 
 ### Everything Fast Search Card does.
 
-<sub>Current as of v1.1.1924 · [Version history](version-history/versionsverlauf.md) · [Roadmap](FEATURE_ROADMAP.md)</sub>
+<sub>Current as of v1.1.2409 (2026-09-13) · [Version history](version-history/versionsverlauf.md) · [Roadmap](FEATURE_ROADMAP.md)</sub>
 
 </div>
 
@@ -48,7 +48,31 @@ Configurable in Settings → Bento. Enable or disable the entire start screen wi
 
 <br>
 
-Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-height` keeps W3/W4 square at any width. Containment lives on the widget, not the grid — hover-scale renders cleanly without clipping.
+Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-height` keeps W3/W4 square at any width. Containment lives on the widget, not the grid — hover-scale renders cleanly without clipping. On screens too low for the full stack, the height ladder below steps the layout down.
+
+</details>
+
+<details>
+<summary><b>Height ladder for wall tablets.</b></summary>
+
+<br>
+
+The card measures the height it actually has — its position in the window, the window height and the island band — and retreats in rungs instead of cutting off at the bottom: full, compact, dropping rows, and finally the old stacked floor (v1.1.2389). A 1024 × 768 tablet with the Home Assistant header, which used to lose the bottom tile row, now fits. Since v1.1.2405 every card on a page measures its own ladder, so an editor preview no longer freezes the live card.
+
+</details>
+
+<details>
+<summary><b>Screensaver, deep rest and the wall-tablet chain.</b></summary>
+
+<br>
+
+After a set idle time the screensaver returns the card to the locked clock page. If it stays quiet for a few more minutes (default 2), **deep rest** dims the screen with an overlay, shrinks the clock and fades the text, and moves the text block a few pixels every three minutes against burn-in; inside the notifications' quiet hours the dim is deeper (v1.1.2390, roadmap #61).
+
+**Wake sources** let Home Assistant wake a resting card like a touch: a motion or presence sensor switching on, a doorbell, or a critical alert; when nobody is home the return to the clock page comes sooner (v1.1.2391, #62).
+
+**Display handoff** switches a chosen screen entity (for example Fully Kiosk's screen switch) off when deep rest begins and on again at wake, with optional scripts for both moments (v1.1.2392, #63).
+
+**Photo frame:** during deep rest the picture behind the clock cycles through the images of a media folder, resolved fresh for every change (v1.1.2393, #64).
 
 </details>
 
@@ -63,6 +87,7 @@ Desktop layout fixed at exactly 576px height. ResizeObserver-driven `--w34-row-h
 - **Calendar.** Next event as hero, four follow-ups. Click opens the event detail.
 - **Versions.** Latest release as hero.
 - **Tips.** Rotates every five seconds.
+- **Zuletzt im Haus (house chronicle).** The latest events of the whole house, fed by the live state stream without polling (v1.1.2384, roadmap #44).
 
 </details>
 
@@ -345,6 +370,10 @@ Day, Week, Month, Year views. Native HA WebSocket integration — `calendar/even
 
 Bento integration: next event as hero, four follow-ups.
 
+**Groups** bundle several calendars under one switch and one colour ("Familie"), with filter chips in the calendar view (v1.1.2379, roadmap #53). **Event rules** colour an event, give it an icon, dim it, show a day chip or hide it, depending on what the event is — title contains, from a calendar or group, all-day, past — as four fixed forms rather than a rule language (v1.1.2380, #54). **People** get their calendars and groups assigned in the settings; a "Personen" view then shows the week with one lane per person plus a shared lane, and the people double as a filter (v1.1.2381, #55).
+
+**Week as day columns:** the week tab shows one column per day with all-day pills on top and timed events as small cards below; on narrow screens it steps down from seven to five to three days and finally to the compact week grid (v1.1.2387–2388, roadmap #48).
+
 </details>
 
 <details>
@@ -353,6 +382,10 @@ Bento integration: next event as hero, four follow-ups.
 <br>
 
 Aggregates every HA `todo.*` backend. All lists stay on your Home Assistant. No cloud, no account. Overdue items in red. Smooth wheel pickers for due dates. Multi-list filters that actually combine.
+
+**Live todos:** changes made elsewhere — in the Home Assistant app, by voice, by an automation — appear by themselves, because the card watches the lists' state line instead of polling; checking an item off shows immediately (v1.1.2367, roadmap #56). **Undo:** deleting a task, an event or a schedule keeps the service call waiting for six seconds under an undo pill, so undoing means nothing was ever sent (v1.1.2368, #60).
+
+**Stacking:** identical overdue tasks that a provider reopened per missed period collapse into one row with a count such as "3× fällig" (v1.1.2395, #67). **Search before adding:** while you type a new title, matching items from all visible lists appear below the field, and each list can be assigned to one of the calendar's people (v1.1.2396, #65). **Dictation:** a microphone button in the add row turns speech into the title — through Home Assistant Assist when a speech-to-text pipeline exists, otherwise through the browser's speech recognition (v1.1.2399, #66).
 
 </details>
 
@@ -521,6 +554,15 @@ Real `backdrop-filter`. Five user-customizable filters: brightness, blur, contra
 </details>
 
 <details>
+<summary><b>One glass window for every popup.</b></summary>
+
+<br>
+
+Info texts, the filter and category windows, the history date picker, the schedule editor, the task and event forms, the hint sheet and the snooze menu all open in the same window: it grows out of the button that opened it, dims the card and puts its close button underneath (v1.1.2359–2368). Since v1.1.2406 it is a proper dialog for keyboards and screen readers — focus moves in and back, Escape closes it, and "reduce motion" shortens the animation.
+
+</details>
+
+<details>
 <summary><b>Handwritten splashscreen.</b></summary>
 
 <br>
@@ -590,7 +632,34 @@ See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md#1-echte-llm-conversation-statt-simul
 
 ## Notifications
 
-> visionOS-style toasts.
+> The island, the center, and toasts.
+
+<details>
+<summary><b>The island.</b></summary>
+
+<br>
+
+The status element at the top of the card has two bodies since v1.1.2289: a values capsule (weather, power) and the island itself. At rest they read as one status line; tapping the island's button moves it to the centre with a summary capsule of the current messages, and its panel filters by severity and by source.
+
+</details>
+
+<details>
+<summary><b>House chronicle in the Notification Center.</b></summary>
+
+<br>
+
+The center's "Verlauf" tab shows what the whole house did, day by day, from Home Assistant's logbook — filtered by the card's exclusion list, groupable by family and room, with repeated flaps folded and "durch wen" where an event has a cause (v1.1.2382–2383, roadmap #44). Entries speak device classes: "Fenster Küche → Offen" instead of "Aktiv" (v1.1.2394). The same stock feeds the "Zuletzt im Haus" tile and a context line on the locked clock page (v1.1.2384).
+
+</details>
+
+<details>
+<summary><b>Version watcher.</b></summary>
+
+<br>
+
+A wall tablet keeps its page open for weeks, so after an update it can keep running the old code. The card compares the version it is running with the one Home Assistant serves and shows a quiet line with a reload button only when the running code is provably older — never as an advertisement for a new release (v1.1.2397–2398, roadmap #68).
+
+</details>
 
 <details>
 <summary><b>Glass effect. Configurable.</b></summary>
@@ -607,6 +676,32 @@ Event-gated via settings.
 
 ---
 
+## Reliability & accessibility
+
+> What happens when something goes wrong, and without a mouse.
+
+<details>
+<summary><b>Failures say so.</b></summary>
+
+<br>
+
+A service call that Home Assistant rejects now shows an error toast naming the action, and states the card had already shown optimistically are rolled back (v1.1.2403). A rendering error stays inside the broken tile, view, island or window, which shows a quiet fallback with a retry button instead of emptying the whole card (v1.1.2404). Two cards on one page — typically the editor preview next to the live card — no longer disturb each other's height, wallpaper or deep rest (v1.1.2405).
+
+</details>
+
+<details>
+<summary><b>Keyboard and screen readers.</b></summary>
+
+<br>
+
+Popups are real dialogs with a name, focus handling, Escape and a Tab loop (v1.1.2406). Settings rows, device tiles, chips, list rows, scroll arrows and the detail tabs can be reached with Tab and triggered with Enter or Space, with a focus ring that only the keyboard sees; every input field has a name, and small targets have at least a 24-pixel-high hit area (v1.1.2407–2409).
+
+</details>
+
+<br>
+
+---
+
 ## Performance
 
 > Boots in under a second.
@@ -616,7 +711,7 @@ Event-gated via settings.
 
 <br>
 
-Animation durations cut by 25%. `touch-action: manipulation` everywhere. `:active { scale(0.97) }` for instant feedback. Search debounce dropped from 150ms to 50ms.
+Animation durations cut by 25%. `touch-action: manipulation` everywhere. `:active { scale(0.97) }` for instant feedback. Search debounce dropped from 150ms to 50ms (v1.1.1182); since v1.1.2351 the typed text shows instantly and the search follows after 110ms.
 
 </details>
 
@@ -670,7 +765,7 @@ Pub/sub pending-action tracker. Only the affected card rerenders during a servic
 
 <br>
 
-390 KB gzipped. Dead-code elimination on `console.log`. SVG paths reduced to two decimal precision.
+604,876 bytes gzipped at v1.1.2409 (measured 2026-09-13), checked against a size budget on every release. Dead-code elimination on `console.log`. SVG paths reduced to two decimal precision. See [PERFORMANCE.md](PERFORMANCE.md) for the measurements and their dates.
 
 </details>
 
@@ -800,7 +895,7 @@ In development. Browse, install, and manage plugins from inside the card. Manife
 
 ## What's next
 
-See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for **twenty ideas** — the original ten from May plus a new ten shaped by what shipped through June. Sketchpad widget recommended as the next flagship.
+See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md) for every idea with its current status.
 
 <br>
 
@@ -812,6 +907,17 @@ Quick way to see how the card has evolved since the last big doc refresh.
 
 | Version | Highlight |
 |---|---|
+| v1.1.2403–2409 | Failures report themselves, error boundaries, two cards per page, popups as dialogs, keyboard and screen-reader pass |
+| v1.1.2395–2399 | Todos: overdue stacking, search before adding, person per list, dictation; version watcher |
+| v1.1.2390–2393 | Screensaver chain: deep rest, wake sources, display handoff, photo frame |
+| v1.1.2389 | Height ladder — the card fits low wall tablets |
+| v1.1.2387–2388 | Calendar week as day columns |
+| v1.1.2382–2384 | House chronicle: center "Verlauf" tab and the "Zuletzt im Haus" tile |
+| v1.1.2379–2381 | Calendar groups, event rules, person lanes |
+| v1.1.2367–2368 | Live todos and undo for deletions |
+| v1.1.2359–2366 | One glass window for every popup |
+| v1.1.2289 | The island in two bodies |
+| v1.1.2191 | Playwright test harness |
 | v1.1.1924 | Bento detail-overlay top fix in Safari + scrollbar inside widget padding |
 | v1.1.1918 | Bento favourites/suggestions widget — grid ↔ list view toggle |
 | v1.1.1911 | List-View Quick Control — icon-as-switch + universal `⋯` inline actions |
@@ -837,6 +943,6 @@ Plus 50+ smaller fixes from Reddit and GitHub feedback: Safari read-state persis
 
 <br>
 
-<sub>v1.1.1924 · <a href="version-history/versionsverlauf.md">version history</a> · <a href="../README.md">back to readme</a></sub>
+<sub>v1.1.2409 · <a href="version-history/versionsverlauf.md">version history</a> · <a href="../README.md">back to readme</a></sub>
 
 </div>

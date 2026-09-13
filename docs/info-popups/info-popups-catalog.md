@@ -1,5 +1,7 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
+> **Stand:** v1.1.2409 (2026-09-13) — 63 `settingsInfo` keys in de.js and en.js, 63 sections below.
+
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
 >
@@ -699,6 +701,40 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > *Why it matters:* gives you a fixed card background, independent of the HA wallpaper.
 
+## wallpaperFolder
+
+**DE**
+> ## Galerie-Ordner
+>
+> Die Galerie zeigt **Thumbnails der Bilder in einem Medien-Ordner**. Tippe ein Bild an, um es als Karten-Hintergrund zu setzen.
+>
+> **Einfachster Weg (ohne Config):**
+> 1. In Home Assistant: **Medien → Meine Medien**.
+> 2. Lege dort einen Ordner **`wallpaper`** an und lade deine Bilder hoch („Verwalten" → „Hochladen").
+> 3. Hier `/local/wallpaper` eingetragen lassen — die Karte findet den Ordner am Namen (letztes Pfad-Segment) und lädt die Bilder über HAs Medien-API.
+>
+> **Hinweis:** Bilder aus dem `media`-Ordner werden über **signierte URLs** geladen — genau wie HAs eigenes Wallpaper, bei jedem Laden frisch aufgelöst.
+>
+> *Optional (permanente URLs):* den Ordner per `media_dirs` auf `/config/www/wallpaper` zeigen lassen — dann liegt das Bild öffentlich unter `/local/`.
+>
+> *Warum wichtig:* Hintergründe per Thumbnail wählen statt URL tippen.
+
+**EN**
+> ## Gallery folder
+>
+> The gallery shows **thumbnails of the images in a media folder**. Tap one to set it as the card background.
+>
+> **Easiest (no config):**
+> 1. In Home Assistant: **Media → My media**.
+> 2. Create a folder named **`wallpaper`** there and upload your images ("Manage" → "Upload").
+> 3. Leave `/local/wallpaper` here — the card finds the folder by name (last path segment) and loads the images via HA's media API.
+>
+> **Note:** images from the `media` folder load via **signed URLs** — exactly like HA's own wallpaper, re-resolved on each load.
+>
+> *Optional (permanent URLs):* point a `media_dirs` entry to `/config/www/wallpaper` — then the image is public under `/local/`.
+>
+> *Why it matters:* pick backgrounds by thumbnail instead of typing URLs.
+
 ## island
 
 > v1.1.2172 (Insel Phase 2b): ersetzt `statsBar` + `statsBarWidgets`.
@@ -875,6 +911,32 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Load only entities with area** – permanently hides entities without an assigned area (room).
 >
 > *Why it matters:* fewer loaded entities = a faster card and less noise in search.
+
+## visibilityFilter
+
+**DE**
+> ## Sichtbarkeit
+>
+> Steuert, ob in Home Assistant ausgeblendete oder technische Entitäten auf der Karte erscheinen – analog zu HAs automatisch erstellten Dashboards.
+>
+> - **Versteckte Entitäten ausblenden** – Entitäten, deren Sichtbarkeit du in HA ausgeschaltet hast (Entität → Einstellungen → „Sichtbar"), erscheinen nicht auf der Karte (`hidden_by`).
+> - **Diagnose- & deaktivierte Entitäten ausblenden** – Diagnose-/Konfigurations-Entitäten (`entity_category`) sowie in HA deaktivierte Entitäten (`disabled_by`) werden nicht angezeigt.
+>
+> **Hinweis:** System-Entitäten (News, Wetter etc.) sind nie betroffen. Beide Filter sind standardmäßig an.
+>
+> *Warum wichtig:* Hält die Karte sauber – du siehst nur, was du auch im Dashboard sehen willst, ohne RSSI-/Firmware-/Update-Rauschen.
+
+**EN**
+> ## Visibility
+>
+> Controls whether entities you hid in Home Assistant, or technical entities, appear on the card – mirroring HA's auto-generated dashboards.
+>
+> - **Hide hidden entities** – entities whose visibility you turned off in HA (entity → settings → "Visible") won't show on the card (`hidden_by`).
+> - **Hide diagnostic & disabled entities** – diagnostic/config entities (`entity_category`) and entities disabled in HA (`disabled_by`) are not shown.
+>
+> **Note:** system entities (news, weather, etc.) are never affected. Both filters are on by default.
+>
+> *Why it matters:* keeps the card clean – you only see what you'd want on a dashboard, without RSSI/firmware/update noise.
 
 ## excludedPatterns
 
@@ -1265,6 +1327,80 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > *Why it matters:* hide the noise and show only what matters for this device.
 
+## integrationTypes
+
+**DE**
+> ## Verfügbare Gerätetypen
+>
+> Wähle einen Gerätetyp, um ein neues Gerät einzurichten.
+>
+> - **Energy Dashboard** – bindet das Home-Assistant-Energie-Dashboard ein (Verbrauch, Erzeugung, Netz).
+> - **Wetter** – Vorhersage & aktuelle Bedingungen einer `weather`-Entität.
+> - **Universal Gerät** – umschließt *jedes* HA-Gerät (Tesla, Waschmaschine, beliebige Entität) und macht es als Karte nutzbar.
+>
+> *Tipp:* Im Zweifel **Universal Gerät** wählen — damit lässt sich praktisch jedes HA-Gerät einbinden. Über **Geräte verwalten** bearbeitest oder entfernst du bereits eingerichtete Geräte.
+
+**EN**
+> ## Available device types
+>
+> Choose a device type to set up a new device.
+>
+> - **Energy Dashboard** – embeds the Home Assistant energy dashboard (consumption, production, grid).
+> - **Weather** – forecast & current conditions of a `weather` entity.
+> - **Universal Device** – wraps *any* HA device (Tesla, washer, any entity) and turns it into a usable card.
+>
+> *Tip:* when in doubt, pick **Universal Device** — it can wrap virtually any HA device. Use **Manage devices** to edit or remove devices you've already set up.
+
+## universalPickDevice
+
+**DE**
+> ## Gerät wählen
+>
+> Schritt 1 von 2: Wähle das Home-Assistant-Gerät, das als Universal-Gerät eingebunden werden soll.
+>
+> - **Suchen** filtert die Liste live nach Name.
+> - Geräte sind nach **Integration** gruppiert (z.B. MQTT, Aqara) — tippe auf eine Gruppe zum Aufklappen.
+> - Tippe auf ein Gerät bzw. das **+**, um es auszuwählen und weiter zu Schritt 2 (Anpassen) zu gehen.
+> - Bereits eingebundene Geräte sind **ausgegraut** und als „bereits hinzugefügt" markiert.
+>
+> *Warum wichtig:* Das gewählte HA-Gerät liefert die Entitäten, die du danach als Hero, Charts, Quick-Stats usw. anordnest.
+
+**EN**
+> ## Pick a Device
+>
+> Step 1 of 2: choose the Home Assistant device to wrap as a Universal Device.
+>
+> - **Search** filters the list live by name.
+> - Devices are grouped by **integration** (e.g. MQTT, Aqara) — tap a group to expand it.
+> - Tap a device or the **+** to select it and continue to step 2 (Customize).
+> - Devices that are already wrapped are **dimmed** and marked "already added".
+>
+> *Why it matters:* the chosen HA device provides the entities you'll then arrange as hero, charts, quick-stats, etc.
+
+## energySetup
+
+**DE**
+> ## Energie-Dashboard
+>
+> Das Energie-Dashboard zeigt Echtzeit-Daten zu deinem Energieverbrauch, deiner Produktion und den Kosten — basierend auf deiner Home-Assistant-Konfiguration.
+>
+> - Die **Energie-Quellen** (Netz, Solar, Batterie, Gas) werden direkt aus den HA-Energie-Einstellungen gelesen.
+> - **Konfiguriert** = die Quelle ist in Home Assistant eingerichtet; **Nicht konfiguriert** = in HA noch nicht hinterlegt.
+> - Mit **Energie-Dashboard hinzufügen** wird die Karte mit deiner aktuellen Konfiguration erstellt.
+>
+> *Warum wichtig:* Konfiguriere Quellen zuerst in den Home-Assistant-Energie-Einstellungen — die Karte spiegelt nur das, was HA liefert.
+
+**EN**
+> ## Energy Dashboard
+>
+> The Energy Dashboard shows real-time data about your energy consumption, production, and costs — based on your Home Assistant configuration.
+>
+> - The **energy sources** (grid, solar, battery, gas) are read straight from HA's energy settings.
+> - **Configured** = the source is set up in Home Assistant; **Not configured** = not yet defined in HA.
+> - **Add Energy Dashboard** creates the card from your current configuration.
+>
+> *Why it matters:* configure sources in Home Assistant's energy settings first — the card only mirrors what HA provides.
+
 ## energyValues
 
 > Energy-Dashboard → Einstellungen. ⓘ am „WERTE / VALUES"-Header (Settings-Home).
@@ -1460,3 +1596,237 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Week starts on** – Monday or Sunday (affects the month/week grid).
 > - **Time format** – 24-hour or 12-hour (AM/PM).
 > - **Week numbers** – show/hide the week-number column in the month grid.
+
+## calVisibleViews
+
+**DE**
+> ## Sichtbare Ansichten
+>
+> Lege fest, welche Ansichts-Tabs (Tag / Woche / Monat / Jahr / Personen) oben angezeigt werden.
+>
+> - Mindestens eine bleibt immer aktiv.
+> - **Personen** erscheint nur, wenn unter „Personen" mindestens eine angelegt ist.
+> - **Woche** zeigt die Tage als Spalten nebeneinander, solange die Breite reicht (leere Tage bleiben sichtbar, damit die Spalten in der Flucht bleiben). Wird es eng, fallen hintere Tage weg – und am Ende zeigt sie die Kästchen-Ansicht mit Balken und Liste.
+> - Ist die aktuell offene Ansicht ausgeblendet, springt der Kalender auf die erste sichtbare.
+>
+> *Warum wichtig:* Reduziere die Tabs auf das, was du wirklich nutzt.
+
+**EN**
+> ## Visible views
+>
+> Choose which view tabs (Day / Week / Month / Year / People) appear at the top.
+>
+> - At least one always stays enabled.
+> - **People** only appears once at least one person is set up under "People".
+> - **Week** shows the days as columns side by side while the width allows (empty days stay visible so the columns keep their alignment). As it gets narrow, trailing days drop off – and at the floor it shows the cell view with bars and list.
+> - If the currently open view gets hidden, the calendar switches to the first visible one.
+>
+> *Why it matters:* trim the tabs down to the ones you actually use.
+
+## calNewEvents
+
+**DE**
+> ## Neue Termine
+>
+> Vorgaben für **neu erstellte** Termine (gilt nur im „+"-Dialog, nicht beim Bearbeiten):
+>
+> - **Standard-Kalender** – in welchen Kalender neue Termine zuerst gelegt werden.
+> - **Standard-Dauer** – Vorbelegung der Endzeit (15/30/60/90 Min).
+> - **Ganztägig (Standard)** – ob neue Termine direkt als ganztägig starten.
+
+**EN**
+> ## New events
+>
+> Defaults for **newly created** events (apply in the "+" dialog only, not when editing):
+>
+> - **Default calendar** – which calendar new events are placed in first.
+> - **Default duration** – preset end time (15/30/60/90 min).
+> - **All day (default)** – whether new events start as all-day.
+
+## calTitleTemplates
+
+**DE**
+> ## Titel-Vorlagen
+>
+> Schnell-Chips, die im Event-Dialog **über dem Titel** erscheinen — ein Tipp setzt den Titel.
+>
+> - **Hinzufügen** legt eine neue Vorlage an, **Stift** bearbeitet, **Papierkorb** löscht.
+>
+> *Warum wichtig:* Wiederkehrende Titel (z.B. „Meeting", „Arzt") mit einem Tipp einfügen.
+
+**EN**
+> ## Title templates
+>
+> Quick chips shown **above the title** in the event dialog — one tap sets the title.
+>
+> - **Add** creates a template, **pencil** edits, **trash** deletes.
+>
+> *Why it matters:* insert recurring titles (e.g. "Meeting", "Doctor") with one tap.
+
+## calDescTemplates
+
+**DE**
+> ## Beschreibungs-Vorlagen
+>
+> Wie die Titel-Vorlagen, nur für das **Beschreibungs-Feld** des Event-Dialogs.
+>
+> - **Hinzufügen** / **Stift** (bearbeiten) / **Papierkorb** (löschen).
+>
+> *Warum wichtig:* Standard-Notizen mit einem Tipp einfügen, statt sie jedes Mal neu zu tippen.
+
+**EN**
+> ## Description templates
+>
+> Like the title templates, but for the event dialog's **description field**.
+>
+> - **Add** / **pencil** (edit) / **trash** (delete).
+>
+> *Why it matters:* insert standard notes with one tap instead of retyping them.
+
+## todoLists
+
+**DE**
+> ## Listen
+>
+> Jede Aufgaben-Liste aus Home Assistant erscheint hier.
+>
+> - **Schalter** rechts: Liste ein-/ausblenden — ausgeblendete Listen verschwinden aus dem Filter und der Aufgaben-Ansicht.
+> - **Tippen auf die Zeile** öffnet die Anpassung: **Name**, **Symbol** (SVG-Icon) und **Farbe** der Liste.
+>
+> *Warum wichtig:* Gib jeder Liste ein eigenes Icon + Farbe und blende ungenutzte Listen aus.
+
+**EN**
+> ## Lists
+>
+> Every task list from Home Assistant shows up here.
+>
+> - **Switch** on the right: show/hide a list — hidden lists disappear from the filter and the task view.
+> - **Tap the row** to customize: **name**, **icon** (SVG) and **color** of the list.
+>
+> *Why it matters:* give each list its own icon + color and hide lists you don't use.
+
+## todoDisplay
+
+**DE**
+> ## Anzeige
+>
+> - **Erledigte anzeigen** – aus: erledigte Aufgaben ausblenden; an: anzeigen.
+> - **Erledigte ausblenden nach** – erledigte Aufgaben nach X Tagen automatisch ausblenden.
+> - **Standard-Filter** – welcher Tab beim Öffnen aktiv ist (Alle/Unerledigt/Heute/Überfällig/Erledigt).
+> - **Sortierung** – Reihenfolge der Aufgaben (Fälligkeit / Alphabetisch / Liste / Erstellungsdatum).
+
+**EN**
+> ## Display
+>
+> - **Show completed** – off: hide completed tasks; on: show them.
+> - **Auto-hide completed after** – automatically hide completed tasks after X days.
+> - **Default filter** – which tab is active on open (All/Incomplete/Today/Overdue/Completed).
+> - **Sort by** – task order (due date / alphabetical / list / created date).
+
+## todoVisibleTabs
+
+**DE**
+> ## Sichtbare Tabs
+>
+> Lege fest, welche Filter-Tabs oben angezeigt werden (Alle / Unerledigt / Heute / Überfällig / Erledigt).
+>
+> *Warum wichtig:* Blende Tabs aus, die du nicht brauchst, um die Leiste übersichtlich zu halten.
+
+**EN**
+> ## Visible tabs
+>
+> Choose which filter tabs appear at the top (All / Incomplete / Today / Overdue / Completed).
+>
+> *Why it matters:* hide the tabs you don't need to keep the bar tidy.
+
+## todoDescTemplates
+
+**DE**
+> ## Beschreibungs-Vorlagen
+>
+> Schnell-Vorlagen für das Beschreibungs-/Notiz-Feld beim Erstellen einer Aufgabe.
+>
+> - **Hinzufügen** legt eine Vorlage an, **Stift** bearbeitet, **Papierkorb** löscht.
+>
+> *Warum wichtig:* Wiederkehrende Notizen mit einem Tipp einfügen.
+
+**EN**
+> ## Description templates
+>
+> Quick templates for the description/notes field when creating a task.
+>
+> - **Add** creates a template, **pencil** edits, **trash** deletes.
+>
+> *Why it matters:* insert recurring notes with one tap.
+
+## todoProfiles
+
+**DE**
+> ## Profile
+>
+> Personen-Profile (Name + Farbe), die du Aufgaben zuordnen kannst — als farbige Avatare auf der Aufgabe sichtbar.
+>
+> - **Hinzufügen** legt ein Profil an, **Stift** bearbeitet, **Papierkorb** löscht.
+>
+> *Warum wichtig:* So erkennst du auf einen Blick, wer für eine Aufgabe zuständig ist.
+
+**EN**
+> ## Profiles
+>
+> People profiles (name + color) you can assign to tasks — shown as colored avatars on the task.
+>
+> - **Add** creates a profile, **pencil** edits, **trash** deletes.
+>
+> *Why it matters:* see at a glance who's responsible for a task.
+
+## scheduleGeneralSettings
+
+**DE**
+> ## Allgemein
+>
+> Die Grund-Einstellungen des Zeitplans — wann und was passieren soll:
+>
+> - **Aktion** – was am Gerät passiert (z.B. Einschalten / Ausschalten, bei Rollos Öffnen / Schließen / Position setzen).
+> - **Scheduler** – **Timer** löst einmalig nach Ablauf einer Zeit aus; **Zeitplan** löst zu festen Uhrzeiten an gewählten Tagen aus.
+> - **Tage** – an welchen Wochentagen der Zeitplan läuft (nur im Zeitplan-Modus).
+> - **Wiederholung** – **Wiederholen** (läuft weiter), **Stoppen** (pausiert nach Auslösen) oder **Löschen** (einmalig, entfernt sich danach).
+> - **Startzeit / Endzeit** – Beginn (und im Zeitplan-Modus optional das Ende) des Zeitfensters.
+>
+> *Warum wichtig:* Hier legst du das Grundgerüst fest — die genauen Geräte-Werte folgen darunter unter „Geräte-Einstellungen".
+
+**EN**
+> ## General
+>
+> The basic settings of the schedule — when and what should happen:
+>
+> - **Action** – what happens on the device (e.g. turn on / off, or for covers open / close / set position).
+> - **Scheduler** – **Timer** fires once after a duration; **Schedule** fires at fixed times on selected days.
+> - **Days** – which weekdays the schedule runs on (schedule mode only).
+> - **Repeat** – **Repeat** (keeps running), **Stop** (pauses after firing) or **Single** (one-shot, removes itself afterwards).
+> - **Start time / End time** – the start (and, in schedule mode, the optional end) of the time window.
+>
+> *Why it matters:* this is the framework — the exact device values follow below under "Device settings".
+
+## scheduleDomainSettings
+
+**DE**
+> ## Geräte-Einstellungen
+>
+> Zusätzliche Werte, die beim Auslösen des Zeitplans an das Gerät gesendet werden — je nach Gerätetyp (z.B. bei Klima: HVAC-Modus, Temperatur, Lüfter-/Schwenkmodus; bei Licht: Helligkeit/Farbe usw.).
+>
+> - Welche Felder erscheinen, hängt von den Fähigkeiten des Geräts ab.
+> - Tippe auf eine Zeile, um den Wert zu wählen; leer = nicht setzen.
+>
+> *Warum wichtig:* So legt der Zeitplan nicht nur „an/aus" fest, sondern den genauen Zielzustand.
+
+**EN**
+> ## Device settings
+>
+> Extra values sent to the device when the schedule fires — depending on the device type (e.g. for
+> climate: HVAC mode, temperature, fan/swing mode; for lights: brightness/color, etc.).
+>
+> - Which fields appear depends on the device's capabilities.
+> - Tap a row to choose the value; empty = don't set.
+>
+> *Why it matters:* the schedule then defines not just "on/off" but the exact target state.
+

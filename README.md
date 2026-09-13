@@ -158,13 +158,13 @@ See [SECURITY.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/S
 
 ## Performance
 
-Boots in under a second. Stays under 400 KB gzipped. 60 fps scrolling with thousands of entities.
+First paint around 900 ms (measured 2026-04-24). 604,876 bytes gzipped at v1.1.2409, checked against a size budget on every release. 55–60 fps scrolling a 400-entity list on mid-range mobile (measured 2026-04-17).
 
 rAF-batched updates. virtua-virtualized lists. Instant repeat searches via LRU cache. No main-thread starvation.
 
-Measured on every release. Single-file bundle you can profile yourself.
+Every number is dated. Single-file bundle you can profile yourself.
 
-See [PERFORMANCE.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) for the full audit and the numbers we measure on every release.
+See [PERFORMANCE.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) for the full audit and when each number was measured.
 
 <br>
 
@@ -172,7 +172,7 @@ See [PERFORMANCE.md](https://github.com/fastender/Fast-Search-Card/blob/main/doc
 
 Home Assistant has a [Quality Scale](https://www.home-assistant.io/docs/quality_scale/) for integrations — Bronze, Silver, Gold, Platinum. Lovelace cards are explicitly out of scope.
 
-This card lands in the `Custom` special tier by definition. Measured against the Scale's principles anyway, it meets Silver across the board, with Gold-equivalent quality in every area except automated tests.
+This card lands in the `Custom` special tier by definition. Measured against the Scale's principles anyway, it meets Bronze and most of Silver and Gold; the open points are test coverage of the newest modules (a Playwright suite covers the main surfaces), a troubleshooting guide, and typing.
 
 No fake badge. Just a transparent self-assessment.
 
@@ -208,6 +208,17 @@ A start screen. A calendar. Reminders. News. Energy monitoring. Music control. A
 <br>
 
 Four configurable slots. Weather, calendar, todos, news, favorites — all live. Slides automatically. Adapts to mobile.
+
+On a wall tablet the **height ladder** fits the card to low screens, the **screensaver** returns to a clock page and dims it in deep rest, motion or a doorbell wakes it, the real display can switch off and on with it, and a **photo frame** cycles your pictures behind the clock.
+
+</details>
+
+<details>
+<summary><b>Island.</b> Status at a glance, messages on demand.</summary>
+
+<br>
+
+A status line at the top of the card; tap it for a summary of your messages. The Notification Center's history tab is the **house chronicle** — what the whole house did, day by day.
 
 </details>
 
@@ -260,6 +271,8 @@ Video backgrounds when you have them — drop `{domain}_{state}.mp4` into `/loca
 
 Day, Week, Month, Year views. Native HA WebSocket integration. All events stay on your Home Assistant. No cloud, no account. Recurring events with five preset patterns. Add, edit, delete — without leaving the dashboard.
 
+Calendar groups, event rules and a lane per person for the family week; the week reads as day columns.
+
 </details>
 
 <details>
@@ -268,6 +281,8 @@ Day, Week, Month, Year views. Native HA WebSocket integration. All events stay o
 <br>
 
 Every HA `todo.*` backend, in one place. All lists stay on your Home Assistant. No cloud, no account. Overdue items in red. Smooth wheel pickers for due dates. Multi-list filters that actually combine.
+
+Live todos update when something changes elsewhere, deletions can be undone for six seconds, repeated overdue items stack into one row, and you can add a task by dictation.
 
 </details>
 
@@ -327,7 +342,9 @@ Background filters. Squircle cards. Splashscreen styles. Excluded patterns with 
 
 **Apps.** Changelog. Tips. All-Schedules. Live weather. Bambu Lab 3D printer support.
 
-**Design.** Liquid-Glass sliders and switches. Smooth motion throughout. Handwritten splashscreen. Toast notifications. Chart.js graphs everywhere.
+**Design.** Liquid-Glass sliders and switches. One glass window for every popup. Smooth motion throughout. Handwritten splashscreen. Toast notifications. Chart.js graphs everywhere.
+
+**Reliable.** Failed actions say so and roll back. A broken tile no longer empties the card. A version watcher notices when a wall tablet still runs old code after an update. Keyboard and screen readers reach settings rows, device tiles, chips, detail tabs and popups.
 
 **Smart.** Predictive suggestions that learn your habits. List virtualization for thousands of entities. AI Mode (experimental).
 
@@ -343,7 +360,7 @@ See [FEATURES.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/F
 
 Preact · Framer Motion · Fuse.js · Chart.js · virtua · IndexedDB
 
-Single file. ~390 KB gzipped. Boots in under a second.
+Single file. 604,876 bytes gzipped at v1.1.2409 (measured 2026-09-13).
 
 All open-source dependencies. No proprietary code. Fully auditable.
 
@@ -377,8 +394,8 @@ No mystery. No pretending.
 
 <br>
 
-- [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Twenty ideas, prioritized (Sketchpad widget recommended next)
-- [Performance roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE_ROADMAP.md) — Bundle, render, scroll
+- [Feature roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURE_ROADMAP.md) — Every idea with its status
+- [Performance](https://github.com/fastender/Fast-Search-Card/blob/main/docs/PERFORMANCE.md) — Bundle, render, scroll, with measurement dates
 - [Custom component roadmap](https://github.com/fastender/Fast-Search-Card/blob/main/docs/CUSTOM_COMPONENT_ROADMAP.md) — Companion HACS packages
 
 </details>

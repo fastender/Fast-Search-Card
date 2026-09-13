@@ -2,7 +2,7 @@
 
 This document is for users who install Fast Search Card via HACS and want to know how the card behaves under load — boot time, scroll smoothness, render cost, network footprint.
 
-If you just want the short version: **first paint is around 900 ms, the bundle is around 475 KB gzipped, scrolling a 400-device list runs at 55-60 FPS on mid-range mobile, and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document is reproducible locally.
+If you just want the short version: **first paint is around 900 ms (measured 2026-04-24, v1.1.1240), the bundle is 604,876 bytes gzipped (measured 2026-09-13, v1.1.2409), scrolling a 400-device list runs at 55-60 FPS on mid-range mobile (measured 2026-04-17, v1.1.1184), and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document says when it was measured and is reproducible locally.
 
 The rest of this document is the long version, so you can verify that for yourself.
 
@@ -16,7 +16,7 @@ These are the categories of slow behaviour that are explicitly absent. They have
 |---|---|
 | Blocking synchronous IO on the hot path | None — IndexedDB is async-batched, localStorage is read once at boot |
 | Layout thrashing during Home Assistant ticks | None — `setEntities` is rAF-batched and capped at 60/s |
-| Full-tree re-render on every state update | None — `memo()` on `DeviceCard`, `StatsBar`, `GreetingsBar`, `SubcategoryBar`, `ActionSheet`, **plus a split `StableDataContext`** so the 50–200 device cards do not re-render through context churn on every tick (v1.1.1987) |
+| Full-tree re-render on every state update | None — `memo()` on `DeviceCard`, `Island` (formerly `StatsBar`), `GreetingsBar`, `SubcategoryBar`, **plus a split `StableDataContext`** so the 50–200 device cards do not re-render through context churn on every tick (v1.1.1987) |
 | Re-indexing the search collection on idle ticks | None — Fuse rebuilds its index **lazily**, only right before an actual search, not on every state tick while the panel is just open (v1.1.1985) |
 | 300 ms tap delay on touch devices | None — `touch-action: manipulation` set globally |
 | Long lists rendering every node | None — virtua 0.49 keeps the DOM at ~30 nodes regardless of collection size |
@@ -43,7 +43,7 @@ The optimizations group into five layers. Each layer has a measurable contributi
 
 ### Bundle
 
-- **Single self-contained file, around 475 KB gzipped** (~1.78 MB raw). Production build via Vite + terser. It has grown with the feature set; the biggest remaining lever — splitting the detail view, charts and energy dashboard into on-demand chunks — is identified but currently held back by the single-file HACS delivery model (one `.js` you drop in `www/`).
+- **Single self-contained file: 604,876 bytes gzipped, 2,209,325 bytes raw** (v1.1.2409, measured 2026-09-13). Production build via Vite + terser. Every release checks this against a budget before it is committed — `scripts/check-bundle-size.sh` warns above 620,000 bytes gzipped and stops the release above 700,000 — and prints both numbers into the release notes. It has grown with the feature set; the biggest remaining lever — splitting the detail view, charts and energy dashboard into on-demand chunks — is identified but currently held back by the single-file HACS delivery model (one `.js` you drop in `www/`).
 - **Dead-code elimination**: `console.log`, `console.debug`, and `console.info` calls are stripped from the production bundle. Wrappers in `src/utils/logger.js` make them no-ops at runtime.
 - **SVG optimization** (v1.1.1185): icon paths reduced to 2-decimal precision across 48 icons. No visible difference, smaller bytes.
 - **No third-party CDN at runtime**: every dependency is bundled at build time. Zero blocking network for code.
@@ -63,7 +63,7 @@ The optimizations group into five layers. Each layer has a measurable contributi
 - **Animation budget cut 25 % globally** (v1.1.1182): durations moved from 0.3 s to 0.22 s and from 0.4 s to 0.3 s. The interface feels faster without skipping frames.
 - **`touch-action: manipulation`** everywhere tappable: removes the 300 ms double-tap-to-zoom wait.
 - **`:active { transform: scale(0.97) }`**: instant visual feedback on touch-down, before any handler runs.
-- **Search debounce 50 ms, trailing edge** (v1.1.1182, was 150 ms): typing feels live, but Fuse only runs once per pause.
+- **Search term debounce 110 ms, trailing edge** (v1.1.2351; 50 ms from v1.1.1182, 150 ms before): the typed text appears instantly, the fuzzy search and the result list follow once the fingers pause. Clearing, Enter, a suggestion or a chip apply the term immediately.
 - **Search cache**: LRU of 30 queries. A repeat search is a 0 ms cache hit. The cache invalidates when the entity collection changes.
 - **Press feedback** (v1.1.1186): a pending-action tracker with pub/sub. When you tap a card to call a service, only that card rerenders. A subtle blue shimmer pulse plays while the call is in flight. There is no optimistic state mutation — if HA rejects the call, nothing has to be rolled back.
 - **Detail prefetch**: on desktop, `pointerEnter` warms the entity cache during hover. On mobile, `pointerDown` prefetches at touch-start, before the click event fires. Both paths are idempotent.
@@ -106,7 +106,9 @@ Run a Lighthouse audit (Performance category) on a Lovelace dashboard that conta
 
 - First Contentful Paint under 1.0 s on desktop, under 1.8 s on mobile-throttled
 - Total Blocking Time under 200 ms
-- Cumulative Layout Shift effectively 0 — the card reserves its own height via `card_height`
+- Cumulative Layout Shift effectively 0 — the card reserves its own height (the root is sized through `--fsc-panel-h`, set by the height ladder since v1.1.2389)
+
+These Lighthouse expectations have not been re-measured since v1.1.2198.
 
 ### Scroll FPS
 
@@ -119,30 +121,31 @@ Install the Preact / React DevTools "highlight updates" overlay. Trigger a senso
 ### Bundle size
 
 ```
+$ bash scripts/check-bundle-size.sh
 $ ls -la dist/fast-search-card.js
 $ gzip -c dist/fast-search-card.js | wc -c
 ```
 
-Expect around 390 000 bytes gzipped.
+Measured at v1.1.2409 (2026-09-13): 604,876 bytes gzipped, 2,209,325 bytes raw.
 
 ---
 
 ## Latest measurements
 
-Numbers as of v1.1.1991. Measured on a clean Lovelace view containing only this card, with ~600 entities exposed.
+Each row names the release it was measured on. Measured on a clean Lovelace view containing only this card, with ~600 entities exposed. Rows marked *code* are constants in the source, not measurements.
 
-| Metric | Value | How it's measured |
-|---|---|---|
-| First paint (desktop, warm cache) | ~900 ms | `src/utils/perfMarks.js` |
-| First paint (desktop, cold cache) | ~1.4 s | Lighthouse |
-| Bundle size (gzipped) | ~476 KB | `gzip -c dist/fast-search-card.js | wc -c` |
-| Bundle size (raw) | ~1.78 MB | `ls -la dist/` |
-| Scroll FPS, 400-entity list, mid-range mobile | 55-60 | DevTools FPS meter |
-| Tap-to-press-feedback latency | < 16 ms | `:active` is a CSS state, not a JS handler |
-| Search debounce window | 50 ms | `src/utils/searchDebounce` |
-| Search cache hit time | 0 ms (cache lookup only) | LRU cache, no Fuse work |
-| React updates per second under 30 Hz HA tick storm | 1-2 | rAF batching in `setEntities` |
-| DOM node count for a 400-entity list | ~30 | virtua 0.49 windowing |
+| Metric | Value | Measured | How it's measured |
+|---|---|---|---|
+| First paint (desktop, warm cache) | ~900 ms | 2026-04-24 (v1.1.1240) | `src/utils/perfMarks.js` |
+| First paint (desktop, cold cache) | ~1.4 s | not re-measured since v1.1.2198 | Lighthouse |
+| Bundle size (gzipped) | 604,876 bytes | 2026-09-13 (v1.1.2409) | `bash scripts/check-bundle-size.sh` |
+| Bundle size (raw) | 2,209,325 bytes | 2026-09-13 (v1.1.2409) | `wc -c dist/fast-search-card.js` |
+| Scroll FPS, 400-entity list, mid-range mobile | 55-60 | 2026-04-17 (v1.1.1184) | DevTools FPS meter |
+| Tap-to-press-feedback latency | < 16 ms | *code* | `:active` is a CSS state, not a JS handler |
+| Search term debounce | 110 ms | *code* (v1.1.2351) | `FUZZY_TERM_DEBOUNCE_MS` in `src/components/SearchField.jsx` |
+| Search cache hit time | 0 ms (cache lookup only) | *code* | LRU of 30 queries (`CACHE_MAX` in `src/hooks/useFuzzySearch.js`), no Fuse work |
+| React updates per second under 30 Hz HA tick storm | 1-2 | 2026-04-17 (v1.1.1183) | rAF batching in `setEntities` |
+| DOM node count for a 400-entity list | ~30 | 2026-04-17 (v1.1.1184) | virtua 0.49 windowing |
 
 ---
 
@@ -150,13 +153,16 @@ Numbers as of v1.1.1991. Measured on a clean Lovelace view containing only this 
 
 | Version | Date | Scope | Outcome |
 |---|---|---|---|
-| [v1.1.1182](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1182) | Tier 1 snappiness pass: animation budget, tap delay, search debounce, `memo()` on `DeviceCard`, `content-visibility` | 6 changes, perceived latency dropped notably |
-| [v1.1.1183](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1183) | Tier 2 CPU pass: rAF batching for `setEntities`, IndexedDB batch writes, `contain: paint`, `will-change` discipline, `memo()` on the bars | Main thread no longer stalls under HA tick storms |
-| [v1.1.1184](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1184) | Virtualization via virtua 0.49, dynamic column count, `animatedOnce` flag | Scroll FPS 30-50 → 55-60 on mobile, DOM nodes capped at ~30 |
-| [v1.1.1185](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1185) | SVG path precision reduced to 2 decimals across 48 icons | Smaller bundle, no visible change |
-| [v1.1.1186](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1186) | Pending-action tracker with pub/sub, single-card press feedback, `prefers-reduced-motion` fallback | Service calls rerender only the affected card |
-| [v1.1.1240](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1240) | `window._hass` boot fix — removed a polling cascade that backed off to 10 s | First paint 10 s → ~900 ms |
-| [v1.1.1985–1991](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1991) | Multi-agent runtime pass (root cause: a new entity array every HA tick): lazy Fuse re-index + removed a dead per-render search, cached excluded-entities filter config, split `StableDataContext` so the device grid leaves the per-tick context churn, render scoping (60→10 Hz poll, memoized ctx value, sliced state-sync), rAF-coalesced shared scrollbar, composite-only progress bars + `will-change` hygiene | A state tick re-renders only the changed cards, not the grid; idle search/scroll CPU cut; no behaviour change |
+| [v1.1.1182](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1182) | 2026-04-17 | Tier 1 snappiness pass: animation budget, tap delay, search debounce, `memo()` on `DeviceCard`, `content-visibility` | 6 changes, perceived latency dropped notably |
+| [v1.1.1183](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1183) | 2026-04-17 | Tier 2 CPU pass: rAF batching for `setEntities`, IndexedDB batch writes, `contain: paint`, `will-change` discipline, `memo()` on the bars | Main thread no longer stalls under HA tick storms |
+| [v1.1.1184](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1184) | 2026-04-17 | Virtualization via virtua 0.49, dynamic column count, `animatedOnce` flag | Scroll FPS 30-50 → 55-60 on mobile, DOM nodes capped at ~30 |
+| [v1.1.1185](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1185) | 2026-04-17 | SVG path precision reduced to 2 decimals across 48 icons | Smaller bundle, no visible change |
+| [v1.1.1186](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1186) | 2026-04-17 | Pending-action tracker with pub/sub, single-card press feedback, `prefers-reduced-motion` fallback | Service calls rerender only the affected card |
+| [v1.1.1240](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1240) | 2026-04-24 | `window._hass` boot fix — removed a polling cascade that backed off to 10 s | First paint 10 s → ~900 ms |
+| [v1.1.1985–1991](https://github.com/fastender/Fast-Search-Card/releases/tag/v1.1.1991) | 2026-06-26 | Multi-agent runtime pass (root cause: a new entity array every HA tick): lazy Fuse re-index + removed a dead per-render search, cached excluded-entities filter config, split `StableDataContext` so the device grid leaves the per-tick context churn, render scoping (60→10 Hz poll, memoized ctx value, sliced state-sync), rAF-coalesced shared scrollbar, composite-only progress bars + `will-change` hygiene | A state tick re-renders only the changed cards, not the grid; idle search/scroll CPU cut; no behaviour change |
+| v1.1.2198 | 2026-07-23 | Honest bundle measurement (`ANALYZE=1`): what the single file is made of | 505 KB gzipped at the time; roughly a quarter dependencies, three quarters the card's own code |
+| v1.1.2351 | 2026-08-22 | Typing fluency: the typed text no longer waits for the search | Fuzzy search term debounced to 110 ms, search index warmed up while idle |
+| v1.1.2409 | 2026-09-13 | Size budget in the release script (`scripts/check-bundle-size.sh`) | 604,876 bytes gzipped, 2,209,325 raw; warns above 620,000 gzipped, stops above 700,000 |
 
 Each release commit message and Versionsverlauf entry describes the specific code changes if you want to read the diff.
 
