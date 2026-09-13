@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Pre-commit hook — runs check-extraction-debt.py against src/ before allowing
-# the commit. Catches DUPLICATE + UNUSED IMPORT regressions introduced by
-# refactor passes that miss imports.
+# Pre-commit hook — runs the three source guards before allowing the commit:
+#   check-extraction-debt.py  DUPLICATE + UNUSED IMPORT regressions
+#   check-i18n-keys.py        missing dictionary keys / German text in en.js
+#   check-purgecss-dynamic.py class names PurgeCSS would drop
+# (Auftrag 09 added the i18n guard; before, only the other two ran.)
 #
 # Install once:   bash scripts/install-git-hooks.sh
 # Disable:        git config --unset core.hooksPath
@@ -32,6 +34,18 @@ if ! python3 "$ROOT/scripts/check-extraction-debt.py" -q "$SRC"; then
   exit 1
 fi
 
+# Auftrag 09 (2026-09-13): i18n-Wächter — jeder translateUI('…')-Schlüssel muss in
+# de.js UND en.js stehen (ein fehlender Schlüssel kommt als PFAD zurück, also als
+# truthy Text auf dem Schirm), und en.js darf keinen deutschen Text tragen.
+# Laufzeit gemessen ~0,7 s — keine eigene Schnellvariante nötig.
+if ! python3 "$ROOT/scripts/check-i18n-keys.py" > /dev/null 2>&1; then
+  echo ""
+  echo "❌ Pre-commit: i18n-Wächter — fehlende Schlüssel oder deutscher Text in en.js."
+  echo "   Run for details:   python3 scripts/check-i18n-keys.py"
+  echo "   Skip this commit:  git commit --no-verify"
+  exit 1
+fi
+
 # v1.1.2346: PurgeCSS-Wächter — Klassennamen, die nur ZUSAMMENGESETZT vorkommen
 # (`foo-${x}`), verlieren ihre CSS-Regeln im Release-Build (v1.1.2226 bento,
 # v1.1.2344 Feed-Hülle). Das Skript rechnet PurgeCSS' Entscheidung nach; ~0.5 s.
@@ -43,4 +57,5 @@ if ! python3 "$ROOT/scripts/check-purgecss-dynamic.py" > /dev/null 2>&1; then
   exit 1
 fi
 
+echo "✓ Pre-commit: extraction-debt, i18n, purgecss — alle drei Wächter grün"
 exit 0
