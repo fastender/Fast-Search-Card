@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.2410 - 2026-09-13
+
+**Title:** 🧹 Deduplication pass — every duplicated building block has one definition, stores notify over a copy, and 48 of 54 hand-written section headers use the shared component
+
+**Tags:** refactor, reliability
+
+A mechanical release: nothing is supposed to look or behave differently, and the probes say nothing does.
+
+### Deduplication pass
+
+| Symbol | Was | Now |
+|---|---|---|
+| `getTemperatureColor` | `utils/deviceHelpers.js` and `utils/temperatureColors.js` | `temperatureColors.js` only. The two bodies were compared over 1,767 inputs (−60…160 °C/°F in quarter steps plus non-numbers): 0 differences |
+| `CONTROL_DOMAINS`, `SENSOR_DOMAINS` | byte-identical private sets in the device setup (`UniversalSetup/hooks.js`) and the live device view (`entityGrouping.js`) | `device-entities/domaenen.js` — the one place that defines what counts as "controllable" |
+| `PROTO_KEYS`, `safeAssign` (prototype-pollution guard) | `systemSettingsStorage.js` and `toastSettings.js` | `utils/safeStorage.js` |
+| settings migration write | `SearchField/utils/settingsReaders.js` wrote the whole blob past `safeAssign` and past the settings read cache | through `updateSystemSettingsSection` |
+| `sameDay` | local copy in `CalendarView.jsx` (returned the falsy operand) | `utils/dateRange.js` (real boolean; every caller only reads truthiness) |
+| `pad2` | five local copies (date picker, time picker, chart header, date popover, event dialog) | `utils/timeFormatters.js` |
+| `findInShadowDOM` | `viewWallpaper.js` and `WallpaperBootOverlay.jsx` | exported from `viewWallpaper.js` |
+| `scaledResponsiveSize` | `CircularSlider.jsx` and `CircularMultiRing.jsx` | `controls/ringMasse.js` |
+| `lerp`, `clamp` | ocean scene + ocean fallback, circular slider transforms + ocean weather | `utils/mathe.js` |
+| `HOME_ITEM_ID`, `LIQUID_SPRING`, `HOME_ICON_SVG`, `buildHomeItem` | copies in `SearchSidebar.jsx` (the id exported twice) and `SidebarItemsSettingsTab.jsx` | `bento/constants.js`, `bento/icons.jsx`, `bento/virtualItems.js`. The bento home item also carries `description` and `brandColor`; the sidebar reads neither, and "Home" is the same word in both dictionary branches |
+| `['sensor', 'binary_sensor']` | five literals in `SearchField.jsx` and `searchFilters.js` | `MESSDOMAENEN` in `searchFilters.js` |
+
+A grep for each symbol's definition returns exactly one line. Two imports that only the removed copies used (`calculateResponsiveSize` in both ring components) went with them, which the extraction-debt guard reported.
+
+### Store notify hardened
+
+New `utils/createStore.js`: `createStore(initial, { init, name, gleich })` → `{ get, set, subscribe }`. It notifies over a copy of the listener set, puts a try/catch around each listener, runs `init` lazily on the first get or subscribe (`return false` = not yet, e.g. without `window`), and skips equal values.
+
+- `iconSizeStore`, `isMobileStore` and `langStore` now sit on the factory; their public exports and signatures are unchanged.
+- `zenStore` and the notification center's pending-tab store also use the factory. The pending-tab store keeps notifying on every call, as it did before.
+- `quickControlStore` (two values) and `hausChronikStore` (throttled) keep their own code, but now notify over a copy.
+
+Before, four of these iterated the live set, so a listener that unsubscribed during a notify could shift the round.
+
+Store probe (Node): a listener that unsubscribes itself and subscribes a new one during the notify, plus a listener that throws. Round 1 calls every original listener exactly once, no exception escapes, and the new listener is not called yet. Round 2 calls the new one once and skips the removed one. An equal value causes no round.
+
+### Section headers consolidated (48 of 54)
+
+The forms were measured first. 48 hand-written `<div className="ios-section-header">{…}</div>` with a single expression inside became `<SettingsSectionHeader title={…} />`, across 18 files. Left as they are:
+
+- 4 with their own `style` (ocean objects, charts, hero picker, weather setup);
+- 1 with extra child elements (management view);
+- 1 with hard-coded text (energy setup).
+
+The component wraps the title in a `<span>`, and no CSS targets it.
+
+### Measured (probes, deleted before the build)
+
+| | Before | After |
+|---|---|---|
+| Climate ring gradient at 21 °C | `#4CAF50` | `#4CAF50` |
+| Settings General / Appearance / About (screenshots) | — | pixel-identical |
+| Calendar month view | — | 42 cells, 1 today |
+| Sidebar "Home" | present, icon 20 × 20 | present, icon 20 × 20; tapping it closes the open view and shows the start page |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+This was also the first release through the guarded `build.sh` (version and size guards from 2026-09-13). All three guards ran before the build, and the bundle carried `fsc-version:1.1.2410`. It measured 2,205,210 bytes raw and 603,994 bytes gzipped (−4,115 raw against 1.1.2409), and that line is now in the release notes.
+
+### Follow-up candidates (deliberately not in this pass)
+
+Weekday tables in five forms, month names twice, the two import cycles (the controls ring of five and `DataProvider` ↔ `dataSelectors`), five `utils → system-entities` import inversions, `hass` passed through 70 props (plus `window._hass` in `DeviceCardListView.jsx`), 25 navbar copies in 21 files, and three dialects of relative time.
+
 ## Version 1.1.2409 - 2026-09-13
 
 **Title:** ⌨️ Keyboard and screen-reader pass, part 2/2 — chips, list rows, detail tabs, dots, small targets and input fields
