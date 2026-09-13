@@ -1,5 +1,80 @@
 # Versionsverlauf
 
+## Version 1.1.2407 - 2026-09-13
+
+**Title:** ⌨️ Keyboard and screen-reader pass, part 1/2 — settings rows and device tiles can be reached with Tab, have names, and respond to Enter or Space
+
+**Tags:** accessibility, ui
+
+The card had 138 clickable settings rows, and every one of them was a `div`: no tab stop, no role, no
+key that triggers it. The device tiles in the search were the same. Until now a keyboard user could type
+a search, but could open neither a result nor a single settings page.
+
+### The helper
+
+`utils/tastatur.js`:
+
+- `tasteAlsKlick` — Enter or Space trigger the element's **own click**, so the same `onClick` runs through
+  the same event chain as with a mouse. Nothing has to be written twice (14 of the row handlers span several
+  lines), and the two paths cannot drift apart. If the role sits on a *part* of a row, the click bubbles up
+  to the row.
+- `tastenKlick(onClick)`, `knopfAttribute(onClick?, label?)`, `hakenAttribute(onToggle, checked, label?)`.
+- Keys are only handled when they belong to the element itself (`target === currentTarget`). Many rows
+  contain a time field, a switch or a text field; otherwise the row would swallow their Space key and fire
+  its own click on top.
+
+### Settings rows: 138 → 125 automatic, 10 by hand, 3 comments, 0 left
+
+The codemod (Python, not checked in) first measured the shapes, then added
+`role="button" tabIndex={0} onKeyDown={tasteAlsKlick} data-tastatur` to 125 rows in 24 files. By hand:
+
+- **3 rows are only clickable under a condition** — the version row (only when an update is waiting), the
+  device picker (only for devices not added yet), domain settings (all except toggle rows). They get the
+  attributes under the same condition.
+- **6 rows have their own control on the right** — a switch, a date/number field or reorder buttons. A
+  `role="button"` on the whole row would nest that control inside a button, and a button's children are
+  presentational to screen readers. So the role sits on the label part on the left. Verified in Chromium's
+  accessibility tree: `button "Haushalt 3 Aufgaben"` and a separate `checkbox [checked]`; Enter on the label
+  opens "Haushalt".
+- **1 row has the ⓘ inside its label** (energy sensors). There the role sits on the chevron part, named after
+  the label.
+
+### Device tiles
+
+In the grid tile, Quick Control is its own button; in the list row, the ⋯ button and the inline controls
+panel are too. So the role sits on the text part (area, name, state), and the name comes from the visible
+text: the accessibility tree reads **"Küche Licht Aus"**, not just "Licht" as it would with the name alone
+(every room has a "Licht"). Enter bubbles to the tile as a click and opens the detail view. The press logic
+is untouched (`onPointerDown` only prefetches the detail view).
+
+### Focus ring, and a trap in `perceivedSpeed.css`
+
+`styles/shared.css` draws a 2 px ring with `:focus-visible` only (mouse and touch see nothing) and uses
+`outline` only (no layout, no new backdrop root). Where the role sits on a part, `:has()` draws the ring
+around the whole tile or row.
+
+`perceivedSpeed.css` gives every `[role='button']` an `:active { transform: scale(0.97) }` and a transform
+transition. Applied to 137 new surfaces, it would have changed the press feel of rows that already scale
+with framer's `whileTap`. The new `data-tastatur` marker excludes them:
+`[role='button']:not(:where([data-tastatur]))`. `:where()` keeps specificity at (0,1,0).
+
+### Measured (probes, deleted before the build)
+
+| | Result |
+|---|---|
+| Settings, keyboard only | all 10 visible rows reached in 32 Tab presses; ring `solid 2px`; Enter on "Währung" opens it; Escape does nothing (no dialog); Shift+Tab to the back button + Enter → back |
+| Tiles | first tile after 12 Tab presses from the search field, name "Küche Licht Aus", ring around the whole tile, Enter → detail view |
+| Names | 0 visible `role="button"` elements without a name (settings 12, search 3) |
+| Pixels | settings and search grid with vs. without the new attributes: identical |
+| Counts (source) | `onKeyDown=` 7 → 132, `role="button"` 15 → 140, `tabIndex={0}` 11 → 136, plus 12 `knopfAttribute()` |
+
+### Known issue in this build
+
+PurgeCSS 7 removed the `:is(…):focus-visible` rule, the rule that hides the ring on part surfaces, and
+`:focus:not(:focus-visible)` from the production CSS. The dev server does not purge, which is why the probes
+passed. In this build the keyboard shows the browser's default ring instead of the designed one (mouse and
+touch are unaffected). Fixed in 1.1.2408.
+
 ## Version 1.1.2406 - 2026-09-13
 
 **Title:** 🪟 Popups are real dialogs now — role and name, focus in and back, Escape, a Tab loop, short motion under "reduce motion", and the last hard-coded aria texts moved into the dictionary
