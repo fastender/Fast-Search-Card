@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2412 - 2026-09-14
+
+**Title:** 🐛 To-do settings: description templates can be saved again, and the list switch toggles instead of opening the list
+
+**Tags:** bugfix, todos
+
+Both bugs were found while probing the 1.1.2411 split, and both were already in 1.1.2410.
+
+### Templates get a Done button
+
+"New template" and "Edit template" had no Done button, so the typed text was discarded on Back. Templates could not be created or changed from the settings; only deleting worked. This is the gap 1.1.2399 closed for profiles.
+
+- The Done button is now one shared component (`FertigKnopf` in `todos/components/settings/sections.jsx`) used by both the profile and the template form. The profile form's markup did not change (the DOM fingerprint is identical).
+- The button is disabled while the text is empty or only spaces. Saving trims the text, keeps the template's id when editing, sorts the list alphabetically and sends `todos-templates-changed`, which the to-do dialog listens to.
+
+### The list switch toggles
+
+On the to-do settings main screen, a click on a list's switch opened the list detail page instead, and nothing was saved. Space on the focused switch did the same. The switch's `stopPropagation` prop only stops `change`, so the click reached the row. The row switched pages and removed the switch before it could report the change.
+
+The switch now sits in the same click guard the calendar settings have used since 1.1.1843: a `<span>` that stops the click. The switch and the chevron are at the same position and size as before.
+
+### Measured (probe, deleted before the build)
+
+| Check | 1.1.2411 | 1.1.2412 |
+|---|---|---|
+| Click on the list switch | opens the list detail page, nothing saved | stays on the main screen, `enabled` saved as false, second click saves true |
+| Space on the focused switch | opens the list detail page, nothing saved | toggles, stays on the main screen |
+| Click on the row text or the chevron, Enter on the row | opens the list detail page | same |
+| Switch and chevron position (with the guard vs. without) | — | identical (52 × 26 at the same x/y; chevron 7 × 12) |
+| "New template" Done button | missing | disabled when empty or spaces only, enabled with text |
+| Template saved / edited / second one added / Back without Done | — | saved; edit prefilled and kept the id, text trimmed; sorted A–Z; Back discards |
+| `todos-templates-changed` events | — | 3, one per save, with the saved list |
+| The other 9 settings sub-views, including both profile forms (full DOM fingerprint against 1.1.2411) | — | identical |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+Against 1.1.2411, the DOM differs exactly by the new `<span>` on the main screen and the new button in the two template forms; with those removed, the fingerprints are identical.
+
+Bundle: 2,202,848 bytes raw and 604,465 bytes gzipped (+243 raw and +33 gzip against 1.1.2411).
+
 ## Version 1.1.2411 - 2026-09-14
 
 **Title:** ✂️ Todos settings split into sub-views — the 1,068-line settings screen becomes a 428-line navigator plus one file per isolated sub-view, with an identical DOM fingerprint
