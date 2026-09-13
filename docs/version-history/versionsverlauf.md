@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.2411 - 2026-09-14
+
+**Title:** ✂️ Todos settings split into sub-views — the 1,068-line settings screen becomes a 428-line navigator plus one file per isolated sub-view, with an identical DOM fingerprint
+
+**Tags:** refactor
+
+A structural pilot. Nothing is supposed to look or behave differently, and the fingerprints taken before and after show no difference.
+
+### What moved where
+
+`TodosSettingsView.jsx` held all twelve sub-views of the to-do settings in one component (12 `currentView` branches, 12 `useState`). Every isolated sub-view now has its own file under `todos/components/settings/views/` and keeps its own draft. It receives `wert`/`vorgabe`, reports back through `onCommit(result)` and `onBack`, and renders its navbar through the existing `IosPagerView` (or `SettingsOptionPicker`). The main screen and the list detail page stay in the main file because they drive the navigation.
+
+| File | Lines | Holds |
+|---|---|---|
+| `TodosSettingsView.jsx` | 1,068 → 428 | navigation, main screen, list detail page, commit handlers |
+| `settings/views/ProfilForm.jsx` | 60 | "New profile" and "Edit profile" (name and colour draft, the Done button from 1.1.2399) |
+| `settings/views/VorlageForm.jsx` | 37 | "New template" and "Edit template" (text draft) |
+| `settings/views/ListenIcon.jsx` | 64 | list icon grid |
+| `settings/views/ListenFarbe.jsx` | 66 | list colour grid |
+| `settings/views/ListenPerson.jsx` | 77 | person per list |
+| `settings/views/AutoAusblenden.jsx` | 38 | "Hide completed after" picker and its label |
+| `settings/views/Standardfilter.jsx` | 41 | default filter picker and its label |
+| `settings/views/Sortierung.jsx` | 40 | sort order picker and its label |
+| `settings/views/seite.js` | 14 | the pager's shared `slideVariants` instance and the sub-view pager props |
+| `settings/zeilen.jsx` | 82 | row shapes of the main screen and the list detail page (value row ×6, add row ×2, edit/delete pair ×2) |
+| `hooks/useSammlung.js` | 50 | loading and saving of profiles and templates (was written out twice) |
+
+Storage keys (`todosSettings`, `todos_profiles`, `todos_description_templates`), sort order, event names (`todos-profiles-changed`, `todos-templates-changed`) and error messages are unchanged.
+
+The branches under `AnimatePresence` still carry no `key`. With `initial={false}` on the presence, that is why every page of this pager appears without a slide. A key per branch would switch enter and exit slides on, and a comment in the file now says so.
+
+### Measured (probes, deleted before the build)
+
+Each sub-view was extracted and probed on its own before the next one. The full run came after the last one. The baseline was two runs before any change, with 0 differences between them (random switch label ids normalised).
+
+| Check | Before | After |
+|---|---|---|
+| Fingerprint of all 12 sub-views: navbar title, back button, right-hand button with style and `disabled`, `innerText`, every `.ios-item` rect, full DOM with attributes and inline styles | — | identical in 12 of 12 |
+| Page change when opening and leaving each sub-view (transform and opacity sampled per frame) | page appears at x 0 and opacity 1, no slide | same |
+| Storage after a scripted session: list colour, icon and person, "Today" tab off, profile added via Done and renamed, sort order, auto-hide 3 days | — | `todosSettings`, `todos_profiles`, `todos_description_templates` byte-identical (timestamp ids normalised) |
+| Storage after deleting a template and a profile | — | byte-identical |
+| Done button on "New profile" | disabled while empty, enabled with a name, saves | same |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+One measured difference: the top fade mask of the settings list (`is-scrolling`) now also works after coming back from the profile and template forms. Before, `useScrollFade` stayed bound to the first list node when two `IosPagerView` pages replaced each other in place. The extracted forms are components of their own, so the main page now mounts fresh. Going back from the list detail page still behaves as before.
+
+Bundle: 2,202,605 bytes raw and 604,432 bytes gzipped (−2,605 raw and +438 gzip against 1.1.2410).
+
+### Found, not changed (both already in 1.1.2410)
+
+- **Templates cannot be saved.** "New template" and "Edit template" have no Done button, so the typed text is discarded on Back. This is the gap 1.1.2399 closed for profiles. `onCommit` is wired, but nothing calls it yet.
+- **The list switch on the settings main screen does not toggle.** A click on it opens the list detail page instead, and nothing is written. The row's click handler switches the page first, and the switch is gone before it reports its change. `stopPropagation` on the switch only stops `change`, not the click.
+
 ## Version 1.1.2410 - 2026-09-13
 
 **Title:** 🧹 Deduplication pass — every duplicated building block has one definition, stores notify over a copy, and 48 of 54 hand-written section headers use the shared component
