@@ -41,11 +41,20 @@ Both now use one reader, `utils/hintergrundWerte.js`. It falls back to the defau
 
 One fingerprint of the 1.1.2415 session changed with the new slider: the general settings page right after the TTS picker closes. Its scrollbar was shown in 4 of 6 runs with the new slider and in 0 of 5 with the old one. In the four instrumented runs the pointer was over the page every time (`:hover` true, two runs with each slider). The scrollbar shows on hover, so the visible state is the correct one. Whether the page registers `mouseenter` as it slides back under the resting pointer depends on timing. Storage and slider values were identical in all runs.
 
+Checked after the release, with the mouse in Chromium, new slider against the 1.1.2417 slider:
+
+| Check | 1.1.2417 slider | 1.1.2418 slider |
+|---|---|---|
+| Drag opacity to 30 %, contrast to 70 %, Liquid Glass tint to 25 % (step 5) | correct | correct |
+| Tap black & white at 80 % | correct | correct |
+| One arrow step right after dragging | correct | correct |
+| End on blur, grab the thumb 60 ms later and drag to 20 % | 26 stored instead of 10: the spring pulled on after release | 10 |
+
 Not checked:
 
-- dragging with mouse or touch (that path only gained the stop on grab)
+- touch dragging
 - `number` entity sliders in the device list (same component, not probed)
-- Safari
+- Safari (WebKit is not installed for Playwright on this machine)
 
 Bundle: 2,194,724 bytes raw and 605,656 bytes gzipped (+265 raw and +146 gzip against 1.1.2417).
 
