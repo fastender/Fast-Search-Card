@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.2420 - 2026-09-14
+
+**Title:** 🔎 Settings search, phase 2 — the search also finds the settings of Calendar, To-dos and News and opens them at the right row
+
+**Tags:** feature, settings
+
+Roadmap #46, phase 2. The settings search from 1.1.2419 now also covers the settings pages of the three system views that have one. Among them is the case that started #46: "week start" now finds the calendar's week start, three levels away from the settings tabs.
+
+### What happens on a jump
+
+A result such as "Week starts on · Calendar › Display" opens the Calendar, shows its settings page, scrolls to the row and marks it. The same works for To-dos ("Show completed") and News ("Show images"). The header's action pill ends on the settings gear, as if you had tapped it.
+
+The detail view mounts a view twice when it opens: once to discard, once for real. The Notification Center deep link ran into this before. So the view reads a jump target without consuming it, and the target expires after five seconds instead. The Settings tabs still clear theirs as soon as the row is marked.
+
+Editors that belong to one item stay out of reach: a single group, rule, person, list or template. Their words still lead to the right section. "Dimmed" finds the calendar's "Create rule" row, and "icon" finds the to-do lists. News shows its settings only when the feedparser integration is installed; without it the jump lands on the News install hint, as tapping the gear does.
+
+### Register and guard
+
+The three new register files sit next to the settings components they describe, with 52 entries in their own dictionary namespaces (`calendar.*`, `todos.*`, `news.*`). The guard now checks four places instead of one: 226 entries against 233 labels in 59 files.
+
+Its first run with the new files reported exactly one gap: the "HA person" field in the calendar person editor. That label is registered now.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Jumps from the Settings tabs: calendar row (week start), calendar section (rules), calendar editor word (dimmed), key path (`showPast`), to-dos row (show completed), news row (show images, with a feedparser sensor in the test house) | right view, settings page open, row or section marked inside the visible list; action pill on the gear after the slide |
+| Phase 1 jump probe from 1.1.2419 (18 queries, 8 jumps) | unchanged, except "week start": no result before, the calendar's week start now |
+| Calendar settings session from 1.1.2413 (14 pages plus storage and events) | 13 of 14 pages identical; the default view picker differs only by its "People" label from 1.1.2417; storage and events identical |
+| To-do settings session from 1.1.2412 (12 pages plus storage) | 12 of 12 identical, storage byte-identical |
+| `pageerror` / `console.error` | 0 / 0 (apart from the test house's known duplicate calendar keys) |
+
+One detail changed along the way. A row label with a symbol in front ("＋ Create rule", "💼 Office") did not match its register title, so the jump fell back to the section. Leading characters without letters or digits no longer count when comparing labels.
+
+Not checked:
+
+- the News settings page fingerprint (it only gained a container ref)
+- Safari
+- touch input
+
+Bundle: 2,223,675 bytes raw and 613,550 bytes gzipped (+5,141 raw and +1,606 gzip against 1.1.2419). The gzip budget warns at 620,000.
+
 ## Version 1.1.2419 - 2026-09-14
 
 **Title:** 🔎 Search your own settings — a search field at the top of every settings tab finds a setting by name, description, option value or storage key and jumps straight to its row
