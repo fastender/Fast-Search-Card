@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.2413 - 2026-09-14
+
+**Title:** ✂️ Calendar settings split into sub-views — the 1,671-line settings screen becomes a 772-line navigator plus one file per sub-view, with an identical DOM fingerprint
+
+**Tags:** refactor
+
+The first of the three splits recommended after the to-do pilot (1.1.2411). Nothing is supposed to look or behave differently, and the fingerprints taken before and after show no difference except one, listed below.
+
+### What moved where
+
+All eleven sub-views of the calendar settings now live in `calendar/components/settings/views/`. The pickers, the calendar colour page and the template editor hold their value or draft themselves (`wert`/`vorgabe` in, `onCommit` out). The group, rule and person editors keep saving every change immediately, as before, so they receive `settings` and `onUpdateSettings`; deleting saves first and then returns to the main screen.
+
+| File | Lines | Holds |
+|---|---|---|
+| `CalendarSettingsView.jsx` | 1,671 → 772 | navigation, main screen, add/save paths |
+| `settings/views/RegelEditor.jsx` | 240 | rule editor (#54) and the readable search-field name used by the rule rows |
+| `settings/views/GruppenEditor.jsx` | 182 | group editor (#53) |
+| `settings/views/PersonEditor.jsx` | 168 | person editor (#55) |
+| `settings/views/KalenderFarbe.jsx` | 100 | colour of one calendar |
+| `settings/views/VorlagenEditor.jsx` | 52 | title/description template editor (saves on Enter, as before) |
+| `settings/views/Standardansicht.jsx`, `Sortierreihenfolge.jsx`, `Wochenstart.jsx`, `Zeitformat.jsx`, `Standardkalender.jsx`, `Standarddauer.jsx` | 42, 39, 39, 39, 29, 34 | the six pickers and their labels |
+| `settings/views/seite.js` | 14 | the pager's shared `slideVariants` instance |
+| `settings/zeilen.jsx` | 54 | fixed switch row (×9) and "＋ add" row (×3) |
+| `settings/quellen.js` | 25 | effective calendar colour and the groups-then-calendars source list (was written out twice) |
+| `settings/icons.jsx` | 32 | check, trash, plus and pencil icons |
+| `components/common/WertZeile.jsx` | 43 | the tappable value row (label, value, chevron), now shared with the to-do settings (×6 there, ×6 here) |
+
+Storage key, JSON shape and the `calendarSettingsChanged` event are unchanged. As in the to-do settings, the branches under `AnimatePresence` carry no `key`, so pages still appear without a slide.
+
+### Measured (probe, deleted before the build)
+
+The test house got a second calendar and a `person.*` entity for this probe. Every sub-view was moved and probed on its own before the next one. The baseline was three runs of the page fingerprints and two of the storage session before any change, with 0 differences between them (random switch ids and generated group/rule/person ids normalised).
+
+| Check | Before | After |
+|---|---|---|
+| Fingerprint of 14 pages (main screen, colour, six pickers, group, two rules, person, new and edited template): titles, buttons, text, focus, every `.ios-item` rect, full DOM with attributes and inline styles | — | identical in 14 of 14 |
+| Page change when opening and leaving each page | appears at x 0 and opacity 1, no slide | same |
+| Storage after a scripted session: calendar switch and colour, group with name/colour/icon/member, two rules (source, text + field, moved up), person with source and HA person, templates added/edited/duplicate/deleted, six pickers, "Year" hidden, four switches | 1,022 bytes, 38 `calendarSettingsChanged` | byte-identical, 38 |
+| Storage after dissolving the group, deleting a rule and the person, and trashing a title template | 642 bytes | byte-identical |
+| To-do settings after moving `WertZeile` (all 12 sub-views against 1.1.2412) | — | identical in 12 of 12 |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+One measured difference: the top fade mask of the settings list (`is-scrolling`) now works after coming back from the colour page, the editors and the template editor, and inside the editors while scrolled. Before, `useScrollFade` stayed bound to the first list node when two `IosPagerView` pages replaced each other in place; the extracted pages are components of their own and mount fresh. This is the same effect 1.1.2411 had in the to-do settings.
+
+Bundle: 2,200,819 bytes raw and 605,037 bytes gzipped (−2,029 raw and +572 gzip against 1.1.2412).
+
+### Found, not changed (already in 1.1.2412)
+
+- **The "Default view on open" picker shows an empty fifth row.** It lists day, week, month, year and people, but its label table has no entry for people, so that row has no text. The "Visible views" section names it correctly ("People").
+
 ## Version 1.1.2412 - 2026-09-14
 
 **Title:** 🐛 To-do settings: description templates can be saved again, and the list switch toggles instead of opening the list
