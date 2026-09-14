@@ -1,5 +1,49 @@
 # Versionsverlauf
 
+## Version 1.1.2414 - 2026-09-14
+
+**Title:** ✂️ Appearance settings split into sub-views — the 1,196-line settings tab becomes a 353-line navigator plus one file per sub-view, with an identical DOM fingerprint
+
+**Tags:** refactor
+
+The second of the three splits after the to-do pilot (1.1.2411). Nothing is supposed to look or behave differently, and the fingerprints taken before and after show no difference except the scroll fade listed below.
+
+### What moved where
+
+Unlike the to-do and calendar settings, every value stays in the tab itself, because the main screen shows them ("Active"/"Inactive", "6 Columns", "Customized"). The nine sub-views receive `wert` and a changer: `onAendern(part)` for switches, fields and sliders, `onCommit(value)` for the three pickers, which close after 150 ms as before. The per-field handlers became one changer per settings group (videos, wallpaper, background, time sort, filter); they save the same fields and send the same events.
+
+| File | Lines | Holds |
+|---|---|---|
+| `AppearanceSettingsTab.jsx` | 1,196 → 353 | state, changers, main screen (8 value rows now use the shared `WertZeile`) |
+| `appearance/views/LiquidGlas.jsx` | 118 | Liquid Glass switch, the twelve sliders and their table, Safari refraction |
+| `appearance/views/FilterUndSortierung.jsx` | 112 | toolbar filters and time sort |
+| `appearance/views/Hintergrundbild.jsx` | 97 | wallpaper switches, gallery, folder and URL |
+| `appearance/views/DetailVideos.jsx` | 76 | detail view videos |
+| `appearance/views/Schnellsteuerung.jsx` | 70 | quick control switch and per-domain modes (writes the store directly) |
+| `appearance/views/Kartenform.jsx`, `Hintergrund.jsx`, `Rasterspalten.jsx`, `Hintergrundmodus.jsx` | 62, 59, 56, 46 | card shape, the five background sliders (one table instead of five blocks), grid columns, background mode |
+| `appearance/views/seite.js` | 9 | the pager's shared `slideVariants` instance |
+
+### Measured (probe, deleted before the build)
+
+Each sub-view was moved and probed on its own before the next one. The baseline was two full runs before any change, with 0 differences between them.
+
+| Check | Before | After |
+|---|---|---|
+| Fingerprint of all 10 pages (main screen and nine sub-views): titles, buttons, text, focus, every `.ios-item` rect, full DOM with attributes and inline styles | — | identical in 10 of 10 |
+| Page change when opening and leaving each page | appears at x 0 and opacity 1, no slide | same |
+| Storage after a scripted session (Home Assistant switches, three pickers, two background sliders, wallpaper switches and fields, Liquid Glass slider and switches, quick control, all filter and time sort options, videos) | `systemSettings` 1,152 bytes, `darkMode`, `quickControlEnabled`, `quickControlModes` | byte-identical |
+| Settings events in that session | `darkModeChanged` 1, `customWallpaperChanged` 4, `liquidGlassChanged` 3, `filterTogglesChanged` 5, `timeSortChanged` 3 | same |
+| CSS variables set on open and after the session | — | identical |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+One measured difference: the top fade mask of the settings list (`is-scrolling`) now works after coming back from a sub-view, and inside the wallpaper, Liquid Glass and filter pages while scrolled. This is the same effect as in 1.1.2411 and 1.1.2413.
+
+Bundle: 2,195,476 bytes raw and 604,837 bytes gzipped (−5,343 raw and −200 gzip against 1.1.2413).
+
+### Found, not changed (already in 1.1.2413)
+
+- **Two background sliders changed in the same frame lose one change.** Each changer builds the new object from the value of the last render, and the render is throttled to one per frame, so the second slider saves the first slider's old value. The probe hit this with keyboard steps on "Opacity" and then "Blur": opacity stayed at 100 instead of 99. A per-frame log showed the same race in both versions (before 3 of 6 runs, after 2 of 5); by hand it takes two sliders touched at once, for example two fingers on a tablet.
+
 ## Version 1.1.2413 - 2026-09-14
 
 **Title:** ✂️ Calendar settings split into sub-views — the 1,671-line settings screen becomes a 772-line navigator plus one file per sub-view, with an identical DOM fingerprint
