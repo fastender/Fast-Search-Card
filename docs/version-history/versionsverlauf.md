@@ -1,5 +1,77 @@
 # Versionsverlauf
 
+## Version 1.1.2422 - 2026-09-14
+
+**Title:** ⌨️ Keyboard pass, part 3 — twelve more silent tab stops from framer-motion, and a guard that keeps them out
+
+**Tags:** accessibility, fix, tooling
+
+1.1.2421 found that framer-motion 12 turns every element with `whileTap` or `onTap` into a tab stop unless it already has a `tabindex` or is a native button, link or form field. Such a stop has no role, and Enter on it only fires synthetic pointer events, never a click. That release fixed four settings rows. Twelve more places in the card had the same pattern.
+
+### Five were a second stop next to a real control
+
+The element itself now sets `tabIndex={-1}`, and the control next to it stays the only stop:
+
+- the to-do card, whose list icon has been the button since 1.1.2409
+- the power toggle in the light detail, where the label and the icon each added a stop in front of the real checkbox
+- the page of the rich slider on the start screen, whose dots and pause button already page through it
+- the rows in the Context tab and in the Schedule tab, which hold their own buttons (run and favorite, delete). Here the text part of the row is now the button, as in the settings rows since 1.1.2407, and the focus ring is drawn around the whole row.
+
+### Seven could be reached but not used
+
+These now carry the button role from the keyboard helper, so Enter and Space click them:
+
+- the group header in the device picker of the universal setup, which also reports whether it is open (`aria-expanded`)
+- the cards in the Schedules overview
+- the color dots of a to-do profile, named by their color ("Rot", or "red" in English)
+- the color dots of a to-do list, named by their hex value like the calendar color pickers
+- the icons of a to-do list, named by their icon key
+- the tiles of the wallpaper gallery, named by their file name
+
+All color, icon and wallpaper choices also report which one is selected (`aria-pressed`).
+
+### A guard for both rules
+
+`scripts/check-tastatur.mjs` reads the syntax tree of every source file (with `@babel/parser`). It now runs in the pre-commit hook, in `check-all.sh` and in step 0 of the build, and takes about 0.7 seconds. It checks two rules:
+
+- A `motion` element with a tap gesture needs a `tabIndex` or the keyboard helper. Native buttons, links, form fields and SVG elements are exempt, because framer leaves them alone.
+- A clickable settings row (`ios-item-clickable`) needs keyboard support on the row itself or on a part inside it. The review count behind 1.1.2421 missed exactly that.
+
+The count on this release: 46 `motion` elements with a tap gesture and 103 clickable rows, none failing.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| To-do card | not a tab stop; Shift+Tab from its list icon lands on the previous card's checkbox; Enter on the icon opens the edit form |
+| Colors of a new to-do profile | 16 buttons named "Rot", "Pink", …; Tab moves to the next color, Enter selects it |
+| Color and icon of a to-do list | 12 color buttons and 21 icon buttons, the current one marked as selected; Enter saves and returns to the list page |
+| Power toggle in the light detail | label and icon are no tab stops; Shift+Tab from the checkbox lands on the "Controls" tab; Space sends `light.turn_off`, a mouse click `light.turn_on` |
+| Scene row in the Context tab | the row is no tab stop, its text part is the button, the ring sits on the row; the next Tab reaches the run button; Enter opens the scene |
+| Schedule row in the Schedule tab | the row is no tab stop, its text part is the button, the ring sits on the row; the next Tab reaches the delete button; Enter opens the schedule popup |
+| Card in the Schedules overview | button; Enter opens the inline editor |
+| Rich slider on the start screen | the page is not tabbable; Tab goes footer label, three dots, pause; Enter on a dot changes the slide |
+| Guard against the 1.1.2420 sources | reports exactly the four rows fixed in 1.1.2421 |
+| Guard against a test file | reports one silent tap element and two rows without keyboard support; passes the allowed cases (conditional tap with conditional spread, `motion.button`, `motion.svg`, row with a keyboard part) |
+| Production CSS | the four new ring selectors survive PurgeCSS |
+| `pageerror` / `console.error` | 0 / 0, apart from one older message listed below |
+
+Not checked in the browser:
+
+- the group header of the universal setup, which needs a device registry in the test house
+- the wallpaper gallery, which needs media source answers
+- screen readers
+- Safari
+- touch input
+
+Found along the way, not changed:
+
+- Opening a scene from the Context tab logs "Failed to record user action … not a valid key" from IndexedDB. A mouse click logs it too, so it predates this release.
+- The run and favorite buttons in Context rows and the delete button in Schedule rows have no accessible name.
+- On rows with `transition: all` the focus ring fades in from a 3 px black outline to the 2 px white ring over 0.3 seconds.
+
+Bundle: 2,224,213 bytes raw and 613,711 bytes gzipped (+462 raw and +134 gzip against 1.1.2421).
+
 ## Version 1.1.2421 - 2026-09-14
 
 **Title:** ⌨️ Keyboard pass, addendum — four settings rows lose a dead tab stop, and the to-do done checkbox has a name

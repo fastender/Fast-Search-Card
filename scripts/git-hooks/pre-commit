@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-# Pre-commit hook — runs the three source guards before allowing the commit:
-#   check-extraction-debt.py  DUPLICATE + UNUSED IMPORT regressions
-#   check-i18n-keys.py        missing dictionary keys / German text in en.js
-#   check-purgecss-dynamic.py class names PurgeCSS would drop
+# Pre-commit hook — runs the five source guards before allowing the commit:
+#   check-extraction-debt.py         DUPLICATE + UNUSED IMPORT regressions
+#   check-i18n-keys.py               missing dictionary keys / German text in en.js
+#   check-purgecss-dynamic.py        class names PurgeCSS would drop
+#   check-einstellungs-register.mjs  settings without an entry in the search register
+#   check-tastatur.mjs               silent framer-motion tab stops / clickable rows without keyboard
 # (Auftrag 09 added the i18n guard; before, only the other two ran.)
 #
 # Install once:   bash scripts/install-git-hooks.sh
@@ -68,5 +70,17 @@ if ! node --no-warnings "$ROOT/scripts/check-einstellungs-register.mjs" -q > /de
   exit 1
 fi
 
-echo "✓ Pre-commit: extraction-debt, i18n, purgecss, einstellungs-register — alle vier Wächter grün"
+# v1.1.2422: Tastatur-Wächter — framer-motion macht jedes motion-Element mit
+# whileTap/onTap ohne tabindex selbst zum stummen Tab-Stopp (Enter klickt dort
+# nicht), und jede ios-item-clickable-Zeile braucht Tastatur an der Zeile oder
+# an einem Teil. Syntaxbaum über @babel/parser; ~0,7 s.
+if ! node --no-warnings "$ROOT/scripts/check-tastatur.mjs" -q > /dev/null 2>&1; then
+  echo ""
+  echo "❌ Pre-commit: Tastatur-Wächter — stummer Tab-Stopp oder klickbare Zeile ohne Tastatur."
+  echo "   Run for details:   node scripts/check-tastatur.mjs"
+  echo "   Skip this commit:  git commit --no-verify"
+  exit 1
+fi
+
+echo "✓ Pre-commit: extraction-debt, i18n, purgecss, einstellungs-register, tastatur — alle fünf Wächter grün"
 exit 0

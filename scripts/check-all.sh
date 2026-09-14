@@ -27,5 +27,9 @@ echo "== check-einstellungs-register.mjs (settings search register covers every 
 node --no-warnings "$ROOT/scripts/check-einstellungs-register.mjs"
 
 echo ""
+echo "== check-tastatur.mjs (framer-motion tab stops, clickable rows with keyboard) =="
+node --no-warnings "$ROOT/scripts/check-tastatur.mjs"
+
+echo ""
 echo "== check-version.sh (About tab = KARTEN_VERSION = VERSIONS_MARKE) =="
 bash "$ROOT/scripts/check-version.sh"
