@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.2417 - 2026-09-14
+
+**Title:** 🐛 Two old findings fixed — the calendar's "Default view on open" picker names its fifth row "People", and sliders that report in the same frame no longer overwrite each other
+
+**Tags:** bugfix
+
+Both were found during the settings splits (1.1.2413 and 1.1.2414) and left unchanged there on purpose.
+
+### Calendar: "People" had no name in the default view picker
+
+The picker lists day, week, month, year and people, but its label table only knew the first four. The fifth row was empty, and once "People" was chosen, the "Default view on open" row on the settings page showed no value either.
+
+The table now includes people, using the existing `calendar.modePeople` text. The "Visible views" section uses the same table instead of its own special case.
+
+### Sliders in the same frame lost a change
+
+The background and Liquid Glass changers built the new settings object from the value of the last render. When two sliders reported in the same frame (two fingers on a tablet, or keyboard steps whose springs overlap), both started from that old value, and the second one saved the first slider's old value back. The background changer could be a frame further behind, because its state update is throttled to one per frame.
+
+The losing slider kept showing its new position, so its next step continued from a value that was never saved.
+
+Both changers now build from the last reported value, kept in a ref. State, storage format, throttling, the save delay and events are unchanged.
+
+### Measured (probe, deleted before the build)
+
+Three runs before the change and three after. Each pair of keyboard steps was sent in the same task, so both springs start in the same frame.
+
+| Check | Before (3 runs) | After (3 runs) |
+|---|---|---|
+| Rows in "Default view on open" | Day, Week, Month, Year, *(empty)* | Day, Week, Month, Year, People |
+| Settings page value after choosing people | *(empty)* | People |
+| Single keyboard step (opacity, tint) | kept in 6 of 6 | kept in 6 of 6 |
+| Two background sliders at once (opacity + blur, black & white + blur, opacity + black & white) | one change lost in 9 of 9 | both kept in 9 of 9 |
+| Two Liquid Glass sliders at once (tint + sheen angle, frost + sheen angle) | one change lost in 6 of 6 | both kept in 6 of 6 |
+| Slider position, CSS variable and storage agree after the pairs | 8 of 12 per run | 12 of 12 per run |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+The calendar part ignores the test house's known duplicate event keys (`e1`, `e2`), as in 1.1.2413.
+
+### Found, not changed
+
+- **A keyboard step on the contrast and saturation sliders sometimes snaps back.** These two sliders span 0–200, so one step is 0.005 of the track. That is the same size as the rest threshold framer-motion uses for springs over small distances. A per-frame log showed the new value in the first frame and the old position again in the next. In the probe, 2 of 6 single steps were undone before this change and 3 of 6 after, so it does not depend on it. Not tried yet: a smaller `restDelta` for the keyboard spring in `LiquidGlassSlider`.
+- **A saved background value of 0 comes back as the default after a reload.** `loadBackgroundSettings` reads with `||`, so 0 % opacity, contrast or saturation turns into 100 %. Blur and black & white default to 0 anyway.
+
+Not checked:
+
+- the English texts (the probe ran in German)
+- dragging with mouse or touch (the probe used keyboard steps)
+
+Bundle: 2,194,459 bytes raw and 605,510 bytes gzipped (+60 raw and +5 gzip against 1.1.2416).
+
 ## Version 1.1.2416 - 2026-09-14
 
 **Title:** ✂️ Start screen settings split into sections — the 1,067-line settings page becomes a 186-line shell; screensaver, favourites background, ocean and the slot picker get their own files, with an identical DOM fingerprint
