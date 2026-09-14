@@ -1,5 +1,65 @@
 # Versionsverlauf
 
+## Version 1.1.2416 - 2026-09-14
+
+**Title:** ✂️ Start screen settings split into sections — the 1,067-line settings page becomes a 186-line shell; screensaver, favourites background, ocean and the slot picker get their own files, with an identical DOM fingerprint
+
+**Tags:** refactor
+
+The fourth split after the to-do pilot (1.1.2411), and the last settings page above 1,000 lines. Nothing is supposed to look or behave differently, and the fingerprints taken before and after show no difference.
+
+### What moved where
+
+This page is not a pager. One sub-view switches between the slot list, which also holds three settings sections, and the picker for one slot. That is why the parts are sections, not views.
+
+Their state runs in three hooks that stay in the page, not inside the sections. While a slot picker is open the sections are unmounted, so an open inline list (wake sources, display handoff, ocean sources) is still open after going back, as before. Wake and handoff lists still share one open-list state, so opening one closes the other.
+
+| File | Lines | Holds |
+|---|---|---|
+| `StartScreenSettingsTab.jsx` | 1,067 → 186 | slot state, registry listener, slot list, the three sections and the picker |
+| `startscreen/BildschirmschonerAbschnitt.jsx` | 411 | screensaver: return, deep rest, night, wake sources, photo frame, display handoff |
+| `startscreen/MeerAbschnitt.jsx` | 155 | ocean: weather, sun and moon lists, view bearing, frame rate cap, objects |
+| `startscreen/PlatzAuswahl.jsx` | 128 | entity picker for one slot, including the icons of the virtual entries |
+| `startscreen/platzEintraege.js` | 107 | the selectable entries and the per-slot filter |
+| `startscreen/useBildschirmschoner.js`, `useFavoritenHintergrund.js`, `useMeer.js` | 73, 61, 43 | state and save handlers (bodies unchanged) |
+| `startscreen/FavoritenHintergrundAbschnitt.jsx` | 62 | favourites background: ocean switch, image URL, gallery |
+| `startscreen/stufen.js` | 7 | the tap cycle shared by screensaver times, view bearing and frame rate |
+
+### Measured (probe, deleted before the build)
+
+Each section was moved and probed on its own before the next one. The baseline was two full runs before any change, with 0 differences between them.
+
+The scripted session has 20 fingerprinted steps:
+
+- opening the page, then each of the four slot pickers: choose, choose empty, go back without choosing, and once by keyboard
+- screensaver on, with every time row cycled (one of them also by keyboard); night off and on
+- motion and doorbell lists, critical alerts, photo frame (interval, random order, folder), and the display handoff lists
+- a handoff list left open across a trip into a slot picker, then deep rest off
+- the favourites image URL
+- the ocean lists, including back to automatic; view bearing; frame rate by mouse and keyboard; objects
+
+| Check | Before | After |
+|---|---|---|
+| Fingerprint after each of the 20 steps: titles, text, focus, every `.ios-item` rect, full DOM with attributes and inline styles | — | identical in 20 of 20 |
+| Opening the page, sampled per frame | fades in from 20 px, settles in about 245 ms, two pages overlap | same, within 15 ms |
+| `systemSettings` after the session | 897 bytes | byte-identical |
+| `startScreenSettingsChanged` events | 37 | 37 |
+| Top fade mask on open and at the end | works | works |
+| Built stylesheet | `style-BE0XyzGP.css` | byte-identical |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+The compare rounds one inline style. The checkmark's spring is still at a scale of about 0.99 when the fingerprint is taken, and the exact value differed between two runs of the unchanged page.
+
+A scan of all ten files for unbound names found none. That matters here because esbuild would let a forgotten destructured name through as a global.
+
+Not checked:
+
+- picking an image from the gallery (the test house has no media images)
+- a system entity registering while the page is open
+- the English texts (the probe ran in German)
+
+Bundle: 2,194,399 bytes raw and 605,505 bytes gzipped (+1,088 raw and +417 gzip against 1.1.2415, from the new module boundaries).
+
 ## Version 1.1.2415 - 2026-09-14
 
 **Title:** ✂️ General settings split into sub-views — the 882-line settings tab becomes a 432-line navigator; the suggestions page and four pickers get their own files, with an identical DOM fingerprint
