@@ -1,5 +1,60 @@
 # Versionsverlauf
 
+## Version 1.1.2419 - 2026-09-14
+
+**Title:** 🔎 Search your own settings — a search field at the top of every settings tab finds a setting by name, description, option value or storage key and jumps straight to its row
+
+**Tags:** feature, settings
+
+Roadmap #46, phase 1. A forum user once asked for a calendar option that already existed three levels deep. The card searches the whole house but could not search its own configuration. It can now, at least for the four settings tabs; the system views (calendar, to-dos, news) follow in phase 2.
+
+### What you see
+
+Each settings tab (General, Appearance, Filter, About) now starts with a search field. While you type, the tab's sections step aside and a result list shows matches from all four tabs. Each result names the path you would otherwise tap through, for example "Appearance › Background" for Opacity.
+
+Tapping a result (or pressing Enter for the first one) closes the search, switches to the right tab, opens the sub-page and scrolls the row into the middle of the list. The row lights up briefly and gets keyboard focus. The tab pill and the header follow. Escape clears the field.
+
+Search matches four things:
+
+- the setting's label and its subtitle
+- the explanation behind the section's ⓘ button
+- option values, for example "Dollar" finds Currency and "Dark" finds Background Mode
+- keys: dictionary keys and storage paths. `userLanguage` finds App Language and `startScreen.bento` finds Enable Bento Grid.
+
+Rows that only appear behind a switch are handled. "Deep rest after" with the screensaver off marks the screensaver switch instead, since that is what you need to turn on first.
+
+### Why it can be trusted
+
+The search only knows what the register says. The register lists every setting explicitly: tab, sub-page, section, label, subtitle, options and storage path. 174 entries across 17 pages live in `SettingsTab/register/`, one file per tab or larger sub-page.
+
+A new guard, `scripts/check-einstellungs-register.mjs`, reads every label, section header and slider table in the settings components. It fails when one has no register entry. It also checks that every register key exists in `de.js` and `en.js` and that every sub-page is a real branch of its tab. It runs in the pre-commit hook, in `check-all.sh` and as step 0 of `build.sh`. As a test, removing the "Boat" entry made it name the file and line of the uncovered label.
+
+### Fixed along the way
+
+The detail view handed the settings view an empty `onTabChange` handler, so the header and tab pill only followed clicks on the tab icons. A jump that switches the tab from inside now updates both. The video hint ("Enable in Appearance") also opens settings on a tab from inside and uses the same handler. That path was not measured: the test page runs two card instances, and both reach for the one-time hint.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| 18 queries with an expected first result (German): opacity, language, dollar, `userLanguage`, `startScreen.bento`, "deep rest after", gulls, doorbell, columns, dark, glass, quiet hours, fold, version, patterns, plus three nonsense queries | 18 of 18; the nonsense queries find nothing |
+| 8 jumps across all four tabs, including a slider at the bottom of Liquid Glass, the last row of the start page, a fixed-text row on the island page, a section target reached by Enter, and a hidden row that falls back to its switch | right page, marked row inside the visible list, tab pill and header on the target tab, search field empty: 8 of 8 |
+| English at phone width (390 px): placeholder, "glass", nonsense queries, result count announced for screen readers | correct |
+| The 1.1.2416 start page session (20 steps) | identical, storage byte-identical |
+| The 1.1.2415 general settings session | storage (15 keys) and events identical; sub-pages identical; the main page differs only by the new field (60 px taller, rows 60 px lower) |
+| Built stylesheet | the new rules survive PurgeCSS |
+| `pageerror` / `console.error` | 0 / 0 |
+
+The first version matched too loosely: "week start" listed screensaver rows ("wake", "start page"), and nonsense still found text in the long ⓘ explanations. Fuse scores separated the two cleanly: real matches at 0.5 or better, noise from 0.61. Fuse's field-length penalty had pushed a real option match ("dollar", 0.78) into the noise. The search now ignores field length and drops results above 0.55.
+
+Not checked:
+
+- Safari
+- touch input
+- screen reader output beyond the result count
+
+Bundle: 2,218,534 bytes raw and 611,944 bytes gzipped (+23,810 raw and +6,288 gzip against 1.1.2418), mostly the register. The gzip budget warns at 620,000.
+
 ## Version 1.1.2418 - 2026-09-14
 
 **Title:** 🐛 Keyboard steps on sliders land where they should, and a saved background value of 0 survives a reload

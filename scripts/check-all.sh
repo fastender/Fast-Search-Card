@@ -23,5 +23,9 @@ echo "== check-purgecss-dynamic.py (class names PurgeCSS would drop) =="
 python3 "$ROOT/scripts/check-purgecss-dynamic.py"
 
 echo ""
+echo "== check-einstellungs-register.mjs (settings search register covers every setting) =="
+node --no-warnings "$ROOT/scripts/check-einstellungs-register.mjs"
+
+echo ""
 echo "== check-version.sh (About tab = KARTEN_VERSION = VERSIONS_MARKE) =="
 bash "$ROOT/scripts/check-version.sh"

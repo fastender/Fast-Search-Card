@@ -57,5 +57,16 @@ if ! python3 "$ROOT/scripts/check-purgecss-dynamic.py" > /dev/null 2>&1; then
   exit 1
 fi
 
-echo "✓ Pre-commit: extraction-debt, i18n, purgecss — alle drei Wächter grün"
+# v1.1.2419 (Roadmap #46): Register-Wächter der Einstellungs-Suche — jede
+# Beschriftung der Einstellungen braucht einen Register-Eintrag, sonst findet die
+# Suche sie nicht. Lädt Register + Wörterbücher in Node; ~0,2 s.
+if ! node --no-warnings "$ROOT/scripts/check-einstellungs-register.mjs" -q > /dev/null 2>&1; then
+  echo ""
+  echo "❌ Pre-commit: Register-Wächter — Einstellung ohne Eintrag im Such-Register."
+  echo "   Run for details:   node scripts/check-einstellungs-register.mjs"
+  echo "   Skip this commit:  git commit --no-verify"
+  exit 1
+fi
+
+echo "✓ Pre-commit: extraction-debt, i18n, purgecss, einstellungs-register — alle vier Wächter grün"
 exit 0

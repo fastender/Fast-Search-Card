@@ -1291,6 +1291,8 @@ Route one is almost certainly right for a first version; route two is the optimi
 
 ### 46. Search your own settings
 
+> ✅ **Phase 1 shipped v1.1.2419** (2026-09-14) — a search field at the top of all four settings tabs (General, Appearance, Filter, About) with a result list across tabs; a tap switches tab, opens the sub-page, scrolls the row into view and marks it. Matching covers label + subtitle, the section's info text, option values and keys (dictionary keys and storage paths). The index is an explicit register (`SettingsTab/register/`, 174 entries) guarded by `scripts/check-einstellungs-register.mjs` in pre-commit and `build.sh`, as proposed below. Deviations from the sketch: results replace the tab content instead of filtering sections in place — the settings are a stack of sub-pages, not collapsible sections, so "auto-expand" becomes "jump and mark"; rows hidden behind a switch mark that switch instead. **Open:** phase 2 — the system-entity settings views (calendar, to-dos, news); phase 3 — the "Changed only" filter (register entries already carry storage paths for ~90 of 174 entries).
+
 **Pitch:** A search field at the top of Settings. Type `week`, `glass`, `defaultRange` — matching controls surface immediately, wherever they live. Plus a "Changed only" filter that hides everything still at its default.
 
 **Why this one first.** The card is search-first for the whole house and offers no search over its own configuration. That gap cost real credibility this month: a forum user asked for a calendar default-view setting that already existed, buried in Calendar → Settings → Display. The honest reply was "that's my fault, not yours" — this is the fix for the underlying cause rather than for that one setting.
