@@ -1,5 +1,57 @@
 # Versionsverlauf
 
+## Version 1.1.2421 - 2026-09-14
+
+**Title:** ⌨️ Keyboard pass, addendum — four settings rows lose a dead tab stop, and the to-do done checkbox has a name
+
+**Tags:** accessibility, fix
+
+This is an addendum to the keyboard pass of 1.1.2407–1.1.2409. A review on 2026-09-14 counted ten clickable settings rows without keyboard attributes and one checkbox without a name.
+
+### The ten rows
+
+All ten could already be reached and used with the keyboard. The review script only looked for attributes written on the row tag itself. It missed `{...knopfAttribute()}`, which spreads exactly those attributes. Counted with spreads, all 103 of 103 rows are covered.
+
+- Seven rows give the button role to one part of the row, because the rest of the row holds its own control: a switch, ▲▼ buttons, date fields or an ⓘ button. This layout dates from 1.1.2407. Putting the role on the whole row would wrap a button around those controls and add a second stop with the same action.
+- Three rows get the role on the row itself, but only while the row is clickable: the device picker, the version row in About and the domain settings. That is already the intended form.
+
+None of these attributes changed.
+
+### The actual bug: framer-motion's own tab stop
+
+Checking the rows in the browser turned up a problem the count could not see. framer-motion 12 makes every element with `whileTap` a tab stop (`tabIndex` 0) unless it already has a `tabindex` or is a native button, link or form field. Such a stop has no role, and Enter on it only fires synthetic pointer events, not a click.
+
+That hit four of the ten rows: the group, calendar and rule rows in the Calendar settings, and the list row in the To-do settings. Tab first landed on the row itself, where Enter did nothing. Only the next Tab reached the part that opens the editor.
+
+These rows now set `tabIndex={-1}`, so framer leaves them alone. Mouse and touch are unchanged, and the press animation still runs.
+
+### The done checkbox
+
+The done checkbox in the to-do edit form is a real checkbox, but its label held only an empty span. It is now named "Completed" ("Erledigt" in German), using the existing dictionary key `todos.completed`.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Calendar settings, Tab from a section's ⓘ | before: row without role, then the row part with the button role, then the switch, for every row; after: row part, then switch |
+| Enter on the first stop | before: nothing; after: opens the group editor |
+| To-do settings, list row | same pattern before; after, Enter on the first stop opens the list |
+| Mouse on a group row | press scales to 0.98, click opens the editor |
+| Switch inside a row | toggles, the page stays |
+| Version row in About, current / out of date (stale bundle marker in the test house) | no tab stop and no role / tab stop with the button role |
+| Done checkbox in the to-do edit form | named "Erledigt", Space toggles it |
+| Rows with `ios-item-clickable` | 103, all keyboard-operable: 93 on the row, 7 on a part, 3 while clickable. Rows with a framer tab stop: 4 → 0. The review script still counts 93, because it does not see spreads. |
+| `pageerror` / `console.error` | 0 / 0 |
+
+Not checked:
+
+- the other six of the ten rows in the browser. The source has no `whileTap` on them, so framer adds no tab stop.
+- 12 more elements elsewhere in the card that follow the same framer-motion pattern, such as the to-do card, schedule and action items, the power toggle and the rich slider. They are outside this addendum.
+- screen readers
+- Safari
+
+Bundle: 2,223,751 bytes raw and 613,577 bytes gzipped (+76 raw and +27 gzip against 1.1.2420).
+
 ## Version 1.1.2420 - 2026-09-14
 
 **Title:** 🔎 Settings search, phase 2 — the search also finds the settings of Calendar, To-dos and News and opens them at the right row
