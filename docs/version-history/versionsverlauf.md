@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.2418 - 2026-09-14
+
+**Title:** 🐛 Keyboard steps on sliders land where they should, and a saved background value of 0 survives a reload
+
+**Tags:** bugfix
+
+Both problems were found in 1.1.2417 and left unchanged there. While measuring the slider fix, a third, closely related one showed up and is fixed here too: keyboard jumps (Page Up/Down, Home, End) ended at a wrong value on every slider.
+
+### Keyboard steps on sliders
+
+Three problems in `LiquidGlassSlider`, the slider used in the settings and for `number` entities.
+
+**A single step on the contrast and saturation sliders sometimes snapped back.** framer-motion treats a spring over a small distance as settled once it is within 0.005 and slower than 0.01 per second. When the whole step is 0.005 or less (any slider with 200 or more steps), that is already true in the first milliseconds. The first frame reports the target, the next one the start position again, and that value was stored. Whether it happened depended on where in the frame the key was pressed. The rest threshold now scales with the distance, up to framer's 0.005.
+
+**Jumps ended at a wrong value.** During a keyboard animation the slider reported every intermediate value. The page stored it and passed it back, and the slider re-aimed its animation at that older value. Home on opacity ended at 44 instead of 0, End on contrast at 121 instead of 200. Liquid Glass tint, which is not throttled, was affected as well. As it already did while dragging, the slider now ignores these echoes until the keyboard animation has finished.
+
+**Presses during a running animation continued from the overshoot.** Without the echo, the spring's small overshoot stayed. A second press 250 ms after the first then landed slightly off the step grid (44.05 % instead of 44 %). A further press now continues from the target of the running animation, so every press is exactly one step, and a held arrow key moves one step per repeat.
+
+Grabbing the thumb stops a running keyboard animation, so it cannot pull the slider back to its old target after release.
+
+### Background values of 0
+
+The card start (`index.jsx`) and the appearance settings both read the five background values with `||`. That turned a saved 0 % opacity, contrast or saturation back into 100 % after a reload.
+
+Both now use one reader, `utils/hintergrundWerte.js`. It falls back to the default only for missing, empty or non-numeric values. Number strings from older saves still work.
+
+### Measured (probe, deleted before the build)
+
+| Check | Before | After |
+|---|---|---|
+| Saved 0 for all five values: CSS after card start, slider values | 100 %, 0 px, 100 %, 100 %, 0 % | 0 %, 0 px, 0 %, 0 %, 0 % |
+| Old number strings ("80", "4", "0", "150", "20") | kept | kept |
+| Single keyboard steps at 8 moments within the frame, both directions, 16 per slider | lost on contrast 7, 7, 6 and saturation 6, 3, 8 (three runs); opacity and blur 0 | 0 lost on all four sliders (four runs) |
+| Keyboard jumps: Page Down/Up, Home, End on opacity and contrast; Home, End, Page Down/Up on tint | 0 of 14 correct | 14 of 14 (four runs) |
+| Two sliders in the same frame (1.1.2417) | kept | kept |
+| The 1.1.2417 probe (calendar picker, same-frame pairs) | — | all green |
+| The 1.1.2415 general settings session, which sets the suggestion sliders by keyboard: 15 storage keys, settings events, slider fingerprint | — | byte-identical, identical, identical |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+One fingerprint of the 1.1.2415 session changed with the new slider: the general settings page right after the TTS picker closes. Its scrollbar was shown in 4 of 6 runs with the new slider and in 0 of 5 with the old one. In the four instrumented runs the pointer was over the page every time (`:hover` true, two runs with each slider). The scrollbar shows on hover, so the visible state is the correct one. Whether the page registers `mouseenter` as it slides back under the resting pointer depends on timing. Storage and slider values were identical in all runs.
+
+Not checked:
+
+- dragging with mouse or touch (that path only gained the stop on grab)
+- `number` entity sliders in the device list (same component, not probed)
+- Safari
+
+Bundle: 2,194,724 bytes raw and 605,656 bytes gzipped (+265 raw and +146 gzip against 1.1.2417).
+
 ## Version 1.1.2417 - 2026-09-14
 
 **Title:** 🐛 Two old findings fixed — the calendar's "Default view on open" picker names its fifth row "People", and sliders that report in the same frame no longer overwrite each other
