@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2415 - 2026-09-14
+
+**Title:** ✂️ General settings split into sub-views — the 882-line settings tab becomes a 432-line navigator; the suggestions page and four pickers get their own files, with an identical DOM fingerprint
+
+**Tags:** refactor
+
+The last of the three splits after the to-do pilot (1.1.2411). Nothing is supposed to look or behave differently, and the fingerprints taken before and after show no difference.
+
+### What moved where
+
+Six sub-views of this tab were already files of their own (island, notifications, sidebar items, start screen, live activities, TTS). Now the four pickers and the suggestions page follow. The suggestions state (the local values, the three sliders, learning speed and the learning-data reset) moved into a hook that still runs in the tab, so the values survive switching between the main page, suggestions and learning speed, as before.
+
+This pager has real slides. The main page and the suggestions page carry fixed presence keys, the other branches none, and both stay exactly like that. The suggestions page still shares the scroll ref and hover state with the main page.
+
+| File | Lines | Holds |
+|---|---|---|
+| `GeneralSettingsTab.jsx` | 882 → 432 | state, main page (10 value rows now use the shared `WertZeile`), branches |
+| `general/views/Vorschlaege.jsx` | 219 | suggestions page: switch, three sliders, learning speed row, learning-data reset |
+| `general/useVorschlaege.js` | 86 | state and handlers of the suggestions (handler bodies unchanged) |
+| `general/views/Lerngeschwindigkeit.jsx`, `Uhrzeitformat.jsx`, `Sprache.jsx`, `Waehrung.jsx` | 35, 28, 25, 25 | learning speed, time format, language and currency pickers |
+| `general/views/seite.js` | 9 | the pager's shared `slideVariants` instance |
+
+### Measured (probe, deleted before the build)
+
+Each sub-view was moved and probed on its own before the next one. The baseline was two full runs before any change, with 0 differences between them.
+
+| Check | Before | After |
+|---|---|---|
+| Fingerprint of all 12 pages (main page, the six existing sub-views, suggestions, four pickers): titles, buttons, text, focus, every `.ios-item` rect, full DOM with attributes and inline styles | — | identical in 12 of 12 |
+| Page changes, sampled per frame: slide start, time until settled, two pages overlapping | pickers and suggestions slide in over −558 px in about 280 ms while the main page leaves; the existing sub-views fade in from 20 px in about 260 ms | same, all within 50 ms |
+| Storage after a scripted session (six main-page switches, currency, time format, suggestions off and on, three sliders, learning speed, TTS engine): 15 keys including `systemSettings` | — | byte-identical |
+| Settings events in that session | `greetingsBarEnabledChanged` 1, `sidebarSettingsChanged` 2, `startScreenSettingsChanged` 1, `currencyChanged` 1, `timeFormatChanged` 1, `predictiveSettingChanged` 7 | same |
+| Top fade mask after returning to the main page | works | works |
+| `pageerror` / `console.error` | 0 / 0 | 0 / 0 |
+
+One probe run right after the language picker moved was 60 ms slower to settle; that was the dev server compiling the new module on first use, and two repeated runs matched the baseline.
+
+Bundle: 2,193,311 bytes raw and 605,088 bytes gzipped (−2,165 raw and +251 gzip against 1.1.2414).
+
 ## Version 1.1.2414 - 2026-09-14
 
 **Title:** ✂️ Appearance settings split into sub-views — the 1,196-line settings tab becomes a 353-line navigator plus one file per sub-view, with an identical DOM fingerprint
