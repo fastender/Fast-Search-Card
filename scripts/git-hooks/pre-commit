@@ -4,7 +4,7 @@
 #   check-i18n-keys.py               missing dictionary keys / German text in en.js
 #   check-purgecss-dynamic.py        class names PurgeCSS would drop
 #   check-einstellungs-register.mjs  settings without an entry in the search register
-#   check-tastatur.mjs               silent framer-motion tab stops / clickable rows without keyboard
+#   check-tastatur.mjs               silent framer-motion tab stops / rows without keyboard / unnamed buttons
 # (Auftrag 09 added the i18n guard; before, only the other two ran.)
 #
 # Install once:   bash scripts/install-git-hooks.sh
@@ -73,10 +73,11 @@ fi
 # v1.1.2422: Tastatur-Wächter — framer-motion macht jedes motion-Element mit
 # whileTap/onTap ohne tabindex selbst zum stummen Tab-Stopp (Enter klickt dort
 # nicht), und jede ios-item-clickable-Zeile braucht Tastatur an der Zeile oder
-# an einem Teil. Syntaxbaum über @babel/parser; ~0,7 s.
+# an einem Teil; seit v1.1.2423 braucht jeder Knopf einen Namen. Syntaxbaum über
+# @babel/parser; ~0,7 s.
 if ! node --no-warnings "$ROOT/scripts/check-tastatur.mjs" -q > /dev/null 2>&1; then
   echo ""
-  echo "❌ Pre-commit: Tastatur-Wächter — stummer Tab-Stopp oder klickbare Zeile ohne Tastatur."
+  echo "❌ Pre-commit: Tastatur-Wächter — stummer Tab-Stopp, Zeile ohne Tastatur oder Knopf ohne Namen."
   echo "   Run for details:   node scripts/check-tastatur.mjs"
   echo "   Skip this commit:  git commit --no-verify"
   exit 1

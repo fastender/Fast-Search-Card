@@ -27,7 +27,7 @@ echo "== check-einstellungs-register.mjs (settings search register covers every 
 node --no-warnings "$ROOT/scripts/check-einstellungs-register.mjs"
 
 echo ""
-echo "== check-tastatur.mjs (framer-motion tab stops, clickable rows with keyboard) =="
+echo "== check-tastatur.mjs (framer-motion tab stops, clickable rows with keyboard, button names) =="
 node --no-warnings "$ROOT/scripts/check-tastatur.mjs"
 
 echo ""

@@ -1,5 +1,67 @@
 # Versionsverlauf
 
+## Version 1.1.2423 - 2026-09-15
+
+**Title:** 🧹 Follow-up fixes — opening an entity from the Context tab no longer logs an error, localhost no longer counts as development, and nine icon buttons have names
+
+**Tags:** fix, accessibility, tooling
+
+### Navigation was recorded with an object as the entity id
+
+When the detail view jumps to another entity, for example to a scene from the Context tab, it records that navigation. The call passed `{ target, initialTab }` where the entity id belongs. IndexedDB refused the object as a key, and the console showed "Failed to record user action … not a valid key".
+
+The call now passes the entity id and keeps the tab in the context. `recordUserAction` itself now refuses anything that is not a non-empty string.
+
+Navigations are now actually stored, so they count toward the usage of that entity like the other recorded actions. Suggestions stay the same, because they only count device clicks and dismissed suggestions.
+
+### "localhost" is not a development flag
+
+Two places decided "development" by checking `window.location.hostname === 'localhost'`:
+
+- the logger, which then turned on all debug output
+- the search field, which then gave the whole card a dark gradient background, 40 px padding and full viewport height
+
+Anyone who opens Home Assistant at `localhost:8123`, such as a kiosk browser on the Home Assistant machine itself, got both. Both places now use Vite's build flag `import.meta.env.DEV`, which is false in a release build. Debug output in a release still turns on with `localStorage.fsc_debug = 'true'`. The test data button has used the same flag since 1.1.2198.
+
+### Nine icon buttons had no name
+
+Screen readers announced these only as "button":
+
+- back and favorite in the detail header (favorite now also reports whether it is on)
+- run and favorite in the rows of the Context tab (favorite with its state)
+- delete in the rows of the Schedule tab
+- edit and delete for calendar title and description templates
+- edit and delete for to-do profiles and templates
+
+They now carry their action as a name from the dictionary. Two keys are new: `calendar.deleteTemplate` and `schedule.delete`.
+
+### Guard, rule 3
+
+`check-tastatur.mjs` now also checks every `<button>` and `<motion.button>`. Each needs an `aria-label`, `title` or `aria-labelledby`, or text in its content; a button that only holds an icon fails. Against the 1.1.2422 sources the rule reports exactly the nine buttons above. On this release all 287 buttons pass.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Opening a scene from the Context tab with Enter | the scene opens, no console error; IndexedDB stores the navigation with `entity_id` "scene.abendlicht" as a string |
+| Detail header in German | "Zurück", and "Favorit" with `aria-pressed` false, then true after a click |
+| Detail header and Schedule tab in English | "Back", "Favorite", "Delete" |
+| Row in the Context tab | "Ausführen", "Favorit" |
+| Calendar templates | "Vorlage bearbeiten", "Vorlage löschen" |
+| To-do profile and template | "Bearbeiten", "Löschen" |
+| Release bundle | the development gradient is gone (0 matches); the only "localhost" left is a fallback base for URL parsing; `fsc_debug` is still there |
+| `pageerror` / `console.error` | 0 / 0 |
+
+Not checked:
+
+- a real Home Assistant opened at localhost
+- screen readers
+- Safari
+
+Found along the way, not changed: in the test house at 1280 × 900, the island pill sits over the favorite button of the detail header and catches mouse clicks there. This is not yet checked in Home Assistant or at other widths.
+
+Bundle: 2,224,362 bytes raw and 613,729 bytes gzipped (+149 raw and +18 gzip against 1.1.2422).
+
 ## Version 1.1.2422 - 2026-09-14
 
 **Title:** ⌨️ Keyboard pass, part 3 — twelve more silent tab stops from framer-motion, and a guard that keeps them out

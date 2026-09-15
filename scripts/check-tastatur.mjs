@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// check-tastatur.mjs — Tastatur-Wächter (v1.1.2422).
+// check-tastatur.mjs — Tastatur-Wächter (v1.1.2422, Regel 3 seit v1.1.2423).
 //
-// Zwei Regeln, geprüft am Syntaxbaum (@babel/parser) aller .jsx/.js unter src/:
+// Drei Regeln, geprüft am Syntaxbaum (@babel/parser) aller .jsx/.js unter src/:
 //
 //   1. framer-motion 12 macht jedes nicht nativ fokussierbare motion-HTML-Element
 //      mit Tap-Geste (whileTap, onTap, onTapStart, onTapCancel) SELBST zum
@@ -17,6 +17,10 @@
 //      Spread) oder an einem Teil in der Zeile (Auftrag 08: trägt die Zeile ein
 //      eigenes Bedienelement, sitzt die Knopf-Rolle auf dem Teil). Die Messung von
 //      Auftrag 13 sah nur wörtliche Attribute und hielt zehn Zeilen für stumm.
+//   3. (v1.1.2423) Jeder <button>/<motion.button> hat einen Namen: aria-label,
+//      title oder aria-labelledby — oder Text im Inhalt. Ein Knopf, der nur ein
+//      Symbol trägt (<svg>, *Icon, Chevron), liest der Vorleser als „Taste" vor.
+//      v1.1.2423 fand neun davon (Detail-Kopf, Kontext, Zeitplan, Vorlagen).
 //
 // Aufruf:  node scripts/check-tastatur.mjs [src] [-q]
 // Exit:    0 = sauber, 1 = Befund, 2 = Parser fehlt oder Datei nicht lesbar
@@ -96,12 +100,30 @@ function klassenTexte(oeffner) {
   return texte;
 }
 
+// Trägt der Inhalt eines Knopfs Text? Symbole zählen nicht; Ausdrücke und
+// Komponenten ohne Symbol-Namen werden als Text angenommen (lieber durchlassen).
+const SYMBOL = /^(motion\.)?svg$|Icon$|^Chevron|Svg$/;
+function hatText(kinder) {
+  for (const k of kinder) {
+    if (k.type === 'JSXText' && k.value.trim()) return true;
+    if (k.type === 'JSXExpressionContainer' && k.expression.type !== 'JSXEmptyExpression') return true;
+    if (k.type === 'JSXElement') {
+      const o = k.openingElement;
+      const tag = o.name.type === 'JSXIdentifier' ? o.name.name : o.name.type === 'JSXMemberExpression' ? `${o.name.object.name}.${o.name.property.name}` : '';
+      if (SYMBOL.test(tag)) continue;
+      if (/^[A-Z]/.test(tag)) return true;
+      if (hatText(k.children)) return true;
+    }
+  }
+  return false;
+}
+
 const befunde = [];
-let dateien = 0; let tapElemente = 0; let zeilen = 0;
+let dateien = 0; let tapElemente = 0; let zeilen = 0; let knoepfe = 0;
 
 function pruefeDatei(datei) {
   const quelle = fs.readFileSync(datei, 'utf8');
-  if (!quelle.includes('motion.') && !quelle.includes('ios-item-clickable')) return;
+  if (!quelle.includes('motion.') && !quelle.includes('ios-item-clickable') && !quelle.includes('<button')) return;
   dateien += 1;
   let ast;
   try {
@@ -123,6 +145,15 @@ function pruefeDatei(datei) {
         if (!traegtTastatur(o, 'tab')) {
           befunde.push(`${rel}:${o.loc.start.line}  <motion.${tag}> mit Tap-Geste ohne tabIndex — framer-motion macht es selbst zum stummen Tab-Stopp (tabIndex={-1} oder knopfAttribute)`);
         }
+      }
+    }
+    // Regel 3: Knopf ohne Namen
+    const tagName = o.name.type === 'JSXIdentifier' ? o.name.name : o.name.type === 'JSXMemberExpression' ? `${o.name.object.name}.${o.name.property.name}` : '';
+    if (tagName === 'button' || tagName === 'motion.button') {
+      knoepfe += 1;
+      const benannt = o.attributes.some((a) => a.type === 'JSXSpreadAttribute' || ['aria-label', 'title', 'aria-labelledby'].includes(attrName(a)));
+      if (!benannt && !hatText(el.children)) {
+        befunde.push(`${rel}:${o.loc.start.line}  <${tagName}> ohne Namen — nur ein Symbol im Inhalt (aria-label aus dem Wörterbuch setzen)`);
       }
     }
     // Regel 2: klickbare Zeile
@@ -150,8 +181,8 @@ if (!fs.existsSync(SRC)) { console.error(`check-tastatur: ${SRC} fehlt`); proces
 lauf(SRC);
 
 if (befunde.length) {
-  console.log(`check-tastatur: ${befunde.length} Befund(e) in ${dateien} Dateien (${tapElemente} motion-Elemente mit Tap-Geste, ${zeilen} klickbare Zeilen):`);
+  console.log(`check-tastatur: ${befunde.length} Befund(e) in ${dateien} Dateien (${tapElemente} motion-Elemente mit Tap-Geste, ${zeilen} klickbare Zeilen, ${knoepfe} Knöpfe):`);
   for (const b of befunde) console.log(`  ${b}`);
   process.exit(1);
 }
-if (!leise) console.log(`check-tastatur: ${dateien} Dateien, ${tapElemente} motion-Elemente mit Tap-Geste, ${zeilen} klickbare Zeilen — alle mit Tab-Regel und Tastatur.`);
+if (!leise) console.log(`check-tastatur: ${dateien} Dateien, ${tapElemente} motion-Elemente mit Tap-Geste, ${zeilen} klickbare Zeilen, ${knoepfe} Knöpfe — alle mit Tab-Regel, Tastatur und Namen.`);
