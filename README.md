@@ -331,7 +331,7 @@ No YAML. No code. Edit anytime.
 
 <br>
 
-Search every setting and jump straight to it. Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. English and German today, more languages on the way. All persistent.
+Search every setting and jump straight to it, or list what you changed. Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. English and German today, more languages on the way. All persistent.
 
 </details>
 

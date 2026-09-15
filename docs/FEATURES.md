@@ -432,7 +432,7 @@ Cross-device overview. Filter by timer or schedule. Domain badges. Click navigat
 
 <br>
 
-- **Search.** A field at the top of every tab finds a setting by its name, description or options, and jumps straight to the marked row. It also covers the settings of Calendar, To-dos and News (v1.1.2419–2420).
+- **Search.** A field at the top of every tab finds a setting by its name, description or options, and jumps straight to the marked row. It also covers the settings of Calendar, To-dos and News (v1.1.2419–2420). The **Changed** button beside it lists every setting that differs from its default (v1.1.2426).
 - **General.** Language, currency, time format, island, notifications, sidebar items, start screen widgets, live activities, text-to-speech engine, suggestions and learning speed.
 - **Appearance.** Background mode and filters, grid columns, card shape, custom wallpaper, Liquid Glass, Quick Control, filter and sorting, detail view videos.
 - **Filter.** Excluded patterns plus visibility toggles for HA's hidden / disabled / diagnostic entities.
@@ -907,7 +907,7 @@ Quick way to see how the card has evolved since the last big doc refresh.
 
 | Version | Highlight |
 |---|---|
-| v1.1.2419–2424 | Settings search (all tabs, plus Calendar, To-do and News settings), keyboard addendum with a commit guard, detail view below the island in the classic layout |
+| v1.1.2419–2426 | Settings search (all tabs, plus Calendar, To-do and News settings) with a "Changed" filter, keyboard addendum with a commit guard, detail view below the island in the classic layout |
 | v1.1.2403–2409 | Failures report themselves, error boundaries, two cards per page, popups as dialogs, keyboard and screen-reader pass |
 | v1.1.2395–2399 | Todos: overdue stacking, search before adding, person per list, dictation; version watcher |
 | v1.1.2390–2393 | Screensaver chain: deep rest, wake sources, display handoff, photo frame |

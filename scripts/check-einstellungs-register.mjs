@@ -16,6 +16,13 @@
 //   3. Jede `seite` steht in SEITEN des Reiters und ist im Reiter als
 //      `currentView === '…'` verzweigt; jeder `ersatz` ist eine Zeile derselben Seite.
 //   4. Keine doppelten ids.
+//   5. (v1.1.2426, Phase 3 „Nur geänderte") Jeder `speicher` hat eine Vorgabe:
+//      im Ort „einstellungen" einen Eintrag in EINSTELLUNGEN (suche/vorgaben.js),
+//      bei Kalender, Aufgaben und News einen Pfad im Vorgaben-Objekt ihres
+//      Einstellungsspeichers (oder einen eigenen Schlüssel in EIGENE_SCHLUESSEL).
+//      Eltern-Pfade (`toasts` neben `toasts.enabled`) zählen nicht. Kein Eintrag
+//      in EINSTELLUNGEN ohne Register-Pfad. Gelesen wird der Syntaxbaum — die
+//      Module selbst laden Browser-Code.
 //
 // Aufruf:  node scripts/check-einstellungs-register.mjs [-q]
 // Exit:    0 = sauber, 1 = Befund
@@ -168,6 +175,72 @@ for (const [ort, pfade] of Object.entries(QUELLEN)) {
   }
 }
 
+// ── 5: Vorgaben für „Nur geänderte" ─────────────────────────────────────────
+let vorgabenGeprueft = 0;
+{
+  const { createRequire } = await import('module');
+  let parse = null;
+  try { ({ parse } = createRequire(path.join(ROOT, 'package.json'))('@babel/parser')); } catch (_) { /* unten gemeldet */ }
+  if (!parse) {
+    fehler.push('Vorgaben: @babel/parser fehlt — npm install ausführen');
+  } else {
+    const baum = (datei) => parse(fs.readFileSync(path.join(ROOT, datei), 'utf8'), { sourceType: 'module', plugins: ['jsx'] });
+    const schluesselName = (p) => (p.key.type === 'Identifier' ? p.key.name : p.key.value);
+    // Objekt-Literal einer (exportierten) Konstante finden
+    const objektLiteral = (ast, name) => {
+      for (const knoten of ast.program.body) {
+        const decl = knoten.type === 'ExportNamedDeclaration' ? knoten.declaration : knoten;
+        if (decl?.type !== 'VariableDeclaration') continue;
+        for (const d of decl.declarations) if (d.id?.name === name && d.init?.type === 'ObjectExpression') return d.init;
+      }
+      return null;
+    };
+    const pfadImLiteral = (obj, pfad) => {
+      let knoten = obj;
+      for (const teil of pfad.split('.')) {
+        if (!knoten || knoten.type !== 'ObjectExpression') return false;
+        const eigenschaft = knoten.properties.find((p) => p.type === 'ObjectProperty' && schluesselName(p) === teil);
+        if (!eigenschaft) return false;
+        knoten = eigenschaft.value;
+      }
+      return true;
+    };
+    const vorgaben = baum('src/components/tabs/SettingsTab/suche/vorgaben.js');
+    const einst = objektLiteral(vorgaben, 'EINSTELLUNGEN');
+    const eigene = objektLiteral(vorgaben, 'EIGENE_SCHLUESSEL');
+    if (!einst) {
+      fehler.push('Vorgaben: EINSTELLUNGEN in suche/vorgaben.js nicht gefunden');
+    } else {
+      if (einst.properties.some((p) => p.type !== 'ObjectProperty')) fehler.push('Vorgaben: EINSTELLUNGEN enthält Spreads — Schlüssel bitte ausschreiben');
+      const tabelle = new Set(einst.properties.filter((p) => p.type === 'ObjectProperty').map(schluesselName));
+      const eigeneJeOrt = Object.fromEntries((eigene?.properties || []).filter((p) => p.type === 'ObjectProperty').map((p) => [schluesselName(p), new Set((p.value.properties || []).map(schluesselName))]));
+      const SPEICHER = {
+        kalender: ['src/system-entities/entities/calendar/utils/calendarSettingsStorage.js', 'CALENDAR_SETTINGS_DEFAULTS'],
+        aufgaben: ['src/system-entities/entities/todos/utils/settingsStorage.js', 'DEFAULT_SETTINGS'],
+        news: ['src/system-entities/entities/news/utils/settingsStorage.js', 'DEFAULT_SETTINGS'],
+      };
+      const literale = Object.fromEntries(Object.entries(SPEICHER).map(([ort, [datei, name]]) => [ort, objektLiteral(baum(datei), name)]));
+      const pfadeJeOrt = new Map();
+      for (const e of REGISTER) if (e.speicher) (pfadeJeOrt.get(e.ort) || pfadeJeOrt.set(e.ort, new Set()).get(e.ort)).add(e.speicher);
+      const benutzt = new Set();
+      for (const [ort, pfade] of pfadeJeOrt) {
+        for (const pfad of pfade) {
+          if ([...pfade].some((q) => q.startsWith(`${pfad}.`))) continue; // Eltern-Pfad
+          vorgabenGeprueft += 1;
+          if (ort === 'einstellungen') {
+            benutzt.add(pfad);
+            if (!tabelle.has(pfad)) fehler.push(`Vorgaben: „${pfad}" (einstellungen) fehlt in EINSTELLUNGEN (suche/vorgaben.js) — ohne Vorgabe kann „Nur geänderte" nicht vergleichen`);
+          } else if (!eigeneJeOrt[ort]?.has(pfad)) {
+            if (!literale[ort]) fehler.push(`Vorgaben: Vorgaben-Objekt für ${ort} nicht gefunden (${SPEICHER[ort]?.[0]})`);
+            else if (!pfadImLiteral(literale[ort], pfad)) fehler.push(`Vorgaben: „${pfad}" (${ort}) steht nicht im Vorgaben-Objekt ${SPEICHER[ort][1]} — Pfad im Register falsch oder Vorgabe fehlt`);
+          }
+        }
+      }
+      for (const k of tabelle) if (!benutzt.has(k)) fehler.push(`Vorgaben: EINSTELLUNGEN.${k} gehört zu keinem Register-Pfad (verwaist)`);
+    }
+  }
+}
+
 if (fehler.length) {
   console.log(`check-einstellungs-register: ${fehler.length} Befund(e):\n`);
   for (const f of fehler) console.log(`  ${f}`);
@@ -175,5 +248,5 @@ if (fehler.length) {
   process.exit(1);
 }
 if (!leise) {
-  console.log(`check-einstellungs-register: ${REGISTER.length} Einträge an ${Object.keys(QUELLEN).length} Orten, ${gedeckt} Beschriftungen in ${dateiAnzahl} Dateien gedeckt, Wörterbuch de + en vollständig.`);
+  console.log(`check-einstellungs-register: ${REGISTER.length} Einträge an ${Object.keys(QUELLEN).length} Orten, ${gedeckt} Beschriftungen in ${dateiAnzahl} Dateien gedeckt, Wörterbuch de + en vollständig, ${vorgabenGeprueft} Speicherpfade mit Vorgabe.`);
 }

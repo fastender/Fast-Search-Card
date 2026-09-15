@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.2426 - 2026-09-15
+
+**Title:** 🔎 Settings search, phase 3 — a "Changed" button lists every setting that differs from its default
+
+**Tags:** feature, settings
+
+Roadmap #46, phase 3. Next to the settings search field there is now a **Changed** button, with the number of changed settings on it. Tap it and the list shows exactly what this install has altered, across all four settings tabs and the settings of Calendar, To-dos and News. A tap on an entry jumps to the marked row, as with search results.
+
+It answers the first question in every bug report ("what did you change?") without typing.
+
+### How it works
+
+- **With a search term** the list shows only changed settings that match it. Escape clears the term first, then turns the filter off.
+- **Effective values, not stored text.** A setting counts as changed when its *effective* value differs from the value the card uses on an empty storage. Both come from the same readers and normalizers the settings pages use. So `"60"` stored as text equals the default `60`, a missing key is the default, and a reordered list of excluded patterns is unchanged.
+- **Whole-object saves.** Several pages (screensaver, sidebar, island standby) write their whole settings object, defaults included, whenever one value changes. Those defaults do not show up as changes.
+- **One entry per setting.** When several rows share a storage path, such as the four start screen slots, the setting appears once. Parent paths (`toasts` beside `toasts.enabled`) are skipped.
+- **Freshness.** The count is worked out when a tab's main page opens and each time the filter is switched on. After changing a value on the same page, the button count only updates once the filter is switched on or the tab is reopened.
+
+### Changes underneath
+
+- **Defaults table.** `SettingsTab/suche/vorgaben.js` lists the effective value and the default for each of the 81 storage paths in the settings tabs. Calendar, To-dos and News compare their settings object with its defaults; to-do profiles and templates are read from their own keys.
+- **Readers accept raw input.** `readFotorahmen`, `readWeckquellen`, `readDisplayUebergabe`, `readIslandSources` and `readLiquidGlassSettings` take an optional raw object. Calling them with `{}` returns the defaults, and existing calls behave as before.
+- **Island standby.** Its normalizer is exported from `useIslandStandby` and reused by the island settings page, which kept its own copy until now.
+- **Screensaver.** The normalization moved into `leseZenRueckkehr(raw)`.
+- **Newly exported defaults:** `DEFAULT_SEED_PATTERNS`, `TODOS_SETTINGS_DEFAULTS`, `NEWS_SETTINGS_DEFAULTS`.
+- **Register paths per row.** The calendar's visible views and the to-do tabs now have one storage path per row (`visibleModes.year`, `visibleTabs.today`). Before, all of them pointed at the whole object, so a hidden "Year" would have been reported as "Day".
+- **Guard.** The register guard gains rule 5. Every storage path needs a default: an entry in the table for the settings tabs, or a path in the defaults object of the Calendar, To-dos or News store. No table entry may be orphaned. It reads source files as syntax trees, because the modules themselves load browser code. It now reports 115 storage paths with a default.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Fresh install | 0 changed, "Everything is at its default." |
+| Prepared storage: 7 real changes plus 7 default values written differently (`"0"`, `"60"`, reordered patterns, whole objects holding defaults) | exactly the 7 changes: sidebar "always visible", maximum suggestions, screensaver on, screensaver photo interval, grid columns, calendar week start, to-do "Today" tab |
+| Changed + search term "Woche" | only the calendar week start |
+| Escape | first clears the term, then turns the filter off |
+| Jump from the list | Appearance tab and calendar settings open, row marked |
+| Real toggle in the Filter tab ("hide hidden entities") | appears as the only changed setting |
+| English | "Changed 2", "Differ from the default: 2" (app language and grid columns) |
+| Guard counter-check (missing default, wrong News path, orphaned table entry) | all three reported |
+| Phone width (390 px) | field and button side by side, no horizontal overflow |
+| `pageerror` / `console.error` | 0 / 0 |
+
+Not checked:
+
+- a real Home Assistant install with years of stored settings
+- Safari
+- screen readers
+
+Bundle: 2,226,098 bytes raw and 614,902 bytes gzipped (+8,579 raw and +2,839 gzip against 1.1.2425). The gzip budget warns at 620,000.
+
 ## Version 1.1.2425 - 2026-09-15
 
 **Title:** 🧹 Clean-up — dead dictionary entries and category CSS removed, a schedule badge that turned into a 94 px block, and a build that no longer reports success after a failed release
