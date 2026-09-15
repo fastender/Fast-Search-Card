@@ -331,7 +331,7 @@ No YAML. No code. Edit anytime.
 
 <br>
 
-Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. English and German today, more languages on the way. All persistent.
+Search every setting and jump straight to it. Background filters. Squircle cards. Splashscreen styles. Excluded patterns with live preview. English and German today, more languages on the way. All persistent.
 
 </details>
 
@@ -344,7 +344,7 @@ Background filters. Squircle cards. Splashscreen styles. Excluded patterns with 
 
 **Design.** Liquid-Glass sliders and switches. One glass window for every popup. Smooth motion throughout. Handwritten splashscreen. Toast notifications. Chart.js graphs everywhere.
 
-**Reliable.** Failed actions say so and roll back. A broken tile no longer empties the card. A version watcher notices when a wall tablet still runs old code after an update. Keyboard and screen readers reach settings rows, device tiles, chips, detail tabs and popups.
+**Reliable.** Failed actions say so and roll back. A broken tile no longer empties the card. A version watcher notices when a wall tablet still runs old code after an update. Keyboard and screen readers reach settings rows, device tiles, chips, detail tabs, popups and every icon button.
 
 **Smart.** Predictive suggestions that learn your habits. List virtualization for thousands of entities. AI Mode (experimental).
 
