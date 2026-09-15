@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.2424 - 2026-09-15
+
+**Title:** 🏝️ The detail view no longer sits under the island in the classic layout — the favorite button and the device name are free again
+
+**Tags:** fix, layout
+
+In the classic layout, the default when the Bento start screen is off, the detail view covered the card from its very top. The island stays above the detail view on purpose (since 1.1.2206), so its collapsed pill sat on the detail header:
+
+- **Desktop, 1024 px and wider:** it lay over the favorite button, and a click there went to the island instead of the heart.
+- **Phone:** it covered the device name.
+
+The Bento layout never had this, because its detail view starts below the island band.
+
+### What changed
+
+The classic layout now does the same as Bento. The detail view starts below the island, where the search panel starts: the island's own height plus its 12 px gap. The island stays visible and usable above the detail view; a tap opens its messages as before.
+
+The detail panel is now 672 px tall, the same height as the search panel and the Bento detail view. Before, it was 748 px (phone) or 756 px (desktop).
+
+- The offset is measured before the first frame, so the panel never shows at the top for a frame and then jumps down.
+- Without the island (turned off in the settings), the detail view still covers the whole card.
+- The dark stand-in glass without blur for the collapsed island over the classic detail view is removed. It kept video frames from being blurred under the pill; nothing sits under the pill anymore, so it only made the island darker than in Bento.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Controls in the detail header covered by the island (classic, 390 / 768 / 1024 / 1280 px) | before: favorite button at 1024 px and wider, device name on the phone; after: none |
+| Offset of the detail view when it is inserted | 76 px (phone) / 84 px (desktop) already at insertion; the panel's bottom edge stays flush with the card |
+| Gap between island and detail panel | 12 px, the same as Bento |
+| Favorite button, real mouse click | toggles at every width |
+| Island above the open detail view | hit by the pointer; a click opens its messages |
+| Content in the 672 px panel (light, climate, media player, cover; 1280 and 390 px) | nothing sticks out below the panel, nothing starts scrolling |
+| Phone sheet with the controls | stays inside the detail view |
+| Island turned off | detail view covers the whole card as before |
+| Detail opened from the collapsed card (`fsc-open-entity`) | island on top, panel below it |
+| Closing and reopening | the panel closes; the offset is the same when it opens again |
+| Bento layout, 390 and 1280 px | unchanged (offset 76 / 84 px, nothing covered) |
+| `pageerror` / `console.error` | 0 / 0 |
+
+Not checked:
+
+- a real Home Assistant dashboard
+- Safari, whose header renders taller
+- touch input
+
+Bundle: 2,224,234 bytes raw and 613,767 bytes gzipped (−128 raw and +38 gzip against 1.1.2423).
+
 ## Version 1.1.2423 - 2026-09-15
 
 **Title:** 🧹 Follow-up fixes — opening an entity from the Context tab no longer logs an error, localhost no longer counts as development, and nine icon buttons have names
