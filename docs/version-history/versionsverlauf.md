@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.2425 - 2026-09-15
+
+**Title:** 🧹 Clean-up — dead dictionary entries and category CSS removed, a schedule badge that turned into a 94 px block, and a build that no longer reports success after a failed release
+
+**Tags:** cleanup, fix, tooling
+
+### 131 unused dictionary entries
+
+66 entries in `de.js` and 65 in `en.js` were not used anywhere in the code, among them the old video, privacy and suggestion descriptions, delete-dialog texts and climate words like "hvac" and "swing". An entry only counted as unused if its name appears nowhere in the sources, scripts or tests. That check covers composed keys too: a prefix before `${…}`, a suffix after it, and string concatenation.
+
+Before removing anything we spot-checked the learning speed labels: they use `settings.slow/normal/fast`, not `learningRateSlow`, so those entries really were dead.
+
+### Dead category CSS that still hit something
+
+The rules for the category buttons next to the search bar stayed in `SearchField.css` after the panel itself was deleted in 1.1.2402, kept alive by the `/^category-/` safelist.
+
+One of them still matched a live element. Schedule badges and the domain filter chips build their class as `category-${domain}`, so a schedule for a `button.*` entity got `category-button`. Its badge became a 94 × 94 px grey block, and the filter chip made the whole chip row 94 px tall. The rules are gone. The badge now reads "Taste" / "Button" instead of the raw domain name.
+
+### A failed release is no longer "Complete"
+
+When `gh release create` failed, `build.sh` printed "Changelog saved to …", deleted that file right away and ended with "✅ Build Process Complete!" and exit code 0. Its manual steps also sent you to "releases/new", although in 1.1.2406 the release had been created and only the attachment was missing.
+
+Now the script checks what actually exists on GitHub:
+
+- no release: it prints the full `gh release create` command
+- release without the attachment: it prints `gh release upload`
+- release with the attachment: it carries on, since only the response was lost
+
+In the first two cases it keeps the changelog file and ends with exit code 1. A missing GitHub CLI also ends with exit code 1 now.
+
+### Documentation
+
+- `FEATURES.md`: the settings section now lists the four current tabs and the settings search. The keyboard section covers the framer-motion tab stops, the button names and the commit guard. There is a new milestone row for 1.1.2419–2424.
+- `README.md` mentions the settings search and the named icon buttons.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Schedule for `button.klingel_test` in the Schedules overview | before: badge 94 × 94 px reading "button", filter chip 94 × 94 px; after: badge 55 × 16 px reading "Taste" (like "Licht" at 54 × 16), chip 91 × 36 px |
+| Dictionary paths shown instead of text (all four settings tabs, suggestions page, detail videos page, climate detail; German and English) | none |
+| `build.sh` failure branch against a stubbed `gh` | release missing → create command, exit 1; attachment missing → upload command, exit 1; release complete → carries on, exit 0; the changelog is kept in both failure cases |
+| Guards (i18n, extraction debt, PurgeCSS, settings register, keyboard) | all green |
+| Release bundle | 0 matches for `category-button` and for the removed entries |
+| `pageerror` | 0 |
+
+Not checked:
+
+- a real failed release
+- every screen the card has for leftover dictionary paths (the probe covered the views that used to hold removed entries)
+
+Bundle: 2,217,519 bytes raw and 612,063 bytes gzipped (−6,715 raw and −1,704 gzip against 1.1.2424).
+
 ## Version 1.1.2424 - 2026-09-15
 
 **Title:** 🏝️ The detail view no longer sits under the island in the classic layout — the favorite button and the device name are free again

@@ -428,13 +428,13 @@ Cross-device overview. Filter by timer or schedule. Domain badges. Click navigat
 </details>
 
 <details>
-<summary><b>Settings.</b> Five tabs of configuration.</summary>
+<summary><b>Settings.</b> Four tabs, one search field.</summary>
 
 <br>
 
-- **General.** Language, view mode (persisted), Bento toggle, suggestion learning rate.
-- **Appearance.** Background filters, squircle cards, grid columns (4/5/6), splashscreen style, Quick Control, wallpaper picker.
-- **StatsBar.** Nine widget toggles. Greetings customisation.
+- **Search.** A field at the top of every tab finds a setting by its name, description or options, and jumps straight to the marked row. It also covers the settings of Calendar, To-dos and News (v1.1.2419–2420).
+- **General.** Language, currency, time format, island, notifications, sidebar items, start screen widgets, live activities, text-to-speech engine, suggestions and learning speed.
+- **Appearance.** Background mode and filters, grid columns, card shape, custom wallpaper, Liquid Glass, Quick Control, filter and sorting, detail view videos.
 - **Filter.** Excluded patterns plus visibility toggles for HA's hidden / disabled / diagnostic entities.
 - **About.** Version, build info, links.
 
@@ -694,7 +694,7 @@ A service call that Home Assistant rejects now shows an error toast naming the a
 
 <br>
 
-Popups are real dialogs with a name, focus handling, Escape and a Tab loop (v1.1.2406). Settings rows, device tiles, chips, list rows, scroll arrows and the detail tabs can be reached with Tab and triggered with Enter or Space, with a focus ring that only the keyboard sees; every input field has a name, and small targets have at least a 24-pixel-high hit area (v1.1.2407–2409).
+Popups are real dialogs with a name, focus handling, Escape and a Tab loop (v1.1.2406). Settings rows, device tiles, chips, list rows, scroll arrows and the detail tabs can be reached with Tab and triggered with Enter or Space, with a focus ring that only the keyboard sees; every input field has a name, and small targets have at least a 24-pixel-high hit area (v1.1.2407–2409). framer-motion used to make every tap-animated element a tab stop on its own, one where Enter did nothing. Since v1.1.2421–2422 no row, card or slider page is such a silent stop, and since v1.1.2423 every icon button has a name. A guard in the commit hook checks these rules and the keyboard support of every clickable settings row.
 
 </details>
 
@@ -907,6 +907,7 @@ Quick way to see how the card has evolved since the last big doc refresh.
 
 | Version | Highlight |
 |---|---|
+| v1.1.2419–2424 | Settings search (all tabs, plus Calendar, To-do and News settings), keyboard addendum with a commit guard, detail view below the island in the classic layout |
 | v1.1.2403–2409 | Failures report themselves, error boundaries, two cards per page, popups as dialogs, keyboard and screen-reader pass |
 | v1.1.2395–2399 | Todos: overdue stacking, search before adding, person per list, dictation; version watcher |
 | v1.1.2390–2393 | Screensaver chain: deep rest, wake sources, display handoff, photo frame |
