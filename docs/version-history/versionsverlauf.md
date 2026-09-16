@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.2428 - 2026-09-16
+
+**Title:** 🧹 Second cleanup pass — a boot timeline in everyone's console, dead settings actions, a greeting that lost its name, and four months of migrations
+
+**Tags:** cleanup, fix
+
+Round two of the optimisation series, part B. Removals with one exception: the greeting and the "Clear cache" button were broken and now work.
+
+### The boot timeline left the console
+
+`perfDump()` ran unthrottled from two places on every start and printed a table with raw `console.log` / `console.table`; `window.__fsc_perf` was installed every time. Both now sit behind the logger's debug flag — the table goes through `logger.debug`, and the window tool only exists on the dev server, so neither string is left in the shipped bundle. `localStorage.fsc_debug = 'true'` still prints the timeline for bug reports.
+
+### A greeting without a name
+
+The Zen start page read `appearance.username`. Nobody writes that key; the name lives under `appearance.statsBarUsername`. So whenever Home Assistant did not supply a user name, the greeting stayed nameless. Order is unchanged: the Home Assistant name first, then the name set in the card.
+
+### "Clear cache" cleared nothing
+
+The button removed `searchCache` and `suggestionCache` from localStorage — two keys that have not been written for a long time. It now clears what actually caches today: news articles (both keys), the fetched version history, the to-do lists and the weather forecasts held in memory (`utils/cachesLeeren.js`). The event it sends afterwards still empties the entity snapshot and reloads from Home Assistant.
+
+### Dead code
+
+- **Settings entity.** `getSetting`, `setSetting`, `getAllSettings`, `resetSettings` had no callers. The first-use routine wrote seven localStorage keys nobody reads — and one of them, `userLanguage` from `navigator.language`, disabled the language derivation from Home Assistant (a written `userLanguage` counts as an explicit choice there). The version-check method was an empty stub. The entity itself is untouched: the search hit "Settings", its tabs and its view work as before. 271 → 120 lines.
+- **Write-only state.** `aiResponse` was written in five places and read nowhere; the AI interface builds its own answers. Its sibling `containerBounds` called `getBoundingClientRect()` on the search panel on every render for a prop the interface does not accept.
+- **Four months of migrations.** The energy-dashboard migration of 1.1.1414 (which scanned the whole localStorage whenever no unified key existed), the slots→hero migration of 1.1.1341, the one-time localStorage→Home Assistant move for device configs, the greetings-bar default flip of 1.1.1447 (it wrote two settings sections on every fresh install), a `statsBarEnabled` clean-up and the wallpaper layer of 1.1.1892. **Anyone who has not opened the card since May sets up their energy sensors once more** — the unified key has been written on every start since then.
+- **Duplicates.** Ten hand-written iOS navbars now use the shared component; ten were left because their shape differs (a right-hand action, a two-line title, or no back button) — they are listed in the code. `hasLocalStorage` and `persist` moved to `safeStorage.js`, `InfoIcon` to the shared icon set, `fmt` and `liesVerlauf` each into one place. Left alone because the bodies differ: `PlayIcon`/`PauseIcon` (different default size), `endeVon` (`Date` versus milliseconds), `dauerText` (seconds/minutes versus translated minutes), `hoererSicherstellen`. Three exports with no callers are gone (`leseSuchbegriff`, `messeKartenhoehe`, `hakenAttribute` — the keyboard guard no longer accepts that name), as are two forwarding files.
+- **Expensive debug arguments.** Arguments are built even when debug logging is off: two `getElementById` and a `querySelectorAll` per toast, an object per entity inside a filter, `Object.keys` over all entities twice. They now sit behind `debugAktiv`. `logger.scope` had no callers. `MemoryCache.has/clear/getStats` had none either — `clear()` without a key called `this.constructor()` without `new` and would have thrown, and `getStats().hitRate` was always 1 because `misses` was never counted.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| `console.table` / `__fsc_perf` in the bundle | 0 (was 2) |
+| Search "Settings" | one hit, view opens, "Changed 2" |
+| Greeting with `statsBarUsername` = "Sonde" and no Home Assistant name | "Der Tag gehört dir, Sonde!" |
+| "Clear cache" with two cache keys present | confirmation shown, both keys gone |
+| Migrated navbar (tip detail) | title "Zeitpläne", back label "Zurück", back returns to the list |
+| Navbar migration | 10 migrated, 10 left (shape differs) |
+| Smoke run: heating, vacuum, humidity sensor, all detail tabs | `pageerror` 0, `console.error` 1 (pre-existing duplicate-key warning, identical in 1.1.2426) |
+| Chart still drawn after the chart.js follow-up | 99,044 painted pixels, chart.js requested only when a chart opens |
+
+### chart.js follow-up from 1.1.2427
+
+A dynamic `import('chart.js')` asks for the module namespace, which switches off tree shaking: all of chart.js landed in the bundle, 8,102 gzip bytes more, above the warn threshold. The lazy load now goes through `utils/chartKern.js`, a module whose static named imports keep tree shaking intact and whose only export is the setup function. Deferred evaluation without the extra weight.
+
+Line balance: settings entity −151, device config storage −95, memory cache −30, AI mode −14, navbars −70 across ten files, everything else smaller.
+
+Not checked: a real Home Assistant install with configuration from May, Safari, screen readers, and the news settings pages (the news entity is not part of the test house).
+
+Bundle: 2,220,737 bytes raw and 614,714 bytes gzipped (−34,126 raw and −9,614 gzip against 1.1.2427, and −188 gzip against 1.1.2426). The budget warns at 620,000.
+
 ## Version 1.1.2427 - 2026-09-16
 
 **Title:** ⚡ Second performance pass — a registry call on every data tick, 42 SVG animations that ignored the rest gate, and chart.js off the boot path

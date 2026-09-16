@@ -9,11 +9,11 @@
 //      gestures/press: `target.tabIndex = 0`). Der Stopp hat keine Rolle, und
 //      Enter löst dort nur synthetische pointer-Events aus — keinen click, also
 //      kein onClick. Jedes solche Element braucht deshalb `tabIndex` oder die
-//      Tastatur-Attribute im Spread (`knopfAttribute(…)`/`hakenAttribute(…)`):
+//      Tastatur-Attribute im Spread (`knopfAttribute(…)`):
 //      `tabIndex={-1}`, wenn ein anderes Element die Bedienung trägt, sonst die
 //      Knopf-Rolle. v1.1.2421/2422 fanden 16 solche Stopps.
 //   2. Jede `ios-item-clickable`-Zeile ist per Tastatur bedienbar: Attribute an
-//      der Zeile (onKeyDown, data-tastatur, knopfAttribute/hakenAttribute im
+//      der Zeile (onKeyDown, data-tastatur, knopfAttribute im
 //      Spread) oder an einem Teil in der Zeile (Auftrag 08: trägt die Zeile ein
 //      eigenes Bedienelement, sitzt die Knopf-Rolle auf dem Teil). Die Messung von
 //      Auftrag 13 sah nur wörtliche Attribute und hielt zehn Zeilen für stumm.
@@ -48,7 +48,9 @@ const TAP_GESTEN = new Set(['whileTap', 'onTap', 'onTapStart', 'onTapCancel']);
 const NATIV_FOKUSSIERBAR = new Set(['button', 'a', 'input', 'select', 'textarea']);
 // press() setzt tabIndex nur an HTML-Elementen, nicht an SVG
 const SVG_TAGS = new Set(['svg', 'path', 'circle', 'ellipse', 'line', 'polyline', 'polygon', 'rect', 'g', 'text', 'tspan', 'image', 'use', 'defs', 'stop', 'mask', 'clipPath', 'pattern', 'symbol', 'marker', 'filter', 'linearGradient', 'radialGradient', 'foreignObject']);
-const HELFER = new Set(['knopfAttribute', 'hakenAttribute']);
+// v1.1.2428 (Auftrag 14 B7): `hakenAttribute` gab es ohne Aufrufer — der
+// Helfer ist gelöscht, der Name gilt hier deshalb nicht mehr als Tastatur.
+const HELFER = new Set(['knopfAttribute']);
 const OHNE_KINDER = new Set(['loc', 'start', 'end', 'extra', 'leadingComments', 'trailingComments', 'innerComments', 'range']);
 
 function* knoten(wurzel) {
