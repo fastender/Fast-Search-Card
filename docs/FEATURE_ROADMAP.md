@@ -598,19 +598,7 @@ A second batch shaped by what shipped in the last four weeks (Quick Control patt
 
 ---
 
-### 13. Daily briefing widget
-
-**Pitch:** A morning summary surface — weather, today's calendar, overnight notifications, energy stats, "trash day tomorrow". One widget, glance-and-go.
-
-**Status quo:** Weather, calendar, energy, notifications all already live in the card. They just don't share a surface.
-
-**What ships:**
-- Bento widget that wakes up between 6:00 and 9:00 (configurable).
-- Greeting line: "Good morning, Ender."
-- Three lines below: weather forecast, top calendar event, one anomaly ("Energy use up 30% yesterday").
-- Tap → full Daily Briefing view with the long version.
-
-**Effort:** Small. Pure composition of existing data — no new data source.
+### 13. *(dropped 2026-09-16 — see "Out of scope")*
 
 ---
 
@@ -1063,7 +1051,7 @@ Effort stays small; the only new UI is the picker row.
 
 | Bucket | Ideas | Why |
 |---|---|---|
-| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #13 Daily briefing · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse · #68 Stale-build banner | Existing infrastructure, clear daily payoff |
+| **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse · #68 Stale-build banner | Existing infrastructure, clear daily payoff |
 | **Medium effort, established patterns** | #46 Settings search · #49 Screen behaviour · #52 Multi-select · #54 Event rules · #55 Person lanes · #48 Calendar column view · #1 LLM · #3 Notification Center · #6 Energy cost · #9 Ambient · #11 Sketchpad · #15 Multi-user · #18 Bin widget · #24 ⌘K bridge · #25 Gestures · #26 Room card · #31 AI Task · #32 Adaptive Lighting · #33 Hash routing · #34 Strategy mode | New surfaces but on established patterns |
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
@@ -1097,6 +1085,7 @@ Ideas that came up but didn't make either batch:
 - **Geofencing status widget** — would be a sub-feature of #7 Routines.
 - **Custom groups parallel to areas** — sensible, but niche.
 - **AR view (point phone at light, see info)** — neat, but device-specific and brittle on Android.
+- **#13 Daily briefing widget** *(dropped 2026-09-16, was "Part two")* — a morning surface with greeting, weather, first event and an energy anomaly. The Zen start page overtook it: clock and date, the status line with current weather and power, the greeting, and the rotating context line of #57, plus #58b evening-before all-day reminders, the #28 severe-weather banner and the #44 chronicle. What was left — a second forecast line and an overnight summary — did not justify a surface of its own. The number stays retired; later ideas keep counting from #68.
 
 ---
 
@@ -1671,7 +1660,7 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 **Effort:** Medium. The delicate part is *restraint* — one sentence per cycle, never two data lines in a row.
 
-**Why it fits:** It turns the new ambience feature into an information surface — the wall-tablet line between "decoration" and "briefing" (#13) without building a widget.
+**Why it fits:** It turns the new ambience feature into an information surface — the wall-tablet line between "decoration" and "briefing" without building a widget. (It did that so well that the briefing widget, #13, was dropped in 2026-09.)
 
 *2026-08-27 addition:* the same single sentence has a second natural surface — the **locked Zen page** (the screensaver face since v1.1.2369). One provider, two consumers, identical restraint rules; on the locked page it must survive the deep-rest dim of #61 (i.e. it belongs to the normal locked stage, not to deep rest).
 
