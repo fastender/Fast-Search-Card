@@ -1,5 +1,56 @@
 # Versionsverlauf
 
+## Version 1.1.2427 - 2026-09-16
+
+**Title:** ⚡ Second performance pass — a registry call on every data tick, 42 SVG animations that ignored the rest gate, and chart.js off the boot path
+
+**Tags:** performance
+
+Round two of the optimisation series, from the code analysis of 2026-09-16. No new features, no visual changes.
+
+### A registry request per data tick
+
+`VacuumAreaPicker` asked Home Assistant for the entity registry entry in an effect whose dependencies were `[hass, item.entity_id]`. `hass` changes identity on every push from Home Assistant, so with the picker open, one websocket request went out per tick. The effect now depends on `hass.connection`, and the current `hass` comes from a ref.
+
+### 42 SVG animations without a gate
+
+Eleven icons animate themselves with SMIL (`repeatCount="indefinite"`): heating, drying, cooling, auto, fan, music, air purifier, dishwasher, washing machine, vacuum, siren. SMIL runs on the main thread and knows neither `animation-play-state` nor `prefers-reduced-motion`, so the rest gate that stops every CSS animation after three idle minutes went straight past them. They kept spinning on every active device tile — including the favourites of the locked start page, where the tiles are mounted at zero opacity.
+
+The icons now ask a gate (`utils/animationsTor.js`, read through `hooks/useAnimationErlaubt.js`) before rendering their `<animate>` elements. One store for the whole card, fed by the two places that already know about rest: the island (`data-dekor`) and the Zen page (`data-ambient`, deep rest), plus a single `matchMedia` listener for `prefers-reduced-motion`. Without animation an icon stands in its resting pose; the music icon, whose notes start invisible and are faded in, starts at full opacity instead.
+
+The state marquee of the device tiles got the same gate in CSS.
+
+### Smaller things in the same direction
+
+- **People lanes (calendar).** The week columns depended on `hass.states`, which changes identity on every push, so filtering, sorting and the day grouping ran per tick. They now depend on a signature of the person pictures — the only thing they read from `hass.states`. The day labels come from one `Intl.DateTimeFormat` per locale instead of a fresh formatter per day.
+- **Schedule tab.** `ScheduleTab` and `useScheduleData` each subscribed to `hass` only to mirror it into a ref. Both now read `getHass()` at call time; subscription, ref and effect are gone.
+- **Context tab.** One pass per entity flush now builds an index (`entity_id` → entity) and two signatures. The action list is rebuilt only when a scene, script or automation appears, disappears or changes state; the area of an action is worked out once instead of twice, and the lookup inside it uses the index instead of a linear search. The related-devices list separates its expensive selection from the values it displays.
+- **Scroll indicators.** Four places (`useScrollIndicators`, `SubcategoryBar`, tips list, version list) read layout and set two states on every scroll event — up to a hundred per second during a swipe. They now run at most once per frame (`utils/rafSammler.js`).
+- **chart.js off the boot path.** `chartConfig.js` was imported statically through the chain SearchField → DetailViewWrapper → DetailTabContent → UniversalControlsTab → PresetButtonsGroup → EnergyChartsView, so chart.js was evaluated at boot even for people who never open a chart. `ensureChartsInitialized()` now loads it with `await import()` and returns the Chart class; both chart views wait for it. The bundle stays a single file.
+
+### Measured (probe, deleted before the build)
+
+| Check | Before | After |
+|---|---|---|
+| Registry requests with the vacuum picker open, 20 data ticks | 20 | 1 |
+| Endless SVG animations, tiles awake | 21 | 21 |
+| … after the rest gate closes (`data-dekor="still"`) | 21 | 0 |
+| … after a gesture wakes the card | — | 21 |
+| … with `prefers-reduced-motion: reduce` | 21 | 0 |
+| Music icon opacity with animations off | — | 1 (all nine paths visible) |
+| `getAreaFromEntity` calls when one scene changes state | 12 | 6 |
+| History chart still drawn | — | 99,044 painted pixels |
+| chart.js requested at boot | yes | no — only when a chart opens |
+| Smoke run: `pageerror` / `console.error` | 0 / 1 | 0 / 1 |
+
+Not checked:
+
+- The per-tick rebuild of the context tab could not be reproduced in the test house: without a real event stream the entity list keeps its identity, so both the old and the new code made zero area lookups across 20 ticks. What is measured is the halved work per rebuild.
+- A real Home Assistant install, Safari, and screen readers.
+- The one `console.error` in the smoke run ("two or more children with the same key attribute: climate.heizung") is older than this release — it appears identically with the 1.1.2426 sources and was left alone.
+
+Bundle: 2,254,863 bytes raw and 624,328 bytes gzipped (+28,765 raw and +9,426 gzip against 1.1.2426). 8,102 gzip bytes of that come from the dynamic `import('chart.js')`: asking for a module namespace switches off tree shaking, so all of chart.js ends up in the bundle. The gzip budget warns at 620,000; 1.1.2428 brings the figure back down with an intermediate module.
+
 ## Version 1.1.2426 - 2026-09-15
 
 **Title:** 🔎 Settings search, phase 3 — a "Changed" button lists every setting that differs from its default
