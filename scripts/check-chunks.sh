@@ -20,6 +20,15 @@ for f in "$DIST"/*-*.js; do
   b=$(basename "$f"); [ "$b" = "fast-search-card.js" ] && continue
   echo "$referenziert" | grep -qx "$b" || { echo "❌ check-chunks: verwaister Chunk: $b" >&2; fehler=1; }
 done
+# Git-Gegenprobe: getrackte dist/*.js, die auf der Platte fehlen (alte Chunks), wären
+# nach dem Commit wieder im Tag — HACS lüde sie mit. build.sh staged Löschungen per
+# git-Pathspec; hier zählen wir nach, falls jemand das Skript umbaut.
+if git -C "$WURZEL" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  while IFS= read -r t; do
+    [ -n "$t" ] || continue
+    [ -f "$WURZEL/$t" ] || echo "⚠️  check-chunks: getrackt, aber nicht mehr auf der Platte (wird als Löschung gestaged): $t" >&2
+  done < <(git -C "$WURZEL" ls-files 'dist/*.js')
+fi
 anz=$(echo "$referenziert" | grep -c . || true)
 [ "$fehler" = 0 ] && echo "✓ check-chunks: ${anz} Chunk(s) referenziert, alle vorhanden, keine Waisen"
 exit $fehler
