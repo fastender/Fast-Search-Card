@@ -2,7 +2,7 @@
 
 This document is for users who install Fast Search Card via HACS and want to know how the card behaves under load — boot time, scroll smoothness, render cost, network footprint.
 
-If you just want the short version: **first paint is around 900 ms (measured 2026-04-24, v1.1.1240), the start-up load is 395,608 bytes gzipped and the whole card 621,835 bytes across 27 files (measured 2026-09-17, v1.1.2432), scrolling a 400-device list runs at 55-60 FPS on mid-range mobile (measured 2026-04-17, v1.1.1184), and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document says when it was measured and is reproducible locally.
+If you just want the short version: **first paint is around 900 ms (measured 2026-04-24, v1.1.1240), the bundle is 615,546 bytes gzipped in one file (measured 2026-09-18, v1.1.2436; the multi-file experiment of v1.1.2431–2435 is documented below), scrolling a 400-device list runs at 55-60 FPS on mid-range mobile (measured 2026-04-17, v1.1.1184), and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document says when it was measured and is reproducible locally.
 
 The rest of this document is the long version, so you can verify that for yourself.
 
@@ -43,7 +43,7 @@ The optimizations group into five layers. Each layer has a measurable contributi
 
 ### Bundle
 
-- **Several files since v1.1.2431: 395,608 bytes gzipped at start-up (main file 49 KB with CSS + core 346 KB including the nine entity registrations), 621,835 bytes gzipped in total across 27 files, 2,225,920 bytes raw** (measured 2026-09-17, v1.1.2432). The detail view (tabs, controls, chart views, Music Assistant, Liquid Glass) is its own chunk since v1.1.2432, pre-warmed 2.5 s after the first paint and loaded at the latest when a device is opened. The views — calendar, to-dos, news, charts core (62 KB), energy, schedules, notifications, tips, settings sub-views — are separate chunks loaded on first open, produced by the dynamic imports the code already had. HACS downloads every file under `dist/` at the release tag (the release carries no `.js` asset on purpose — with one, some HACS versions fetch only that single file); the card is a module resource, so `import("./Name-hash.js")` resolves against its own URL. Chunk names carry a content hash, so updates never serve stale code from cache; a chunk that is missing after an update shows a fallback and the version banner asks for a reload. `scripts/check-chunks.sh` verifies at build time that every referenced chunk exists and none is orphaned; `scripts/check-bundle-size.sh` now budgets start-up (warn 500,000, max 560,000) and total (warn 640,000, max 700,000) separately. `./build.sh --single` still produces the old single file. Before the split the single file was 604,876 bytes gzipped (v1.1.2409).
+- **Single self-contained file again since v1.1.2436: 615,546 bytes gzipped, 2,224,184 bytes raw.** v1.1.2431–2435 delivered the card as 27 files (start-up 395,608 bytes gzipped, −36 %), but the HACS installation on the test instance downloads only the file named in `hacs.json`, in release mode and in dist mode alike, so the chunks never arrived. The multi-file build stays available behind `./build.sh --multi` (`MEHRDATEI=1`), together with `scripts/check-chunks.sh` and `scripts/lade-sonde.mjs`; `scripts/check-bundle-size.sh` budgets a single file at warn 640,000 / stop 700,000 and switches to start/total budgets when chunks are present.
 - **Dead-code elimination**: `console.log`, `console.debug`, and `console.info` calls are stripped from the production bundle. Wrappers in `src/utils/logger.js` make them no-ops at runtime.
 - **SVG optimization** (v1.1.1185): icon paths reduced to 2-decimal precision across 48 icons. No visible difference, smaller bytes.
 - **No third-party CDN at runtime**: every dependency is bundled at build time. Zero blocking network for code.
@@ -126,7 +126,7 @@ $ ls -la dist/fast-search-card.js
 $ bash scripts/check-bundle-size.sh   # start-up and total, 26 files
 ```
 
-Measured at v1.1.2432 (2026-09-17): start-up 395,608 bytes gzipped, total 621,835 bytes gzipped, 2,225,920 bytes raw in 27 files. `node scripts/lade-sonde.mjs` loads the built `dist/` in a headless browser exactly like Home Assistant does (module resource, no dev server) and checks that opening a view fetches only its own chunks.
+Measured at v1.1.2436 (2026-09-18): 615,546 bytes gzipped, 2,224,184 bytes raw, one file. `node scripts/lade-sonde.mjs` loads the built `dist/` in a headless browser exactly like Home Assistant does (module resource, no dev server) and checks that opening a view fetches only its own chunks.
 
 ---
 
@@ -138,9 +138,8 @@ Each row names the release it was measured on. Measured on a clean Lovelace view
 |---|---|---|---|
 | First paint (desktop, warm cache) | ~900 ms | 2026-04-24 (v1.1.1240) | `src/utils/perfMarks.js` |
 | First paint (desktop, cold cache) | ~1.4 s | not re-measured since v1.1.2198 | Lighthouse |
-| Start-up load (gzipped) | 395,608 bytes | 2026-09-17 (v1.1.2432) | `bash scripts/check-bundle-size.sh` |
-| Total across 27 files (gzipped) | 621,835 bytes | 2026-09-17 (v1.1.2432) | `bash scripts/check-bundle-size.sh` |
-| Total (raw) | 2,225,920 bytes | 2026-09-17 (v1.1.2432) | `cat dist/*.js \| wc -c` |
+| Bundle size (gzipped) | 615,546 bytes | 2026-09-18 (v1.1.2436) | `bash scripts/check-bundle-size.sh` |
+| Bundle size (raw) | 2,224,184 bytes | 2026-09-18 (v1.1.2436) | `wc -c dist/fast-search-card.js` |
 | Scroll FPS, 400-entity list, mid-range mobile | 55-60 | 2026-04-17 (v1.1.1184) | DevTools FPS meter |
 | Tap-to-press-feedback latency | < 16 ms | *code* | `:active` is a CSS state, not a JS handler |
 | Search term debounce | 110 ms | *code* (v1.1.2351) | `FUZZY_TERM_DEBOUNCE_MS` in `src/components/SearchField.jsx` |
@@ -166,6 +165,7 @@ Each row names the release it was measured on. Measured on a clean Lovelace view
 | v1.1.2409 | 2026-09-13 | Size budget in the release script (`scripts/check-bundle-size.sh`) | 604,876 bytes gzipped, 2,209,325 raw; warns above 620,000 gzipped, stops above 700,000 |
 | v1.1.2431 | 2026-09-17 | Multi-file delivery: views load on first open, core + entity registrations at start | start-up 488,629 bytes gzipped (−116 KB), total 621,331 across 26 files; chunk guard and loader probe added |
 | v1.1.2432 | 2026-09-17 | Entity registrations folded into the core (nine serial boot requests gone), detail view as its own pre-warmed chunk | start-up 395,608 bytes gzipped (−36 % against the single file), total 621,835 across 27 files |
+| v1.1.2436 | 2026-09-18 | Back to the single file: HACS on the test instance downloads only the named file, chunks never arrive | 615,546 bytes gzipped; multi-file kept behind `--multi` |
 
 Each release commit message and Versionsverlauf entry describes the specific code changes if you want to read the diff.
 

@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2436 - 2026-09-18
+
+**Title:** ↩️ Single file again, by default
+
+**Tags:** build, fix
+
+v1.1.2435 arrived on the test instance exactly like 2431–2433: main file present, `kern-<hash>.js` 404. The HACS installation there downloads only the file named in `hacs.json` — in release mode and in dist mode alike — so a multi-file card cannot be delivered through it. The single file is the default again (`build.sh`, `vite.config.js`: `MEHRDATEI=1` / `./build.sh --multi` keeps the multi-file build available for a future where HACS fetches all of `dist/` or the card is distributed differently). README and info.md point at the single `fast-search-card.js` again. Everything the multi-file work produced stays useful: the chunk guard, the loader probe, the start/total size budgets, the lazy detail loader (harmless in a single file — the "chunk" is inlined and resolves immediately).
+
+Measured cost of the detour: none in the code, 615,546 bytes gzipped as before; six releases and one evening on the user's side.
+
 ## Version 1.1.2435 - 2026-09-18
 
 **Title:** 📦 Multi-file delivery, third attempt: no `.js` release asset, HACS reads `dist/` from the tag
