@@ -1,5 +1,13 @@
 # Versionsverlauf
 
+## Version 1.1.2433 - 2026-09-18
+
+**Title:** 🩹 Re-release with all 27 files as release assets
+
+**Tags:** fix, build
+
+Same code as v1.1.2432. The first real install showed why the chunks must be release assets (see the hotfix note under v1.1.2432), and the chunks uploaded after the fact did not reach installations that had already fetched the release: HACS keeps the asset list it saw at that moment, so "Redownload" fetched the main file alone again — a fresh release is the clean way through. `build.sh` now uploads every `dist/*.js` as an asset from the start; this release carries 27. Verified against the live instance: with the query string Cloudflare passes the new main file through, chunk names are content-hashed, and a stale cached 404 for a chunk clears within minutes.
+
 ## Version 1.1.2432 - 2026-09-17
 
 **Title:** 🚀 Start-up load 396 KB — registrations folded into the core, the detail view becomes its own pre-warmed chunk
