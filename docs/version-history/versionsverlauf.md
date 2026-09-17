@@ -22,6 +22,10 @@ Everything reachable only through `DetailView` — tab navigation, controls, cha
 | requests at boot | 1 | 11 | 2 |
 | total, gzipped | 615,755 bytes | 621,331 bytes | 621,835 bytes, 27 files |
 
+### Hotfix after the first install: chunks are release assets
+
+The first install on a real Home Assistant failed with "Failed to load Lovelace resource … (type: module)". Cause, read in HACS' own source (`repositories/plugin.py`, `update_filenames` and `gather_files_to_download`): when the latest release carries an asset named like the card, HACS switches to release mode and downloads exactly the release assets — the `dist/` tree is ignored. Our release had only `fast-search-card.js` as an asset, so `kern-<hash>.js` never arrived and the module import failed. Fix: `build.sh` uploads every `dist/*.js` as an asset; the chunks were uploaded to v1.1.2431 and v1.1.2432 after the fact. Affected installs need "Redownload" in HACS.
+
 ### Tried and rejected
 
 Rollup's `experimentalMinChunkSize` would have folded the small chunks (27 → 21 files), but it also merges small modules into the *entry*, after which a lazy chunk imports `./karte-<hash>.js` again — the guard caught it, the option is documented as forbidden in `vite.config.js`.
