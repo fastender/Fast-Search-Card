@@ -223,18 +223,22 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > Verhalten speziell auf Smartphones.
 >
-> - **Suchfeld automatisch öffnen** – auf dem Handy startet die Karte direkt mit ausgeklapptem Such- und Geräte-Panel.
+> - **Suchfeld automatisch öffnen** – auf dem Handy startet die Karte direkt mit ausgeklapptem Such- und Geräte-Panel, statt es erst antippen zu müssen.
 >
-> *Warum wichtig:* Spart auf dem Handy einen Tipp.
+> *Warum wichtig:* Spart auf dem Handy einen Tipp, wenn du die Karte ohnehin meist zum Suchen oder Steuern öffnest.
+>
+> - **Haptisches Feedback** – kurzer Impuls beim Schalten, beim Zurück (auch per Wischen vom linken Rand), beim Erreichen der Haltezeit, an Rastpunkten der Regler, bei Erfolg oder Fehler eines Befehls und bei einer kritischen Meldung. Wirkt in der Companion-App (iOS und Android) und in Android-Browsern; iOS-Safari kennt keine Haptik.
 
 **EN**
 > ## Mobile
 >
 > Behaviour specific to phones.
 >
-> - **Auto-open search panel** – on mobile the card starts with the search and device panel already expanded.
+> - **Auto-open search panel** – on mobile the card starts with the search and device panel already expanded, instead of you having to tap it open.
 >
-> *Why it matters:* saves a tap on the phone.
+> *Why it matters:* saves a tap on the phone if you mostly open the card to search or control anyway.
+>
+> - **Haptic feedback** – a short pulse when toggling, going back (also by swiping from the left edge), when a hold completes, at slider detents, on success or failure of a command and on a critical alert. Works in the Companion app (iOS and Android) and in Android browsers; iOS Safari has no haptics.
 
 ## sidebar
 

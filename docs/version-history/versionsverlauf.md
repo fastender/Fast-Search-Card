@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2437 - 2026-09-18
+
+**Title:** 📳 Haptic feedback on mobile, and swipe from the left edge to go back
+
+**Tags:** feature, mobile, a11y
+
+### Haptics
+
+New `utils/haptik.js`. It fires the `haptic` DOM event on `window` exactly like Home Assistant's own cards do, which the Companion app on iOS and Android turns into native haptics (Taptic Engine, vibration motor), and falls back to `navigator.vibrate` in Android browsers. iOS Safari has neither and stays silent. Seven intensities (`light`, `medium`, `heavy`, `selection`, `success`, `warning`, `failure`), throttled to one pulse per kind every 80 ms so a fast slider cannot buzz continuously.
+
+Where it fires:
+
+- `selection` — every glass switch, the to-do checkbox, the favourite star, each detent of a circular slider, the quick-control tap.
+- `light` — revealing the start page, opening a detail view, going back (button, island, swipe), the start of a quick-control hold.
+- `medium` — a quick-control hold reaching its confirmation.
+- `success` / `failure` — the result of every service call through `dienstAufruf`; text fields and the number slider opt out of the success pulse (`{ haptik: false }`), failures always pulse.
+- `warning` — a new critical alert in the island banner, once per alert.
+
+The old `navigator.vibrate` patterns in the quick-control icon (Android browser only) are replaced by this one channel.
+
+### Swipe to go back
+
+In a detail view a touch that starts within 28 px of the left edge and travels at least 70 px to the right with less than 45 px vertical drift closes the view — the same gesture as the back button. A swipe that starts further in, on sliders, lists or rings, does nothing. Pointer events, so it works with finger, pen and mouse.
+
+### Setting
+
+Settings → General → Mobile → "Haptic feedback", default on, registered for the settings search with a default (`mobile.haptik`), info text of the Mobile section extended in both languages and mirrored in the catalog.
+
+### Verified (dev harness probe)
+
+Reveal, open, back button and edge swipe each emit one `light`; a swipe starting 200 px in leaves the view open and emits nothing; toggling a switch emits `selection`; no page errors. The feel on a phone is yours to judge — the dose can be adjusted per site.
+
 ## Version 1.1.2436 - 2026-09-18
 
 **Title:** ↩️ Single file again, by default
