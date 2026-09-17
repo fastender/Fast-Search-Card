@@ -83,7 +83,7 @@ That's it.
 
 <br>
 
-1. Download **all `.js` assets** of the release (the card is delivered as several files since v1.1.2431: `fast-search-card.js` plus the view chunks next to it). The single file alone is not enough any more.
+1. Download `fast-search-card-dist.zip` from the release and unpack it (the card is delivered as several files since v1.1.2431: `fast-search-card.js` plus the view chunks next to it). The single file alone is not enough any more.
 2. Copy all of them to `/config/www/community/fast-search-card/` — every `.js` file in one folder, side by side.
 3. Register `/local/community/fast-search-card/fast-search-card.js` under **Settings → Dashboards → Resources**, type `JavaScript Module`.
 4. Restart Home Assistant. When updating, replace the whole folder; old chunks are not needed any more.
