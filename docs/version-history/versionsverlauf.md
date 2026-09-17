@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2429 - 2026-09-17
+
+**Title:** 🐞 Two chart series from one entity shared a key — the history tab warned on every open
+
+**Tags:** fix
+
+Opening the history tab of a climate entity printed a Preact warning: two children with the key `climate.heizung`. A climate entity contributes **two** chart series — current temperature and target temperature — and both carry the same entity id, differing only in the attribute they read (`utils/entityChartConfig.js`). The filter chips keyed on that id, so two siblings ended up with the same key. The same applies to any entity with more than one numeric attribute.
+
+Both keys — the chip and the `AnimatePresence` around the chart — now use `chartSensorSchluessel(entry)`, which is `id:attribute` (`climate.heizung:current_temperature`). Two effects:
+
+- The warning is gone.
+- Switching between two series of the *same* entity now fades the chart, as it already did between different entities. Before, the key stayed identical and the transition was skipped.
+
+The dependency key of the activities feed follows the same rule, so a series that differs only in its attribute is no longer invisible to it.
+
+### Measured (probe, deleted before the build)
+
+| Check | Before | After |
+|---|---|---|
+| `console.error` when opening the history of the heating | 3 | 0 |
+| Chips shown | "Aktuelle Temperatur", "Zieltemperatur" | unchanged |
+| Active chip after clicking the second one | second | second |
+| Painted chart pixels, first series / second series | 68,522 / 73,176 | 68,522 / 73,176 |
+| Numeric sensor (humidity), one series | one chip, chart drawn | unchanged |
+| `pageerror` across climate, sensor and light | 0 | 0 |
+
+Not checked: a real Home Assistant install, Safari, and entities with three or more numeric attributes (none exist in the test house).
+
+Bundle: 2,220,795 bytes raw and 614,756 bytes gzipped (+58 raw and +42 gzip against 1.1.2428). The budget warns at 620,000.
+
 ## Version 1.1.2428 - 2026-09-16
 
 **Title:** 🧹 Second cleanup pass — a boot timeline in everyone's console, dead settings actions, a greeting that lost its name, and four months of migrations
