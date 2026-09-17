@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2435 - 2026-09-18
+
+**Title:** 📦 Multi-file delivery, third attempt: no `.js` release asset, HACS reads `dist/` from the tag
+
+**Tags:** fix, build
+
+v1.1.2433 carried all 27 files as release assets and still arrived as a single file on the test instance: `kern-<hash>.js` was 404, the module import failed. Reading HACS' source again: an asset named like the card switches HACS into release mode, and at least the HACS version in use then downloads only that one file. The `zip_release` mechanism is documented as integrations-only. So the release now carries **no `.js` asset at all**. Without a matching asset HACS falls back to the documented path: it finds `dist/fast-search-card.js` in the tag's tree, switches to dist mode and downloads every file under `dist/` — all 27. For manual installs the release carries `fast-search-card-dist.zip` under a name that does not trigger release mode; unpack it into the card folder. Code is identical to v1.1.2432.
+
+## Version 1.1.2434 - 2026-09-18
+
+**Title:** 🛟 Rescue release: the old single file
+
+**Tags:** fix, build
+
+Built with `./build.sh --single` so a broken installation of v1.1.2431–2433 (main file present, chunks missing) works again immediately. Same code as v1.1.2430 plus the changes of 2431/2432 in one file: 615,546 bytes gzipped.
+
 ## Version 1.1.2433 - 2026-09-18
 
 **Title:** 🩹 Re-release with all 27 files as release assets
