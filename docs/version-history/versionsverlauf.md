@@ -1,5 +1,63 @@
 # Versionsverlauf
 
+## Version 1.1.2430 - 2026-09-17
+
+**Title:** 🧯 Third pass — a chart loader that could fail forever, two effects on the data tick, a highlight timer nobody cancelled, colour names for the screen reader
+
+**Tags:** fix, cleanup, i18n
+
+Round three of the optimisation series, from the analysis of 2026-09-17. Small things, one of them not small in its consequence.
+
+### A chart loader that stayed broken
+
+`ensureChartsInitialized()` cached its promise and had no `catch`. One failed load — a dropped connection, a tab switched away mid-import — and the rejected promise stayed cached for the whole session: the spinner never stopped, and the rejection went unhandled. The loader now clears the cached promise on failure, so the next attempt starts fresh, and both chart views show a quiet surface with **Retry** instead of a spinner (new key `errors.chartsUnavailable`, existing `general.retry`).
+
+**Where the retry helps and where it cannot:** in the shipped bundle the chart core is inlined, so the failure mode is an exception while it initialises — the retry runs it again. In the dev server, the module is a real network import, and a module that failed to load stays failed for the life of the page (the browser caches it that way); measured: after Retry, no new request goes out. The surface still beats an endless spinner.
+
+### Two effects on the data tick
+
+- The to-do form asked for the dictation path in an effect keyed on `hass`, which changes identity on every push from Home Assistant. It now depends on the connection and reads `hass` from a ref.
+- The schedules overview did the same and, on each run, looked for `home-assistant` in the DOM and set state. The ref is now assigned during render; the effect depends on the connection.
+
+### Smaller things
+
+- **Highlight timer.** A jump from the settings search marks the target row for a moment. The timer that removes the mark again was never cancelled — switching tabs mid-jump left it running, and it could strip the class from a row that belonged to another page by then.
+- **Animation gate.** `useAnimationErlaubt` now re-reads the gate before subscribing (it could flip between the first render and the effect), and the two reporters (island, Zen page) wake the store, so `prefers-reduced-motion` is known even when the first thing that happens is a "rest" report. The `matchMedia` listener is documented as page-lifetime, on purpose.
+- **Colour names.** The twelve list colours in the to-do settings handed the screen reader their hex code. They now carry dictionary keys (`todos.colors.*`, de and en).
+- **Favourite toast.** Hard-coded German in the DataProvider, showing the entity id. Now `toasts.favoriteAdded` / `toasts.favoriteRemoved` with the friendly name.
+- **Stepper buttons** in the hint form: `a11y.decrease` / `a11y.increase` instead of a German/English ternary in the markup.
+- **Registry scan** in the history tab depended on three values that change identity on every render or push; it now compares signatures.
+- **Vacuum area picker:** the filtered, sorted list was rebuilt in the render body on every render.
+- **Schedule auto-refresh** skips its 60-second run while the tab is hidden.
+- **Dead exports** in the modules added over the last two rounds: `CACHE_SCHLUESSEL`, `werteFuer`, `TASTATUR_MARKER`, `tastenKlick`, `FOKUSSIERBAR`, `tiefAktiv`. The last one was byte-identical with `tiefstAktiv` in the height ladder — both now come from `utils/schatten.js`.
+- **In-memory cache.** "Clear cache" emptied localStorage and the entity snapshot but left the cache in memory. It now has a `leeren()` that rebuilds its buckets (the old `clear()`, removed in 1.1.2428, called `this.constructor()` without `new` and would have thrown), and the `cacheCleared` event calls it.
+
+### Measured (probes, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Chart core blocked → history tab | "Diagramme konnten nicht geladen werden" with Retry, 0 pageerror |
+| Retry after unblocking (dev server) | no new request — the browser keeps the failed module (see above) |
+| To-do form open, 20 data ticks | effect ran once, 0 further runs |
+| Schedules overview open, 20 data ticks | 0 lookups for `home-assistant` (counter verified) |
+| Settings search: jump | row marked (1), mark gone after it fades (0) |
+| … jump, then switch tabs immediately | 0 marked rows after 2.5 s |
+| Favourite toast, de / en | "Favorit hinzugefügt: Heizung" / "Added to favourites: Heizung" |
+| Colour keys, de / en | Rot … Braun / Red … Brown (12 each) |
+| Smoke: heating, humidity, schedules, to-dos, settings, all detail tabs | `pageerror` 0, `console.error` 0 |
+
+Not checked:
+
+- The per-tick claim for the two effects could not be reproduced in the test house: the views get their `hass` through the detail view, which re-renders per entity flush, and the harness has no event stream to produce those. Both changes make the dependencies match what the bodies read; the saving itself is unproven here.
+- The colour names were verified by resolving the keys, not by walking to the colour page in the to-do settings (the path did not open in the probe).
+- A real Home Assistant install, Safari, screen readers.
+
+### Correction to 1.1.2427 and 1.1.2428
+
+Those entries say chart.js is "requested only when a chart opens". That is true on the dev server, where the dynamic import is a real network request. In the shipped single-file bundle it is not: `inlineDynamicImports` hoists the chart.js module bodies to the top of the bundle, so they are evaluated at load as before. What is deferred there is only the registration and the defaults (`kern()`) — which 1.1.1714 had already deferred. The intermediate module still earns its place (it keeps tree shaking, worth 8 KB gzip), but the boot-path win claimed in those entries does not apply to what HACS ships.
+
+Bundle: 2,223,665 bytes raw and 615,755 bytes gzipped (+2,870 raw and +1,041 gzip against 1.1.2429). The budget warns at 620,000.
+
 ## Version 1.1.2429 - 2026-09-17
 
 **Title:** 🐞 Two chart series from one entity shared a key — the history tab warned on every open
