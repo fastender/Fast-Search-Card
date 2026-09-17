@@ -83,10 +83,12 @@ That's it.
 
 <br>
 
-1. Download `fast-search-card.js` from [Releases](https://github.com/fastender/Fast-Search-Card/releases).
-2. Copy to `/config/www/community/fast-search-card/`.
-3. Register the resource under **Settings → Dashboards → Resources**.
-4. Restart Home Assistant.
+1. Download the **whole `dist/` folder** of the release (the card is delivered as several files since v1.1.2431: `fast-search-card.js` plus the view chunks next to it). The single file alone is not enough any more.
+2. Copy all of them to `/config/www/community/fast-search-card/` — every `.js` file in one folder, side by side.
+3. Register `/local/community/fast-search-card/fast-search-card.js` under **Settings → Dashboards → Resources**, type `JavaScript Module`.
+4. Restart Home Assistant. When updating, replace the whole folder; old chunks are not needed any more.
+
+Why several files: the card loads the start page and search first (about 490 KB gzipped) and fetches calendar, to-dos, news, charts and the other views only when you open them. HACS handles this automatically. A single-file build is still available for special setups with `./build.sh --single`.
 
 </details>
 

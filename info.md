@@ -31,8 +31,8 @@ The complete list is in [FEATURES.md](https://github.com/fastender/Fast-Search-C
 
 ### Manual
 
-1. Download `fast-search-card.js` from the [releases](https://github.com/fastender/Fast-Search-Card/releases).
-2. Copy it to `/config/www/community/fast-search-card/`.
+1. Download the whole `dist/` folder of the release — since v1.1.2431 the card ships as `fast-search-card.js` plus view chunks that must sit next to it.
+2. Copy all `.js` files to `/config/www/community/fast-search-card/`.
 3. Register `/local/community/fast-search-card/fast-search-card.js` as a JavaScript module.
 
 ---
