@@ -1,1 +1,0 @@
-import{an as a}from"./kern-DH3CPG1Z.js";const s={feeds:{},display:{maxAge:7,maxArticles:100,showImages:!0,autoMarkRead:!0,defaultFilter:"all"}},e=a({key:"newsSettings",defaults:s}),t=s,l=e.load,o=e.save;export{t as N,l,o as s};
