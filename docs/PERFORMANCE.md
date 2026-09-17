@@ -2,7 +2,7 @@
 
 This document is for users who install Fast Search Card via HACS and want to know how the card behaves under load — boot time, scroll smoothness, render cost, network footprint.
 
-If you just want the short version: **first paint is around 900 ms (measured 2026-04-24, v1.1.1240), the bundle is 604,876 bytes gzipped (measured 2026-09-13, v1.1.2409), scrolling a 400-device list runs at 55-60 FPS on mid-range mobile (measured 2026-04-17, v1.1.1184), and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document says when it was measured and is reproducible locally.
+If you just want the short version: **first paint is around 900 ms (measured 2026-04-24, v1.1.1240), the start-up load is 488,629 bytes gzipped and the whole card 621,331 bytes across 26 files (measured 2026-09-17, v1.1.2431), scrolling a 400-device list runs at 55-60 FPS on mid-range mobile (measured 2026-04-17, v1.1.1184), and a Home Assistant tick storm cannot stall the main thread — a state tick re-renders only the cards that actually changed, not the whole grid.** Every number in this document says when it was measured and is reproducible locally.
 
 The rest of this document is the long version, so you can verify that for yourself.
 
@@ -43,7 +43,7 @@ The optimizations group into five layers. Each layer has a measurable contributi
 
 ### Bundle
 
-- **Single self-contained file: 604,876 bytes gzipped, 2,209,325 bytes raw** (v1.1.2409, measured 2026-09-13). Production build via Vite + terser. Every release checks this against a budget before it is committed — `scripts/check-bundle-size.sh` warns above 620,000 bytes gzipped and stops the release above 700,000 — and prints both numbers into the release notes. It has grown with the feature set; the biggest remaining lever — splitting the detail view, charts and energy dashboard into on-demand chunks — is identified but currently held back by the single-file HACS delivery model (one `.js` you drop in `www/`).
+- **Several files since v1.1.2431: 488,629 bytes gzipped at start-up (main file 49 KB with CSS + core 410 KB + the nine entity registrations), 621,331 bytes gzipped in total across 26 files, 2,221,021 bytes raw** (measured 2026-09-17). The views — calendar, to-dos, news, charts core (62 KB), energy, schedules, notifications, tips, settings sub-views — are separate chunks loaded on first open, produced by the dynamic imports the code already had. HACS downloads every `.js` in `dist/`; the card is a module resource, so `import("./Name-hash.js")` resolves against its own URL. Chunk names carry a content hash, so updates never serve stale code from cache; a chunk that is missing after an update shows a fallback and the version banner asks for a reload. `scripts/check-chunks.sh` verifies at build time that every referenced chunk exists and none is orphaned; `scripts/check-bundle-size.sh` now budgets start-up (warn 500,000, max 560,000) and total (warn 640,000, max 700,000) separately. `./build.sh --single` still produces the old single file. Before the split the single file was 604,876 bytes gzipped (v1.1.2409).
 - **Dead-code elimination**: `console.log`, `console.debug`, and `console.info` calls are stripped from the production bundle. Wrappers in `src/utils/logger.js` make them no-ops at runtime.
 - **SVG optimization** (v1.1.1185): icon paths reduced to 2-decimal precision across 48 icons. No visible difference, smaller bytes.
 - **No third-party CDN at runtime**: every dependency is bundled at build time. Zero blocking network for code.
@@ -123,10 +123,10 @@ Install the Preact / React DevTools "highlight updates" overlay. Trigger a senso
 ```
 $ bash scripts/check-bundle-size.sh
 $ ls -la dist/fast-search-card.js
-$ gzip -c dist/fast-search-card.js | wc -c
+$ bash scripts/check-bundle-size.sh   # start-up and total, 26 files
 ```
 
-Measured at v1.1.2409 (2026-09-13): 604,876 bytes gzipped, 2,209,325 bytes raw.
+Measured at v1.1.2431 (2026-09-17): start-up 488,629 bytes gzipped, total 621,331 bytes gzipped, 2,221,021 bytes raw in 26 files. `node scripts/lade-sonde.mjs` loads the built `dist/` in a headless browser exactly like Home Assistant does (module resource, no dev server) and checks that opening a view fetches only its own chunks.
 
 ---
 
@@ -138,8 +138,9 @@ Each row names the release it was measured on. Measured on a clean Lovelace view
 |---|---|---|---|
 | First paint (desktop, warm cache) | ~900 ms | 2026-04-24 (v1.1.1240) | `src/utils/perfMarks.js` |
 | First paint (desktop, cold cache) | ~1.4 s | not re-measured since v1.1.2198 | Lighthouse |
-| Bundle size (gzipped) | 604,876 bytes | 2026-09-13 (v1.1.2409) | `bash scripts/check-bundle-size.sh` |
-| Bundle size (raw) | 2,209,325 bytes | 2026-09-13 (v1.1.2409) | `wc -c dist/fast-search-card.js` |
+| Start-up load (gzipped) | 488,629 bytes | 2026-09-17 (v1.1.2431) | `bash scripts/check-bundle-size.sh` |
+| Total across 26 files (gzipped) | 621,331 bytes | 2026-09-17 (v1.1.2431) | `bash scripts/check-bundle-size.sh` |
+| Total (raw) | 2,221,021 bytes | 2026-09-17 (v1.1.2431) | `cat dist/*.js \| wc -c` |
 | Scroll FPS, 400-entity list, mid-range mobile | 55-60 | 2026-04-17 (v1.1.1184) | DevTools FPS meter |
 | Tap-to-press-feedback latency | < 16 ms | *code* | `:active` is a CSS state, not a JS handler |
 | Search term debounce | 110 ms | *code* (v1.1.2351) | `FUZZY_TERM_DEBOUNCE_MS` in `src/components/SearchField.jsx` |
@@ -163,6 +164,7 @@ Each row names the release it was measured on. Measured on a clean Lovelace view
 | v1.1.2198 | 2026-07-23 | Honest bundle measurement (`ANALYZE=1`): what the single file is made of | 505 KB gzipped at the time; roughly a quarter dependencies, three quarters the card's own code |
 | v1.1.2351 | 2026-08-22 | Typing fluency: the typed text no longer waits for the search | Fuzzy search term debounced to 110 ms, search index warmed up while idle |
 | v1.1.2409 | 2026-09-13 | Size budget in the release script (`scripts/check-bundle-size.sh`) | 604,876 bytes gzipped, 2,209,325 raw; warns above 620,000 gzipped, stops above 700,000 |
+| v1.1.2431 | 2026-09-17 | Multi-file delivery: views load on first open, core + entity registrations at start | start-up 488,629 bytes gzipped (−116 KB), total 621,331 across 26 files; chunk guard and loader probe added |
 
 Each release commit message and Versionsverlauf entry describes the specific code changes if you want to read the diff.
 

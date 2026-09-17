@@ -7,6 +7,8 @@
 # version control.
 !dist/
 !dist/fast-search-card.js
+# v1.1.2431: Mehrdatei-Auslieferung — die Chunks (Name-hash.js) liegen neben der Karte.
+!dist/*.js
 
 # Except HACS files (required for HACS integration)
 !hacs.json

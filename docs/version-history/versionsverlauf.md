@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.2431 - 2026-09-17
+
+**Title:** 📦 Multi-file delivery — the start page loads 127 KB less, views arrive when you open them
+
+**Tags:** performance, build, docs
+
+The card no longer ships as one file. `dist/` now holds `fast-search-card.js` (wrapper, CSS and a tiny entry, 49 KB gzipped), `kern-<hash>.js` (everything the start page and the search need, 410 KB), the nine entity registrations (`index-<hash>.js`, loaded at boot by the registry) and the views as separate chunks: chart core (62 KB), to-dos (20 KB), calendar (19 KB), settings sub-views (20 KB), news, energy, schedules, notifications, tips, weather and the two shared pieces `FeedShell` and `WheelSubPage`. Nothing in the views changed; the chunks fall out of the dynamic imports the code already had.
+
+| | before (v1.1.2430) | now |
+|---|---|---|
+| start-up load, gzipped | 615,755 bytes | 488,629 bytes (−127 KB, −21 %) |
+| total, gzipped | 615,755 bytes | 621,331 bytes across 26 files |
+
+### How it works in Home Assistant
+
+HACS downloads every `.js` file it finds in `dist/` (its documented search order is `dist/`, then the release, then the repository root), so the chunks arrive with the card. The card is registered as a JavaScript module, so `import("./TodosView-<hash>.js")` resolves against the card's own URL — `?hacstag=` on the main file does not matter, relative resolution ignores the query. Chunk names carry a content hash, so a cached old chunk can never be served for new code. The release asset `fast-search-card.js` is still uploaded for people who want to look at it, but on its own it is no longer a complete card.
+
+### Five traps on the way, all measured with the new loader probe
+
+1. Rollup puts everything the entry reaches statically **into the entry**, and the lazy chunks then import `./karte-<hash>.js` — a file that no longer exists once `build.sh` has appended the entry to the wrapper. Copying it next to the card would have meant a second module instance (two Preacts, two stores, a second `customElements.define`). Fix: a `manualChunks` rule moves everything statically reachable into `kern-<hash>.js`; entry and chunks both import only that.
+2. With all its code moved out, the entry is an empty facade, and the minified build optimises it away — `index.html` pointed straight at the core and `build.sh` found no entry. Fix: `src/index.jsx` itself stays in the entry.
+3. Vite treats the entry behind `index.html` as a facade chunk and names it `index-<hash>.js`, exactly like the nine entity `index.jsx` chunks; `ls -t | head -1` would have appended a random one. Fix: entry and facade are named `karte-<hash>.js` explicitly.
+4. Vite's module preload helper wrote `assets/<name>-<hash>.js` into a dependency list and fetched those before the `import()`. Locally that worked because `dist/assets/` exists; in Home Assistant it would have been a 404 and a `vite:preloadError`, and the import would have failed. Fix: `modulePreload: false`; the bare `import("./…")` is enough.
+5. The literal `fsc-version:` marker from `src/version.js` moved into the core chunk, but the version watcher's fetch path and `check-version.sh --dist` look for it in the main file. Fix: `build.sh` writes `// fsc-version:<version>` into the main file itself.
+
+### Guards and tools
+
+- `scripts/check-chunks.sh` (run by `build.sh`): every chunk referenced by a static or dynamic import exists in `dist/`, and no chunk is orphaned.
+- `scripts/check-bundle-size.sh` now budgets start-up (main file + core + entity registrations; warn 500,000, stop 560,000) and total (warn 640,000, stop 700,000) separately and prints both into the release notes.
+- `scripts/lade-sonde.mjs`: loads the built `dist/` in a headless browser exactly like Home Assistant does — module resource, no dev server, files served from disk — mounts the card with a mock `hass`, checks that start-up fetches only main, core and registrations, that opening the to-dos fetches exactly `TodosView`, `FeedShell` and `WheelSubPage`, and that a 404 on a chunk shows the fallback ("Ansicht konnte nicht geladen werden") without a page error. Run it with `node scripts/lade-sonde.mjs`; it is a tool, not part of the test suite.
+- `./build.sh --single` (`INLINE=1`) still produces the old single file for special setups.
+- A chunk that fails to load asks the version watcher to check; after a HACS update an open tab with the old card sees a 404 on the old chunk names, and the stale banner then offers the reload.
+
+### Documentation
+
+README and `info.md`: manual installation copies the whole `dist/` folder, not one file. `docs/PERFORMANCE.md` carries the new start-up and total numbers and the audit row.
+
+### Still to verify on a real Home Assistant
+
+This is a pre-release. Before it becomes stable: install the update through HACS, list `www/community/fast-search-card/` (all 26 files?), reload the dashboard, open the to-dos and a chart, and watch the network tab for chunk fetches from `/hacsfiles/fast-search-card/`.
+
 ## Version 1.1.2430 - 2026-09-17
 
 **Title:** 🧯 Third pass — a chart loader that could fail forever, two effects on the data tick, a highlight timer nobody cancelled, colour names for the screen reader
