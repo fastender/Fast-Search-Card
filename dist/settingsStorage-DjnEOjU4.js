@@ -1,0 +1,1 @@
+import{an as e}from"./kern-DY6JrQdW.js";const s={lists:{},display:{showCompleted:!0,autoHideAfterDays:7,defaultFilter:"all",sortBy:"dueDate"},visibleTabs:{all:!0,incomplete:!0,today:!0,overdue:!0,completed:!0}},t=e({key:"todosSettings",defaults:s}),a=s,l=t.load,o=t.save;export{a as T,l,o as s};
