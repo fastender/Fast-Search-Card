@@ -88,7 +88,7 @@ That's it.
 3. Register `/local/community/fast-search-card/fast-search-card.js` under **Settings → Dashboards → Resources**, type `JavaScript Module`.
 4. Restart Home Assistant. When updating, replace the whole folder; old chunks are not needed any more.
 
-Why several files: the card loads the start page and search first (about 490 KB gzipped) and fetches calendar, to-dos, news, charts and the other views only when you open them. HACS handles this automatically. A single-file build is still available for special setups with `./build.sh --single`.
+Why several files: the card loads the start page and search first (about 400 KB gzipped) and fetches calendar, to-dos, news, charts and the other views only when you open them. HACS handles this automatically. A single-file build is still available for special setups with `./build.sh --single`.
 
 </details>
 
