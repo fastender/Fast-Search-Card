@@ -79,6 +79,19 @@ const geoeffnet = await page.evaluate(async () => {
 });
 out('Aufgaben öffnen', geoeffnet);
 out('Neue Abrufe dabei', abrufe.slice(vor));
+// Gerätedetail (eigener Chunk seit v1.1.2432): Suche „Licht“, erste Karte, .detail-panel
+const vorDetail = abrufe.length;
+const detail = await page.evaluate(async () => {
+  const r = window.__el.shadowRoot; const zurueck = r.querySelector('.detail-panel button');
+  if (zurueck) { zurueck.click(); await new Promise((f) => setTimeout(f, 1200)); }
+  const input = r.querySelector('input.search-input'); input.focus(); input.value = 'Licht'; input.dispatchEvent(new Event('input', { bubbles: true }));
+  await new Promise((f) => setTimeout(f, 1500));
+  const card = [...r.querySelectorAll('.device-name')].find((n) => /Licht/i.test(n.textContent)); if (!card) return { fehler: 'keine Karte', namen: [...r.querySelectorAll('.device-name')].map((n) => n.textContent.trim()).slice(0, 5) };
+  card.click(); await new Promise((f) => setTimeout(f, 3000));
+  return { detail: !!r.querySelector('.detail-panel'), reiter: r.querySelectorAll('.detail-panel [role="tab"]').length };
+});
+out('Gerätedetail öffnen', detail);
+out('Neue Abrufe dabei', abrufe.slice(vorDetail).filter((p) => p !== 'fast-search-card.js'));
 out('pageerror', fehler.length ? fehler : 0);
 // 404-Fall: neue Seite, ein Chunk kaputt (der der Aufgaben, sonst der erste)
 const zielChunk = chunksAlle.find((f) => /^TodosView-/.test(f)) || chunksAlle[0];

@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2432 - 2026-09-17
+
+**Title:** 🚀 Start-up load 396 KB — registrations folded into the core, the detail view becomes its own pre-warmed chunk
+
+**Tags:** performance, build
+
+Second step of the multi-file delivery, measured with the loader probe from v1.1.2431.
+
+### Nine serial requests gone
+
+`registry.autoDiscover` awaits the nine entity registration modules one after the other; as separate chunks they cost nine round trips at every boot (measured: the last one arrived 877 ms after the first byte at 60 ms simulated latency). They are always needed, so the `manualChunks` rule now treats them as roots and they live in the core. Boot is main file + core, two requests.
+
+### The detail view leaves the start path
+
+Everything reachable only through `DetailView` — tab navigation, controls, chart views, schedule tab, Music Assistant panel, Liquid Glass, the settings tab — was 21 % of the core although the start page and the search never touch it. `DetailViewWrapper` now loads it through `detailLader.js`: pre-warmed 2.5 s after the first render, loaded at the latest when a device is opened, cached as one promise that resets itself on failure (the chart-core lesson from v1.1.2430). If the chunk cannot be loaded, the wrapper shows the view fallback with "Retry" and "Back" and asks the version watcher to check, so an old tab after a HACS update gets the reload banner.
+
+| | v1.1.2430 single file | v1.1.2431 | now |
+|---|---|---|---|
+| start-up load, gzipped | 615,755 bytes | 488,629 bytes | 395,608 bytes (−36 %) |
+| requests at boot | 1 | 11 | 2 |
+| total, gzipped | 615,755 bytes | 621,331 bytes | 621,835 bytes, 27 files |
+
+### Tried and rejected
+
+Rollup's `experimentalMinChunkSize` would have folded the small chunks (27 → 21 files), but it also merges small modules into the *entry*, after which a lazy chunk imports `./karte-<hash>.js` again — the guard caught it, the option is documented as forbidden in `vite.config.js`.
+
+### Verified
+
+`node scripts/lade-sonde.mjs`: boot fetches main and core only (the pre-warm follows 2.5 s later), opening the to-dos fetches exactly its three chunks, opening a light shows the detail with four tabs and no further request, a 404 on a chunk shows the fallback without a page error. Dev server: the detail opens through the harness as before.
+
 ## Version 1.1.2431 - 2026-09-17
 
 **Title:** 📦 Multi-file delivery — the start page loads 127 KB less, views arrive when you open them
