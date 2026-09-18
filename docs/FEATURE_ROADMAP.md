@@ -1155,7 +1155,9 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 ### 42. Fix `DeviceCard.isEntityActive(device)` always-false bug
 
-> ⏸ **Deliberately kept** (decision recorded in the 2026-06-25 cleanup audit, reaffirmed 2026-09-04): the surrounding card styling leans on the always-false result, and the v1704 fix had to be reverted in v1705. It stays on the list as "small fix, medium per-domain visual verification" — not forgotten, just not free.
+> ✅ **Shipped v1.1.2440** (2026-09-18) — resolved domain by domain. The fallback now passes `(state, domain, attributes)`. Measured over 43 domain/state cases: the raw fix changed eleven; six are kept on purpose (vacuum cleaning and returning, alarm panel armed and triggered, timer active, valve open — the device is doing something, like a light that is on), five are held at the old result by explicit branches with a reason each (lock unlocked — the icon treats *locked* as on; vacuum docked; automation and script "triggered in the last five minutes"; person at home). All other 32 cases keep class and actual background colour.
+>
+> ⏸ **Deliberately kept** *(history — resolved 2026-09-18, see above)* (decision recorded in the 2026-06-25 cleanup audit, reaffirmed 2026-09-04): the surrounding card styling leans on the always-false result, and the v1704 fix had to be reverted in v1705. It stays on the list as "small fix, medium per-domain visual verification" — not forgotten, just not free.
 
 **Pitch:** Not a feature — a verified latent bug worth a slot per the "cleanups find real bugs" pattern (SolarCarousel, initialTabName, dev-mode blank).
 

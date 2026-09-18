@@ -1,5 +1,44 @@
 # Versionsverlauf
 
+## Version 1.1.2440 - 2026-09-18
+
+**Title:** 🎨 Device tile colour: the always-false active check, domain by domain
+
+**Tags:** fix
+
+Roadmap #42, open since the cleanup audit of June. The device tile decides whether to show its bright "active" look through a chain of domain branches (on, climate, media player, cover, sensors). Everything else fell through to `isEntityActive(device)` — with the **whole device object** as the state, where the helper expects `(state, domain, attributes)`. `"[object Object]"` never matches anything, so the fallback was always false. A first fix in 1.1.1704 had to be taken back in 1.1.1705 because the tiles had grown used to the wrong answer.
+
+This time the fix went case by case: the fallback passes the right arguments, and every change it causes was measured and then either kept or held back on purpose.
+
+### Measured
+
+A probe placed one entity per domain and state in the test house (43 cases) and read the tile's `active` class and its actual background colour before and after.
+
+| Domain | State | Before | After | Decision |
+|---|---|---|---|---|
+| vacuum | cleaning | inactive | **active** | kept — the vacuum is working |
+| vacuum | returning | inactive | **active** | kept — still under way |
+| alarm_control_panel | armed_away | inactive | **active** | kept — the panel is armed |
+| alarm_control_panel | triggered | inactive | **active** | kept — must stand out |
+| timer | active | inactive | **active** | kept — the timer runs |
+| valve | open | inactive | **active** | kept — like an open cover |
+| lock | unlocked | inactive | inactive | held back: the lock icon shows *locked* as "on"; a bright tile for unlocked would contradict it |
+| vacuum | docked | inactive | inactive | held back: resting at the base is not activity (the helper counts it) |
+| automation | off, triggered < 5 min | inactive | inactive | held back: bright means enabled (`on`), not "recently triggered" |
+| script | off, triggered < 5 min | inactive | inactive | held back: same — bright means running |
+| person | home | inactive | inactive | held back: presence is not a device state |
+
+The other 32 cases — light, switch, fan, cover, climate (heat, heat_cool, off), humidifier, input_boolean, automation and script on/off, scene, camera, water heater, siren, alarm disarmed, timer idle, person away, valve closed, lock locked, vacuum idle — keep their class and their exact background colour. Automations, scripts and scenes are white in every state, before and after: action tiles have their own look. `pageerror` 0 in all runs.
+
+`isEntityActive` is now called with `(state, domain, attributes)` everywhere in the tree.
+
+Not checked:
+
+- A real Home Assistant install, Safari.
+- The room header's count of active devices already called the helper correctly and was not touched — so a room with a docked vacuum or an unlocked lock still counts it there, while its tile stays dark. That mismatch is older than this release.
+
+Bundle: 2,234,330 bytes raw and 618,836 bytes gzipped (+50 gzip against 1.1.2439). The gzip budget warns at 620,000.
+
 ## Version 1.1.2439 - 2026-09-18
 
 **Title:** 🔎 Search finds contents: to-dos, calendar events, news, tips, history
