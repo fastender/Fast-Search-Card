@@ -1324,6 +1324,8 @@ The corpus is written. That is the unusual part — normally a feature like this
 ---
 
 ### 47. Weather inside the calendar
+> ✅ **Shipped v1.1.2443** (2026-09-18) — condition icon and the day's high in month cells, week heads, day columns and the day strip; hourly value beside timed events with the daily fallback beyond the hourly horizon; four-level setting plus weather-entity choice under Calendar → Settings → Display; one forecast fetch per entity every 10 min while the calendar is open (`utils/wetterVorhersage.js`).
+
 
 **Pitch:** A condition icon and temperature in each day header, and an hourly forecast beside timed events. "Football at 16:00" reads differently with rain next to it.
 

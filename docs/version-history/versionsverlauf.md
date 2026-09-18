@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2443 - 2026-09-18
+
+**Title:** 🌦️ Weather inside the calendar (Roadmap #47)
+
+**Tags:** feature, calendar
+
+"Football at 16:00" reads differently with rain next to it. The calendar now shows the weather where the question is asked:
+
+- **Day headers** — condition icon and the day's high, in month cells, week heads, the day columns of the week-as-columns view and the day strip of the day view.
+- **Timed events** — the hourly condition and temperature beside the time; beyond the hourly horizon (typically two days) the day's value steps in rather than nothing. All-day events get the day's value.
+- **Setting** with four levels rather than a toggle: off, day headers only, events only, both (default). Plus the weather entity: automatic — the first `weather.*` with a temperature, the same the weather tile uses — or a chosen one. Calendar → Settings → Display; registered for the settings search with defaults; the Display info text is extended in both languages and mirrored in the catalog.
+
+Data: `utils/wetterVorhersage.js` — one module cache per weather entity, hourly and daily forecast via the same `weather.get_forecasts` call the weather tile uses, fresh for ten minutes, one in-flight request per entity, refetched every ten minutes only while the calendar is open and the tab is visible. Nothing runs at rest. The markers (`WetterMarke`) are icon plus temperature, opacity only, no animation.
+
+Verified in the dev harness with a mocked forecast: seven marked month cells for a seven-day daily forecast, markers on event rows, week heads and the day strip, two forecast calls in total across month → week → day (the cache holds), no page errors.
+
 ## Version 1.1.2442 - 2026-09-18
 
 **Title:** 🐞 Tile colour, corrected — system views and free-text states lit up in 1.1.2440
