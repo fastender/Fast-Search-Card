@@ -1,5 +1,13 @@
 # Versionsverlauf
 
+## Version 1.1.2438 - 2026-09-18
+
+**Title:** 👉 Swipe back from the whole image zone
+
+**Tags:** mobile, fix
+
+The back swipe from v1.1.2437 only listened in a 28 px strip at the left edge. It now covers the image zone of the detail view — from the header with the back button and title down to the bottom of the entity-id row above the sheet — anywhere across its width. A swipe that starts below that line, on the sheet with its controls, tabs and rings, still does nothing. Verified in the dev harness: a swipe in the middle of the image closes the view, one on the id row closes it, one 80 px below the row leaves it open; no page errors.
+
 ## Version 1.1.2437 - 2026-09-18
 
 **Title:** 📳 Haptic feedback on mobile, and swipe from the left edge to go back
