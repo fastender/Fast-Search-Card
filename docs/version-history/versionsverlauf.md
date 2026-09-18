@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2444 - 2026-09-18
+
+**Title:** ☑️ Multi-select — long-press a to-do, tap more, complete or delete them all (Roadmap #52)
+
+**Tags:** feature, mobile, todos
+
+### The primitive
+
+`hooks/useMehrfachauswahl.js` owns the selection: a 500 ms press without movement on a row enters selection mode (a `medium` haptic), a tap toggles further rows (`selection`), Escape, the Cancel button or an emptied selection leaves it — a mode that is hard to leave feels like a trap. It knows only ids. The hosting list declares the actions on `components/common/AuswahlLeiste.jsx`: a glass strip with the live count, the actions and Cancel. Destructive actions confirm in two taps and the confirmation names the count ("Really delete 3?"), never "these items". The long-press does not collide with quick control's hold-to-confirm: that one sits on the device icon and takes a second; this one is on the row and fires at half a second.
+
+### First adopter: the to-dos
+
+In the flat list (a filter or a search active) a long-press on a task starts the selection; selected cards get a bright inset ring, the checkbox and the detail tap are suspended while the mode is on. Actions: **Complete** (one `completeMany` call, the existing stacking path from #67) and **Delete** — all targets vanish at once under one undo window of six seconds; `undoStore.istGrabstein` now accepts a list of targets for exactly that.
+
+Verified in the dev harness: long-press → bar with "1 ausgewählt", tap → "2 ausgewählt", haptics `medium` then `selection`, delete in two taps, no service call until the undo window closed, then two `remove_item` calls, Escape ends the mode, no page errors.
+
+Next adopters, not in this release: notification center (acknowledge or snooze several), excluded patterns, search results (favourite several).
+
 ## Version 1.1.2443 - 2026-09-18
 
 **Title:** 🌦️ Weather inside the calendar (Roadmap #47)

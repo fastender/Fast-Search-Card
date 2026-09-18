@@ -1507,6 +1507,8 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 ---
 
 ### 52. Multi-select and bulk actions as a card-wide primitive
+> ✅ **Shipped v1.1.2444** (2026-09-18) — the primitive (`hooks/useMehrfachauswahl.js`: 500 ms long-press enters, tap toggles, Escape / Cancel / empty selection leaves; `components/common/AuswahlLeiste.jsx`: count, cancel, host-declared actions, destructive ones confirm in two taps naming the count) and its first adoption in the to-dos (complete many, delete many with a single undo window over all targets). Notification center, excluded patterns and search results are the next adopters.
+
 
 **Pitch:** Long-press a row to enter selection mode, tap to add more, act on all of them at once. One implementation, used by every list in the card.
 
