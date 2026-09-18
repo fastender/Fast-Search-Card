@@ -420,6 +420,8 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ### 8. Global search across system entities
 
+> ✅ **Shipped v1.1.2439** (2026-09-18) — the one search field also finds contents: to-dos, calendar events, news articles, tips and version-history entries. Every system entity may implement `suchbareEintraege(lang)` (synchronous, from memory or cache, no fetch, at most 500 entries); `utils/inhaltsSuche.js` builds one Fuse index lazily at the first term of two characters and rebuilds it only when a source reports a change. Hits appear under the devices as a "Contents" group with one sub-header per source, rendered as virtual device tiles (keyboard, focus ring and virtualisation come for free), and a tap opens the source view on the entry. Deviations from the sketch: no separate ⌘F/sidebar entry — it is the existing search field; no "Actions" header (actions were already searchable as devices); contents are hidden only when the user narrowed the search to Sensors or Actions.
+
 **Pitch:** One input finds **everything at once** — Todos, news articles, calendar events, tips, version-history entries, and devices.
 
 **Status quo:** Memory TODO from session notes. Current search finds devices + system-entity names, not their content.

@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.2439 - 2026-09-18
+
+**Title:** 🔎 Search finds contents: to-dos, calendar events, news, tips, history
+
+**Tags:** feature, search
+
+Roadmap #8. The search field used to find devices and the names of the system views — not what is inside them. Now "Zahnarzt" finds the appointment, "Milch" the item on the shopping list, "Heizung" also the tip and the news article. The hits appear under the devices as a group **Contents**, with one sub-header per source (To-dos, Calendar, News, Tips, Version history). A tap opens the source view right on the entry: the to-do opens, the event dialog opens on the day, the article opens, the tip and the version page open.
+
+### How it works
+
+- **Each view provides its own entries.** `SystemEntity` has a new optional method `suchbareEintraege(lang)`. It is synchronous and reads only what is already in memory or cached — never a network request — and returns at most 500 entries, each with a title, a text, a hint line and a jump target. Implemented for To-dos (the list the entity keeps live, else `todosCache`), Calendar (the events it loaded last, limited to the past 7 and next 60 days), News (the articles in memory, else `news_event_cache`), Tips and Version history (the parsed lists).
+- **One index, built when it is needed.** `utils/inhaltsSuche.js` builds a single Fuse index (title 0.6, text 0.3, hint 0.1, same strictness as the device search) at the first search term of two characters — not at start. It is rebuilt only after a source reports a change (`system-entity-updated` from one of the five views, `fsc-todos-geaendert`, `cacheCleared`), never per keystroke. The listeners only flip a flag.
+- **Hits are tiles.** A content hit is a virtual device (`domain: 'inhalt'`, `is_content: true`) shown by the normal device tile: the source's icon, the hint (list and due date, event date and time, feed and date, tip category, version and date) and the title. Keyboard access, the focus ring and list virtualisation apply unchanged. At most twelve hits.
+- **Jumps use the existing hooks** — `__pendingTodoUid`, `__pendingCalendarEvent`, `__pendingNewsArticleId`, `__pendingTippSlug` — plus a new one, `__pendingVersion`, which the version history consumes only once the version is actually in its list. A tap gives a light haptic pulse and counts as opening the source view for the suggestion logic, not as a click on an invented id.
+- **Where contents appear.** The brief named the tabs "All" and "Custom". There is no "All" tab: the four are Devices (default), Sensors, Actions and Custom, and while searching the tab does not filter device hits at all. Contents therefore appear wherever the search shows everything, and stay out only when the search has been narrowed to Sensors or Actions.
+
+### Measured (probes, deleted before the build)
+
+| Check | Result |
+|---|---|
+| "Milch" (to-do added through the live path) | Contents → To-dos → "Haushalt · Milch kaufen"; tap opens the to-do |
+| "Zahnarzt" | Contents → Calendar → "18 Sep · 10:00 Zahnarzt" (plus version notes that mention it); tap opens the event dialog |
+| "Heizung sparen" (article of a feedparser sensor) | Contents → News; tap opens the article |
+| "Lichtfarbe" | tip opens directly on "Wie ändere ich die Lichtfarbe?" |
+| Version hit | the version page opens (`v1.1.2377`) |
+| "Terrasse" | no Contents group; the device hit unchanged |
+| "Licht" | the two lights first, as before; tips about lights below |
+| Keyboard | from the first device tile, 3 × Tab reach the first content hit, Enter opens it |
+| Index builds while typing a word | 1 |
+| Content search time | 6–7 searches (one per applied term) ≈ 24 ms in total including the one build — about 3–4 ms each on the development machine |
+| Renders while typing "Heizung" | 514 → 728; the increase is the content tiles themselves (108 renders in components carrying a content item, the rest their motion and icon children) |
+| Timers in 5 s of rest | unchanged (2–4 timeouts, 0 intervals, 1–2 frames before and after) |
+| `pageerror` / `console.error` across all probes | 0 / 0 |
+
+Not checked:
+
+- A real Home Assistant install with long lists, Safari, screen readers.
+- Calendar hits cover what the calendar loaded last (the reminders load the past 30 and next 14 days on their own; opening the calendar widens it). Events outside that range are not found — there is no fetch per keystroke by design.
+- Inside the search field, Tab belongs to autocomplete (as it does for device hits); keyboard users reach the results from the list itself.
+
+Bundle: 2,234,121 bytes raw and 618,786 bytes gzipped (+2,110 gzip against 1.1.2438). The gzip budget warns at 620,000 — about 1.2 KB of room left.
+
 ## Version 1.1.2438 - 2026-09-18
 
 **Title:** 👉 Swipe back from the whole image zone
