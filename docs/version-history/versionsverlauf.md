@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2441 - 2026-09-18
+
+**Title:** 🔍 Review of 1.1.2439/2440 — dates a day early west of UTC, hidden calendars in the search, a version jump that could fire minutes later
+
+**Tags:** fix
+
+A review pass over the content search (1.1.2439) and the tile colour (1.1.2440). The tile colour held up; the content search had four defects, and the review surfaced a fifth, older one.
+
+### Fixed
+
+- **Dates a day early west of UTC.** A date without a time — a to-do's due date (`2026-09-18`), a version's date — was read by `new Date()` as UTC midnight. West of UTC the hint showed the previous day: measured in New York, "Sep 17" for a task due on the 18th. Date-only strings are now read as local dates, the same trap the calendar solved with `parseLokal`. Checked in Berlin, New York and Auckland: all show the 18th.
+- **Hidden calendars.** Calendars (or calendar groups) switched off in the card no longer appear in the search. The calendar view and the Bento tile already skipped them; the search did not.
+- **Event times in English.** The hint used `en-GB` (24 h) while the rest of the card uses `en-US` (12 h). It now uses the card's locale: "Sep 18 · 10:00 AM", as on the calendar tile.
+- **A version jump that could fire later.** `__pendingVersion` stayed on `window` until the version was found. If it never was, the next ordinary opening of the version history — minutes later — jumped to that version unasked. The hook now expires after 15 seconds.
+- **Duplicate key in the version history (older).** One old changelog entry carried the tag "Cleanup" twice, and the tag row keys by name — a `console.error` whenever the list opened. The entry is corrected, and the parser now removes duplicate tags, so a cached older changelog is covered too.
+
+### Measured (probe, deleted before the build)
+
+| Check | Result |
+|---|---|
+| Due date `2026-09-18`, time zones Berlin / New York / Auckland | Sep 18 in all three (New York was Sep 17) |
+| "Zahnarzt" with the family calendar hidden | no Calendar group, only version notes |
+| "Zahnarzt" in English | "Sep 18 · 10:00 AM Zahnarzt" |
+| Version hit from the search | the version page opens, the hook is consumed |
+| Stale hook (60 s old), then opening the version history normally | the list opens, the hook is removed |
+| Opening the version-history list | 0 duplicate-key warnings (was 2) |
+| `pageerror` / `console.error` | 0 / 0 |
+
+Bundle: 2,234,896 bytes raw and 619,027 bytes gzipped (+191 gzip against 1.1.2440). The gzip budget warns at 620,000 — under 1 KB of room left.
+
 ## Version 1.1.2440 - 2026-09-18
 
 **Title:** 🎨 Device tile colour: the always-false active check, domain by domain
@@ -20185,7 +20215,7 @@ Build verified clean.
 
 **Title:** 🧹 Dead-Code-Cleanup — ~1,500 LOC removed (orphan files, dead exports, debug helpers, dev-only mock code)
 **Hero:** none
-**Tags:** Cleanup, Cleanup, DeadCode, Bundle
+**Tags:** Cleanup, DeadCode, Bundle
 
 ### Why
 
