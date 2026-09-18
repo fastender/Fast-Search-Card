@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2445 - 2026-09-18
+
+**Title:** 🔅 Automatic brightness — an illuminance sensor dims the card when the room gets dark (Roadmap #49, last slice)
+
+**Tags:** feature, wall-tablet, screensaver
+
+A wall tablet in a dark living room glows. Dedicated panels follow the room's light; the card now does too — with a lux sensor from Home Assistant.
+
+- **Hysteresis, not a single threshold:** below "dark below" (default 5 lx) the card dims, above "bright above" (default 50 lx) it comes back, between the two nothing changes — a passing cloud or a lamp switched on briefly does not flicker. The bright threshold is always kept above the dark one.
+- **How it dims:** a fixed black overlay over the whole card at the chosen strength (25 / 35 / 50 / 65 %, default 35 %), a 1.4 s opacity fade, instant with reduced motion, `pointer-events: none` so touch passes through, below the deep-rest overlay so both can coexist. The browser cannot dim the panel itself; that remains the handoff's job (#63).
+- **Where it runs:** `utils/autoHelligkeit.js` on the state stream (`useEntityStream`, one id comparison per event as the gate, nothing at rest), evaluated once at mount from the current sensor value and re-read on the settings broadcast; switching it off clears the overlay at once.
+- **Settings** under Start Screen → Screensaver: toggle (off by default), sensor picker (illuminance device class or a lx unit), dark/bright thresholds and strength as cycling rows; registered for the settings search with defaults, screensaver info text extended in both languages and mirrored in the catalog.
+
+Verified in the dev harness with a captured state-stream callback: mount at 2 lx → overlay 0.35, 30 lx → stays 0.35, 100 lx → 0, 30 lx → stays 0, switch off via the real settings row → 0 and 2 lx stays 0, switch on → 0.35 again, all five rows present, no page errors.
+
 ## Version 1.1.2444 - 2026-09-18
 
 **Title:** ☑️ Multi-select — long-press a to-do, tap more, complete or delete them all (Roadmap #52)

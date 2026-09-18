@@ -798,21 +798,6 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## zenRueckkehr
 
-> NEU v1.1.2369 (Roadmap #9/#49, pragmatischer Kern): Bildschirmschoner-Sektion
-> im Start-Screen-Tab — Schalter + Zeit-Zeile (Tipp wechselt den Wert).
-> v1.1.2390 (Roadmap #61): tiefe Ruhe (Schalter + „Tiefe Ruhe nach") und
-> Nachtkopplung (Schalter + „Nachts zurück nach", Hinweis wenn Ruhezeiten aus)
-> als Zeilen unter dem Schoner; Text um die Absätze „Tiefe Ruhe" und „Nachts"
-> erweitert, „Warum wichtig" um den Nacht-Satz.
-> v1.1.2391 (Roadmap #62): Weckquellen-Zeilen („Wecken durch": Bewegung/
-> Anwesenheit-Picker mehrfach, Schalter kritische Meldung, Türklingel-Picker,
-> Schalter „Bei Abwesenheit früher zurück"); Text um den Absatz „Wecken" erweitert.
-> v1.1.2392 (Roadmap #63): Display-Übergabe-Zeilen (Bildschirm-Entity, Skript beim
-> Schlafen, Skript beim Wecken, Konflikt-Hinweis) unter der tiefen Ruhe; Text um den
-> Absatz „Display-Übergabe" erweitert.
-> v1.1.2393 (Roadmap #64): Fotorahmen-Zeilen (Schalter, „Bildwechsel alle", Zufall,
-> Ordner-Feld) unter der tiefen Ruhe; Text um den Absatz „Fotorahmen" erweitert.
-
 **DE**
 > ## Bildschirmschoner
 >
@@ -831,6 +816,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **Fotorahmen** – in tiefer Ruhe kann das Bild hinter der Uhr alle paar Minuten wechseln, aus dem Wallpaper-Ordner (oder einem eigenen). Ein Wechsel ist eine kurze Blende durchs Dunkel; dazwischen steht alles still. Beim Wecken kommt das gewählte Wallpaper zurück.
 >
 > **Display-Übergabe** – ein Browser kann das Display nicht selbst abschalten. Dafür kann die Karte beim Eintritt in die tiefe Ruhe eine Bildschirm-Entity ausschalten (etwa „Screen" von Fully Kiosk) und ein Skript ausführen, beim Wecken das Gegenteil. Dann führt die Karte das Display – der eigene Schoner der Kiosk-App gehört aus, sonst kämpfen zwei um ein Display. Schaltet die App das Display selbst ein, wacht die Karte mit auf.
+>
+> - **Automatische Helligkeit** – ein Lux-Sensor aus Home Assistant dunkelt die Karte ab, wenn es im Raum dunkel wird, und gibt sie über der Hell-Schwelle wieder frei. Zwischen den Schwellen ändert sich nichts (Hysterese), damit eine Wolke nicht flackert. Gilt unabhängig vom Schoner. Das Display selbst kann der Browser nicht dimmen; dafür ist die Übergabe an eine Bildschirm-Entity da.
 >
 > *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds. Und ein Bildschirm, der die ganze Nacht hell leuchtet, ist kein Ruhebild.
 
@@ -852,6 +839,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > **Photo frame** – in deep rest the picture behind the clock can change every few minutes, from the wallpaper folder (or one of your own). A change is a short dip through dark; nothing moves in between. On wake the chosen wallpaper returns.
 >
 > **Display handoff** – a browser cannot switch the display off itself. Instead, when deep rest begins the card can turn a screen entity off (such as Fully Kiosk's "Screen") and run a script, and do the opposite on wake. The card then drives the display – the kiosk app's own screensaver belongs off, or two fight over one display. If the app turns the display on itself, the card wakes with it.
+>
+> - **Automatic brightness** – an illuminance sensor from Home Assistant dims the card when the room gets dark and releases it above the bright threshold. Between the thresholds nothing changes (hysteresis), so a passing cloud does not flicker. Independent of the screensaver. The browser cannot dim the panel itself; that is what the handoff to a screen entity is for.
 >
 > *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face. And a screen glowing at full brightness all night is no resting face.
 

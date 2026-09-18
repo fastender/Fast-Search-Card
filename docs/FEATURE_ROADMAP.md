@@ -1390,6 +1390,8 @@ Building the ladder here, on a contained surface with an obvious right answer, p
 ### 49. Screen behaviour — the settings surface for ambient mode
 
 > ◐ **Partial — v1.1.2369** (2026-08-27): first slice of this surface exists as Start Screen → Screensaver (return-to-start toggle + idle time). The broader screen-behaviour surface (brightness, wake sources, schedules) remains open — sliced into shippable steps as **#61–#64** (Part nine, 2026-08-27); the honest-split analysis below stays the reference for all of them.
+>
+> ✅ **Shipped v1.1.2445** (2026-09-18) — the last open slice, **auto brightness**: `utils/autoHelligkeit.js` follows an illuminance sensor on the state stream with hysteresis (dark below / bright above, nothing changes in between) and dims the card through a fixed black overlay at a chosen strength; independent of the screensaver, off by default. Settings rows under Start Screen → Screensaver (toggle, sensor picker, dark/bright thresholds, strength), registered for the settings search. Wake sources, handoff and photo frame shipped as #61–#64; with this the surface described below is complete.
 
 **Pitch:** A Screen section in Settings that governs what the display does when nobody is looking: dim after a while, drop into the ambient screen, come back on movement, follow the room's light level.
 
