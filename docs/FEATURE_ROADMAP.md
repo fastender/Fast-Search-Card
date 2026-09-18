@@ -1155,6 +1155,8 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 ### 42. Fix `DeviceCard.isEntityActive(device)` always-false bug
 
+> ⚠️ **Corrected in v1.1.2442** (2026-09-18): the v1.1.2440 fix opened the fallback for every domain and missed the card's own tiles — system views and integration devices report `state: 'active'`, which the helper counts as on, so they all turned active (blank white tiles in Custom, dark text on the Bento). Now only vacuum, alarm panel, timer and valve ask the helper; everything else stays as before 1.1.2440.
+>
 > ✅ **Shipped v1.1.2440** (2026-09-18) — resolved domain by domain. The fallback now passes `(state, domain, attributes)`. Measured over 43 domain/state cases: the raw fix changed eleven; six are kept on purpose (vacuum cleaning and returning, alarm panel armed and triggered, timer active, valve open — the device is doing something, like a light that is on), five are held at the old result by explicit branches with a reason each (lock unlocked — the icon treats *locked* as on; vacuum docked; automation and script "triggered in the last five minutes"; person at home). All other 32 cases keep class and actual background colour.
 >
 > ⏸ **Deliberately kept** *(history — resolved 2026-09-18, see above)* (decision recorded in the 2026-06-25 cleanup audit, reaffirmed 2026-09-04): the surrounding card styling leans on the always-false result, and the v1704 fix had to be reverted in v1705. It stays on the list as "small fix, medium per-domain visual verification" — not forgotten, just not free.

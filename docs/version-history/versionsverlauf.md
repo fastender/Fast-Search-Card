@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2442 - 2026-09-18
+
+**Title:** 🐞 Tile colour, corrected — system views and free-text states lit up in 1.1.2440
+
+**Tags:** fix
+
+Reported with two screenshots: in the Custom category the tiles had turned into blank white cards, and on the Bento start page the Tips and Energy Dashboard tiles showed dark instead of white text. Both came from 1.1.2440.
+
+### What went wrong
+
+1.1.2440 fixed the always-false fallback of the tile's active check by opening it for **every** domain and holding back the side effects it had measured. The measurement covered 43 Home Assistant domain and state cases — but not the card's own tiles. System views and integration devices (Settings, To-dos, Tips, Notifications, Energy Dashboard, Weather, Universal devices …) report `state: 'active'` while they are mounted (`SystemEntity.toEntity`). The helper counts `active` as "on", so all of them became active: tiles without a brand colour turned white with white text — invisible — and brand-coloured tiles got the dark text of the active style. The same trap caught free-text states: a text sensor reading `active`, an `input_select` on `home`, a `select` on `open`.
+
+### The fix
+
+The logic is turned around. Only the domains that were decided on purpose ask the helper — vacuum (cleaning, returning), alarm panel (armed, triggered), timer (active, paused) and valve (open). Everything else is as before 1.1.2440: active only with an explicit `isActive` flag. That also makes the separate branches for lock, automation, script and person unnecessary.
+
+### Measured (probe, deleted before the build)
+
+| Check | 1.1.2441 | 1.1.2442 |
+|---|---|---|
+| Custom category: the nine system tiles | all marked active; Notifications white on white | none active, brand colours with white text, Notifications back to glass |
+| System tiles found through the search (Tips, Settings, To-dos, Calendar, News) | active, Settings and To-dos with dark text | inactive, white text |
+| Text sensor `active`, `input_select` `home`, `select` `open` | bright | dark, as before 1.1.2440 |
+| The 43 domain cases of 1.1.2440 | — | bright exactly for the previous "on" cases plus the six intended ones (vacuum cleaning and returning, alarm armed and triggered, timer active, valve open) |
+| `pageerror` | 0 | 0 |
+
+Not checked: a real Home Assistant install with integration devices (Energy Dashboard, printers, Universal devices) — their tiles take the same path as the system views in the probe; Safari.
+
+Bundle: 2,234,853 bytes raw and 619,024 bytes gzipped (−3 gzip against 1.1.2441).
+
 ## Version 1.1.2441 - 2026-09-18
 
 **Title:** 🔍 Review of 1.1.2439/2440 — dates a day early west of UTC, hidden calendars in the search, a version jump that could fire minutes later
