@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2446 - 2026-09-19
+
+**Title:** 🧩 Device builder: compose a device from any entities, including YAML sensors without a device (Roadmap #45)
+
+**Tags:** feature, integration, fix
+
+Until now the Universal builder (Integration → add device → Universal) could only point at one Home Assistant *device*. Anything that exists only as an entity never showed up: template, REST and command_line sensors, helpers, YAML integrations without a device registry entry. That surfaced with a forum question about Nightscout glucose values, where "use the builder" was the wrong answer.
+
+### Two ways in
+
+- **Step 1** keeps the device list exactly as before and gains one row above it: **Compose from entities**. One row rather than a "device / entities" choice first — the usual path costs no extra tap, and whoever searches for a YAML sensor and finds no device sees the second way right above the empty result.
+- **The entity picker** lists every entity from `hass.states` — not from the entity registry, because YAML entities without a `unique_id` are only there. Registry entries with `disabled_by` / `hidden_by` are left out. Search matches friendly name, entity id, area and device name; each row shows the name, the entity id and the live value with its unit, and a checkmark. Without a search term the groups are collapsed (by area, entities without an area by domain); with one the matches appear as plain sections, at most 100 rows plus "N more — refine the search". The selection is a draft: Next/Done takes it, Back drops it. Up to 30 entities, from any number of devices.
+- **Next** suggests a name (the shared area, otherwise the first entity) and a hero (the first sensor with a device class) and continues to the same customize step as a device — hero, quick stats, charts, visibility and icon work unchanged. A composed device gets an extra **Composition** row there that reopens the picker; whatever is removed also leaves hero, quick stats, charts and the hidden list.
+
+### Storage and runtime
+
+- One new field: `entity_ids` (sorted, unique) instead of `ha_device_id`; ids `universal_mix_<ts>`. No new storage format.
+- `device-entities/universalEintraege.js` answers "which entities, which area, which HA device" for every Universal device. The device index from 1.1.2333 moved there unchanged; composed devices resolve their ids against the registry and fall back to a stand-in for YAML entities. Every former reader of `ha_device_id` — grouping, entity list, history logbook, area on registration and mount, edit prefill, `updateDevice` — now goes through it, so editing a composition applies live and survives a reload.
+- **Area** of a composed device: entities without an area abstain, the rest vote, the most common wins. A device built from YAML sensors (which rarely have one) could otherwise never get a room.
+- An entity deleted in Home Assistant quietly leaves the device view (no "unavailable" row); the edit picker lists it under **No longer available** with a remove action. An empty composition shows the existing empty state.
+
+### Fixes found on the way
+
+- **Charts chosen while adding were lost.** The add path never sent `chart_sensors` — only editing did (same class as 1.1.1706/1736). Measured before: step 2 showed "1 selected", the saved device had no charts.
+- **The automatic hero showed as "1 selected".** It was stored as a bare string next to the `{id, color, goal}` objects of 1.1.2126, so step 2 and the hero picker did not recognise it. Now stored as an object; the runtime read both forms the same way, nothing changes on existing devices.
+- **Editing through "Manage devices" added a copy.** The wizard reports an edit as `_isEdit`, the integration view checked `_editMode`, which nothing sets — every save there appended a second device with the same id. Now it updates in place and no helper flags end up in storage.
+- The three "N selected / N picked" counters in step 2 now use the dictionary (`general.selectionCount`).
+
+Verified in the dev harness against a fingerprint taken before the change: an existing device-based Universal device renders identically (header, all four groups, attributes incl. area and device metadata, logbook control entities). Composing a YAML-only sensor, a template sensor with an area and a switch from another device works; the view shows the YAML value with its unit, the switch sends `switch.turn_off`, editing applies live and after a reload, removing the YAML entity from `hass.states` leaves no gap, Tab reaches the rows and Space/Enter toggle them, no page errors. With 3,000 states each keystroke costs at most 10.9 ms in the production bundle (input to commit plus layout, median of five).
+
 ## Version 1.1.2445 - 2026-09-18
 
 **Title:** 🔅 Automatic brightness — an illuminance sensor dims the card when the room gets dark (Roadmap #49, last slice)
