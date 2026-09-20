@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2454 - 2026-09-20
+
+**Title:** ⋯ The list-row window now shows the whole control: ring plus buttons, like the detail view
+
+**Tags:** ux, bento, quick-control
+
+Follow-up to 1.1.2453: the glass window behind a row's ⋯ button showed only the button strip. It now mounts the device's full controls tab, the same one the detail view uses — the position ring of a shutter, the brightness ring of a light, the hero gauge of a device built with the Universal builder — with the buttons underneath and expandable groups inline in the window (no bottom sheet on phones, it would land behind the window). Service calls go through the shared wrapper with its error toast; the controls tab speaks (domain, service, data), the list's own callback did not, which garbled the first attempt into `service: "cover"` — caught by the probe before release.
+
+Verified in the dev harness on the start screen's favourites list: the shutter's window shows the position ring at 100 % and Öffnen / Stop / Schließen / Position, "Öffnen" sends `cover.open_cover`; the built device's window shows its three-segment gauge and the four group buttons, a group expands inside the window. Screenshots checked, no page errors.
+
 ## Version 1.1.2453 - 2026-09-20
 
 **Title:** ⋯ Quick control in list rows opens as a glass window instead of unfolding the row
