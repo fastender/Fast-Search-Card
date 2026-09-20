@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2455 - 2026-09-20
+
+**Title:** 🧩 Four small ones: gauge pager below the ring, hero tap in the list window, Save only after a change, swipe-back only on phones
+
+**Tags:** bugfix, device-builder, ux, mobile
+
+- **Gauge pager below the ring.** With more than four heroes the page dots and the pause button sat in the middle of the segmented ring, covering the numbers and catching the tap meant for a segment. They now sit between the ring and the four group buttons; the ring shrinks by 40 px when it has pages so nothing touches.
+- **Hero tap inside the list window.** The glass window behind a list row's ⋯ showed the device's gauge but a tap on a hero did nothing — only the device view knew how to open the hero's controls. The window now swaps to the hero entity's control view in place, with a Back in its navbar, and returns to the device on Back or ✕.
+- **Save only after a change.** The device editor's top bar showed Save the moment it opened. Like the sub-pages since 1.1.2450, it now appears only once the draft differs from the saved device; "Add" while creating stays always available.
+- **Swipe-back only on phones.** The swipe over the header that closes the detail view (1.1.2437) now applies only at phone width (≤ 768 px). On tablets and desktops there is the Back button, and a drag across the header does nothing.
+
+Verified in the dev harness: five-hero device → pager fully between ring bottom and buttons top; desktop drag over the header leaves the detail open, the same drag at 375 px closes it; editor opens without Save, a hero change shows it; in the list window a tap on the fan's "off" shows the fan's controls titled with its name, Back returns to the device. No page errors.
+
 ## Version 1.1.2454 - 2026-09-20
 
 **Title:** ⋯ The list-row window now shows the whole control: ring plus buttons, like the detail view
