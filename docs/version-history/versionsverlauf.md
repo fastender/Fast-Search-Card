@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2450 - 2026-09-20
+
+**Title:** 🧩 Device builder: tap the hero ring to control the hero entity, and Save right inside the sub-pages
+
+**Tags:** feature, device-builder, ux
+
+Two wishes from using a built device (an air purifier with the fan as hero):
+
+- **Hero ring opens the entity's full controls.** The hero ring of a Universal device only showed the value and a small power pill. A tap on the ring now opens the same control view the entity list's drill-in uses (`EntityControlView`: navbar with Back plus the entity's own hero slider, tabs and presets), as an overlay over the device view. Only for entities that have such a view (climate, cover, lock, fan with speeds or presets, media player, vacuum, deep lights …), never for image or camera heroes, not on the power pill inside the ring, and not after a swipe (pointer moved more than 10 px). The ring shows a pointer cursor; the tap gives a `light` haptic. The controls tab reports the tap to its host instead of rendering the view itself, which keeps the module graph free of a cycle.
+- **Save inside the sub-pages, only when something changed.** Editing a device meant: change something in Hero, Visibility, Icon, Quick stats, Charts or Colours, go Back, then Save at the top. Each sub-page now shows Save (Add while creating) in its own navbar as soon as the draft differs from the saved device (or from the state when step 2 was entered while creating). Untouched pages show nothing. The comparison is a snapshot of every stored field: name, heroes, hidden entities, quick stats, chart sensors, icon and the composed entity list.
+
+Verified in the dev harness with a built device whose hero is a fan with preset modes: the ring carries the tappable class, a tap opens the overlay titled with the fan's name and its slider, Back closes it; in edit mode the Hero page shows no Save, adding a second hero shows "Speichern", pressing it closes the editor and the saved config carries both heroes. No page errors.
+
 ## Version 1.1.2449 - 2026-09-20
 
 **Title:** 🐞 Charts: "Today" in the date picker no longer hides the comparison with the previous period
