@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2452 - 2026-09-20
+
+**Title:** 🧩 Hero window polish: no focus frame on the switch, side padding for lists, settings visible on the phone
+
+**Tags:** bugfix, device-builder, mobile
+
+Three findings on the hero control window from 1.1.2451:
+
+- **Focus frame on the power switch.** The dialog focus hook moved keyboard focus to the first control when the window opened, so the power pill wore a focus rectangle nobody asked for until the next tap. The window now takes the focus itself on open (`MorphPopup fokusAufFenster`, `useDialogFokus` option `fensterZuerst`); Tab still leads to the first control, Escape and focus return are unchanged. Other MorphPopups keep their behaviour.
+- **Lists flush with the window edge.** Expanded groups (Settings → Preset) sat against the glass; the content now has 16 px of side padding like the other iOS-style pages.
+- **Settings invisible on the phone.** In compact mode the controls tab opens expandable groups as a bottom sheet that portals into the detail panel — behind the window and its dimming, so on an iPhone the Settings button lit up and nothing appeared. Inside the window the tab now runs the groups inline (`ohneSheet`), exactly like the desktop: the ring makes room and the list shows in the window, which resizes with it.
+
+Verified in the dev harness on desktop and on a 375 × 812 touch viewport: the active element after opening is the dialog, the Settings group shows "Voreinstellung Level 3" inside the window on both, no sheet in the portal, no page errors. Screenshots checked.
+
 ## Version 1.1.2451 - 2026-09-20
 
 **Title:** 🧩 Hero tap, round two: works on every gauge page, opens as a glass window, pauses the slideshow
