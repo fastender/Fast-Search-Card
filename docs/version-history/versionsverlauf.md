@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2449 - 2026-09-20
+
+**Title:** 🐞 Charts: "Today" in the date picker no longer hides the comparison with the previous period
+
+**Tags:** bugfix, charts
+
+Pressing "Today" in the date picker set a free range from today to today. Free ranges have no previous period, so the "Compare with previous period" row vanished and the arrows to step through periods were disabled. Now "Today" (and tapping today as both start and end) returns to the standard day period: the comparison stays available, the arrows work, and the chart takes the statistics path exactly like the default "Today". Applied in both chart hosts (the shared header of the device view and the standalone sensor chart). A new `heuteIso()` in `utils/dateRange.js` gives today's date in local time, avoiding the UTC pitfall of `toISOString`.
+
+Verified in the dev harness: picking yesterday hides the comparison row, pressing "Today" brings it back and the header reads "Heute", no page errors.
+
 ## Version 1.1.2448 - 2026-09-20
 
 **Title:** 🐞 Charts: power sensors showed the day's average as the headline, and a picked date drew a flat line into the future
