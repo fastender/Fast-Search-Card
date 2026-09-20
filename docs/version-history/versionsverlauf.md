@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2458 - 2026-09-20
+
+**Title:** 🧩 Gauge polish: arrows beside the ring, long values shrink to fit, the list window's hero view needs no scrolling
+
+**Tags:** ux, device-builder
+
+- **Arrows beside the ring.** The ‹ › page arrows moved from the pager row to the sides of the ring at its mid-height, where a thumb expects them; dots and pause stay below the ring.
+- **Long values shrink instead of scrolling.** A word like "excellent" crowded the neighbouring number. Rather than a marquee — restless on a wall display — the value text scales down to at most 62 % once it is longer than five characters, so both fit.
+- **Hero view in the list window without scrolling.** Tapping a hero in a list row's glass window opened the entity's controls in a window that was too short (74 % of the screen) and pushed the ring into a scroll. The window may now take 92 % of the height, and the hero view has its own Back row above the entity name instead of the shared navbar, whose centred title ran into "Back" for long names.
+
+Verified in the dev harness at 1024 × 768: arrow centres at the ring's mid-height, left arrow left of the ring, right arrow right of it; "excellent" at 14 px next to "4" at 23 px with no overlap; the fan's controls in the list window fit exactly (content height equals visible height) with the window from y 131 to 638. Screenshots checked, no page errors.
+
 ## Version 1.1.2457 - 2026-09-20
 
 **Title:** 🐞 The gauge no longer slides sideways after a hero tap — pages turn with arrows instead of a swipe
