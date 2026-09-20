@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2457 - 2026-09-20
+
+**Title:** 🐞 The gauge no longer slides sideways after a hero tap — pages turn with arrows instead of a swipe
+
+**Tags:** bugfix, device-builder, touch
+
+On the tablet a tap on a hero segment left the segmented ring shifted to the right until the next page change redrew it. Cause: the gauge page was a framer-motion drag surface (swipe to turn pages). When the tap opened the glass window, the window's overlay swallowed the pointer-up, framer never finished the drag, and the page stayed at the elastic offset. The drag is gone; the pager below the ring now has ‹ › arrows on either side of the page dots, next to the pause button. Dots and auto-advance are unchanged.
+
+Verified in the dev harness on a touch viewport with a five-hero device: a touch tap on "on" opens the switch's window and the page's offset stays at 0 with no transform; the arrows turn to page two (Sensor 5) and back to page one; no page errors. Screenshot checked.
+
 ## Version 1.1.2456 - 2026-09-20
 
 **Title:** 🧩 Every hero opens its window: sensors show their value ring, switches their toggle
