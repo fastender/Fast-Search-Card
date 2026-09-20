@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2456 - 2026-09-20
+
+**Title:** 🧩 Every hero opens its window: sensors show their value ring, switches their toggle
+
+**Tags:** ux, device-builder
+
+The hero tap (1.1.2450–2455) only opened entities with a rich control surface — fans with speeds, climate, covers, media players. A tap on a sensor segment such as "4 µg/m³" or "excellent", or on a plain switch, did nothing, and on the user's tablet the unanswered tap on the switch segment even nudged the ring. Now every hero that has a state opens the same glass window: a sensor shows its value ring (and, where the entity has one, its controls tab), a switch its toggle, the rest as before. Nothing is left that reacts to a tap by doing nothing.
+
+Verified in the dev harness with a four-hero gauge (switch, fan, two sensors): taps on "on", "4", "excellent" and "off" each open the window for their entity, the ring neither moves nor resizes, the sensor window shows the value ring with the entity name on top. No page errors.
+
 ## Version 1.1.2455 - 2026-09-20
 
 **Title:** 🧩 Four small ones: gauge pager below the ring, hero tap in the list window, Save only after a change, swipe-back only on phones
