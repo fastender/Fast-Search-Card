@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2451 - 2026-09-20
+
+**Title:** 🧩 Hero tap, round two: works on every gauge page, opens as a glass window, pauses the slideshow
+
+**Tags:** bugfix, device-builder, ux
+
+Follow-up to 1.1.2450 from using a purifier with five heroes:
+
+- **Every page, every segment.** With three or more heroes the ring is a segmented gauge, paged four at a time with an auto-advance. The tap used the slideshow's "active hero", which is not the segment under the finger — a fan on the second page never opened. The gauge now resolves the tapped segment itself (angle from the ring centre, current page, same geometry as the arcs) and reports its entity. Only entities with their own control view open; a tap on a plain sensor does nothing. Two heroes, where the fan sits at position two, works the same way.
+- **Glass window instead of an overlay.** The controls open in the same MorphPopup the info popups use: it grows out of the ring into the centre, the entity name sits on top, the ✕ below the window, the card dims behind. Inside is the entity's own controls tab (ring, power, presets).
+- **Slideshows pause while the window is open.** Both the hero slideshow (image and gauge slides) and the gauge's own page advance hold until the window closes, so the ring behind does not move on.
+
+Verified in the dev harness: five heroes with the fan on page two → tap on page two opens the window titled with the fan's name and its slider, the page stays put for five seconds while open, ✕ closes it; two heroes with the fan second → tap on "off" opens, tap on the sensor's "unknown" does not. No page errors.
+
 ## Version 1.1.2450 - 2026-09-20
 
 **Title:** 🧩 Device builder: tap the hero ring to control the hero entity, and Save right inside the sub-pages
