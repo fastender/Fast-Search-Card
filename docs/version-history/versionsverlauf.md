@@ -1,5 +1,16 @@
 # Versionsverlauf
 
+## Version 1.1.2459 - 2026-09-20
+
+**Title:** 🧩 Long gauge values scroll as a marquee at full size; the hero window in the device view no longer clips the ring
+
+**Tags:** ux, bugfix, device-builder
+
+- **Marquee instead of shrinking.** 1.1.2458 scaled long segment values down; the user preferred the original size with a scrolling text. The value keeps its font size, and only when it is actually wider than its segment (measured after mount) does it slowly pendulate left and right — six seconds per direction with a pause at each end, off under reduced motion. Short values stay static; nothing animates without a reason.
+- **Hero window in the device view.** On the tablet the window behind a hero tap still cut the ring at the bottom. The device view's window now uses the same height structure as the list window (the controls tab measures its natural height instead of stretching to 100 % of an undefined parent) and has more room below the ring.
+
+Verified in the dev harness at 1180 × 820 and 1024 × 768: "excellent" at 23 px carries the marquee class with a 10 px travel, "4" does not; the switch's window shows the whole ring, content height equals visible height, the ring's bottom edge stays inside the window. Screenshot checked, no page errors.
+
 ## Version 1.1.2458 - 2026-09-20
 
 **Title:** 🧩 Gauge polish: arrows beside the ring, long values shrink to fit, the list window's hero view needs no scrolling
