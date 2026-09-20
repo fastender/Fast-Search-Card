@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2447 - 2026-09-20
+
+**Title:** 🐞 Charts: kWh meters showed 0.00 for Today / Week / Month / Year — statistics are in the sensor's unit, not in Wh
+
+**Tags:** bugfix, charts, device-builder
+
+Reported on a device built with the Universal builder: an Anker SOLIX total-production meter (kWh, `total_increasing`) drew a flat zero line for "Today" with headline and min/max/avg all 0.00, while a picked date range showed the real 122 → 156 kWh curve.
+
+**Cause.** The period views (D/W/M/Y) go through Home Assistant's long-term statistics and compute bucket deltas from `sum`. That code was inherited from the energy dashboard and assumed the statistics arrive in Wh, so it divided every delta by 1000. Home Assistant returns `recorder/statistics_during_period` in the sensor's own unit: a kWh meter stays kWh. 2.4 kWh per hour became 0.0024, rounded to 0.00. The picked range goes through raw history and was never affected.
+
+**Fix.** `services/sensorStatistics.js` now converts by the actual unit: Wh is divided by 1000 and labelled kWh, kWh stays as it is. This applies to the chart buckets, the headline period value, the comparison with the previous period and the year-over-year bars. Nothing else in the resolution changed.
+
+Verified in the dev harness with mocked statistics: a kWh meter and a Wh meter with the same production both show 1.20 kWh per hour and a 14.40 kWh headline, no page errors. Before the fix the kWh meter showed 0.00.
+
+Not touched: the energy dashboard keeps its own unit heuristics; the builder covers the same ground.
+
 ## Version 1.1.2446 - 2026-09-19
 
 **Title:** 🧩 Device builder: compose a device from any entities, including YAML sensors without a device (Roadmap #45)
