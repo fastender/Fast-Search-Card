@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2453 - 2026-09-20
+
+**Title:** ⋯ Quick control in list rows opens as a glass window instead of unfolding the row
+
+**Tags:** ux, bento, quick-control
+
+The ⋯ button on a list row (the favourites and suggestions list on the start screen, and the list mode of the search results) used to unfold a dark tray inside the row and push the rows below it down. It now opens the same MorphPopup the info popups and the hero controls use: it grows out of the ⋯ button into the centre, shows room and device name on top and the very same controls (open / stop / close, position presets, on / off …) in the dark tray, with the ✕ below the window and the list dimmed behind. Taps inside the window act on the device without opening its detail view; the list stays where it was. A `light` haptic marks the opening. The height-measuring logic of the old inline tray (1.1.2052, 1.1.2254) is gone with it.
+
+Verified in the dev harness on the start screen's favourites list: ⋯ opens the window with "Wohnzimmer / Rolllade" and four controls, no inline tray, "Öffnen" sends `cover.open_cover` and leaves the detail view closed, ✕ closes the window and resets the button. No page errors.
+
 ## Version 1.1.2452 - 2026-09-20
 
 **Title:** 🧩 Hero window polish: no focus frame on the switch, side padding for lists, settings visible on the phone
