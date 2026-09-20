@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2448 - 2026-09-20
+
+**Title:** 🐞 Charts: power sensors showed the day's average as the headline, and a picked date drew a flat line into the future
+
+**Tags:** bugfix, charts, device-builder
+
+Second report from the same Anker device, this time on the power sensor (W, `measurement`): "Today" showed 408.54 W in the headline while the panel was producing 4 200 W. Picking Sep 20 in the calendar showed 4 200 W.
+
+- **Headline = current value.** The period views (D/W/M/Y) go through long-term statistics and used the average of all hourly means as the headline, which at 10 in the morning is dominated by the night's zeros. The average already sits in the Ø pill, and the history path (a picked range) has always shown the last value. Now both agree: for the running period the headline is the sensor's current state, for a past period the mean of its last bucket.
+- **No buckets in the future.** A picked range that includes today built hourly buckets up to midnight and carried the last value forward, so the chart showed 3 260 W flat until 8 PM. Hourly, daily and monthly custom buckets now stop at the current time.
+
+Verified in the dev harness: statistics mocked with a 100 W mean and a current state of 4 200 W → headline 4 200, Ø 100; a picked "today" at 11:00 yields 12 hourly buckets instead of 24, a seven-day span still yields 7. No page errors.
+
 ## Version 1.1.2447 - 2026-09-20
 
 **Title:** 🐞 Charts: kWh meters showed 0.00 for Today / Week / Month / Year — statistics are in the sensor's unit, not in Wh
