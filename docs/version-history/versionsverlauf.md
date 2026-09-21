@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2461 - 2026-09-22
+
+**Title:** 🧩 Ring unification, step 1: image and camera heroes live inside the ring; marquee edges fade
+
+**Tags:** feature, device-builder, ux
+
+Start of the ring unification agreed on 2026-09-21 (the segmented gauge becomes the one ring language; drag beads only on adjustable segments; media player keeps title and artist as a marquee in the centre).
+
+- **Image and camera heroes in the ring.** A built device's image or camera hero used to be a bare picture slide with rounded corners — a different design from the value slides. It now sits inside the same ring: the ring carries the hero's colour, the name curves along the outside like a gauge segment, and the picture (or the WebRTC live stream) is clipped to a circle in the middle, filling it. New `controls/BildRing.jsx`, same geometry constants as the gauge. Switching between an image slide and the value gauge no longer changes shape.
+- **Marquee edges fade.** A scrolling value like "unknown" was cut hard at the segment edge and read as "unkno". The scrolling box now masks both edges with a short transparent gradient, so text glides in and out softly.
+
+Verified in the dev harness with a device of image hero + two sensors: the image slide shows the ring with "VORGARTEN KAMERA" on the arc, the picture is a 179 px circle with object-fit cover, ring 280 px; the second slide's "unknown" carries the gradient mask and pendulates. Screenshots checked, no page errors.
+
 ## Version 1.1.2460 - 2026-09-21
 
 **Title:** 🐞 Hero windows no longer clip the ring on narrow tablets — the ring frame grows with its content
