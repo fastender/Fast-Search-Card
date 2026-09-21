@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2460 - 2026-09-21
+
+**Title:** 🐞 Hero windows no longer clip the ring on narrow tablets — the ring frame grows with its content
+
+**Tags:** bugfix, device-builder, tablet
+
+Third report of a clipped ring, this time in the list window's hero view on a portrait tablet. Root cause found by measuring every layer: the controls tab's ring frame (`.slider-wrapper`) has a fixed height that framer-motion also writes inline — 280 px on desktop, 160 px at widths up to 768 px — while the ring inside is sized separately. On a 744 px-wide tablet the frame was 160 px and the ring 211 px, so 50 px of ring hung below the frame and the glass window cut it off. Inside the glass windows (list row and device view) the frame now sizes to its content (`!important` against the inline height), the multi-ring's bottom margin is dropped, and 24 px of room sit below the ring.
+
+Verified in the dev harness at 1180 × 820 and 740 × 1000 for a switch and a sensor: the ring's SVG bottom lies 38 px inside the window in every case (before: 6 px outside at 1180, 37 px outside at 740), content height equals visible height, no page errors.
+
 ## Version 1.1.2459 - 2026-09-20
 
 **Title:** 🧩 Long gauge values scroll as a marquee at full size; the hero window in the device view no longer clips the ring
