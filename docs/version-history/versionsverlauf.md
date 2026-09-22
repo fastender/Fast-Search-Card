@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2462 - 2026-09-22
+
+**Title:** 🎵 Media player as a two-segment gauge: volume above, position below, both draggable, title and artist scrolling in the centre
+
+**Tags:** feature, media-player, ux
+
+Second and last step of the ring unification: the media player now uses the same segmented gauge as the built devices. Two half-ring segments — position at the bottom, volume at the top — each with its name and current value curved along the outside ("LAUTSTÄRKE 38 %", "POSITION 0:12 / 0:47"). Both carry a white bead as the drag handle: dragging along the ring band sets the value live and sends `volume_set` or `media_seek` on release, and the tab's swipe machinery is held off while dragging. The centre shows title and artist as a marquee (artist still opens the Music Assistant search); the transport buttons stay below. Idle shows one full volume ring with the value in the centre, off a grey ring with "Aus". The single-entity rings (light, cover, switch, sensors …) are untouched, as decided on 2026-09-22.
+
+Gauge additions live in `SegmentedRingGauge.jsx`: `center` (title/artist), `arcValue` on a ring, beads for interactive rings, a drag surface that maps the pointer angle to the segment's value and clamps at the segment edges.
+
+Verified in the dev harness: playing → arc texts "POSITION 0:12 / 0:47" and "LAUTSTÄRKE 38 %", two beads, centre "Bad Guy / Billie Eilish"; a drag on the upper segment sends `volume_set 0.69`, on the lower `media_seek 29`; off → one grey "LAUTSTÄRKE" ring, centre "Aus", no beads. Screenshot checked, no page errors.
+
 ## Version 1.1.2461 - 2026-09-22
 
 **Title:** 🧩 Ring unification, step 1: image and camera heroes live inside the ring; marquee edges fade
