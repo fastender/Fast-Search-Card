@@ -1,5 +1,15 @@
 # Versionsverlauf
 
+## Version 1.1.2463 - 2026-09-22
+
+**Title:** 🧩 One ring navigation: slides and gauge pages share the same arrows, dots and pause — one component
+
+**Tags:** ux, device-builder, cleanup
+
+A built device with a camera hero paged its slides (picture ↔ gauge) with arrows at the panel's edges and a dot pager under the four group buttons, while a gauge with more than four heroes paged its metrics with arrows beside the ring and dots directly under it. Two looks, two code paths. Now there is one: `controls/RingNavigation.jsx` draws ‹ › beside the ring at its mid-height and the dot pager with pause right under the ring, for both cases. The slide deck sits in a ring-sized box (40 px smaller, like a paged gauge, so the pager fits above the buttons), the picture ring and the gauge shrink with it. `HeroNavArrows.jsx` and its CSS are gone; `HeroSlidePager` stays as the shared dots-and-pause piece (the start-screen slider uses it too) and learned the progress duration.
+
+Verified in the dev harness at 1180 × 820: a camera-plus-sensors device and a five-hero device place the arrows at identical coordinates (ring mid-height, just outside the ring) and the pager at identical coordinates between ring and buttons; the right arrow switches to the gauge slide. Screenshots checked, no page errors.
+
 ## Version 1.1.2462 - 2026-09-22
 
 **Title:** 🎵 Media player as a two-segment gauge: volume above, position below, both draggable, title and artist scrolling in the centre
