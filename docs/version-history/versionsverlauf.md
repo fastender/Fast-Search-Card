@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2464 - 2026-09-23
+
+**Title:** 📦 26 KB smaller, nothing visible changed: first package of the size and dead-code audit
+
+**Tags:** performance, bundle-size, cleanup
+
+First release from a full audit of size, runtime, dead code and structure (8 analysts, every finding checked by two independent reviewers, 93 of 119 findings confirmed). This package takes the size wins that change nothing a user can see. The single-file bundle goes from 630 342 to 604 261 bytes gzip (−26 081).
+
+- **Charts:** `chartKern.js` no longer registers the time scale, title and legend plugins — none of them is used anywhere (−5,8 KB).
+- **Dictionaries:** German and English ship as one paired object, every key once (a build-only Vite plugin; `de.js`/`en.js` stay the source). The plugin compares the rebuilt dictionaries with the originals and aborts the build on any difference; 12 715 translation lookups were compared, 0 differences. Three keys missing in English are fixed ("Horizontal swing" instead of the German text), 13 unused keys removed, and the i18n guard now fails when German and English differ in their key set (−6,8 KB).
+- **Squircle tiles:** three hard-coded polygons with 360–430 points each are now generated (96 points, per-axis exponents fitted to the old shapes; largest deviation 0,42 px on a 180 px tile) (−5,0 KB).
+- **Icons:** 234 SVG paths in 33 files rounded to two decimals with a real path tokenizer (every path re-parsed: same commands, same parameter count, ≤ 0,005 deviation); the tab bar reuses the shared tab icons instead of copies; unused random ids in 37 device icons removed (−3,4 KB).
+- **Dead code:** leftovers of the removed printer, marketplace, statistics and help domains; the inert five-second media slide clock (only the one-second position tick while playing remains); an unreachable image branch in the energy layout; the orphaned `DomainControls`; the standalone mode of the sensor chart; six system-entity actions nobody calls; orphaned events; 81 dead `t('x') || 'text'` fallbacks; CSS that only survived because a comment mentioned its class; Vite's preload helper, which does nothing in a single-file build (−5,1 KB together).
+
+Verified: every change reviewed against the pre-release source mirror; all five guards green; the real built bundle loaded in Chrome with a mock Home Assistant — card mounts, to-dos and device detail open through the lazy paths, a sensor history chart draws, settings read correctly in German and English with no raw key paths, 0 page errors. Dev-server smoke run over start screen, detail, settings, calendar, to-dos and media player, also clean.
+
+Found on the way, fixed in a later package: the notification history's date picker still turns "Today" into a free range (the fix from 1.1.2449 was missing there), and the colour-temperature label key does not exist in either dictionary.
+
 ## Version 1.1.2463 - 2026-09-22
 
 **Title:** 🧩 One ring navigation: slides and gauge pages share the same arrows, dots and pause — one component
