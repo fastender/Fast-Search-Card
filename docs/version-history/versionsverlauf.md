@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2465 - 2026-09-23
+
+**Title:** 🌡️ Quieter at rest: endless animations, clocks and extra subscriptions stop when nobody is looking
+
+**Tags:** performance, thermal, cleanup
+
+Second package of the 2026-09-23 audit. Every change was measured before and after with the same probe (Chrome DevTools metrics, timer and frame counters, render counters) and reviewed against the pre-release source.
+
+- **Media player position ring:** a one-second clock met a 1,3-second stroke transition with a drop-shadow filter, so the ring repainted continuously while music played. The position now moves in 0,5 % steps without a transition once the entry animation is done, and the glow is drawn with soft strokes instead of a CSS filter (same look). 10 s of playback: 609 → 12 layouts, 1 218 → 24 paints, 1,07 → 0,15 s main-thread time.
+- **Rest gate for the detail view:** the gauge marquee, entity-id and title marquees, the weather icon float, the ocean fallback and both autoplays (gauge pages every 4,5 s, hero slides every 10 s) now pause when the card rests (island rest, deep rest) or the tab is hidden, and resume at once on wake. At rest: 0 endless animations, 0 timer fires, 0 animation frames. Users with reduced motion keep the autoplay; it is the rest state, not the motion preference, that stops it.
+- **Ocean scene and start-screen slider:** the WebGL ocean kept drawing at 30 fps after the curtain was lifted, and the rich slider flipped every 10 s even under the closed curtain and in deep rest. Both now stop at rest (0 WebGL draws, 0 slide changes) and continue on wake.
+- **Island dimmer:** the dimming layer sat permanently over the whole card as a `backdrop-filter: blur(0px)` layer; in its off state it now has no backdrop filter at all.
+- **Small clocks:** the island's five-second data clock stretches to 30 s in deep rest and runs immediately on wake; the builder entity list only arms its one-second clean-up while an optimistic entry is pending; the island's progress line moves with `transform` instead of animating `width`. The notification clock deliberately keeps running in a hidden tab so a duration alert ("door open for 10 minutes") carries the time it fired, not the time you came back.
+- **Subscriptions:** the to-do watcher no longer scans every entity on every Home Assistant update, and the news feed no longer holds a second, unfiltered subscription to all state changes — both now listen on the card's existing event stream. One `state_changed` subscription instead of two; zero full scans per update.
+- **Builder memo:** the segmented gauge and picture slides re-rendered on every update because their callbacks were recreated each render; they are stable now, and the gauge inside the picture deck pauses while hidden and answers taps like the stand-alone gauge.
+- **Ring dragging:** dragging a light ring sent one service call per notch (211 over a full sweep). Calls are now throttled to one per 200 ms plus a guaranteed final value on release (72, last value = end position); shutters, climate, water heaters and humidifiers send a single call on release; drag calls no longer trigger the success haptic on top of the notch haptic.
+
+Still running while the card is awake: the animated music-note icon pulses its strokes (by design since 1.1.2427, stopped by the rest gate — measured 480 → 2 layouts per 8 s at rest).
+
+Verified: all seven changes reviewed, no objections; all five guards green; the real built bundle loaded in Chrome with a mock Home Assistant (mount, to-dos, device detail, 0 page errors); dev-server smoke run over start screen, playing media player, light ring drag, builder device with picture plus five sensors, to-dos and settings.
+
 ## Version 1.1.2464 - 2026-09-23
 
 **Title:** 📦 26 KB smaller, nothing visible changed: first package of the size and dead-code audit
