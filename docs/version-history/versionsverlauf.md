@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2466 - 2026-09-23
+
+**Title:** 🚀 Lighter start: the changelog no longer downloads 2,8 MB on every page load or fills half of the browser storage
+
+**Tags:** performance, startup, bugfix
+
+Third package of the 2026-09-23 audit — the start path. Measured before and after with the same probes.
+
+- **Changelog fetch:** on every page load the card fetched the whole 2,8 MB changelog from GitHub, parsed it twice and stored the raw text in `localStorage`, where it took 2,8 million of the roughly 5 million characters the Home Assistant page is allowed — other writers (to-do cache, news cache, other cards) could fail silently. Now the start fetches only the first 64 KB (a `Range` request, 206), keeps a parsed short list of at most 50 versions (about 16 000–25 000 characters instead of 2,8 million; the old entry is removed on first start), and skips the fetch entirely within five minutes of the last one. The full list is loaded only when the changelog view is opened and then stays in memory. If a browser refuses the range request, the full file is fetched at most once every six hours. Revalidation only reports real changes. The global content search covers the short list until the view has been opened once, then the newest 500 versions as before.
+- **Changelog list:** opening the view rendered all ~1 280 cards with a staggered entry animation whose last card started after 51 s, keeping an animation loop running for almost a minute. Now 30 cards appear, more load as you scroll or tap "Load more", searches show up to 200 matches, and the stagger is capped. Last DOM change after 1,0–1,9 s instead of 3–4 s; long tasks in the first seconds 4–8 instead of 72–74. The tips list got the same cap.
+- **Changelog tags:** since v1.1.2262 a blank line between title and tags made the parser drop the tags of the ~200 newest versions (and skip two versions); both formats are read now.
+- **News cache:** starting with three feed sensors rewrote the whole article cache three times even with no new articles; now it writes only when articles change (0 writes on an unchanged start, 1 instead of 3 on first start), and the cache is about a fifth smaller.
+- **Remount:** switching dashboards in Home Assistant remounts the card, and every remount kept it invisible for about a second although the boot animation only runs once per page. On a remount the card is now visible after about 40 ms and fully faded in after about 180 ms, and the search panel skips its entry slide; the first load with the boot overlay is unchanged.
+- **Start requests:** device and energy configuration load in parallel instead of one after the other (−200 ms before builder devices appear with a typical latency); the calendar no longer fetches the full entity registry a second time (it reads the registry Home Assistant already provides, including the older `hidden_by` form of HA 2023.1/2023.2); the IndexedDB connection is closed when the card unmounts and a still-running initialisation is dropped; the house chronicle seeds from the last three hours and only loads the rest of the day if that yields too few rows for the tile; a text collator used only by the entity picker is created on first use.
+
+Verified: five changes reviewed (two needed a repair, one follow-up applied by hand), all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant (0 page errors), dev-server smoke run including a start with an old raw-text cache, the changelog widget and tile, the changelog view with paging and search, news, calendar, to-dos and a remount in the same tab.
+
 ## Version 1.1.2465 - 2026-09-23
 
 **Title:** 🌡️ Quieter at rest: endless animations, clocks and extra subscriptions stop when nobody is looking
