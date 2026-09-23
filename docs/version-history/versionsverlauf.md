@@ -1,5 +1,28 @@
 # Versionsverlauf
 
+## Version 1.1.2467 - 2026-09-23
+
+**Title:** 🐞 Nine correctness fixes: to-do states, failed starts, kiosk mode, dictation, stray entities and more
+
+**Tags:** bugfix, stability
+
+Fourth and last package of the 2026-09-23 audit. Every fix was first reproduced with a probe or a Node replay of the real modules, then shown to be gone with the same probe.
+
+- **To-do states:** a local cache overwrote fresh states from Home Assistant — a task reopened in HA stayed ticked in the card, one completed in HA stayed open, and a batch completion jumped back. Home Assistant is now the truth; the cache only fills the search suggestions before the first fetch. The optimistic tick in the view is unchanged.
+- **Failed start:** if Home Assistant data was not ready within ten seconds on the card's first start, a rejected promise was kept forever and builder devices, to-dos, news and the calendar never loaded until the page was reloaded. The card now waits on the data store without a deadline and reads the freshest state.
+- **Stale Home Assistant snapshot:** system views kept the state from the first mount; a builder device created later could get no room. They now read the current state when they need it.
+- **Kiosk mode:** unmounting any card on the page — for example the editor preview — brought the Home Assistant header and sidebar back for the live card. A reference count now removes kiosk mode only when the last card goes.
+- **Dictation:** closing the to-do form while the browser was still asking for microphone permission left the microphone on and streaming to Home Assistant. It is now stopped as soon as the permission resolves.
+- **Stray entities:** after the initial load, the live event stream added every entity the loader had deliberately skipped — no room, hidden, diagnostic, unavailable — to the device list. The stream now applies the loader's rules (new, eligible entities still appear at once); a deep link to a skipped entity still opens it.
+- **Notification history:** "Today" in the date picker made a free range and hid the previous-period arrows; it now returns to the day period like the charts since 1.1.2449.
+- **English labels:** the colour-temperature row pointed at a key that exists in neither dictionary and showed the German fallback; fixed.
+- **CSS name clashes:** spinner, retry button, empty-state icon and two keyframes of different views overrode each other globally; they are scoped to their views now, with the previously shipped spacing and hover look kept explicitly.
+- **Builder:** the hero control window showed values frozen at the moment it opened — it now follows the entity live (at most every 250 ms); the builder's stored fields go through one shared list instead of seven hand-maintained places.
+
+Verified: six changes reviewed (one repaired after the review found a deep-link regression, three small follow-ups applied by hand), all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant (0 page errors), dev-server smoke run over start screen, to-dos with tick and undo, notification history, builder device with live hero window and edit-save, English settings, and two cards on one page with one unmounted.
+
+With this release the 2026-09-23 audit is complete: four packages, bundle 630 342 → 608 671 bytes gzip, the card quiet at rest, a much lighter start and nine bugs fewer.
+
 ## Version 1.1.2466 - 2026-09-23
 
 **Title:** 🚀 Lighter start: the changelog no longer downloads 2,8 MB on every page load or fills half of the browser storage
