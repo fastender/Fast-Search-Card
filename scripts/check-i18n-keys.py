@@ -11,8 +11,14 @@ Erkannt werden:
   translateUI('a.b', …)                      → ui.a.b
   const t = (k) => translateUI(`praefix.${k}`, …)  +  t('c')   → ui.praefix.c
 
+Außerdem (v1.1.2464): de und en müssen DIESELBE Schlüsselmenge haben. Ein nur in
+de stehender Schlüssel fällt im Englischen still auf den deutschen Text zurück
+(so zeigte die englische Oberfläche „Horizontale Oszillation"), und Tabellen-
+Schlüssel ohne Präfix-Helfer sieht die Verwendungsprüfung oben gar nicht.
+
 Aufruf:  python3 scripts/check-i18n-keys.py
-Rückgabe: 0 = alle Schlüssel vorhanden, 1 = mindestens einer fehlt.
+Rückgabe: 0 = alles in Ordnung, 1 = mindestens ein Schlüssel fehlt oder die
+Wörterbücher weichen voneinander ab.
 """
 import re
 import sys
@@ -34,6 +40,14 @@ PROP_PRAEFIXE = {
     # v1.1.2343: Domain-Module bekommen `t` (controls.*) im Kontext des Verteilers.
     'utils/deviceConfigs/': 'controls',
 }
+
+# v1.1.2467: Konfig-Tabellen, deren `labelKey` den VOLLEN Schlüssel trägt (der
+# Leser ruft translateUI(eintrag.labelKey) ohne Präfix). Ohne Eintrag hier sah
+# der Wächter sie nicht — 'controls.colorTemp' stand in keinem Wörterbuch, und
+# die englische Oberfläche zeigte still den deutschen labelFallback.
+VOLLPFAD_TABELLEN = (
+    'src/components/common/domainSettingsConfigs.js',   # DomainSettingsPicker.jsx resolveSettingLabel
+)
 
 
 def lies_schluessel(pfad):
@@ -72,6 +86,11 @@ def sammle_verwendungen():
     for datei in sorted(WURZEL.glob('src/**/*.js')) + sorted(WURZEL.glob('src/**/*.jsx')):
         text = datei.read_text(errors='ignore')
         rel = str(datei.relative_to(WURZEL))
+        if rel in VOLLPFAD_TABELLEN:
+            for nr, roh in enumerate(text.split('\n'), 1):
+                zeile = re.split(r'\s//\s', re.sub(r'^\s*(//|\*).*', '', roh))[0]
+                for treffer in re.finditer(r"\blabelKey\s*:\s*'([\w.]+)'", zeile):
+                    verwendungen.append((treffer.group(1), rel, nr))
         # Dateien ohne eigenen translateUI-Import können ihr `t` als Prop
         # bekommen — dann entscheidet PROP_PRAEFIXE, ob wir sie prüfen.
         if 'translateUI' not in text and not any(o in rel for o in PROP_PRAEFIXE):
@@ -170,11 +189,23 @@ def main():
 
     verdreht = deutsche_reste_im_englischen()
     ohne = sorted(set(ohne_uebersetzer))
-    if not fehlend and not verdreht and not ohne:
+    # v1.1.2464: Strukturvergleich — jede Sprache muss jeden Schlüssel der anderen
+    # haben (sonst greift unbemerkt der de-Rückfall bzw. en zeigt den Pfad).
+    nur_de = sorted(woerter['de'] - woerter['en'])
+    nur_en = sorted(woerter['en'] - woerter['de'])
+    if not fehlend and not verdreht and not ohne and not nur_de and not nur_en:
         gesamt = len(set(k for k, _, _ in sammle_verwendungen()))
         print(f'check-i18n-keys: {gesamt} Schlüssel, alle in de + en vorhanden, '
+              f'de und en gleich aufgebaut ({len(woerter["de"])} Blätter), '
               f'kein deutscher Text in en.js.')
         return 0
+    if nur_de or nur_en:
+        print(f'check-i18n-keys: de und en haben nicht dieselben Schlüssel:\n')
+        for k in nur_de:
+            print(f'  {k}  fehlt in: en')
+        for k in nur_en:
+            print(f'  {k}  fehlt in: de')
+        print()
     if ohne:
         print(f'check-i18n-keys: {len(ohne)} Datei(en) rufen t(\'…\') ohne Übersetzer — zur Laufzeit „t is not defined":\n')
         for rel in ohne:
