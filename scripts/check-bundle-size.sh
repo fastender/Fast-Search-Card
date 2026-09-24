@@ -67,4 +67,14 @@ elif [ "$GZ" -gt "$WARN" ]; then
   echo "⚠️  check-bundle-size: ${GZ} B gzip liegt über der Warnschwelle ${WARN}" >&2
 fi
 
+# v1.1.2468 (B17): logger.debug streicht terser per pure_funcs (vite.config.js),
+# gemessen −2,9 KB gzip. Die Regel vergleicht den NAMEN — heißt die Bindung nach
+# einer Umbenennung durch Rollup (logger$1) oder einem Alias anders, bleiben die
+# Aufrufe still im Bündel. Nichts geht kaputt, nur die Ersparnis fehlt → Warnung
+# auf stderr, kein Abbruch (stdout bleibt die eine Zeile für build.sh).
+DEBUG_ANZ=$( { grep -o '\.debug(' "$DIST_FILE" $CHUNKS 2>/dev/null || true; } | wc -l | tr -d ' ')
+if [ "$DEBUG_ANZ" -gt 0 ]; then
+  echo "⚠️  check-bundle-size: ${DEBUG_ANZ}× '.debug(' im Bündel — greift pure_funcs 'logger.debug' in vite.config.js noch?" >&2
+fi
+
 echo "$ZEILE"

@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2468 - 2026-09-24
+
+**Title:** 🔎 Search forgives typos now — exact matches first, a tolerant fallback only when they come up short; debug logs removed from the release
+
+**Tags:** search, performance
+
+**Search.** The device and content search only ever matched exact substrings: one missing or swapped letter and nothing came back, although the code called itself "fuzzy". It now works in two stages:
+
+- **Stage 1 is unchanged** — the same exact search with the same order. Compared with 1.1.2467 over 202 test searches: identical hits and top-10 order.
+- **Stage 2 runs only when stage 1 finds fewer than three results** and the content search has no exact hit either (so "butter" still shows your to-do first instead of 74 battery sensors). It compares word by word and allows one error from 5 letters and two from 8, including swapped letters; 4-letter words allow one swap only, shorter words stay exact. The first letter must match (or be swapped with the second). Tolerant hits always come after exact ones, rooms with an exact hit are listed first.
+- **Umlauts and spellings:** "kueche", "kuche" and "küche" find the same devices, as do "tuer"/"tür", "heizkoerper", "luefter" or "ß"/"ss". Hyphen, underscore and dot separate words ("led-streifn", "wohnzimmer_stehlmape").
+- **Examples that now work:** "lciht", "thremostat", "fnster", "stelampe", "wohnzmr", "rolladn", "heitzung", "zahnartz" (to-do), "mlich" (to-do "Milch kaufen").
+- **Kept out on purpose:** the domain part of entity IDs ("sensor", "player") is not used for typo matching, so "sonso" finds Sonos instead of 666 sensors; typo matches in content only look at titles, not article text. Known consequence: English type words that only appear in the entity ID ("vacum") are not typo-matched.
+- **Cost:** a search takes 1,5 ms median and at most about 3 ms on 3 000 entities in Node (before: 1,4 / 2,3 ms). The word index is built once in idle time (8 ms on 3 000 entities), never per keystroke. The settings search and the to-do duplicate check are unchanged.
+
+Measured on a test house with 1 498 entities and 540 content items: 112 of 115 test searches pass (before: 73), 0 wrong hits; a second, independent set of 87 reviewer searches: 77 pass, 0 wrong hits.
+
+**Debug logs.** The roughly 130 `logger.debug` calls and their texts are now removed from the release bundle (−3 KB gzip). As a consequence, `localStorage.fsc_debug` no longer prints anything in release builds; debug output is only available in the development server. The build script now warns if a `.debug(` call reaches the bundle. The boot timing marks (`performance.mark`) stay visible in the browser's performance timeline.
+
+Verified: three reviewers (hit quality with their own search set, typing speed, regressions in filters, tabs, keyboard and content groups), eleven findings fixed and re-checked, all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant (0 page errors).
+
 ## Version 1.1.2467 - 2026-09-23
 
 **Title:** 🐞 Nine correctness fixes: to-do states, failed starts, kiosk mode, dictation, stray entities and more
