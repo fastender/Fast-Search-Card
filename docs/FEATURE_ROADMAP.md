@@ -1,7 +1,7 @@
 # Feature Roadmap
 
-**Created:** 2026-05-22 · **Revised:** 2026-06-20
-**Basis:** Versionsverlauf v1.0.0 → v1.1.1924 · 16 session notes · code inspection
+**Created:** 2026-05-22 · **Revised:** 2026-09-24
+**Basis:** Versionsverlauf v1.0.0 → v1.1.2468 (Part eleven and the 2026-09-24 status pass read the code at v1.1.2468) · 16 session notes · code inspection
 **Status:** Proposal, not a commitment. Order and selection are open.
 
 Concrete feature proposals tied to open threads in the session notes, unused HA APIs, and gaps in the existing architecture. Every idea has a real hook somewhere in the current code.
@@ -10,20 +10,20 @@ Concrete feature proposals tied to open threads in the session notes, unused HA 
 
 ## Original ten — status check
 
-The first ten proposals from May 2026 — status refreshed 2026-09-04: one shipped (#3), three partial (#6, #9, #49), the rest open:
+The first ten proposals from May 2026 — status refreshed 2026-09-24: four shipped (#3, #8, #9, #10), one superseded (#2), one dropped (#6), one retired (#7), two re-scoped (#4, #5), one open (#1):
 
 | # | Idea | Status |
 |---|---|---|
-| 1 | LLM conversation | open — mock still in place |
-| 2 | Spotlight / Cmd+K | open |
+| 1 | LLM conversation | open — mock still in place; keep or remove is open decision D1 |
+| 2 | Spotlight / Cmd+K | **superseded** (2026-09-24) — the search field is the palette: scenes, scripts and automations have long been tiles (`subcategoryMap.js:35–37`), contents since v2439 via #8, settings via #46; state words are #70 |
 | 3 | Notification Center system entity | **shipped** — v1.1.2156–2169 (three lanes, center, banner, watches, quiet hours), tests v2199; human sources #58/#28 and the timeline tab #44 built on it in Sept 2026 |
-| 4 | Camera live-view system entity | open |
-| 5 | Floorplan / map view | open |
-| 6 | Energy cost tracking | **partial** — Energy Dashboard polished v1862–1865, cost layer not built |
-| 7 | Routines / modes engine | open |
-| 8 | Global search across system entities | open |
-| 9 | Standby / ambient mode | **partial** — screensaver core v1.1.2369; expansion sliced as #61–#64 |
-| 10 | Calendar: multi-day events + custom RRULE | open |
+| 4 | Camera live-view system entity | **re-scoped** 2026-09-24 (see entry) — still-image slices first; the full system view is open decision D8 |
+| 5 | Floorplan / map view | **re-scoped** 2026-09-24 — registry core (floors, labels) is #79; the drawing surface is out of scope |
+| 6 | Energy cost tracking | **dropped** 2026-09-24 — Energy Dashboard polished v1862–1865, cost layer not built (user decision: no cost layer; the Energy Dashboard question itself is open decision D3) |
+| 7 | Routines / modes engine | **retired** 2026-09-24 — see "Out of scope" |
+| 8 | Global search across system entities | **shipped** — v1.1.2439 |
+| 9 | Standby / ambient mode | **shipped** — screensaver core v1.1.2369, #61–#64 (v1.1.2390–2393), auto brightness v1.1.2445 |
+| 10 | Calendar: multi-day events + custom RRULE | **shipped** — v1.1.1580/1582 (May 2026: `calendar/utils/rrule.js`, spanning bars) |
 
 What got built instead between May and June: **Quick Control** (issue #10), **custom wallpapers + gallery**, **visibility filters**, **Bento list view**, **weather + device_class video backgrounds**, **iOS-style schedule picker rebuild**, and a stack of cross-browser fixes. None of these were on the original roadmap. The roadmap survives — it just got out-prioritised by community-driven work.
 
@@ -51,25 +51,7 @@ What got built instead between May and June: **Quick Control** (issue #10), **cu
 
 ---
 
-### 2. Spotlight / Command Palette (⌘K)
-
-**Pitch:** A second search layer above the entity search — not "find device", but "do thing".
-
-**Status quo:** No action search. Scenes/scripts are grouped per device in the Context tab, but not globally searchable.
-
-**What ships:**
-- Global ⌘K (or long-press on mobile).
-- Examples: "Activate Movie-Time", "Open calendar for tomorrow", "Heating to 21°", "Read latest tip", "Settings → Bento".
-- Sources: scenes, scripts, automations, system-entity actions, settings sub-views, routines (see #7).
-
-**Hook in:** Fuse.js + System-Entity Registry + `actions` property per entity are all already there. Action search = Fuse over a different index.
-
-**Effort:** Small to medium. New `commandRegistry.js`, key binding hook, overlay panel that reuses the existing search styling.
-
-**Files (estimate):**
-- `src/utils/commandRegistry.js` (new)
-- `src/components/CommandPalette.jsx` (new)
-- `src/hooks/useGlobalKeybinding.js` (new)
+### 2. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
@@ -144,7 +126,7 @@ The strip is [#29 Live Activities](#29-live-activities-strip) — this design fo
 - **StatsBar badge** (exists) — count of active, unread, non-snoozed.
 - **Popover** (exists) — grows to show severity colors + snooze.
 - **Notification Center** (new system entity, mirrors News/Todos) — filter + history tab + sidebar item with live badge.
-- **Bento widget** (new) — top-3 unread + count.
+- **Bento widget** (new) — top-3 unread + count. *(2026-09-24: replaced on purpose by the Island, v1.1.2289 — not to be built.)*
 - **Critical banner** — highest active Critical item only, **not** an auto-cycling ticker (that's AlertTicker's identity, deliberately not ours). Shares the liquid-glass banner layer with [#28 Severe Weather Banner](#28-severe-weather-banner). Tap → opens Center.
 
 #### Persistence
@@ -166,7 +148,7 @@ The in-card **Watch authoring** (threshold + hysteresis + the suggestion engine)
 #### Open design questions
 
 - **Climate is dual-natured** (actively heating = Live Activity *and* eligible for a "runs too long" hint) — is showing both on one detail view right, or too busy?
-- **Presence "welcome home"** — does it belong in the notification hints, or is it really [#17 Welcome home animation](#17-welcome-home-animation)? Lean: security-presence → Alert lane here; greeting → #17.
+- **Presence "welcome home"** — does it belong in the notification hints, or is it really #17 Welcome home animation (retired 2026-09-24, see "Out of scope")? Lean: security-presence → Alert lane here; greeting → #17.
 
 #### Effort
 
@@ -263,12 +245,16 @@ not a replacement for an HA automation, and it is not push. 24/7 delivery stays
 
 **Effort:** Small. The discipline (rate limit, quiet hours, mute) is most of it.
 
+*(2026-09-24: still open, and one slice dearer than written — the card's plain-text announcement path knows only the legacy `tts.<platform>_say` services (`musicAssistant.js:664–677`, call `:710`); `tts.speak` with `media_player_entity_id` (modern TTS entities) appears nowhere in `src`. A slice 0 — `tts.speak` first, `_say` as fallback — precedes E3.)*
+
 #### E4 — Flap guard for the alert lane *(robustness, not a feature)*
 
-The watch lane has hysteresis (`nextFiringState`, plus NaN-holds). The **other three alert sources
-do not**: `alert.*`, the danger whitelist and `persistent_notification` re-fire on every transition,
+The watch lane has hysteresis (`nextFiringState`, plus NaN-holds). The **other four alert sources
+do not**: `alert.*`, the danger whitelist, severe weather (`weatherAlertSources.js:113–121`) and `persistent_notification` re-fire on every transition,
 and because ack is instance-bound via `created_at`, a chattering contact produces a fresh unread
 entry each time — badge noise, history spam, and (with E2/E3) repeated sound.
+
+*(2026-09-24: `persistent_notification` has no edges — its `notification_id` is stable — so the guard covers three sources.)*
 
 Add a **per-id minimum re-fire interval** (AlertTicker uses a 10 s window; 30–60 s is more
 appropriate here): within the window a re-fire updates the existing entry instead of creating a new
@@ -308,7 +294,7 @@ room stays readable. Likely a CSS variable on the Island root — but check the 
 The rules engine (operators, Jinja2, AND/OR multi-entity), the 50-theme/3D/vinyl styling, the
 auto-cycling ticker, and card-authored server-side automations. Two borderline items are parked
 rather than rejected: `visible_to` per-user filtering belongs with
-[#15 multi-user profiles](#15-multi-user-profiles), and message placeholders (`{name}`, `{state}`)
+#15 multi-user profiles (retired 2026-09-24, see "Out of scope"), and message placeholders (`{name}`, `{state}`)
 only make sense if users author their own text — which contradicts the "no forms" principle #3 is
 built on.
 
@@ -320,6 +306,8 @@ UX gains, then the two that need care (autoplay policy, speech discipline), then
 ---
 
 ### 4. Camera live-view system entity
+
+> ⤳ **Re-scoped 2026-09-24** — the grid with 5-s snapshot polling and the MJPEG/HLS detail stream below conflict with the heat rule (v2152 froze rotating camera images). New order: #3b E1 (still image on the alert) → a camera domain config (still-image ring, native WebRTC only behind a visibility gate) → the doorbell shows the door on the locked page → only then a view. No poller, no hls.js. Whether the full system view is pursued at all is open decision D8.
 
 **Pitch:** Cameras get their own app-style view with a grid + live stream.
 
@@ -352,6 +340,8 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ### 5. Floorplan / map view
 
+> ⤳ **Re-scoped 2026-09-24** — retired as drawn (image upload, drag editor, coordinates, floors: Large with no groundwork, against the calm Zen start page, and `picture-elements` does it). The registry core — floors and labels the card already holds — is #79. See "Out of scope".
+
 **Pitch:** 2D floor plan of the house with devices as interactive hotspots.
 
 **Status quo:** `areas` is a first-class concept in DataProvider, but there's no spatial visualisation.
@@ -372,6 +362,8 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 ---
 
 ### 6. Energy cost tracking + savings hints
+
+> ✖ **Dropped 2026-09-24** — user decision: no cost layer on the Energy Dashboard. The dashboard itself (polished v1862–1865) stays as it is and is not extended; whether it stays in the bundle at all is open decision D3.
 
 **Pitch:** Turn the existing energy data into real € numbers.
 
@@ -395,26 +387,7 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ---
 
-### 7. Routines / modes engine
-
-**Pitch:** One-click multi-device actions — "Morning Mode", "Movie Mode", "Sleep Mode".
-
-**Status quo:** Today you need to build a scene or script in HA. Authoring in the card directly would lower the bar.
-
-**What ships:**
-- **Mode picker in Sidebar/Bento:** "Morning 🌅" → roll up the blinds, start the coffee, +2° heat.
-- **Schedule integration:** routines triggerable on sunrise/sunset/time/geofence (ScheduleTab + scheduler-component are already there).
-- **Builder UI:** wheel-picker sub-view stack (mirrors `CalendarEventDialog`) → device → action → save.
-- **Persistence:** either IndexedDB-local, or written as HA scripts via the WS API.
-
-**Hook in:** Context tab already shows scenes/scripts per device. A routine is a "virtual script".
-
-**Effort:** Medium. UI builder + execution layer.
-
-**Files (estimate):**
-- `src/system-entities/entities/routines/` (new)
-- `src/components/RoutineBuilder.jsx` (new)
-- `src/utils/routineExecutor.js` (new)
+### 7. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
@@ -445,7 +418,7 @@ Two-way audio via go2rtc backchannel also appears here, and is the same capabili
 
 ### 9. Ambient mode — a fifth *state* of Bento, not a new view *(worked-out design, 2026-07-12)*
 
-> ◐ **Partial — v1.1.2369** (2026-08-27): the pragmatic core shipped as "Screensaver" — after configurable idle the card tidies up (detail/search/windows) and returns to the *locked Zen start page*, which acts as the ambient face. The full fifth-state design (ambientStore, dimming, data-ambient choreography) remains open — the remainder is sliced into shippable steps as **#61–#64** (Part nine, 2026-08-27).
+> ✅ **Shipped** (marker set 2026-09-24) — the pragmatic core shipped as "Screensaver" in v1.1.2369 (after configurable idle the card tidies up and returns to the *locked Zen start page*, which is the ambient face), the remainder as **#61–#64** (v1.1.2390–2393: deep rest, wake sources, display handoff, photo frame) and auto brightness (v1.1.2445). The purpose of the design below is met by the locked Zen page; Phase 2 (glass skin on widgets) is retired.
 
 **Pitch:** After X min idle, a wall tablet drifts into a calm, glanceable ambient face — big clock, a few quiet tiles, the one live activity, a notification count — and wakes on touch.
 
@@ -484,7 +457,7 @@ A subtle slow drift transform on the whole ambient cluster (CSS keyframe, ~20–
 
 #### Optional Phase 2 — the calm glass skin (the one thing that touches widgets)
 
-Today the tiles are **vivid colored** (`SLIDER_GRADIENTS`). To get the Apple-glass calm look (rather than a merely *dimmed* dashboard), the widgets need a skin mode: a `variant="ambient"` / `data-skin` on the `BentoRich*` components that renders them as unified frosted glass instead of blue/orange/yellow. **Not required for v1** — v1 can just dim the existing vivid tiles. This is the only part that edits widget styling, and it **couples cleanly to [#35](#35-liquid-glass--global-surface-system)** (Liquid Glass on more surfaces).
+Today the tiles are **vivid colored** (`SLIDER_GRADIENTS`). To get the Apple-glass calm look (rather than a merely *dimmed* dashboard), the widgets need a skin mode: a `variant="ambient"` / `data-skin` on the `BentoRich*` components that renders them as unified frosted glass instead of blue/orange/yellow. **Not required for v1** — v1 can just dim the existing vivid tiles. This is the only part that edits widget styling, and it **couples cleanly to #35** (Liquid Glass on more surfaces; retired 2026-09-24, see "Out of scope").
 
 #### Three ambient-native widgets (new, small — the only new render pieces)
 
@@ -525,6 +498,8 @@ Small–medium, in slices: **(1)** `ambientStore` + `useIdleDetection` + `data-a
 ---
 
 ### 10. Calendar: multi-day events + custom RRULE editor
+
+> ✅ **Shipped v1.1.1580/1582** (May 2026) — RRULE editor (`calendar/utils/rrule.js`) and multi-day spanning bars. BYSETPOS stays out on purpose. Marker added in the 2026-09-24 status pass.
 
 **Pitch:** Two gaps in the Calendar system entity that ship under "polish".
 
@@ -604,121 +579,39 @@ A second batch shaped by what shipped in the last four weeks (Quick Control patt
 
 ---
 
-### 14. Plant care widget
-
-**Pitch:** Track watering and fertilising schedules per plant. Photo of the plant on the widget, days-until-next-water as a pill, tap to mark done.
-
-**Why it works:** Nicheable but high-emotional. People with houseplants are obsessive, and there's no good HA solution today.
-
-**What ships:**
-- System entity `plants` with per-plant configs (name, photo, water-every-N-days, fertilise-every-N-days, last-done timestamp).
-- Bento widget: photo + countdown to next action.
-- Detail view: full plant list, log of past care, optional integration with `sensor.*` for soil-moisture readings.
-- Optional companion: Plant Care HACS integration (already exists, the card just reads its state).
-
-**Effort:** Small to medium. No HA-side magic required.
+### 14. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 15. Multi-user profiles
-
-**Pitch:** Different family members get different views. Sarah's favourites aren't Mike's. Their schedules aren't either.
-
-**Status quo:** HA already has `person.*` entities and user accounts. The card treats every viewer as the same.
-
-**What ships:**
-- Settings → Profile picker (auto-detected from HA user, or manual switcher).
-- Per-profile: favourites, default tab, sidebar layout, hidden domains, wallpaper.
-- Privacy: each profile's data lives under its own localStorage namespace.
-- Bento widget: "Who's home" panel showing each `person.*` state + last-seen area.
-
-**Effort:** Medium. Touches almost every settings consumer. Worth it for households with multiple HA users.
+### 15. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 16. Lighting Scene DJ
-
-**Pitch:** Drag an image onto the card → it extracts the dominant colors → you assign each color to a light. Save as a scene.
-
-**Why it's strong:** Visceral. The kind of feature that gets shared in screenshots. Solves a real problem (matching room lighting to album art, photos, paintings).
-
-**What ships:**
-- Drag-and-drop image area in the Lighting view.
-- Auto color extraction (k-means in a Web Worker, ~30 lines of code).
-- Pick which color goes to which RGB-capable light.
-- "Save as scene" → writes a normal HA scene the user can call anywhere.
-
-**Effort:** Small. Image processing is well-trodden ground; HA scene-write is a single service call.
+### 16. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 17. Welcome home animation
-
-**Pitch:** When `person.{you}` flips from `away` to `home`, the card runs a 5-second personal animation. Greeting, weather, "your last calendar event is in 2 hours". Smooth, ambient, optional.
-
-**Status quo:** Person state change is already an event the card can subscribe to. Nothing currently reacts.
-
-**What ships:**
-- Toggle per profile.
-- Animation sequence customisable: "Hello, {name}", weather glance, next event, energy headline.
-- Runs once per state change, not per render.
-- Auto-dismisses after 5–10 s or any interaction.
-
-**Effort:** Small. Animation primitives are all already there (Framer Motion).
+### 17. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 18. Bin / waste schedule widget
-
-**Pitch:** Which bin goes out tomorrow? A widget that knows.
-
-**Why it ships:** Universal pain. Every household has this. No HA-native solution that's not a hack.
-
-**What ships:**
-- Settings → Add bins → each bin has a color, a name, a recurrence pattern (weekly, bi-weekly, "every second Monday").
-- Bento widget: tonight's or tomorrow's bins as colored pills.
-- Optional integration with municipal waste-collection iCal feeds (parse once a year, store dates).
-- Push notification 2 hours before pickup time.
-
-**Effort:** Small. The infrastructure to schedule things is in ScheduleTab already.
+### 18. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 19. Time-lapse camera roll
-
-**Pitch:** Capture one frame from a camera every N minutes. At the end of the day, stitch them into a 10-second time-lapse. Auto-saved per day, browse the calendar of time-lapses.
-
-**Why it's strong:** Showy. People love this for security cams, baby monitors, weather cams, garden cams.
-
-**What ships:**
-- Per-camera "Enable time-lapse" toggle.
-- Background capture via `camera.snapshot` service.
-- Daily ffmpeg-in-browser (via wasm) compilation.
-- Calendar of time-lapses, scrub to a date, play.
-
-**Effort:** Medium to large. ffmpeg.wasm is heavy (~25 MB), but lazy-loaded. The capture loop is trivial.
+### 19. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 20. Birthday + anniversary hub
-
-**Pitch:** Family dates that surface at the right moment. Bento widget shows the next one, full view lists everyone, calendar integration writes them into your real calendar.
-
-**Why it ships:** Sentimental, sticky, high-emotional. People remember the card on important days.
-
-**What ships:**
-- System entity `dates` with per-person entries (name, photo, type, recurring date).
-- Bento widget: next date as a hero card.
-- Auto-generates calendar events with auto-set yearly RRULE.
-- Optional: 7-days-before push notification.
-
-**Effort:** Small. Calendar already does the heavy lifting; this is a UI layer + a list.
+### 20. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
 ## Part three — parallel track: localization
 
 ### 21. Localization expansion
+
+> ⏸ **Dormant** (2026-09-24) — v1.1.1381 deleted eight language files ("only DE+EN"). A runtime-loading path is built only when a community PR exists; "start with Dutch" below is the May 2026 view.
 
 **Pitch:** Translate the card from two languages to ten. Start with Dutch (community request, second-largest HA market after Germany).
 
@@ -785,8 +678,8 @@ A first-party `fast-search-card` integration would be the third companion — br
   - Sketchpad sync (store path data, broadcast updates)
   - Notification history (toast persistence beyond browser cache)
   - Predictive-suggestion training data (opt-in cross-device pattern learning)
-  - Sensor-roll / time-lapse storage (#19)
-  - Multi-user profile persistence (#15)
+  - Sensor-roll / time-lapse storage (#19, retired 2026-09-24)
+  - Multi-user profile persistence (#15, retired 2026-09-24)
 - Submitted for Core inclusion once Bronze-level coverage is in place.
 - Long-form documentation, including the migration path from "card-only" to "card + integration".
 
@@ -818,60 +711,21 @@ So this integration should **not** grow a chore system. That ground is well cove
 
 Synthesised from a research pass across r/homeassistant, the HA community forum, the top custom-card repos (Mushroom, Bubble, Button-Card, mini-graph-card, mini-media-player, Power Flow Card Plus, Tile), HA Core 2025–2026 release notes, and the Apple Home ecosystem. Each idea references a concrete source; none overlap with #1–#22.
 
-### 23. Card Picker Suggestion Provider
-
-**Pitch:** Make Fast Search Card the smartest entry in HA's native card picker. When a user picks a light or sensor, our card shows up with three variants pre-configured.
-
-**Status quo:** HA 2026.6 shipped `window.customCards.getEntitySuggestion(hass, entityId)` for exactly this. No mainstream custom card has opted in yet.
-
-**What ships:**
-- Register a suggestion provider returning up to three variants per domain: Bento tile, Quick Control switch, full-search variant.
-- Per-domain heuristics: lights → Quick Control, numeric sensors with `state_class` → chart variant, covers → tile with feature row.
-- Variant labels in user's language.
-
-**Effort:** Small. Thin adapter over existing config presets.
-
-**Why it fits:** Positions the card as a first-class citizen in HA's own dashboard editor — discoverable without HACS hunting.
+### 23. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 24. Quick Search Bridge (⌘K interop)
-
-**Pitch:** HA's native Quick Search opens our card; our card hands results back. Two search-first surfaces, one muscle memory.
-
-**Status quo:** HA 2026.2 introduced Quick Search (⌘K) with Navigate / Commands / Entities / Devices / Areas categories. Plus My-link URL shortcuts. Our existing Spotlight roadmap entry (#2) was inside the card; this is the interop layer.
-
-**What ships:**
-- Detect native Quick Search opening, surface the card's index as an extra category.
-- Emit My-style deep links (`/lovelace/...?fsc=entityId`) so navigation lands focused on a specific item.
-- Optional setting: "Replace ⌘K with Fast Search Card" — window-level interceptor scoped to the card's view.
-
-**Effort:** Medium.
-
-**Why it fits:** Two competing palettes confuse users. The card already is search-first; integrating with HA's own palette closes the loop.
+### 24. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
-### 25. Per-card gesture mapper
-
-**Pitch:** Bind tap, double-tap, hold, swipe-up/down/left/right to actions on every card. Per-domain defaults, user-overridable.
-
-**Status quo:** [Actions Card](https://github.com/nutteloost/actions-card) wraps cards with this. Bubble Card issues [#17](https://github.com/Clooos/Bubble-Card/issues/17) and [#63](https://github.com/Clooos/Bubble-Card/issues/63) are both high-reaction. Quick Control already does the icon layer; this extends to the whole tile.
-
-**What ships:**
-- "Gestures" sub-view per device.
-- Bindings: tap, double-tap, hold, swipe-up/down/left/right.
-- Action picker reuses existing service-call / scene / script chooser.
-- Per-domain defaults (light swipe-up = brighter).
-- Tiny indicator dots when gestures are bound (quiet, discoverable).
-
-**Effort:** Medium.
-
-**Why it fits:** The card owns its tile renderer. Cleaner here than in HA Core, which has to fight sections-view drag handles. visionOS gestures are already part of the design language.
+### 25. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
 ### 26. Room Card — the unfulfilled Mushroom request
+
+> ⤳ **Re-scoped 2026-09-24** — retired as a tile (the room head with temperature, humidity, active count and tap-to-filter has been in the result list since v2051/2055/2079; a mini graph on the start page would be a long-runner in rest; four slots). The honest remainder — the context tab using `device_id`, `area_id` and `search/related` instead of name guessing — is #83. See "Out of scope".
 
 **Pitch:** A single tile for an entire room: name + temperature + occupancy header, then conditional chips for active devices (light on, media playing, door open), then a 12-hour mini-graph.
 
@@ -891,6 +745,8 @@ Synthesised from a research pass across r/homeassistant, the HA community forum,
 ---
 
 ### 27. Vacuum Room-Map Picker
+
+> ✅ **Shipped v1.1.1954/1956** — `vacuum.js:57–66` CLEAN_AREA gate, `VacuumAreaPicker.jsx`; fixes v1.1.2403/2427. Marker added in the 2026-09-24 status pass. Open: "re-clean last selection" (`VacuumAreaPicker.jsx:25` keeps the selection only locally, `:78` clears it) — Small.
 
 **Pitch:** Tap rooms on the vacuum's detail view to dispatch it, using HA's native segment-to-area mapping.
 
@@ -941,6 +797,8 @@ Effort stays small; the only new UI is the picker row.
 ### 29. Live Activities strip
 
 > ✅ **Shipped v1.1.2161** (strip above the Bento grid: timer/vacuum/cover/media/script/automation, hold-then-prune, tap → device), **v1.1.2164** (per-source settings incl. opt-in light/switch/climate), **v1.1.2205** (the "Live" tab of the Notification Center shares the source). Marker added in the 2026-09-04 status pass. Open from the sketch: long-press stop/cancel, non-Bento placement.
+>
+> *(2026-09-24: the strip above the Bento grid was deleted in v1.1.2171 — the Island is the surface, so "non-Bento placement" is moot. Stop/cancel on the live capsule would reverse v2204/v2205 ("live rows have no action buttons") and is open decision D6, not a leftover.)*
 
 **Pitch:** A horizontal "Live" strip above the grid for any automation, script, timer, or vacuum currently in a non-idle state.
 
@@ -959,6 +817,8 @@ Effort stays small; the only new UI is the picker row.
 ---
 
 ### 30. Backup Status Widget
+
+> ⤳ **Re-scoped 2026-09-24** — no tile (admin topic, four slots). Instead a seventh alert-lane source: backup failed/overdue only, not `update.*` (INFO counts into the Island's ℹ button, `islandState.js:18–24`; `update.*` is a default exclusion).
 
 **Pitch:** A Bento tile that shows next/last backup, lets you run one or browse the catalog.
 
@@ -994,21 +854,7 @@ Effort stays small; the only new UI is the picker row.
 
 ---
 
-### 32. Adaptive Lighting Visualizer
-
-**Pitch:** Show the 24-hour color-temperature curve for any light, with a draggable "now" dot for instant override.
-
-**Status quo:** HomeKit Adaptive Lighting is the well-known pattern. HA's `adaptive_lighting` and `circadian_lighting` integrations have devoted users but no card surfaces the curve. Different from Lighting Scene DJ (#16) — that's creative/scene-driven; this is circadian/temporal.
-
-**What ships:**
-- For any light with `color_temp_kelvin`: 24-hour curve at the bottom of the detail view.
-- Draggable dot = "now" + override.
-- Toggle "Follow circadian curve" — wires to `adaptive_lighting` if installed, else writes a generated schedule.
-- Reuses the existing Chart.js stack with a horizontal Kelvin gradient as the axis fill.
-
-**Effort:** Medium.
-
-**Why it fits:** The card is already visionOS-glass with warm-to-cool gradients in its surface chrome. The chart literally renders the wallpaper's own tonal axis.
+### 32. *(retired 2026-09-24 — see "Out of scope")*
 
 ---
 
@@ -1026,11 +872,13 @@ Effort stays small; the only new UI is the picker row.
 
 **Effort:** Medium.
 
-**Why it fits:** Closes a long-standing UX gap. Combined with #23 + #24, the card becomes natively addressable from the rest of HA.
+**Why it fits:** Closes a long-standing UX gap. Combined with #23 + #24 (both retired 2026-09-24), the card becomes natively addressable from the rest of HA.
 
 ---
 
 ### 34. Strategy Mode — first-run dashboard generator
+
+> ⤳ **Re-scoped 2026-09-24** — the empty state this entry targets no longer exists (Zen start since v1.1.2225, four default slots). Remainder: defaults chosen from what exists (only with a real first-run marker) and empty states that name their precondition.
 
 **Pitch:** A single tap in Settings: "Generate dashboard from my Home Assistant setup". Walks the area/device/label registry and produces a configured Bento + Search layout.
 
@@ -1051,6 +899,8 @@ Effort stays small; the only new UI is the picker row.
 
 ## Quick-priority matrix (all batches)
 
+> ⚠ **Out of date since 2026-09-24** — the quick wins listed here are shipped, #23/#24 are retired, #34 is re-scoped, #2/#24 superseded; the recommendations below are the mid-2026 view and are kept as history. For the current picture see Part eleven; the recommended next slices are #3b E4 → #69 B → #69 A → #72 S1 → #3b E1 (first slice: still image on the alert).
+
 | Bucket | Ideas | Why |
 |---|---|---|
 | **Quick wins — small effort, high daily value** | #2 ⌘K · #8 Global search · #16 Lighting DJ · #20 Birthday hub · #23 Card Picker Suggestion · #27 Vacuum room-map · #28 Severe weather banner · #29 Live Activities strip · #30 Backup widget · #44 House Timeline · #45 Entity-based device builder · #47 Weather in calendar · #50 Video doctor · #51 Diagnostics · #53 Calendar groups · #65 Todos search + person · #66 Dictate a task · #67 Overdue collapse · #68 Stale-build banner | Existing infrastructure, clear daily payoff |
@@ -1058,6 +908,8 @@ Effort stays small; the only new UI is the picker row.
 | **High visibility, large effort** | #4 Camera · #5 Floorplan · #7 Routines · #12 Voice · #19 Time-lapse · #21 Localization (parallel) · #22 Companion (long-term) | Marketing-worthy, require new subsystems or different tracks |
 
 ### Recommended starting points (mid-2026)
+
+> ⚠ **Out of date since 2026-09-24** — #11 is still open, but #23 is retired, #26 re-scoped (→ #83), #34 is re-scoped and the #2+#8+#24 bundle is superseded (#8 shipped, #2/#24 retired). See Part eleven; the recommended next slices are #3b E4 → #69 B → #69 A → #72 S1 → #3b E1 (first slice: still image on the alert).
 
 **Flagship:** **#11 Sketchpad** — still the most differentiated single feature on the list. Viral demo potential, one commit, no new subsystem.
 
@@ -1088,6 +940,27 @@ Ideas that came up but didn't make either batch:
 - **Custom groups parallel to areas** — sensible, but niche.
 - **AR view (point phone at light, see info)** — neat, but device-specific and brittle on Android.
 - **#13 Daily briefing widget** *(dropped 2026-09-16, was "Part two")* — a morning surface with greeting, weather, first event and an energy anomaly. The Zen start page overtook it: clock and date, the status line with current weather and power, the greeting, and the rotating context line of #57, plus #58b evening-before all-day reminders, the #28 severe-weather banner and the #44 chronicle. What was left — a second forecast line and an overnight summary — did not justify a surface of its own. The number stays retired; later ideas keep counting from #68.
+- **#2 Spotlight / Command Palette** *(retired 2026-09-24, was "Part one")* — a second search layer for "do thing". The one search field became that layer: scenes, scripts and automations have long been tiles (`subcategoryMap.js:35–37`), contents through #8 since v2439, the card's own settings through #46. No ⌘K/Ctrl-K shortcut exists in the code (the only key combination is Alt+A for the AI mode, `searchEventHandlers.js:222`) and the target is touch. What is left — state words ("licht an", "was ist offen") — is #70; settings as a sixth content source is the #46 remainder.
+- **#5 Floorplan / map view** *(retired as drawn, re-scoped)* — image upload, drag editor, coordinates, floors: Large with not one line of groundwork, against the calm Zen start page, and `picture-elements` does it. The registry core — floors and labels the card already holds — is #79.
+- **#7 Routines / modes engine** *(retired)* — a second rule editor next to Home Assistant; the card stays a reader (#3, #54). A "script fields as a form" remainder was checked and rejected: the fields live in `hass.services`, not in attributes, and rendering HA's selector zoo is a form framework.
+- **#14 Plant care widget** *(retired)* — never built; the recurring chore is a to-do with #67's rhythm, the plant with photo and moisture sensor is a builder device (#45). `plant.*` is a legacy domain; the common HACS variant ships `sensor.*`. A one-hour cosmetic fix in the fallback only on request.
+- **#15 Multi-user profiles** *(retired)* — a shared wall tablet has one screen for everyone; the family is modelled through person lanes and person lists without switching. "Who is home" is #71.
+- **#16 Lighting Scene DJ** *(retired)* — no hook for colour extraction or drop; "save as scene" needs `scene.create` (volatile) or the config write path the card refuses.
+- **#17 Welcome home animation** *(retired)* — wake sources (#62), greeting and context line (#57) are the welcome. The one leftover — the name of the person arriving in the greeting — is a slice of #71.
+- **#18 Bin / waste schedule widget** *(retired)* — #58b announces tomorrow's all-day events the evening before, #54 shows them as a day chip; a tile would sit under the Zen curtain, invisible in rest. The context-line sentence "Morgen: Restmüll" is #72 S3.
+- **#19 Time-lapse camera roll** *(retired)* — ffmpeg.wasm against single-file delivery, a capture loop against "zero long-runners in rest", writing files is a server part (#22).
+- **#20 Birthday + anniversary hub** *(retired)* — a second data store next to the calendar. The 🎂 rule, the yearly RRULE and #58b cover the core; the countdown "In 3 Tagen: Oma" is #72 S2.
+- **#23 Card Picker Suggestion Provider** *(retired)* — the card is configuration-free (`build.sh:366` returns `{type}` only); HA's documentation asks for `null` when a card does not fit the entity, so any suggestion would be noise. Reconsider only if #33 ever adds an `entity` config key.
+- **#24 Quick Search Bridge** *(retired)* — no public API to feed HA's palette; `show-dialog` without `dialogImport` fails until the Quick Bar was opened once in the session (on a wall tablet: never); the trigger event is gated to admins and the keyboard.
+- **#25 Per-card gesture mapper** *(retired)* — the gesture budget is spent: 1-s hold (`QuickControlIcon.jsx:20`), 500-ms long-press (`useMehrfachauswahl.js:10`), swipe for carousel and back.
+- **#26 Room Card** *(retired as a tile, re-scoped)* — the room head with temperature, humidity, active count and tap-to-filter has been in the result list since v2051/2055/2079; a mini graph on the start page would be a long-runner in rest; there are four slots. The honest remainder — the context tab using `device_id`, `area_id` and `search/related` instead of name guessing — is #83.
+- **#32 Adaptive Lighting Visualizer** *(retired)* — niche (`*adaptive_lighting*` is excluded by default), writing a schedule is a server part, the light ring is untouchable.
+- **#35 Liquid Glass → global surface system** *(retired)* — regardless of the keep/remove decision on the library, nested blur roots violate the heat and glass rules (audit B24).
+- **#37 Glass-capability probe** *(retired)* — two independent probes; a capability line in About belongs to the glass decision, not to a module.
+- **#39 Context-aware auto-tab** *(retired)* — the media_player case is a no-op (Controls is always tab 0), the schedule case needs a WebSocket scan per open, and sensor → History changes the ring first-look. At most an opt-in "open sensors on History" (1.5 h; `DetailViewWrapper.jsx:394` `initialTab ?? rule`).
+- **#41 Video-background seam beyond the detail view** *(retired)* — video loops on tiles are constant load; the ocean widget (revealed only) and the photo frame hold the role.
+- **#43 Generic settings-bus consolidation** *(retired)* — the premise is gone: the generic `settingChanged` sender was removed in v2428; `broadcastSetting` + `createSettingsStorage` + the B49 sweep are the pattern. Seven raw `dispatchEvent` calls remain as audit refactor.
+- **#40 Glass presets** *(conditional)* — stays only if Liquid Glass is kept; then Small.
 
 ---
 
@@ -1095,31 +968,19 @@ Ideas that came up but didn't make either batch:
 
 A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan, GitHub-issue sweep, docs reconciliation) after the Liquid-Glass sprint and Perf-Batch-5. Unlike #1–#34 (feature acquisition), most of these **continue existing momentum or activate mechanisms already half-built in the code** — cheaper and lower-risk than net-new subsystems. Each has a verified hook.
 
-### 35. Liquid Glass → global surface system
-
-**Pitch:** Extend the glass material past the one mobile bottom-sheet it lives on today. Desktop detail panel, `SearchSidebar` popup, `StatsBar`, Bento widget chrome.
-
-**Hook (verified):** v2086 built `useLiquidGlassSettings` *explicitly* "reusable if more surfaces get glass later"; today only `DetailRightSheet.jsx` renders `<Glass>`. The versionsverlauf names this as the literal next step. `LIQUID_GLASS_DEFAULTS.enabled = true` already, so the toggle plumbing is done.
-
-**Effort:** Medium. **Caveat:** every new surface needs the browser-matrix check (see #36) — glass quirks are the #1 historical bug source.
+### 35. *(retired 2026-09-24 — see "Out of scope")*
 
 ### 36. Playwright-WebKit smoke + visual-regression harness (closes QUALITY Gap 1)
 
-> ◐ **Partial — v1.1.2191 onward**: a committed Playwright harness exists (`tests/harness/card.js` mock-hass mount + 111 serial Chromium tests covering every visible surface, ~8 min) and WebKit is installable locally for one-off checks. Not built: the cross-engine visual-regression assertions for the glass regressions named below. Marker added in the 2026-09-04 status pass.
+> ◐ **Partial — v1.1.2191 onward**: a committed Playwright harness exists (`tests/harness/card.js` mock-hass mount + 107 tests in 13 spec files covering every visible surface, ~8 min; `tests/` committed since v2191, last change v2317; `playwright.config.js:9–11` fixes "Chromium only" on purpose) and WebKit is installable locally for one-off checks. Not built: the cross-engine visual-regression assertions for the glass regressions named below. Marker added in the 2026-09-04 status pass.
 
 **Pitch:** Turn the ad-hoc WebKit tooling into a committed test suite. Boot the card with a mock hass, open the detail view per domain, screenshot across Chromium+WebKit, assert the known glass regressions ("blur flat during transform", "nested backdrop-filter", "url() filter WebKit-only") don't reappear.
 
-**Hook (verified):** `playwright ^1.61.1` is already in devDependencies (added for the v2091 WebKit refraction verification) but there is **no committed `tests/` dir** — it's thrown away after each use. The dev-mode mock-hass harness (v2082) is the fixture. This is the *only* idea that closes **QUALITY.md Gap 1** (automated tests — the single blocker for Bronze/Silver/Gold-equivalent) **and** the recurring glass-QA pain in one move.
+**Hook (verified):** `playwright ^1.61.1` is already in devDependencies (added for the v2091 WebKit refraction verification) but there is **no committed `tests/` dir** — it's thrown away after each use *(2026-09-24: no longer true — `tests/` is committed since v2191; bringing the suite up to v2468 is open decision D4)*. The dev-mode mock-hass harness (v2082) is the fixture. This is the *only* idea that closes **QUALITY.md Gap 1** (automated tests — the single blocker for Bronze/Silver/Gold-equivalent) **and** the recurring glass-QA pain in one move.
 
 **Effort:** Medium (4–8 h for the first critical-path + visual suite, per QUALITY.md's own estimate). **Highest strategic leverage on the list.**
 
-### 37. Glass-capability probe + central degradation
-
-**Pitch:** One feature-probe utility (`glassCapabilities.js`) the whole codebase reads from, instead of re-discovering browser limits live.
-
-**Hook (verified):** the recurring saga — v2026–2041 (nested blur impossible in Chromium), v2054 (opacity over backdrop-filter), v2057 (`will-change` kills rounded clip), v2064 (blur dies during transform), v2089 (WebKit no `url()` filter). `supportsLiveBend` in `liquidGlassSettings.js` is the seed — generalize it.
-
-**Effort:** Small.
+### 37. *(retired 2026-09-24 — see "Out of scope")*
 
 ### 38. Deep-link addressing layer (consolidate the scattered seams)
 
@@ -1127,17 +988,15 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 **Hook (verified):** `initialTabName`/`onInitialTabConsumed` (v2082, DetailView) has exactly **one caller** and no source that passes a tab; `window.__pendingSettingsTab` (`SearchField.jsx:365`) and the `window.__pendingNewsArticleId` pattern are parallel ad-hoc deep-links. Unifying them is the internal-seam groundwork for #33 (hash routing) — but grounded in code that already exists.
 
+*(2026-09-24: today `SearchField.jsx:386`; seven `window.__pending*` families with ten setters; the expiring pattern exists twice (`sucheStore.js:22`, VersionsverlaufView 15 s). Refactor backlog, not roadmap.)*
+
 **Effort:** Medium.
 
-### 39. Context-aware auto-tab (activates the dormant #38 seam)
-
-**Pitch:** Open a playing `media_player` → land on Controls; a `sensor` → land on History; a device with an active schedule → hint Schedule.
-
-**Hook (verified):** `initialTabName` is fully wired end-to-end (v2082) but **has no live caller**. This gives it one, for real daily value, at tiny cost.
-
-**Effort:** Small.
+### 39. *(retired 2026-09-24 — see "Out of scope")*
 
 ### 40. Glass presets (Frosted / Clear / Vibrant)
+
+> ⏸ **Conditional** — stays only if Liquid Glass is kept (open decision D2); then Small.
 
 **Pitch:** Named one-tap presets that set all glass sliders at once.
 
@@ -1145,13 +1004,7 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 **Effort:** Small.
 
-### 41. Video-background seam beyond the detail view
-
-**Pitch:** Reuse the domain-video-loop pipeline (incl. Safari refract) on Bento hero widgets / active-device tiles.
-
-**Hook (verified):** `getEntityVideoUrl` (`utils/videoHelpers.js`) is a complete pipeline consumed at exactly **one** site (`DetailView.jsx`). No Bento/card consumer.
-
-**Effort:** Small to medium.
+### 41. *(retired 2026-09-24 — see "Out of scope")*
 
 ### 42. Fix `DeviceCard.isEntityActive(device)` always-false bug
 
@@ -1160,6 +1013,8 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 > ✅ **Shipped v1.1.2440** (2026-09-18) — resolved domain by domain. The fallback now passes `(state, domain, attributes)`. Measured over 43 domain/state cases: the raw fix changed eleven; six are kept on purpose (vacuum cleaning and returning, alarm panel armed and triggered, timer active, valve open — the device is doing something, like a light that is on), five are held at the old result by explicit branches with a reason each (lock unlocked — the icon treats *locked* as on; vacuum docked; automation and script "triggered in the last five minutes"; person at home). All other 32 cases keep class and actual background colour.
 >
 > ⏸ **Deliberately kept** *(history — resolved 2026-09-18, see above)* (decision recorded in the 2026-06-25 cleanup audit, reaffirmed 2026-09-04): the surrounding card styling leans on the always-false result, and the v1704 fix had to be reverted in v1705. It stays on the list as "small fix, medium per-domain visual verification" — not forgotten, just not free.
+>
+> ◐ **Open remainder (2026-09-24)** — the room-head counter (`GroupedDeviceList.jsx:353–355`), the category bar (`SubcategoryBar.jsx:19`) and the Island roll (`subcategoryMap.js:73`) call `isEntityActive` unfiltered: a docked vacuum counts as "Reinigung aktiv" (`helpers.js:222`), and system views report `active`.
 
 **Pitch:** Not a feature — a verified latent bug worth a slot per the "cleanups find real bugs" pattern (SolarCarousel, initialTabName, dev-mode blank).
 
@@ -1167,15 +1022,11 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 **Effort:** Small fix, medium verification.
 
-### 43. Generic settings-bus consolidation
-
-**Pitch:** Collapse ~24 per-event `broadcastSetting('xxxChanged')` duplications onto the generic `settingChanged` bus that already exists.
-
-**Hook (verified):** `broadcastSetting('settingChanged', {key,value})` has **one producer** (`system-entities/entities/settings/index.js:85`) and **no dedicated listener** — every consumer subscribes to a specific event name instead. The generic bus is built but verpufft.
-
-**Effort:** Medium (touches many consumers — do incrementally).
+### 43. *(retired 2026-09-24 — see "Out of scope")*
 
 ### Recommended next three (momentum-aware)
+
+> ⚠ **Out of date since 2026-09-24** — #35 is retired and #40 is conditional on open decision D2; #36 is open decision D4 (tests only on explicit request). Kept as the July 2026 view.
 
 1. **#36 Playwright harness** — closes the single biggest quality gap *and* the recurring glass-QA cost; the tool is already installed. Do this before widening glass (#35).
 2. **#35 Liquid Glass global surfaces** — the natural continuation of the last 11 releases; gated behind #36's browser matrix.
@@ -1288,7 +1139,7 @@ Route one is almost certainly right for a first version; route two is the optimi
 
 ### 46. Search your own settings
 
-> ✅ **Phase 1 shipped v1.1.2419** (2026-09-14) — a search field at the top of all four settings tabs (General, Appearance, Filter, About) with a result list across tabs; a tap switches tab, opens the sub-page, scrolls the row into view and marks it. Matching covers label + subtitle, the section's info text, option values and keys (dictionary keys and storage paths). The index is an explicit register (`SettingsTab/register/`, 174 entries) guarded by `scripts/check-einstellungs-register.mjs` in pre-commit and `build.sh`, as proposed below. Deviations from the sketch: results replace the tab content instead of filtering sections in place — the settings are a stack of sub-pages, not collapsible sections, so "auto-expand" becomes "jump and mark"; rows hidden behind a switch mark that switch instead. **Phase 2 shipped v1.1.2420:** the settings of Calendar, To-dos and News are in the register (52 entries in files next to their components). A jump opens the system view with its settings page and marks the row; item editors (single groups, rules, people, lists, templates) are reached through their section. The guard checks all four places. **Phase 3 shipped v1.1.2426:** a "Changed" button next to the search field lists every setting whose effective value differs from its default (with a search term: the matching ones), across the settings tabs and the Calendar, To-do and News settings. Values are compared after the same normalization the settings pages use, so "60" stored as text is the default 60 and whole-object saves that include defaults are not reported. Defaults live in `SettingsTab/suche/vorgaben.js` (81 paths) and in the defaults objects of the three view stores; the register guard checks that all 115 storage paths have one. **Open:** other views with a settings page (All Schedules, Version history, Tips, Energy Dashboard) are not in the register yet; the per-feature off switches below.
+> ✅ **Phase 1 shipped v1.1.2419** (2026-09-14) — a search field at the top of all four settings tabs (General, Appearance, Filter, About) with a result list across tabs; a tap switches tab, opens the sub-page, scrolls the row into view and marks it. Matching covers label + subtitle, the section's info text, option values and keys (dictionary keys and storage paths). The index is an explicit register (`SettingsTab/register/`, 174 entries) guarded by `scripts/check-einstellungs-register.mjs` in pre-commit and `build.sh`, as proposed below. Deviations from the sketch: results replace the tab content instead of filtering sections in place — the settings are a stack of sub-pages, not collapsible sections, so "auto-expand" becomes "jump and mark"; rows hidden behind a switch mark that switch instead. **Phase 2 shipped v1.1.2420:** the settings of Calendar, To-dos and News are in the register (52 entries in files next to their components). A jump opens the system view with its settings page and marks the row; item editors (single groups, rules, people, lists, templates) are reached through their section. The guard checks all four places. **Phase 3 shipped v1.1.2426:** a "Changed" button next to the search field lists every setting whose effective value differs from its default (with a search term: the matching ones), across the settings tabs and the Calendar, To-do and News settings. Values are compared after the same normalization the settings pages use, so "60" stored as text is the default 60 and whole-object saves that include defaults are not reported. Defaults live in `SettingsTab/suche/vorgaben.js` (81 paths) and in the defaults objects of the three view stores; the register guard checks that all 115 storage paths have one. **Open (corrected 2026-09-24):** Tips, Version history and All Schedules have placeholder settings pages only (`TippsView.jsx:226–243` renders `t('settingsWillBe')`, `VersionsverlaufView.jsx:259–276`, `AllSchedulesView.jsx:508–517`) — nothing to register; the Energy Dashboard stays outside by user decision. The real remainder: the settings register as the sixth source of the main search (`inhaltsSuche.js:26`; `settings/index.js` has no `suchbareEintraege`; `sucheStore.js:45–49` fires no `fsc-open-entity` for the settings place and `SettingsTab.jsx:82–86` picks the tab only by subscription after mount), and the per-feature off switches below (open decision D12).
 
 **Pitch:** A search field at the top of Settings. Type `week`, `glass`, `defaultRange` — matching controls surface immediately, wherever they live. Plus a "Changed only" filter that hides everything still at its default.
 
@@ -1391,8 +1242,6 @@ Building the ladder here, on a contained surface with an obvious right answer, p
 
 ### 49. Screen behaviour — the settings surface for ambient mode
 
-> ◐ **Partial — v1.1.2369** (2026-08-27): first slice of this surface exists as Start Screen → Screensaver (return-to-start toggle + idle time). The broader screen-behaviour surface (brightness, wake sources, schedules) remains open — sliced into shippable steps as **#61–#64** (Part nine, 2026-08-27); the honest-split analysis below stays the reference for all of them.
->
 > ✅ **Shipped v1.1.2445** (2026-09-18) — the last open slice, **auto brightness**: `utils/autoHelligkeit.js` follows an illuminance sensor on the state stream with hysteresis (dark below / bright above, nothing changes in between) and dims the card through a fixed black overlay at a chosen strength; independent of the screensaver, off by default. Settings rows under Start Screen → Screensaver (toggle, sensor picker, dark/bright thresholds, strength), registered for the settings search. Wake sources, handoff and photo frame shipped as #61–#64; with this the surface described below is complete.
 
 **Pitch:** A Screen section in Settings that governs what the display does when nobody is looking: dim after a while, drop into the ambient screen, come back on movement, follow the room's light level.
@@ -1490,6 +1339,8 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 
 ### 51. Diagnostics panel
 
+> ⤳ **Re-scoped 2026-09-24** — the boot-timing table is dev-only since v1.1.2468 and the changed-settings list is delivered by #46 phase 3. Remainder: "why is entity X missing?" (the gate functions are pure and exported, `entityZulassung.js`) plus a capability line.
+
 **Pitch:** A screen in Settings → About that shows what state this install is actually in — versions, what is reachable, what was measured, which settings deviate from default — and a copy button.
 
 **Status quo:** Diagnostics exist but only for developers. `window.__fsc_perf.dump()` prints a timing table to the console (`src/utils/perfMarks.js:106`). Asking a user to open dev tools is asking most users to stop.
@@ -1511,7 +1362,7 @@ So the real Screen section is two-layered: what the card does to itself, and an 
 ---
 
 ### 52. Multi-select and bulk actions as a card-wide primitive
-> ✅ **Shipped v1.1.2444** (2026-09-18) — the primitive (`hooks/useMehrfachauswahl.js`: 500 ms long-press enters, tap toggles, Escape / Cancel / empty selection leaves; `components/common/AuswahlLeiste.jsx`: count, cancel, host-declared actions, destructive ones confirm in two taps naming the count) and its first adoption in the to-dos (complete many, delete many with a single undo window over all targets). Notification center, excluded patterns and search results are the next adopters.
+> ✅ **Shipped v1.1.2444** (2026-09-18) — the primitive (`hooks/useMehrfachauswahl.js`: 500 ms long-press enters, tap toggles, Escape / Cancel / empty selection leaves; `components/common/AuswahlLeiste.jsx`: count, cancel, host-declared actions, destructive ones confirm in two taps naming the count) and its first adoption in the to-dos (complete many, delete many with a single undo window over all targets). Notification center, excluded patterns and search results are the next adopters. *(2026-09-24: order confirmed; search results last — collision with the 1-s hold, `QuickControlIcon.jsx:20`. An "Alle verwerfen" button in the overview tab covers most of the center case and should ship with the long-press.)*
 
 
 **Pitch:** Long-press a row to enter selection mode, tap to add more, act on all of them at once. One implementation, used by every list in the card.
@@ -1610,7 +1461,7 @@ Five forms cover almost everything. If a general matcher grammar exists undernea
 
 ### 55. Person lanes — a family week, side by side
 
-> ✅ **Shipped v1.1.2381** (2026-09-03) — people mapped from calendars/groups (#53 ids) with colour and optional `person.*` picture, a "Personen" mode tab (appears only once people exist) with one lane per person + a "Gemeinsam" lane, lane-header tap = per-person filter in every view (chip clears it). Not built: #48's narrowing ladder for five people on a phone — lanes have a 150 px minimum and scroll horizontally for now.
+> ✅ **Shipped v1.1.2381** (2026-09-03) — people mapped from calendars/groups (#53 ids) with colour and optional `person.*` picture, a "Personen" mode tab (appears only once people exist) with one lane per person + a "Gemeinsam" lane, lane-header tap = per-person filter in every view (chip clears it). Not built: #48's narrowing ladder for five people on a phone — lanes have a 150 px minimum and scroll horizontally for now. *(2026-09-24: obsolete — v1.1.2386 built the ladder on the person lanes first.)*
 
 **Pitch:** A week view with one lane per person instead of one lane per day. Who is doing what, when, at a glance — the question a shared household calendar exists to answer.
 
@@ -1627,7 +1478,7 @@ Five forms cover almost everything. If a general matcher grammar exists undernea
 
 **Depends on and feeds:**
 - **#53** supplies the grouping; a person is usually "these two calendars".
-- **#15** (multi-user profiles) wants the same person model. Building it here first, concretely, is better than designing it abstractly there — the calendar gives it a reason to exist and a place to be wrong cheaply.
+- **#15** (multi-user profiles, retired 2026-09-24) wanted the same person model. Building it here first, concretely, is better than designing it abstractly there — the calendar gives it a reason to exist and a place to be wrong cheaply.
 - **#48**'s column layout and its narrowing ladder apply directly. Lanes and day columns have the same width problem and should share the same answer.
 
 **Effort:** Medium. The lane layout is straightforward once #48's column work exists; the person mapping is a settings screen; the honest cost is in deciding what happens with five people on a phone.
@@ -1661,7 +1512,7 @@ window, typewriter loop, island standby). Each grew out of a seam or gap the cod
 
 ### 57. Context lines in the typing loop
 
-> ✅ **Shipped v1.1.2371** (2026-08-28) — provider (`kontextZeilen.js`) riding #58's data paths, rotation over available truths, greeting always follows a context line, settings toggle under Status & Greetings. Deviations from the sketch: weather-change lines deliberately left out (need forecast data; current weather already lives in the Zen status line). **Second surface shipped v1.1.2377** — the locked Zen page shows the same sentence under the greeting (3-minute slices on the 15-s clock, no typing).
+> ✅ **Shipped v1.1.2371** (2026-08-28) — provider (`kontextZeilen.js`) riding #58's data paths, rotation over available truths, greeting always follows a context line, settings toggle under Status & Greetings. Deviations from the sketch: weather-change lines deliberately left out (need forecast data; current weather already lives in the Zen status line) *(2026-09-24: the forecast data has been in `wetterVorhersage.js` since #47, v1.1.2443 — the weather-change line is #72 S1)*. **Second surface shipped v1.1.2377** — the locked Zen page shows the same sentence under the greeting (3-minute slices on the 15-s clock, no typing).
 
 **Pitch:** The resting search bar already types greetings (v1.1.2360). Sometimes, instead of a pleasantry, it types one *true* sentence: "Um 10:00 Zahnarzt", "2 Aufgaben heute fällig", "Regen ab 17 Uhr".
 
@@ -1708,7 +1559,7 @@ actually wants warned about — bins, school-free days, birthdays — are **all-
 One rule closes the gap: from a configurable evening hour (default 18:00) an INFO reminder lists
 tomorrow's all-day events ("Morgen: Restmüll · Elternabend"), once per evening (instance = that
 day), gone at midnight when the day itself arrives. This is the real "bins tomorrow" — and makes the
-dedicated waste widget (#18) largely unnecessary. *Effort: small* (same store, one more builder, one
+dedicated waste widget (#18, retired 2026-09-24) largely unnecessary. *Effort: small* (same store, one more builder, one
 settings row).
 
 ---
@@ -1803,7 +1654,7 @@ piece that makes an always-on wall tablet livable at night.
 
 ### 62. Wake sources — sensors and alerts wake the screensaver
 
-> ✅ **Shipped v1.1.2391** (2026-09-04) — `utils/weckquellen.js` on the state stream: motion/presence entities (edge off → on/home, one stage up: deep rest → locked page, never revealed), critical alerts (toggle, always through), a doorbell entity (binary_sensor / event / button), and the inversion — all chosen presence entities off shortens the screensaver return to the night time. Settings rows under Start Screen → Bildschirmschoner (multi-select motion picker, critical toggle, doorbell picker, away toggle). Doorbell → camera coupling waits for #4.
+> ✅ **Shipped v1.1.2391** (2026-09-04) — `utils/weckquellen.js` on the state stream: motion/presence entities (edge off → on/home, one stage up: deep rest → locked page, never revealed), critical alerts (toggle, always through), a doorbell entity (binary_sensor / event / button), and the inversion — all chosen presence entities off shortens the screensaver return to the night time. Settings rows under Start Screen → Bildschirmschoner (multi-select motion picker, critical toggle, doorbell picker, away toggle). Doorbell → camera coupling waits for #3b E1 (the still image), not for the #4 system view *(corrected 2026-09-24)*.
 
 **Pitch:** Besides touch, chosen HA signals wake the resting card: motion in the room lifts deep
 rest, a critical alert always breaks through, a doorbell rings the display awake.
@@ -1819,7 +1670,7 @@ the dim today.
   · doorbell ⟨entity⟩" — the islandSources picker pattern.
 - **Stage discipline:** motion lifts *one* stage (deep rest → normal locked page), never straight to
   the revealed page; a critical alert lifts to full brightness with the banner; doorbell wake couples
-  forward to #4 (camera live-view) once that exists — until then it just wakes.
+  forward to #3b E1 (the still image; *corrected 2026-09-24*, formerly "#4 camera live-view") once that exists — until then it just wakes.
 - The inversion for free: "nobody present" may *shorten* the idle times.
 
 **Effort:** Medium overall, small per source once the idle service exists. **Why it fits:** it is the
@@ -2006,12 +1857,406 @@ That distinction is not a nicety. The card ships pre-releases continuously and d
 
 ---
 
+## Part eleven — 2026-09-24 second consumers, domain gaps and API repairs (#69–#85)
+
+Seventeen entries from a re-analysis at v1.1.2468, after 97 builds since 1 September. Five sources were read side by side — the code seams (modules with exactly one consumer), a Home Assistant API survey (2026.6–2026.9), the neighbouring cards and family-tablet projects, the card's own release momentum, and a first-evening user walk-through — then fifty-six candidates (four decision questions were kept apart) went through a checker (does the hook exist, at which line, what is already there) and a skeptic (is it already built, does HA do it, does it break a rule). What is here survived both. Every hook below was read in the source on 2026-09-24; only Home Assistant's standard APIs are used; nothing is copied from another card.
+
+The lesson of this pass: the cheapest new features are not new systems. They are **second consumers** for modules that have one (the forecast cache feeds only the calendar, dictation only the to-do form, the person model only calendar and to-dos, wake sources only motion and critical alerts), **domain configs** for entities that land in the fallback today (number, select, timer, camera), and **three repairs** where Home Assistant moved underneath the card.
+
+Decision questions (AI mock, Liquid Glass, Energy Dashboard, test suite, settings backup, stop on the live capsule, and seven smaller ones) are deliberately not entries; they are listed under "Open decisions" below and are the user's to answer.
+
+One format addition in this part: a **Files (estimate)** line per entry. Since the September slice practice the touched files are predictable enough to name, and that line is what a build session opens first. It is an estimate, not a contract.
+
+---
+
+### 69. Three API repairs — HA moved, the card did not
+
+**Pitch:** Not features. Three places where Home Assistant changed the contract and the card silently shows nothing, a wrong number, or drops entities.
+
+**Status quo:**
+1. Source 1 of the alert lane reads `persistent_notification.*` out of `hass.states`. Per the release notes (API survey of 2026-09-24, not re-read against core source), Home Assistant removed those entities from the state machine in 2023.6 (WebSocket `persistent_notification/subscribe` replaced them; 2026.9 also sends `update_type: updated`). The lane has been silently empty for HA-native notifications — repairs, integration hints, update notices — for three years; nobody noticed because sources 2–6 work.
+2. The vacuum ring reads `attributes.battery_level ?? 0` and colours it red below 20 %. Per the 2026.8/2026.9 release notes, 2026.8 deprecated and 2026.9 removed the attribute from the vacuum base entity; the replacement is a battery sensor on the same device. Every current vacuum now shows 0 % in red.
+3. Per the 2026.9 release notes, child devices arrived: `parent_device_id`, `area_id` possibly `null` (inherited from the parent). The card's room chain knows only `entity.area_id → device.area_id`, so the entities of a child device have no room and the loader drops them; the builder finds sub-devices only via `via_device_id`.
+
+**What ships (three releases, in this order):**
+- **B — battery from the sensor** (first, because it is the one everybody sees): resolve the `device_class: battery` sensor of the same `device_id`, fall back to `attributes.battery_level`, else show "—" instead of 0 % red. The slider context has no `hass` today; pass the resolved value or a reader in.
+- **A — `persistent_notification/subscribe`**: a module store (events `current`/`added`/`updated`/`removed` → map), one subscription per connection in the DataProvider, `extractPersistentNotifications` reads the store, the `state_changed` branch for these entities goes; the existing seed guard keeps the first `current` from raising a toast storm.
+- **C — child devices**: `device.area_id ?? parent.area_id` at the three room-chain sites, `via_device_id || parent_device_id` for sub-devices; feature-detect the field (older HA has none). The field shape is for the user to check on a 2026.9 instance; no probe from this side.
+
+**Hook (verified):** `src/providers/dataNotifications.js:28–50` (scan of `hass.states` for the `persistent_notification.` prefix), `src/hooks/useEntityStream.js:248–251` (refresh only on their `state_changed`); `persistent_notification/subscribe` — 0 hits in `src`. `src/utils/deviceConfigs/domains/vacuum.js:84` (`attributes.battery_level ?? 0`), `:88–92` (red below 20). `src/providers/entityZulassung.js:55–58` and `src/utils/homeAssistantService.js:268–270` (room chain; `:266–267` are the `entity_category` lines), `entityZulassung.js:29–31` (`hatRaum`) and `:133` (drop in the stream), `src/system-entities/entities/integration/device-entities/universalEintraege.js:102` (`via_device_id` only); `parent_device_id` — 0 hits.
+
+**Effort:** Small × 3 (3–4 h, 2–3 h, 3–4 h); 8–11 h in total, Medium by the sum. No design question in any of them.
+
+**Why it fits:** In the kiosk the card is the only surface the household sees — a contract HA changed and the card did not follow is invisible to everyone in the house; and each repair is a slice without a design question, the size this project ships in.
+
+**Files (estimate):** `utils/persistentNotificationStore.js` (new), `providers/dataNotifications.js`, `providers/DataProvider.jsx`, `hooks/useEntityStream.js`, `deviceConfigs/domains/vacuum.js`, `utils/deviceConfigs.js` (context), `providers/entityZulassung.js`, `utils/homeAssistantService.js`, `device-entities/universalEintraege.js`.
+
+---
+
+### 70. State words in the search — "licht an", "was ist offen", "alles aus"
+
+**Pitch:** The intent parser understands room and domain. It does not understand state. Typing "licht an" today fuzzy-matches the two letters "an" against names. A third parsed field — state — turns the search into the place where a family asks the two daily questions: what is still on, what is still open.
+
+**Status quo:** `parseSearchIntent` yields `{ area, domain, remaining }`; `applyIntentFilters` filters by `area_id`, `domain` and `device_class` and hands the rest to Fuse. The synonym table has no state words. The chip mechanics (area chip, domain chip, chip filter, Backspace removes a chip) exist. `isEntityActive` already knows the "on" state per domain (cover open, lock unlocked, media playing …). Search results have no bulk action; the multi-select bar has one adopter (to-dos).
+
+**What ships:**
+- **Slice 1 — read only.** A de/en state-word table (an/aus/ein/offen/geschlossen/zu, on/off/open/closed/locked/unlocked), a third parser field, a per-domain predicate (cover → open, lock → unlocked, binary_sensor door/window → on, else `isEntityActive`), system views excluded (they report `state: 'active'`), a state chip labelled "an · Zustand" so the reading is filter, not command. Whole words only — "an" must not match Anna or Anbau.
+- **Slice 2 — bulk action, own release.** Only when state + (domain or room) are set and N ≤ 50: a line "alle N ausschalten / schließen", two taps in the style of the selection bar, `homeassistant.turn_off` / `cover.close_cover` / `lock.lock` through `dienstAufruf`, a chronicle entry. No undo — brightness and colour are not trivially reversible; the second tap is the guard. *Alternative if the AI-mock decision falls on "build": a `conversation/process` call with HassTurnOff instead of an own verb grammar.*
+
+**Hook (verified):** `src/utils/searchIntent.js:1–10` (examples: area + domain only), `:94–105` (`applyIntentFilters`: area_id/domain/device_class); `src/hooks/useFuzzySearch.js:216–229` (intent → pre-filter → Fuse on the remainder); `src/components/SearchField/hooks/useSearchFieldState.js:95–97` (areaChip, domainChip), `src/components/SearchField.jsx:499–508` (chip filter); `src/utils/translations/helpers.js:189–232` (`isEntityActive` per domain); `src/utils/dienstAufruf.js:82` (never-throwing service call with toast throttle); `src/system-entities/base/SystemEntity.js:269` (`state: 'active'` while mounted — must be excluded).
+
+**Effort:** Medium — 6–8 h for slice 1, 4–6 h for slice 2.
+
+**Why it fits:** The search field is the card's premise; the two daily household questions are the one thing it cannot answer yet, and the chip mechanics that answer them already exist.
+
+**Files (estimate):** `utils/searchIntent.js`, `utils/searchSynonyms.js` (state table), `hooks/useFuzzySearch.js`, `SearchField/hooks/useSearchFieldState.js`, `SearchField.jsx`, `SearchField/utils/searchEventHandlers.js` (Backspace), `SearchField/components/SearchInputSection.jsx` (bulk line), `de.js`/`en.js`.
+
+---
+
+### 71. Who is home — the family fact the wall tablet never shows
+
+**Pitch:** The card knows who is home. The person model carries a `person.*` entity and its picture, the wake sources read presence, "nobody home" shortens the screensaver return. No surface says it. One fact in the status line, the avatars of who is present on the locked page, and — as the leftover of #17 — a real greeting when someone arrives.
+
+**Status quo:** The Zen status line shows weather and power. The island's rest roll is by design "exactly the active counts of the category bar" and excludes people. `istJemandDa()` returns true/false/null from the chosen presence entities. There is no people tile. The greeting is a random time-of-day phrase; "Willkommen zurück" is one of them, unrelated to any event; the name shown is the tablet's HA user, never the person arriving. The wake source raises the idle stage on `person/device_tracker → home` but passes only the generic source name, not the entity.
+
+**What ships:**
+- **R1 (3 h):** helper `anwesende()` — calendar people with a `personEntity`, otherwise all `person.*` — and the fact "2 zuhause" as a third part of the Zen status line (not in the island roll).
+- **R2 (3 h):** avatars of who is present on the locked page (`personAvatar`: picture, initials, colour), respecting deep rest and `data-ambient`.
+- **R3 (3–4 h, the #17 leftover):** `weckeLeerlauf(quelle, entityId)` passes the entity; a small arrival store (last arrival, 30-min cooldown per person against GPS flapping); for ten seconds the greeting reads "Hallo Anna" plus the context line, only when the page is locked and outside quiet hours. A toggle under Screensaver → Wake.
+- **No tile.** The roadmap lists a geofencing status widget under *Out of scope*, and a tile would sit under the Zen curtain, invisible in rest; presence lives in the status line and on the locked page.
+
+**Hook (verified):** `src/system-entities/entities/todos/utils/personen.js:17–22` (`ladePersonen` = calendar people), `:27–32` (`personAvatar` from `entity_picture`); `calendar/utils/calendarSettingsStorage.js:66–69` (`people[].personEntity`); `src/utils/weckquellen.js:52–53` (`AN = on/home`), `:60–62` (edge off → on/home wakes with source `'bewegung'`), `:93–107` (`istJemandDa`); `src/utils/leerlaufStore.js:91–94` (`weckeLeerlauf(quelle)` — no entity id); `src/components/BentoZenView.jsx:545–566` (status line: temperature + power only), `:568–571` (greeting + username); `src/utils/subcategoryMap.js:53` (`ROLL_ORDER` without people), `:62–66` (roll = category counts, by design); `ls src/components/bento/widgets/` — no people tile.
+
+**Effort:** Three Small slices — R1 3 h, R2 3 h, R3 3–4 h; 9–10 h in total, Medium by the sum. Each a release.
+
+**Why it fits:** The person model (#55/#65) and the wake sources (#62) already carry presence — this is the second consumer the momentum pass named cheapest, and it makes #62's "nobody home" visible instead of only effective.
+
+**Files (estimate):** `utils/anwesenheit.js` (new), `components/BentoZenView.jsx` + `.css`, `utils/weckquellen.js`, `utils/leerlaufStore.js`, `components/tabs/SettingsTab/components/startscreen/BildschirmschonerAbschnitt.jsx`, `register/startseite.js`, `suche/vorgaben.js`, `de.js`/`en.js`, `docs/info-popups/info-popups-catalog.md`.
+
+---
+
+### 72. Context lines, stage two — weather change, birthday countdown, all-day tomorrow, a custom line
+
+**Pitch:** #57 ships three truths in rotation: next appointment, due tasks, last house event. Four small sentences are missing, and the data for every one of them is now in the bundle: "Regen ab 17 Uhr", "In 3 Tagen: Oma", "Morgen: Restmüll", and one line the household chooses itself.
+
+**Status quo:** The provider explicitly leaves weather change out ("needs forecast data") — that was true in August. Since #47 (v2443) `wetterVorhersage.js` holds an hourly forecast cache per weather entity, filled only while the calendar is open. The next-appointment truth skips all-day events, so the evening-before reminder (#58b) exists as a notification but never as a context line. Birthdays carry the 🎂 rule icon in the calendar, but neither the tile nor the context line counts down to them; the reminder stock holds only −1 h … +48 h. The Bento calendar tile loads −30/+14 days but never applies the rules.
+
+**What ships (each slice one release):**
+- **S1 — weather change.** `naechsterWechsel(entityId, now, 12 h)` over `hourly`: the first entry with rainy/pouring/snowy/snowy-rainy/lightning/lightning-rainy/hail when the present condition is dry (optionally the reverse, "Trocken ab 15 Uhr"). Fourth truth in the rotation. The rule that matters: **no fetch in rest** — read the cache with a longer freshness (≥ 30 min), trigger a load only when the card is awake (`!istTief()` and `!document.hidden`). Silent when the integration delivers no `hourly`.
+- **S2 — birthday countdown.** The next event within 14 days whose resolved rule icon is 🎂, read from the calendar entity's `attributes.events` (the tile's canonical range), as "In 3 Tagen: Oma" / "Heute: Oma". No hero in the tile (the user removed the hero split in v1656); optionally the rule icon before the title in the tile rows.
+- **S3 — all-day tomorrow.** From the evening hour of #58b: one sentence from tomorrow's all-day events, filtered by rule icon or group ("Morgen: 🗑️ Restmüll", "Heute essen wir: Lasagne" from a Mealie calendar). This is the honest remainder of #18 and #20.
+- **S4 — one custom line.** An entity picker (any `sensor.*`/`input_text.*`): its state becomes a fifth truth. No Jinja in the card — a household that wants a template makes a Template helper in HA and picks it. (A `render_template` field is a separate decision, not part of this entry.)
+
+**Hook (verified):** `src/utils/kontextZeilen.js:12–14` (explicit omission of weather change), `:38–88` (`holeKontextZeile`: three truths, rotation `:84–87`); `src/utils/wetterVorhersage.js:6` (`FRISCH_MS` 10 min), `:27–47` (`ladeVorhersage`, cache `{hourly, daily, zeit}`), `:5` ("no fetch in rest — only while the calendar is open"); `system-entities/entities/calendar/CalendarView.jsx:205–211` (the only filler, 10-min interval); `src/utils/reminderStore.js:44–49` (stock −1 h … +48 h), `:108–121` (`naechsterTermin` skips `all_day`), `:145–160` (30-min data refresh gated on `kontextZeilenAktiv`); `calendar/utils/eventRules.js:27` (🎂 in `RULE_ICONS`), `:73–87` (`resolveEventStyle`); `src/components/bento/widgets/BentoRichCalendar.jsx:113–124` (−30/+14 days), `:302–306` (hero removed v1656), import block `:5–30` (no `eventRules`); `src/utils/reminderSources.js:157–186` (all-day tomorrow builder, per the checker).
+
+**Effort:** S1 ≈ 4 h (on the Small/Medium line), S2 2–3 h, S3 2 h, S4 2 h — Small each; ≈ 10 h in total, Medium by the sum.
+
+**Why it fits:** No surface of its own — the #13 reason stands ("a second forecast line … did not justify a surface"); these are sentences in the rotation #57 already runs, fed by data #47 and #58 already load.
+
+**Files (estimate):** `utils/wetterVorhersage.js`, `utils/kontextZeilen.js`, `utils/reminderStore.js`, `components/bento/widgets/BentoRichCalendar.jsx` (S2 icon), `components/tabs/SettingsTab/components/GeneralSettingsTab.jsx` (S4 picker), `register/allgemein.js`, `suche/vorgaben.js`, `de.js`/`en.js`, `info-popups-catalog.md`.
+
+---
+
+### 73. Forecast by subscription, and the temperature bar
+
+**Pitch:** Three callers fetch the same forecast on their own timers — the calendar every 10 minutes while open, the Bento weather tile every 10 minutes on the resting start page, the weather device on demand. `weather/subscribe_forecast` pushes once on subscribe and then only when the integration updates. One module-level subscription per (entity, type) replaces three timers, and the hourly strip gains the cold→warm temperature bar and precipitation probability HA's own Tile card shows since 2026.6.
+
+**Status quo:** `wetterVorhersage.js` calls `weather.get_forecasts` with `return_response` and caches 10 minutes; `BentoRichWeather.jsx` makes two `get_forecasts` calls and runs its own 10-minute interval, writing a second cache (`weatherForecastCache` in `bento/constants.js`); `WeatherDeviceEntity.js` calls the same service. `subscribe_forecast` appears nowhere. A `TemperatureBar` component exists for the weather device's daily view but not on the tile.
+
+**What ships:**
+- **S1:** a ref-counted subscription per (entity, forecast type) inside `wetterVorhersage.js`, gated on `supported_features` (DAILY = 1, HOURLY = 2), `get_forecasts` as fallback for entities without the bits, 30-s grace on unsubscribe, re-subscribe on `hass.connection` change. The calendar drops its interval and only listens.
+- **S2:** the Bento tile reads the same cache; its two calls and its interval go; `weatherForecastCache` becomes an alias or disappears (adjust `cachesLeeren.js`). Optionally the weather device too.
+- **S3:** hourly strip with the temperature bar (inline style variables, no composed class names — PurgeCSS guard) and precipitation probability, shown only when the integration delivers `precipitation_probability`. chart.js untouched.
+
+**The one trap:** the tile remounts every slider cycle; a subscription in a component effect would subscribe/unsubscribe in bursts. It must live at module level with a counter.
+
+**Hook (verified):** `src/utils/wetterVorhersage.js:6` (`FRISCH_MS`), `:27–47` (`get_forecasts` with `return_response`, hourly + daily in parallel, cache map, listener notify); `system-entities/entities/calendar/CalendarView.jsx:207–208` (10-min interval, paused when hidden); `src/components/bento/widgets/BentoRichWeather.jsx:99–131` (two `get_forecasts` calls, second cache), `:142–152` (10-min interval with remaining-time start); `src/components/bento/constants.js:31` (`weatherForecastCache`); `device-entities/WeatherDeviceEntity.js:173–180` (third caller); `device-entities/components/weather/TemperatureBar.jsx:19–30` (existing bar); `subscribe_forecast` — 0 hits.
+
+**Effort:** Three Small slices — S1 3–4 h, S2 2–3 h, S3 3–4 h; 8–11 h in total, Medium by the sum.
+
+**Why it fits:** The weather tile runs on the resting start page, where "zero long-runners in rest" is strictest; one push subscription replacing three timers is the thermal pattern of v2285 applied to the last fetch loop.
+
+**Files (estimate):** `utils/wetterVorhersage.js`, `calendar/CalendarView.jsx`, `bento/widgets/BentoRichWeather.jsx`, `bento/constants.js`, `utils/cachesLeeren.js`, `device-entities/WeatherDeviceEntity.js` (optional).
+
+---
+
+### 74. Reminders name the person
+
+**Pitch:** "2 Aufgaben überfällig" — whose? The card knows: each list maps to a person (#65). The reminder and the context line just never say it. "Anna: Wäsche · Post · Max: Müll" in the same single aggregate.
+
+**Status quo:** `offeneAufgaben` and `buildTodoReminders` aggregate over all lists and know no list or person; `namenszeile` lists up to three titles. The to-dos view reads `settings.lists[listId].personId` from the same item stream to count per person. #58 decided deliberately on one aggregate per kind, calmer than per item — that decision stands.
+
+**What ships:**
+- **S1:** `reminderStore` passes a `listId → person` map and `ladePersonen()` into `buildTodoReminders` and the context line (`reminderSources` stays pure — the map is an argument); the message line groups titles by person; title and instance semantics unchanged, so ack and snooze behave as before. Plural forms de/en.
+- **S2 (only if a household wants to acknowledge per person):** one instance per person (`rem:overdue:<pid>`) with runtime slots as a map — doubles toasts at the day change, therefore not by default.
+- **S3 (only on request):** an optional points sensor per person in the person editor; the person chip in the to-dos filter bar shows its value (ChoreOps/KidsChores as display, not competitor). Read throttled — `hass` changes identity every tick.
+
+**Hook (verified):** `src/utils/reminderSources.js:87–97` (`offeneAufgaben`, list-agnostic), `:104–147` (`buildTodoReminders`: `rem:overdue` / `rem:due`, day slots), `:66–71` (`namenszeile`); `src/utils/reminderStore.js:57–68` (call site with `todosEntity.attributes.todos`); `src/utils/kontextZeilen.js:53–65` (same computation, "overdueMany"); `system-entities/entities/todos/TodosView.jsx:508` (`settings.lists?.[t.listId]?.personId`); `todos/utils/personen.js:17–22`.
+
+**Effort:** Small — S1 ≈ 3 h; S2 ≈ 2 h; S3 ≈ 3 h.
+
+**Why it fits:** #65 put a person on every list and #58 put the aggregate in the lane — the sentence between them is missing, and it keeps #58's one-aggregate decision.
+
+**Files (estimate):** `utils/reminderSources.js`, `utils/reminderStore.js`, `utils/kontextZeilen.js`, `de.js`/`en.js`; S3: `calendar/components/settings/views/PersonEditor.jsx`, `todos/TodosView.jsx`.
+
+---
+
+### 75. Wake sources, round two — reminders wake, the doorbell by standard
+
+**Pitch:** The tablet wakes for the smoke detector, not for the dentist. A new appointment reminder lifts deep rest by one stage, like motion does. And the doorbell is found by `device_class: doorbell` and `event_type: ring` first — the standard HA makes mandatory in 2027.4 — with the name regex as fallback.
+
+**Status quo:** `weckeBeiKritisch` fires only for CRITICAL; reminders are INFO/WARNING. The doorbell picker lists every `event.*` and `button.*` plus binary sensors matching `/klingel|doorbell|bell|ring|ding/`, and on the stream an `event.*` doorbell wakes on **every** state change — an event entity with `[ring, motion]` wakes on motion too. `in_zones` (2026.7) is not read; that part is deliberately left out — it needs a zone the household has not drawn and is known-buggy in 2026.7.0.
+
+**What ships:**
+- **S1 (2.5 h):** field `erinnerung` in the wake settings; in the lane, next to the critical wake: `if (neue.some(n => n.source === 'reminder' && n.id.startsWith('rem:event:') || …morgen)) weckeBeiErinnerung()` — deliberately from `neue`, so quiet hours and snooze already apply; **only appointment reminders and the evening-before line, never the task aggregates** (they get a fresh instance at midnight and would wake the tablet at night). Toggle under Screensaver → Wake, register, info text.
+- **S2 (2 h):** `listKlingelKandidaten` ranks `event.*` with `device_class doorbell` (and `event_types` containing `ring`) first, regex hits second, the rest last; `beobachteWeckquellen` wakes for a doorbell-class event only on `attributes.event_type === 'ring'`, otherwise as today.
+
+**Hook (verified):** `src/utils/weckquellen.js:27–38` (`readWeckquellen`: bewegung/kritisch/klingel/abwesendKurz/display), `:65–73` (doorbell edge; `event.*`/`button.*` on any state change, no `event_type` read), `:84–87` (`weckeBeiKritisch`), `:116` (`KLINGEL_MUSTER`), `:133–152` (`listKlingelKandidaten`); `src/hooks/useNotificationLane.js:92–93` (`neue` with snooze and quiet-hours filter), `:114–116` (critical wake, deliberately without quiet hours); `src/utils/reminderSources.js:194–222` (`rem:event:*` INFO), `:104–147` (task aggregates with day slots).
+
+**Effort:** Two Small slices (2.5 h + 2 h); 4–5 h in total, Medium by the sum.
+
+**Why it fits:** Second consumer of the wake sources (#62) — the lane already knows which reminders are new and quiet-hours-filtered; and the doorbell change moves the card to the standard before HA makes it mandatory.
+
+**Files (estimate):** `utils/weckquellen.js`, `hooks/useNotificationLane.js`, `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, `register/startseite.js`, `suche/vorgaben.js`, `de.js`/`en.js`, `info-popups-catalog.md`.
+
+---
+
+### 76. Renamed entities — an orphan check first, a live follower second
+
+**Pitch:** Since 2026.8 renaming an entity ID is one click in HA. The card stores IDs in at least ten places — wake sources, island sources, auto-brightness sensor, display handoff, weather-warning entities, watches, calendar map, favourites, builder devices — and listens to nothing. Settings orphan silently: the island shows no weather, the doorbell stops waking, a watch never fires again.
+
+**Status quo:** The only event subscription is `state_changed`. `entity_registry_updated` (action `update`, `entity_id`, `old_entity_id`) is not read anywhere. Each store has a central `read*`/`write*` with a broadcast, so a rewrite has one place per store.
+
+**What ships (order matters — the skeptic is right that a live event only reaches browsers that are open):**
+- **S1 — orphan check at start (3 h):** every registered store is checked against `hass.states`; a stored ID that no longer exists produces a line in the settings ("Weckquelle `binary_sensor.flur_alt` gibt es nicht mehr") using the "Changed" mechanics of #46. Covers the closed tablet and the closed phone too, because it runs at the next start.
+- **S2 — live follower (5–6 h):** `utils/idUmschreiber.js` subscribes to `entity_registry_updated` only (not to everything — audit B08), gates on `action === 'update' && old_entity_id`, and calls the registered rewriters: wake sources, island sources, auto-brightness, display handoff, weather warnings, watches; then the existing broadcasts fire.
+- **S3 (4–5 h):** favourites (set + IndexedDB + snapshot), builder configs (HA user_data, async — local first, then HA), calendar maps (re-key, group members, person sources; mind the dot-in-key trap of `setPath`).
+
+**Hook (verified):** `src/hooks/useEntityStream.js:292` (`subscribe_events state_changed` — the only subscription); `entity_registry_updated`/`old_entity_id` — 0 hits; stored IDs: `src/utils/weckquellen.js:30–36`, `src/utils/islandSources.js:17–21`, `src/utils/autoHelligkeit.js:20`, `src/utils/displayUebergabe.js:33–35`, `src/utils/weatherAlertSources.js:23–29`, `src/utils/watchStore.js:27` (`fsc-watches-v1`) and `:41–45` (`defs.entity_id`); calendar map and favourites per the checker; builder: `integration/deviceConfigStorage.js:86–114` (HA user_data).
+
+**Effort:** Small (S1) + Medium (S2 + S3 ≈ 9–11 h).
+
+**Why it fits:** HA made renaming a one-click action in 2026.8; the card stores IDs in ten places with one write function each — the orphan check is a small correctness slice in the style of the September fix releases.
+
+**Files (estimate):** `utils/verwaisteIds.js` (new), `utils/idUmschreiber.js` (new), the stores listed above, `components/tabs/SettingsTab/components/AboutSettingsTab.jsx` or the settings search ("Changed" list).
+
+---
+
+### 77. number and select as controls — the fallback stops being read-only
+
+**Pitch:** A `number.*` or `input_number.*` shows its value, min, max and step on a ring the user cannot move; `select.*` and `input_select.*` show their current option as a status text. Both are one service call away: `number.set_value`, `select.select_option`. The Universal list already has the controls; the single-entity detail view does not.
+
+**Status quo:** The fallback's numeric branch sets `interactive: false, readOnly: true, progressMode: true`; the text branch shows the capitalised raw state. The domain registry has no number/input_number/select/input_select. The builder's universal ring says "read-only; settable rings → later". The slider dispatcher knows light/climate/cover/media_player/fan/humidifier/water_heater. In the Universal entity list, `NumberSliderControl` calls `number.set_value` and `SelectPickerView` calls `select_option` — the same controls, one level down.
+
+**What ships (modules, not a flag — the protected single-entity rings stay bit-identical and `fallback.js` is not touched):**
+- **A (3–4 h):** `domains/number.js` for number + input_number: slider from attributes (value/min/max/step/unit), interactive, commit on release only (no service call per intermediate value), `mode: box` or a range above ~1000 keeps the read-only ring; handler `${domain}.set_value` with rounding to `step`.
+- **B (4–6 h):** `domains/select.js` for select + input_select: ≤ 4 options as primary buttons (humidifier-mode pattern with active flag), otherwise an expandable that reuses `SelectPickerView`; `select_option`; the status text is the current option.
+- **C (5–6 h):** the builder's universal ring becomes settable for number-type heroes; the universal control path gets `onValueChange` per ring by entity id; fingerprint before/after.
+
+*(A skeptic's side finding on `NumberSliderControl.jsx:37` — `number.set_value` sent for `input_number` too — is audit material, recorded for the audit findings list, not in this entry.)*
+
+**Hook (verified):** `src/utils/deviceConfigs/domains/fallback.js:28–43` (numeric branch, `interactive: false`, `readOnly: true`), `:45–62` (text branch); `src/utils/deviceConfigs/registry.js:24–41` (no number/select); `src/utils/deviceConfigs/rings.js:250` ("settbare Ringe → späterer Ausbau"); `src/utils/sliderHandlers.js:7–98` (handlers for seven domains, `executeSliderChange`); `src/components/controls/NumberSliderControl.jsx:37` (`number.set_value`), `SelectPickerView.jsx:39` (`select_option`).
+
+**Effort:** Medium — A + B ≈ 8–10 h, C ≈ 5–6 h.
+
+**Why it fits:** Domain configs are the card's unit of device support; number and select are the largest domains still in the fallback, and the Universal list proves both controls one level down.
+
+**Files (estimate):** `deviceConfigs/domains/number.js` (new), `deviceConfigs/domains/select.js` (new), `deviceConfigs/registry.js`, `utils/sliderHandlers.js`, `components/controls/PresetButtonsGroup.jsx` (renderCustom branch), `deviceConfigs/rings.js`, `components/tabs/UniversalControlsTab.jsx`, `de.js`/`en.js`.
+
+---
+
+### 78. Calendar rules, stage two — lead time per rule, weekday form
+
+**Pitch:** The event reminder fires 15 minutes before everything. School needs 60, a flight 180, the dentist 15. Rules already resolve colour, icon, dim, badge and hide per event by rank; a sixth property, lead minutes, falls through the same resolution and the reminder source reads it. A fifth condition — weekday / weekend — completes the form set without becoming a grammar.
+
+**Status quo:** `eventLeadMinutes` is one global number in the reminder settings; `buildEventReminders` applies it to every timed event and skips all-day events (those have the evening-before line of #58b — a birthday needs no lead). The rule editor's THEN block has three toggles (dim, badge, hide). `reminderSources` is pure and does not know the calendar settings; the reminder stock holds +48 h and its coverage guard asks for `now + lead`.
+
+**What ships:**
+- **S1 (4 h):** `leadMinutes` as sixth property in `resolveEventStyle` (first rule that sets it wins), a THEN row in the rule editor with the existing lead steps (15/30/60/180, ∅ = global), `buildEventReminders` takes `leadFor(ev)` (rules + settings passed in, source stays pure), `terminVorratAktualisieren` claims coverage for the **largest** lead of any rule; register, defaults, info text.
+- **S2 (2 h):** rule kind `weekday` (Mon–Fri / Sat–Sun pill) in `ruleMatches` and the editor — with `hide` this gives "this calendar only on weekends".
+- **Not built:** title rewriting (twelve render sites and a second truth for the title the search would not find), age from the description (a parser with its own display — later, if #72 S2 shows demand). "Birthday evening before" is already solved by #58b.
+
+**Hook (verified):** `calendar/utils/eventRules.js:22` (`RULE_KINDS` title/source/allDay/past), `:24` (`RULE_FIELDS`), `:36–66` (`ruleMatches`, pure, `ctx = {settings, now}`), `:73–87` (`resolveEventStyle` → color/icon/dim/badge/hide); `src/utils/reminderSources.js:24–32` (`eventLeadMinutes: 15` global), `:198` (`leadMs` for every event), `:202` (all-day skipped), `:218` (`created_at = start − lead`); `src/utils/reminderStore.js:40–43` (coverage guard `e >= now + leadMs`), `:44–49` (stock +48 h); `calendar/components/settings/views/RegelEditor.jsx:208–227` (three THEN toggles).
+
+**Effort:** S1 4 h, S2 2 h; 6 h in total, Medium by the sum.
+
+**Why it fits:** #54 chose forms over a grammar; lead time and weekday are the two forms a family calendar still lacks, and both fall through the same `resolveEventStyle`.
+
+**Files (estimate):** `calendar/utils/eventRules.js`, `calendar/utils/calendarSettingsStorage.js` (rule schema), `calendar/components/settings/views/RegelEditor.jsx`, `utils/reminderSources.js`, `utils/reminderStore.js`, `calendar/components/settings/register.js`, `de.js`/`en.js`, `info-popups-catalog.md`.
+
+---
+
+### 79. Floors and labels — the registry fields the card already holds and never copies
+
+**Pitch:** The honest core of #5 without a drawing surface. `hass.areas[id]` carries `floor_id` and `labels`, `hass.entities[id]` carries `labels`, `hass.floors` exists on the hass object — and the two enrichers copy hidden/device/area but neither. One related-devices score already compares `entity.floor_id`, which is never set: a dead path since day one.
+
+**Status quo:** `reichereAusHassAn` (stream) and `enrichAllEntitiesWithAreas` (loader) both read the area object and the registry entry and copy `hidden_by`, `entity_category`, `device_*`, `area_*`. `useRelatedDevices` scores `device.floor_id === entity.floor_id` (+30) — the only two occurrences of `floor_id` in the tree. The registry loaders fetch area/device/entity lists; no floor or label registry.
+
+**What ships:**
+- **S1 (2 h, one release):** copy `floor_id`, `floor_name`, `floor_level`, `labels` in both enrichers (stream = loader, the guard rule), names from `hass.floors` (fallback `config/floor_registry/list`); `useRelatedDevices:99` becomes live. Visible only in the context tab — a pure data slice.
+- **S2 (5 h):** floor as an intent token in `searchIntent.js` (name + aliases, tried before the area pass), `applyIntentFilters` on `floor_id`, room chips in the subcategory bar grouped by `level` when at least two floors exist ("og licht", "unten alles aus" together with #70).
+- **S3 (5 h, only on demand):** label registry (`config/label_registry/list`, once at start), label as intent token, a `labels` mode in the chip bar and the filter window.
+
+**Hook (verified):** `src/providers/entityZulassung.js:47–72` (`reichereAusHassAn`: reads `hass.entities[id]` `:48` and `hass.areas[areaId]` `:67`, copies no `labels`/`floor_id`); `src/utils/homeAssistantService.js:255–296` (`enrichAllEntitiesWithAreas`, same fields), `:151–197` (`config/area_registry/list`, `device_registry/list`, `entity_registry/list` — no floor/label registry); `src/hooks/useRelatedDevices.js:99` and `:120` (`entity.floor_id` read, never set — grep confirms these are the only hits); `src/utils/searchIntent.js:20–88` (area/domain parser).
+
+**Effort:** Small (S1) + Medium (S2), S3 optional.
+
+**Why it fits:** Two enrichers, four lines — a dead scoring path becomes live, and it is the honest core of #5 without a drawing surface.
+
+**Files (estimate):** `providers/entityZulassung.js`, `utils/homeAssistantService.js`, `providers/entitiesLoader.js`, `hooks/useRelatedDevices.js`, `utils/searchIntent.js`, `components/SubcategoryBar.jsx`, `components/SearchField.jsx`.
+
+---
+
+### 80. Dictation in the search line and the calendar title
+
+**Pitch:** `utils/diktat.js` is generic — Assist STT over the existing socket or the browser's recognition, text lands in a field, never submitted on its own, no button when no path exists. It has one importer: the to-do form. Typing is the most expensive gesture on a wall tablet and the search line is its most used surface.
+
+**Status quo:** The state machine (path probe on open, `hoert`/`fehler`/`aus`, abort marker from N6e, cleanup on unmount) and the button markup live inline in `TodoFormDialog.jsx`. The calendar event dialog imports the to-do detail styles for its title input, so the button CSS already applies there. The search input has a suffix-button slot (clear button) and a typing-loop sheet that hides on focus.
+
+**What ships:**
+- **S1 (2–3 h):** lift state + button into `hooks/useDiktat.js` + `components/common/DiktatKnopf.jsx` (behaviour 1:1; the to-do form uses the hook), then place it beside the calendar title (`onText → setSummary`); move the `dictate*` dictionary keys to a shared bucket (i18n guard).
+- **S2 (3–4 h):** the search line — button in the input overlay next to clear/AI, `onText → handleSearchInput` (intermediate results may search live here), focus set so the typing sheet stays hidden, visible only when `!aiMode` and a path exists, `diktatVerfuegbar` once per connection (the field is mounted permanently — not per render). Check island height ladder at tablet width.
+
+**Hook (verified):** `src/utils/diktat.js:1–20` (generic; microphone only from a visible tap, text never auto-submitted), `:49` (`diktatVerfuegbar`), `:196` (`starteDiktat`); importers: `todos/components/TodoFormDialog.jsx` only (`:17`, state machine `:430–476`, per the checker button `:553–570`); `calendar/components/CalendarEventDialog.jsx:36–38` (imports `TodoDetailView.css`), `:313–321` (`todo-detail-title-input`); `SearchField/components/SearchInputSection.jsx:480–494` (`search-input` with focus handlers), `:547–559` (`clear-button` slot).
+
+**Effort:** Two Small slices (2–3 h + 3–4 h); 5–7 h in total, Medium by the sum. Bundle ≈ +1 KB. No new listeners in rest.
+
+**Why it fits:** The #66 rule — no button where no path exists — already governs the module; lifting it to the two most-typed fields is the second-consumer move, not a new feature.
+
+**Files (estimate):** `hooks/useDiktat.js` (new), `components/common/DiktatKnopf.jsx` (new), `todos/components/TodoFormDialog.jsx`, `calendar/components/CalendarEventDialog.jsx`, `SearchField/components/SearchInputSection.jsx`, `SearchField.jsx`, `de.js`/`en.js`.
+
+---
+
+### 81. `todo/item/subscribe` — push instead of the signature watcher
+
+**Pitch:** #56 watches `state|last_updated` of every `todo.*` entity and reloads all lists, debounced, when a signature changes. Its own header admits the limit: a pure rename changes neither the count nor necessarily `last_updated`. HA has had `todo/item/subscribe` since the todo platform exists (2023.11): one subscription per list pushes the items on every change, rename included.
+
+**Status quo:** `liveTodos.js` compares signatures per hass tick and calls `getTodos` (parallel `todo/item/list` over all lists) 400 ms later; own mutations register a lock so their own `state_changed` does not trigger a second load. `subscribeMessage` is used in two places already (state stream, dictation). `move_item` and Bit 8 (`MOVE_TODO_ITEM`) are unknown to the card.
+
+**What ships:**
+- **S1 (3–4 h):** `todos/todoAbos.js` — one `subscribeMessage({ type: 'todo/item/subscribe', entity_id })` per `todo.*` entity, push → map the items of that one list into `entity.attributes.todos` → `updateAttributes` + `fsc-todos-geaendert`; `liveTodos` keeps only the list discovery (new/gone lists) and stops reloading; subscriptions keyed on `hass.connection` (re-subscribe on reconnect, as the stream does). Follow-up: `mitNeuladen` after own mutations becomes unnecessary.
+- **Later, separate entry material:** a "list order" sort mode gated on Bit 8 with `todo/item/move` (uid, previous_uid) and a long-press drag handle — Medium-plus because of touch-drag in a scrolling list and because today's four sort modes never preserve HA's order.
+
+**Hook (verified):** `todos/liveTodos.js:21–23` (the admitted limit), `:104–116` (`pruefen`: signature `state|last_updated`, 400-ms debounced `neuLaden`), `:85–96` (`neuLaden` via `getTodos` + `fsc-todos-geaendert`); `todos/index.jsx:418–421` (`todo/item/list` per list); `move_item`/`todo/item/subscribe` — 0 hits; `todos/hooks/useListFeatures.js:33–37` (bits 1/2/4 read, no bit 8).
+
+**Effort:** Small — 3–4 h. No timer, push only; thermally neutral.
+
+**Why it fits:** #56 shipped with an admitted limit in its own header; the push API closes it with no timer, which is the thermal direction of every September release.
+
+**Files (estimate):** `todos/todoAbos.js` (new), `todos/liveTodos.js`, `todos/index.jsx`.
+
+---
+
+### 82. The kitchen timer — a `timer.*` domain config
+
+**Pitch:** Timer is live-activity number one and counts as active on the tile, but nowhere in the card can a timer be started, paused or cancelled; the detail view shows the word "Active" on a grey ring. A domain config with a remaining-time ring, start/pause/resume/cancel/finish, and a duration wheel with 1/5/10/30-minute presets makes the wall tablet the kitchen timer it should be.
+
+**Status quo:** `liveActivitySources` derives `endsAt` and `progress` from `finishes_at` and `duration`; the registry has no timer module, so the fallback's text branch renders; `timer.start|pause|cancel|finish` appear nowhere. A stop/cancel on the island capsule is a separate decision (it reverses v2204/v2205 "live rows have no action buttons") and is not part of this entry.
+
+**What ships:**
+- `domains/timer.js`: ring in progress mode (value = remaining/duration, centre m:ss, colour by remaining), a 1-s tick **only while the detail view is open, the timer is active and the card is awake** (rest gate) — no ticking anywhere else; buttons start/pause/resume/cancel/finish; expandable "Dauer" with presets and the existing wheel → `timer.start { duration }`. No slider handler (the ring is not dragged).
+- Info text names the precondition: timer helpers have no room by default and are otherwise reachable only as deep-link guests while running.
+
+**Hook (verified):** `src/utils/liveActivitySources.js:19` (`DOMAIN_PRIORITY` timer 0), `:130–141` (`endsAt`, `progress` from `finishes_at`/`duration`); `src/utils/deviceConfigs/registry.js:24–41` (no timer); `deviceConfigs/domains/fallback.js:45–62` (text branch → "Active"); `src/components/DeviceCard.jsx:230–233` (timer counts as active); timer services — 0 hits in `src` (the `'timer'` hits in `ScheduleTab/` are scheduler-component tabs).
+
+**Effort:** Medium — 6–8 h, one release.
+
+**Why it fits:** Timer is already live-activity number one on the island (#29); the detail view is the one place it cannot be operated — a domain config, the card's normal unit.
+
+**Files (estimate):** `deviceConfigs/domains/timer.js` (new), `deviceConfigs/registry.js`, `components/controls/PresetButtonsGroup.jsx` (renderCustom for the duration wheel), `de.js`/`en.js`.
+
+---
+
+### 83. The context tab tells the truth about relatedness
+
+**Pitch:** The context tab's "related devices" are guessed from words — a sensor whose name contains "temperatur", a media player containing "soundbar" — and an entity without a room is assumed to be in the "Wohnzimmer". The honest relations are already attached to every entity (`device_id`, `area_id`) or one WebSocket call away (`search/related`: which automations and scenes move this entity). This is what remains of #26 after the room tile was dropped.
+
+**Status quo:** `isFunctionallyRelated` is a name heuristic; the score falls back to `entity.area || 'Wohnzimmer'`, adds +30 for a `floor_id` that is never set (#79 S1 fixes that) and +60 for an entity-id substring. `device_id` is enriched at load but never read by the hook. `search/related` appears nowhere; the action list links scenes only through `attributes.entity_id`.
+
+**What ships:**
+- **0a (2–3 h):** siblings via `device_id` (+90), room via `area_id` with no fallback, substring rule only as a tie-breaker.
+- **0b (3 h):** on opening the context tab, `hass.callWS({ type: 'search/related', item_type: 'entity', item_id })` once per entity, cached; automation/scene/script hits get a "moves this device" bonus in the action list; errors silent, the heuristic stays as fallback.
+
+**Hook (verified):** `src/hooks/useRelatedDevices.js:12–49` (`isFunctionallyRelated`: name words), `:71` (`entity.area || 'Wohnzimmer'`), `:93` (same room +100), `:99` (dead floor score), `:102` (entity-id substring +60); `src/providers/entityZulassung.js:59` (`device_id` enriched); `search/related` — 0 hits.
+
+**Effort:** Small × 2 (2–3 h + 3 h); 5–6 h in total, Medium by the sum.
+
+**Why it fits:** The context tab guesses where the registry knows; `device_id`/`area_id` are the fields #79 S1 and #69 C also touch, so the three land in the same enrich path.
+
+**Files (estimate):** `hooks/useRelatedDevices.js`, `components/tabs/ContextTab.jsx`, `utils/actionUtils.js`.
+
+---
+
+### 84. Watch kinds — free state, immediate, critical, unavailable
+
+**Pitch:** The in-card watch knows two kinds: a numeric threshold with hysteresis and "state X for N minutes". Two household wishes fall between them: "tell me the moment the lock says jammed, as an alarm" and "tell me when the window sensor has been unavailable for 30 minutes". Both are openings of the duration kind, not a new store type.
+
+**Status quo:** `addWatch` normalises every unknown kind to `threshold` and clamps severity to INFO/WARNING; the duration evaluation fires when `state === watchState` for `minutes` — with `minutes = 0` it fires at once, so "state with level" is technically there. The editor offers duration only for a fixed domain set and fixed state options; `unavailable` is not offered; `sensor`, `alarm_control_panel`, `vacuum` are excluded. A "last_updated older than" check is deliberately not built — after an HA restart every restored state gets a fresh `last_updated`, and integrations with availability checks already report `unavailable`.
+
+**What ships:**
+- **A (2–3 h):** allow CRITICAL in `addWatch`, allow `minutes = 0` ("sofort"), add `unavailable` as a state option, extend `DURATION_DOMAINS` (sensor, alarm_control_panel, vacuum, climate, person); message texts "Zustand X" / "seit N Min. nicht erreichbar".
+- **B (3–4 h):** the authoring sheet moves from a boolean `durationMode` to a kind enum, sentence form "Sag mir, wenn ⟨Zustand⟩ · ⟨sofort | N Min⟩", state list = options + the entity's current state, level Alarm/Warnung/Info under "Mehr Optionen"; register, info text.
+
+A user-set CRITICAL triggers banner, double tone and wake from deep rest — quiet hours with `allowCritical` apply; that is the point, and the info text says so.
+
+**Hook (verified):** `src/utils/watchStore.js:40–46` (two kinds documented), `:75–90` (`addWatch`: kind normalised, severity clamped to INFO/WARNING), `:125–134` (`nextFiringState`, threshold hysteresis); `src/utils/watchSuggestions.js:57–61` (`DURATION_DOMAINS`), `:68–72` (`STATE_OPTIONS`); `src/utils/notificationSources.js:37–45` (fixed danger list — the watch is the sanctioned per-entity route, #3 "explicit boundary").
+
+**Effort:** Small × 2 (2–3 h + 3–4 h); 5–7 h in total, Medium by the sum.
+
+**Why it fits:** #3 drew the explicit boundary — a fixed danger list plus a per-entity watch; opening the watch's kinds keeps that boundary instead of growing the list.
+
+**Files (estimate):** `utils/watchStore.js`, `utils/watchSuggestions.js`, `components/tabs/ContextTab/WatchAuthoringSheet.jsx`, `de.js`/`en.js`, `info-popups-catalog.md`.
+
+---
+
+### 85. Wall-tablet lock — a PIN before settings and reset, HA's code on unlock
+
+**Pitch:** Children and guests reach "Alle Daten zurücksetzen" (two native confirms, then `localStorage.clear()`) and, with Quick Control on, the risky direction of a lock or a garage door after a one-second hold. A four-digit PIN — stored locally, hashed, honestly labelled as a slip-of-the-finger guard, not security — in front of the settings view and the reset; and for locks and alarm panels the card should send HA's own `code` instead of inventing a second one.
+
+**Status quo:** The reset path is `confirm → confirm → localStorage.clear() → reload`. Quick Control's hold fires `callService(domain, service, { entity_id })` with no code; `code_format` is read nowhere, so a code-protected lock fails silently today. There is no `alarm_control_panel` module (fallback), so "alarm disarm" is not a button in the card at all. `hass.user.is_admin` is not read anywhere.
+
+**What ships:**
+- **S1 (3–4 h):** setting "Tablet-Sperre" under General (set/change/remove PIN, four digits, simple hash — `crypto.subtle` is unavailable over http, so a small hash of our own), a PIN window as MorphPopup with a number pad, gate at the mount of the settings view (not at the opener — the settings search and `fsc-open-appearance` jump straight in) and before reset/cache in About; five-minute release after a correct PIN. The two native `confirm()`s become MorphPopup dialogs. Info text states the way out when the PIN is forgotten.
+- **S2 (4–6 h):** HA code support — read `code_format` on locks (and alarm panels once a module exists), ask for the code in the same window, pass it to `lock.unlock` / `alarm_disarm`; server-verified, real security. Quick Control's hold defers `fire()` until the code is entered.
+
+**Hook (verified):** `src/components/tabs/SettingsTab/components/AboutSettingsTab.jsx:104–107` (cache clear with one confirm), `:138–145` (double confirm → `localStorage.clear()` → reload); `src/components/QuickControlIcon.jsx:20` (`HOLD_MS = 1000`), `:42` (`fire()` without code); `code_format` and `is_admin` — 0 hits; `src/components/common/MorphPopup.jsx` (dialog primitive, per the checker `:149–162`).
+
+**Effort:** Small (S1) + Medium (S2).
+
+**Why it fits:** The wall tablet is a shared, unlocked screen; the reset path and Quick Control's risky direction are the two places a child's tap costs data or opens a door — and HA's `code` is the standard path the card skipped.
+
+**Files (estimate):** `utils/tabletSperre.js` (new), `components/common/PinFenster.jsx` (new), `components/tabs/SettingsTab.jsx`, `AboutSettingsTab.jsx`, `GeneralSettingsTab.jsx`, `components/QuickControlIcon.jsx`, `deviceConfigs/domains/lock.js`, `register/allgemein.js`, `suche/vorgaben.js`, `de.js`/`en.js`, `info-popups-catalog.md`.
+
+---
+
+## Open decisions (2026-09-24)
+
+Thirteen questions that came out of the same pass and are deliberately not roadmap entries. Nothing here is decided or recommended; the columns give what each option costs and touches, read from the code at v1.1.2468. Where an entry above says "open decision Dn", it means one of these.
+
+| # | Question | Option A | Option B | Cost / effort | Touches |
+|---|---|---|---|---|---|
+| D1 | AI mock (#1): `AIModeInterface.jsx:54–72` answers via `setTimeout` with a fixed text and fake sources (`:123–127`); entry points Alt+A (`searchEventHandlers.js:221–228`), Tab without a suggestion, Enter with text (`:297–306`); `aiModeEnabled` has no switch | Remove: component, the three keyboard entry points, i18n; redefine Enter (e.g. open the first result) | Build for real: `ai_task.generate_data` + `ai_task/preferences/get` (question/answer without device control, M) or `conversation.process` with an agent picker and tool-call rendering (L); push-to-talk via `assist_pipeline/run end_stage=tts` (`diktat.js:160`, per the checker) as voice input | A: −2.4…3.3 KB, S · B: +2–4 KB, M/L | #31, the #12 remainder, the bulk-action alternative in #70 |
+| D2 | Liquid Glass (#35/#37/#40): one library for one mobile sheet (`DetailRightSheet.jsx:14` is the only importer, `:241/:262` two `<Glass>`); the user approved the look in v2085 (`liquidGlassSettings.js:14–17`) | Remove: library + copy path + settings page (12 sliders), register/defaults/catalog/i18n; the sheet becomes CSS glass | Keep: #40 three presets (S), #37 capability line (S), #35 never | A: −16.2 KB (audit B12), S/M — the sheet's look changes visibly on Chromium tablets | #35, #37, #40 |
+| D3 | Energy Dashboard (#6): six roots; `energyDashboardCalculations.js` is imported by six modules outside it (chronicle, center, chart header, logbook, statistics) | Remove in three slices: move the shared functions + B29 (3 h, needs no user yes) → soft shutdown with a delete button for stored energy devices (3 h) → cut (3–4 h) | Keep, do not extend | −20…22.6 KB (audit B03), M (8–12 h); breaking for third-party installs with a stored energy device (`deviceConfigStorage.js` user_data key) | Slice 1 is a refactor gain regardless of the answer |
+| D4 | Test suite (#36): 13 specs / 107 tests, state v2317; the modules since then have no net | Bring up to v2468 | Leave as is | M | Hard rule: only on explicit request — hence no planning here, only the question |
+| D5 | Back up settings in HA: the builder uses `frontend/get_user_data` + `set_user_data` (`deviceConfigStorage.js:86–114`); everything else lives only in localStorage | "Save to HA / load from HA" under one key with an allow-list (caches excluded), variant "changed only" | Stays browser-local | +2–3 KB, M (6–8 h); user_data is USER-bound — kiosk user ≠ phone user; roadmap Out of scope lists "Backup/Restore settings as JSON" | Automatic sync (L) only on a yes |
+| D6 | Stop/cancel on the live capsule (#29 remainder) | Yes — define the gesture (✕ only for stoppable domains, swipe, long-press); reverses v2204/v2205 | No — the timer detail view (#82) suffices | S (3–5 h) | #82 |
+| D7 | Quick Control from the grid tile: the window body exists since v2454 in the list row (per the checker `DeviceCardListView.jsx:230–284`) | ⋯ button in the tile (visible; noise in the 4-tile grid) | Long-press on the text (uses up #52 in the grid) or desktop only | S–M | #52 search results |
+| D8 | Camera system view (#4 remainder): grid, snapshot history, two-way audio | Pursue (L, > 40 h, bundle +15–25 KB, a server automation is needed for the history) | Stay with E1 + camera domain config + doorbell → door | D3 as counter-financing? | #62 |
+| D9 | Context line via a Jinja field | Allow a one-off exception (`render_template` subscription, S) | Entity picker (HA template helper), no Jinja in the card (#72 slice) | S; against roadmap #3/#54 | #72 |
+| D10 | Photo frame: keep status line + context line visible in deep rest (default off) | Switch (S, 3–4 h) — tilts the #61 aesthetic | Leave as is | S | Immich as a source would be an idea of its own |
+| D11 | Empty gears (Tips, Version history, Schedules show "Einstellungen werden hier angezeigt") | Remove (1 h) | Fill with real settings | S | #46 register |
+| D12 | Per-feature off switches (#46 companion idea): a switched-off feature disappears from register, search and tiles | Build (M, 10–12 h, three slices; no bundle effect) | Do not | M | Register, tile building, content search |
+| D13 | Video doctor (#50) — pull it now? | Yes, one release (4–6 h, benefit 2) | Drop | S | prompt 19 (`docs/prompts/2026-09-11-optimierung/19-video-doktor.md`, unversioned) |
+
+---
+
 ## Notes
 
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **66 feature ideas + 2 parallel/long-term tracks** = 68 entries total.
+- The roadmap covers **83 feature ideas + 2 parallel/long-term tracks** = 85 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -2022,3 +2267,4 @@ That distinction is not a nicety. The card ships pre-releases continuously and d
   - **#56–#60** — 2026-08-24 code-analysis pass after the v1.1.2353–2361 UI rounds: seams the new code itself exposed (stale todos, the typing loop as an information surface, notification lanes without human sources, one-period charts, irreversible deletes).
   - **#61–#64** — 2026-08-27 screensaver expansion pass. v1.1.2369 shipped the pragmatic core of #9/#49 (idle → locked Zen page); these slice the open remainder — deep-rest dimming with quiet-hours coupling, wake sources, display handoff, photo frame — into individually shippable steps, on a shared idle-service foundation that consolidates the card's three existing idle clocks.
   - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. #68 came from the discussion under one of those projects rather than its README — a user stuck on a cached build after updating. Ideas only.
+  - **#69–#85** — 2026-09-24 re-analysis at v1.1.2468, after 97 builds since 1 September. Five sources read side by side (code seams with exactly one consumer, an HA API survey 2026.6–2026.9, neighbouring cards and family-tablet projects, the card's own release momentum, a first-evening user walk-through); 56 candidates through a hook checker and a skeptic. Mostly second consumers for existing modules, domain configs for fallback domains, and three repairs where HA moved under the card. HA standard APIs only, ideas only. Same pass: #2, #7, #14–#20, #23–#25, #32, #35, #37, #39, #41, #43 retired (see Out of scope); #5 and #26 re-scoped into #79 and #83; thirteen decision questions listed under "Open decisions".
