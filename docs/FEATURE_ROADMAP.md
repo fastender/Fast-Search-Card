@@ -1873,6 +1873,8 @@ One format addition in this part: a **Files (estimate)** line per entry. Since t
 
 ### 69. Three API repairs — HA moved, the card did not
 
+> ◐ **Partial — v1.1.2470** (2026-09-26): **B shipped** — `utils/batterieSensor.js` resolves the `device_class: battery` sensor on the vacuum's device through `hass.entities` (cached per vacuum, re-scanned only when the registry object changes), falls back to `attributes.battery_level`, and shows "—" in neutral grey when neither exists. A and C are open.
+
 **Pitch:** Not features. Three places where Home Assistant changed the contract and the card silently shows nothing, a wrong number, or drops entities.
 
 **Status quo:**

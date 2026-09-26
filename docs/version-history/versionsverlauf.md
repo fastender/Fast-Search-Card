@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2470 - 2026-09-26
+
+**Title:** 🤖 Vacuum battery from the battery sensor — no more "0 % in red" since Home Assistant 2026.9 (Roadmap #69 B)
+
+**Tags:** bugfix, vacuum, ha-compat
+
+The vacuum hero ring read the battery from the entity attribute `battery_level`, with 0 as the fallback and red below 20 %. Per the Home Assistant release notes, 2026.8 deprecated that attribute and 2026.9 removed it from the vacuum base entity; the replacement is a separate battery sensor on the same device. Every current vacuum therefore showed "0 %" in red.
+
+- **Sensor first:** the ring now looks up the `device_class: battery` sensor on the vacuum's own device (via the entity registry the frontend already holds) and reads its value. If a device has several battery sensors, the one in percent — or ending in `_battery` — wins, in a stable order.
+- **Attribute as fallback:** integrations that still provide `battery_level` behave exactly as before.
+- **Honest when nothing is known:** neither sensor nor attribute, or a sensor that is unavailable, shows "—" in neutral grey instead of a false red 0 %. A real 0 % is still red.
+- The lookup is cached per vacuum and only repeated when Home Assistant replaces its registry; no timer, no setting. The card searches Home Assistant's state directly, because the card's own default exclusions hide `*_battery` sensors from the device list. The vacuum buttons and every other ring are untouched.
+
+Verified: the new path replayed in Node through the real `getSliderConfig` with a synthetic Home Assistant (34 checks: sensor 73 % / 15 % / 0 %, attribute only, neither, unavailable, two battery sensors on one device, cache and registry change, YAML vacuum without a device, two vacuums on one device), two independent reviews (behaviour; regressions and cost — cached call 0,0008 ms, first scan 0,58 ms at 3 000 registry entries), all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant (0 page errors). Bundle 609 781 B gzip. Not verified against a live vacuum on Home Assistant 2026.9.
+
 ## Version 1.1.2469 - 2026-09-26
 
 **Title:** 🔔 Flap guard for the alert lane — a chattering contact is one alert, not one per flip (Roadmap #3b E4)
