@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2469 - 2026-09-26
+
+**Title:** 🔔 Flap guard for the alert lane — a chattering contact is one alert, not one per flip (Roadmap #3b E4)
+
+**Tags:** notifications, robustness
+
+A door or moisture contact that flips on → off → on within seconds used to produce a fresh alert every time: a new unread row, a new history line, the acknowledgement lost, and — with the critical sound and the wake sources — a new ping and a wake on every flip. The watch lane already had hysteresis; the three sources that read `last_changed` (`alert.*`, the danger device classes, severe weather) did not.
+
+- **One instance within the window:** when the same alert returns with the same severity within 45 s (30 s for critical), it keeps its original timestamp and is treated as the same instance. Acknowledged stays acknowledged, read stays read, the history gets no second line, and no toast pops up. The gap is measured from the moment the alert disappeared; if that edge was not observed, from the last moment it was seen active.
+- **Honest new instances stay new:** a different severity (a weather warning stepping from orange to red) or a gap longer than the window starts a new instance exactly as before.
+- **Safety is not muted:** for critical alerts the double ping and the wake of the screensaver still fire on every re-fire; only the row, the history and the toast are folded.
+- Pure module (`utils/flatterSchutz.js`), no timer, no new setting; entries are dropped from memory 45 s after an alert has gone. Persistent HA notifications, watches and reminders are untouched.
+
+Verified: the logic replayed in Node against the real merger and local state store (fold within the window, new instance after 60 s, severity change, continuous on, unobserved off-edge, critical still pings and wakes, acknowledgement preserved, history not duplicated, store pruned), two independent reviews (behaviour, regressions and cost), all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant (0 page errors). Bundle 609 379 B gzip.
+
 ## Version 1.1.2468 - 2026-09-24
 
 **Title:** 🔎 Search forgives typos now — exact matches first, a tolerant fallback only when they come up short; debug logs removed from the release

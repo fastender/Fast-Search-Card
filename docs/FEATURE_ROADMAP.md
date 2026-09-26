@@ -249,6 +249,8 @@ not a replacement for an HA automation, and it is not push. 24/7 delivery stays
 
 #### E4 — Flap guard for the alert lane *(robustness, not a feature)*
 
+> ✅ **Shipped v1.1.2469** (2026-09-26) — `utils/flatterSchutz.js` in the merger: a re-fire of the same id with the same severity within 45 s (30 s for CRITICAL) keeps the old `created_at`, so it stays one instance — no new unread row, no second history line, the acknowledgement holds, no toast. A severity change or a longer gap is a new instance as before. Double ping and wake for CRITICAL are deliberately not suppressed. No timer, no setting.
+
 The watch lane has hysteresis (`nextFiringState`, plus NaN-holds). The **other four alert sources
 do not**: `alert.*`, the danger whitelist, severe weather (`weatherAlertSources.js:113–121`) and `persistent_notification` re-fire on every transition,
 and because ack is instance-bound via `created_at`, a chattering contact produces a fresh unread
