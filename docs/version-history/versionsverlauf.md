@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2471 - 2026-09-26
+
+**Title:** 🔔 Home Assistant's own notifications reach the card again — `persistent_notification/subscribe` instead of a three-year-old state scan (Roadmap #69 A)
+
+**Tags:** notifications, bugfix, ha-compat
+
+Source 1 of the alert lane read `persistent_notification.*` entities out of `hass.states`. Per the Home Assistant release notes, HA removed those entities from the state machine in 2023.6 and offers them only through the WebSocket subscription `persistent_notification/subscribe` since then. The lane has been silently empty for HA's own notices — repairs, integration hints, update notes — for three years; nobody noticed because the other sources kept working.
+
+- **One subscription per connection:** a small module store (`utils/persistentNotificationStore.js`) holds the current notifications and applies `added`, `updated` and `removed` as they arrive; the merger reads the store. Several subscribers share the one subscription; a reconnect resubscribes through the same connection.
+- **The initial batch is silent:** the `current` list Home Assistant sends first — on every page load and after every reconnect — is not an event. Those notices are taken into the list, the badge and the history without a toast. Only notices added afterwards pop up, under the existing "HA notifications" toast switch. This silence applies to this source alone; a critical door or smoke alert that appeared while the connection was down still pings and wakes the screensaver on reconnect.
+- **Older Home Assistant keeps working:** if HA does not know the command, the subscription is declined quietly and the old state scan stays in place, including its `state_changed` trigger.
+- Dismissing still calls `persistent_notification.dismiss`; the `removed` event confirms it. No timer, no polling, no setting.
+
+Verified: the store and the real merger replayed in Node against a fake connection (initial batch, added, updated, removed, two subscribers sharing one subscription, declined subscription with no unhandled rejection, connection without the command, reconnect batch replacing the store — 20 checks), two independent reviews (behaviour; regressions and cost — a byte comparison of all 644 source files against v1.1.2470 shows three files changed and one new), one review finding fixed by hand (the silence applied to every source, not only to HA notices), all five guards green, the real built bundle loaded in Chrome with a mock Home Assistant without a real connection (0 page errors). Bundle 610 353 B gzip. Not verified against a live Home Assistant; that is the next thing to look at once the release is installed.
+
 ## Version 1.1.2470 - 2026-09-26
 
 **Title:** 🤖 Vacuum battery from the battery sensor — no more "0 % in red" since Home Assistant 2026.9 (Roadmap #69 B)

@@ -1873,7 +1873,7 @@ One format addition in this part: a **Files (estimate)** line per entry. Since t
 
 ### 69. Three API repairs — HA moved, the card did not
 
-> ◐ **Partial — v1.1.2470** (2026-09-26): **B shipped** — `utils/batterieSensor.js` resolves the `device_class: battery` sensor on the vacuum's device through `hass.entities` (cached per vacuum, re-scanned only when the registry object changes), falls back to `attributes.battery_level`, and shows "—" in neutral grey when neither exists. A and C are open.
+> ◐ **Partial — v1.1.2470/2471** (2026-09-26): **B shipped** (v2470) — `utils/batterieSensor.js` resolves the `device_class: battery` sensor on the vacuum's device through `hass.entities` (cached per vacuum, re-scanned only when the registry object changes), falls back to `attributes.battery_level`, and shows "—" in neutral grey when neither exists. **A shipped** (v2471) — `utils/persistentNotificationStore.js` holds one `persistent_notification/subscribe` subscription per connection; the merger reads the store, the `hass.states` scan stays as the fallback for HA without the command; the initial `current` batch (also after a reconnect) is silent for this source only — toast, double ping and wake for every other source are untouched. C (child devices) is open.
 
 **Pitch:** Not features. Three places where Home Assistant changed the contract and the card silently shows nothing, a wrong number, or drops entities.
 
