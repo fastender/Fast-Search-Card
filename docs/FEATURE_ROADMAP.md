@@ -2235,6 +2235,126 @@ A user-set CRITICAL triggers banner, double tone and wake from deep rest — qui
 
 ---
 
+## Part twelve — 2026-10-02 one agenda (#86–#90)
+
+Five entries from reading a combined calendar-and-tasks agenda card against the code at v1.1.2474. Ideas only. Its premise is one sentence: appointments and tasks answer the same question, so they belong in one timeline. The card already agrees on the notification side and not in the calendar itself.
+
+---
+
+### 86. One agenda — tasks live in the calendar
+
+**Pitch:** A task due on Thursday appears on Thursday, among that day's appointments, with its checkbox. Above today: what is overdue. One place answers "what is coming up".
+
+**Status quo:** Calendar and to-dos are two apps. The calendar code never touches a to-do (verified: no to-do reference anywhere in `calendar/`). The card nevertheless merges both sources already, for the alert lane (`utils/reminderSources.js`) and for the context line (`utils/kontextZeilen.js`). The notification side knows that a dentist appointment and a due task belong to the same question. The calendar view does not.
+
+**What ships:**
+- **S1 (4–5 h):** dated open tasks render in day, week, day columns and the month's day strip, below the timed events of their day. A task row carries a checkbox and its list's colour; a tap opens the task in the to-dos app. Ticking uses the existing `toggleComplete`, so optimism and the undo pill (#60) come along.
+- **S2 (2–3 h):** an overdue block above today, stacked as in #67. Tasks without a date stay out by default, because a calendar is about dates; a switch brings them in.
+- **S3 (2–3 h):** month cells mark tasks with a hollow dot, so the dot row keeps reading as appointments. Person lanes (#55) show each person's tasks in their lane through the shared person model.
+- **Setting:** Calendar → Display → tasks in the calendar: off / due / due and overdue.
+- **One rule:** a task with a date and no time never gets an invented 00:00. Several providers store dates only.
+
+**Out of scope:** creating tasks from the event dialog. The dialog stays events-only here.
+
+**Hook (verified):** `calendar/CalendarView.jsx:534` (`visibleEvents`, the one memo every view reads), `:993–1030` (event row); `calendar/components/DayColumns.jsx`, `LaneColumns.jsx`, `PeopleLanes.jsx`; `todos/index.jsx:130` (`getTodos`), `:346` (`toggleComplete`), `:368` (`completeMany`), `:504` (`_getOverdueTodos`); `utils/reminderSources.js` (the existing merge of both sources); live changes arrive through `fsc-todos-geaendert` (#56).
+
+**Effort:** Medium — 8–11 h in three slices.
+
+**Why it fits:** A second consumer for the to-do data and for the person model, and the step that completes the family week of #55.
+
+**Files (estimate):** `calendar/CalendarView.jsx`, `calendar/components/DayColumns.jsx`, `LaneColumns.jsx`, `PeopleLanes.jsx`, `calendar/utils/aufgabenImKalender.js` (new), `calendar/utils/calendarSettingsStorage.js`, `CalendarSettingsView.jsx`, settings register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 87. One event, one row — duplicates across calendars
+
+**Pitch:** The same appointment held in two calendars shows once: a shared family calendar and a personal copy, or a holiday feed subscribed twice.
+
+**Status quo:** There is no duplicate handling (verified: none in `calendar/`). A forum user reported exactly this, "can't get rid of a double calendar entry". The only remedy today is switching a whole calendar off, which removes its other events too.
+
+**What ships:**
+- Events equal in title, start, end and location (case and whitespace normalised) collapse into one row.
+- The row carries the colour bars of all its source calendars, so nothing disappears silently. Month dots count the event once.
+- Tapping opens the first writable instance (see #88).
+- **Person lanes are exempt across lanes.** An event in two people's calendars stays in both lanes, because that is the information. Collapsing applies within one lane or one day cell only.
+- A switch under Calendar → Display, on by default.
+
+**Hook (verified):** `calendar/CalendarView.jsx:534` (`visibleEvents`), the month dot map built from it, `calendar/components/PeopleLanes.jsx`; colours come from `resolveEventStyle` and the per-calendar colour.
+
+**Effort:** Small — 3–4 h.
+
+**Why it fits:** Closes an open user report with a filter over data already loaded.
+
+**Files (estimate):** `calendar/CalendarView.jsx`, `calendar/utils/doppelte.js` (new), `calendarSettingsStorage.js`, `CalendarSettingsView.jsx`, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 88. The calendar knows what a source can do
+
+**Pitch:** Read-only calendars are not offered as a target for new events, edit and delete controls are absent where they cannot work, and the refresh button asks the integration for fresh data.
+
+**Status quo:** `listCalendars` (`calendar/index.jsx:64`) builds its entries from name, state and icon. `supported_features` is not read anywhere in `calendar/` (verified). The dialog offers every calendar (`CalendarEventDialog.jsx:558`), so saving to a holiday or birthday feed fails after the form is filled in, with the error line at `:515`. The to-dos app already does this properly: `todos/hooks/useListFeatures.js:33` reads the bitmask. Refresh (`CalendarView.jsx:371`) re-queries Home Assistant, but Home Assistant polls remote calendars on its own schedule, so an event just added on the phone does not appear.
+
+**What ships:**
+- `listCalendars` carries `supported_features`; create is bit 1, delete bit 2, update bit 4.
+- The dialog's target list holds writable calendars only, and the default falls back to the first writable one. With none writable, the add button explains instead of opening a form that cannot succeed.
+- Event detail shows edit and delete only where the bit is set, otherwise a quiet "read-only" line.
+- Refresh calls `homeassistant.update_entity` for the visible calendars and then reloads. Throttled to once per 30 s, because remote calendar APIs rate-limit.
+
+**Hook (verified):** `calendar/index.jsx:64` (`listCalendars`), `calendar/components/CalendarEventDialog.jsx:153–156` (default target), `:558` (target list), `:515` (error line), `calendar/CalendarView.jsx:371` (`handleRefresh`), `todos/hooks/useListFeatures.js:33` (the precedent).
+
+**Effort:** Small — 3–4 h.
+
+**Why it fits:** A repair in the manner of #69: the card asks for something the source has already said it cannot do.
+
+**Files (estimate):** `calendar/index.jsx`, `calendar/components/CalendarEventDialog.jsx`, `calendar/CalendarView.jsx`, `de.js`/`en.js`.
+
+---
+
+### 89. Time at a glance — relative labels and the running event
+
+**Pitch:** "in 45 min", "tomorrow", next to the absolute time. Under the event that is running now, a thin line showing how far along it is.
+
+**Status quo:** Event rows show absolute times only (`CalendarView.jsx:993–1030`). On a wall tablet read in passing, an absolute time asks for arithmetic.
+
+**What ships:**
+- A relative label for items today and tomorrow and for timed items in the next hours. The absolute time stays. `Intl.RelativeTimeFormat` supplies both languages, so the phrases need no dictionary keys.
+- The running event gets a 2 px line in its calendar colour, filled to the elapsed share. On that row the line replaces the relative label: one signal per row.
+- Saturday and Sunday headers get a quiet tint, following the configured first day of the week.
+- **Thermal rule:** no per-second timer and no animation. One minute tick, only while the calendar view is mounted and the page is visible, and none in deep rest. No shared minute tick exists today (verified); this adds a small one that other minute-level surfaces can share.
+
+**Hook (verified):** `calendar/CalendarView.jsx:993–1030` (row and `timeStr`), `calendar/components/DayColumns.jsx` and `LaneColumns.jsx` (cards and headers).
+
+**Effort:** Small — 3–5 h.
+
+**Why it fits:** The calendar is read from across the room more often than it is operated; this serves the reading.
+
+**Files (estimate):** `calendar/CalendarView.jsx`, `calendar/components/DayColumns.jsx`, `LaneColumns.jsx`, `utils/minutenTakt.js` (new), `calendar/styles/CalendarView.css`, `calendarSettingsStorage.js`, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 90. A location that opens a map
+
+**Pitch:** Tap an event's location and it opens in a maps app.
+
+**Status quo:** The location is plain text (`CalendarView.jsx:1029`) and searchable (`:555`). It leads nowhere.
+
+**What ships:**
+- The location becomes a link. Off by default.
+- A provider choice: the device's own maps app, OpenStreetMap or Google Maps. The card fetches nothing itself; it only opens the link.
+- **Privacy, stated plainly:** this is the card's first outbound link built from the user's own data. The address reaches the chosen provider on a deliberate tap and at no other time. `docs/SECURITY.md` lists outbound destinations and has to be updated in the same release, and the setting's info popup says the same in one sentence.
+- On a kiosk tablet a new tab can be a dead end. That is the second reason for the default.
+
+**Hook (verified):** `calendar/CalendarView.jsx:1029` (location span), `calendar/components/CalendarEventDialog.jsx` (location field in the detail).
+
+**Effort:** Small — 2–3 h.
+
+**Why it fits:** Small, and honest about the one thing it changes: where data can go.
+
+**Files (estimate):** `calendar/CalendarView.jsx`, `calendar/components/CalendarEventDialog.jsx`, `calendarSettingsStorage.js`, `CalendarSettingsView.jsx`, register, `de.js`/`en.js`, info-popup catalog, `docs/SECURITY.md`.
+
+---
+
 ## Open decisions (2026-09-24)
 
 Thirteen questions that came out of the same pass and are deliberately not roadmap entries. Nothing here is decided or recommended; the columns give what each option costs and touches, read from the code at v1.1.2468. Where an entry above says "open decision Dn", it means one of these.
@@ -2262,7 +2382,7 @@ Thirteen questions that came out of the same pass and are deliberately not roadm
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **83 feature ideas + 2 parallel/long-term tracks** = 85 entries total.
+- The roadmap covers **88 feature ideas + 2 parallel/long-term tracks** = 90 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -2274,3 +2394,4 @@ Thirteen questions that came out of the same pass and are deliberately not roadm
   - **#61–#64** — 2026-08-27 screensaver expansion pass. v1.1.2369 shipped the pragmatic core of #9/#49 (idle → locked Zen page); these slice the open remainder — deep-rest dimming with quiet-hours coupling, wake sources, display handoff, photo frame — into individually shippable steps, on a shared idle-service foundation that consolidates the card's three existing idle clocks.
   - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. #68 came from the discussion under one of those projects rather than its README — a user stuck on a cached build after updating. Ideas only.
   - **#69–#85** — 2026-09-24 re-analysis at v1.1.2468, after 97 builds since 1 September. Five sources read side by side (code seams with exactly one consumer, an HA API survey 2026.6–2026.9, neighbouring cards and family-tablet projects, the card's own release momentum, a first-evening user walk-through); 56 candidates through a hook checker and a skeptic. Mostly second consumers for existing modules, domain configs for fallback domains, and three repairs where HA moved under the card. HA standard APIs only, ideas only. Same pass: #2, #7, #14–#20, #23–#25, #32, #35, #37, #39, #41, #43 retired (see Out of scope); #5 and #26 re-scoped into #79 and #83; thirteen decision questions listed under "Open decisions".
+  - **#86–#90** — 2026-10-02, from reading a combined calendar-and-tasks agenda card against the code at v1.1.2474. One medium entry (tasks in the calendar) and four small ones (duplicates, source capabilities, relative time, map link). Ideas only.
