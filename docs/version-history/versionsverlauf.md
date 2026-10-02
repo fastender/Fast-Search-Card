@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2474 - 2026-10-02
+
+**Title:** 📄 Third-party license notices travel with the bundle, and the README says plainly that the source is not published
+
+**Tags:** licensing, docs, build
+
+A user asked where the buildable source lives. That question surfaced two things. The README described a build setup and invited pull requests although the repository only ships the built bundle. And the bundle carried no copyright notice for any of the libraries compiled into it, although MIT and Apache-2.0 both require one. The card's own code is unchanged in this release.
+
+- **Notice in the bundle:** `dist/fast-search-card.js` now starts with a comment header naming the card, its license and all ten bundled packages with version, license and copyright line. HACS downloads only this one file, so the notice has to be inside it.
+- **Full texts:** new `THIRD-PARTY-NOTICES.md` in the repository root with the unchanged license text of every bundled package (six runtime dependencies plus four they bring along), including the full Apache-2.0 text for Fuse.js. No copyleft code is in the bundle.
+- **Generated, not typed:** `scripts/gen-third-party-notices.cjs` copies the texts from the license files in `node_modules`. `build.sh` runs it on every build for both the header and the file, and stops the build if a package has no license file.
+- **README:** "Fully auditable" replaced by a link to the notices; the "Development setup" block removed; "Contributing" now states that the repository ships the built bundle only and the source is not published, so issues and feature requests are the way in. The license stays GPL-3.0-or-later.
+
+Verified: build without upload, header present exactly once at the top of the file, the file parses as a module, version marker present, all five guards green. Not run: the browser load probe. Bundle 611 596 B gzip (+460 B for the header).
+
 ## Version 1.1.2473 - 2026-10-02
 
 **Title:** 🐞 No more sample to-dos in a home without to-do lists — "Aufgabe heute fällig" was a placeholder, not a task
