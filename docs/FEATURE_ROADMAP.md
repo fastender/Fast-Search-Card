@@ -2248,7 +2248,7 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 **Status quo:** Calendar and to-dos are two apps. The calendar code never touches a to-do (verified: no to-do reference anywhere in `calendar/`). The card nevertheless merges both sources already, for the alert lane (`utils/reminderSources.js`) and for the context line (`utils/kontextZeilen.js`). The notification side knows that a dentist appointment and a due task belong to the same question. The calendar view does not.
 
 **What ships:**
-- **S1 (4–5 h):** dated open tasks render in day, week, day columns and the month's day strip, below the timed events of their day. A task row carries a checkbox and its list's colour; a tap opens the task in the to-dos app. Ticking uses the existing `toggleComplete`, so optimism and the undo pill (#60) come along.
+- **S1 (4–5 h):** dated open tasks render in day, week, day columns and the month's day strip, below the timed events of their day. A task row carries a checkbox and its list's colour; a tap opens the task in the to-dos app. Ticking uses the existing `toggleComplete`; the row stays in place, struck through, until the view closes, so the tick can be taken back. Home Assistant stores no completion time, so "recently done" cannot survive a reload.
 - **S2 (2–3 h):** an overdue block above today, stacked as in #67. Tasks without a date stay out by default, because a calendar is about dates; a switch brings them in.
 - **S3 (2–3 h):** month cells mark tasks with a hollow dot, so the dot row keeps reading as appointments. Person lanes (#55) show each person's tasks in their lane through the shared person model.
 - **Setting:** Calendar → Display → tasks in the calendar: off / due / due and overdue.
@@ -2293,7 +2293,7 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 **Pitch:** Read-only calendars are not offered as a target for new events, edit and delete controls are absent where they cannot work, and the refresh button asks the integration for fresh data.
 
-**Status quo:** `listCalendars` (`calendar/index.jsx:64`) builds its entries from name, state and icon. `supported_features` is not read anywhere in `calendar/` (verified). The dialog offers every calendar (`CalendarEventDialog.jsx:558`), so saving to a holiday or birthday feed fails after the form is filled in, with the error line at `:515`. The to-dos app already does this properly: `todos/hooks/useListFeatures.js:33` reads the bitmask. Refresh (`CalendarView.jsx:371`) re-queries Home Assistant, but Home Assistant polls remote calendars on its own schedule, so an event just added on the phone does not appear.
+**Status quo:** `listCalendars` (`calendar/index.jsx:64`) builds its entries from name, state and icon. `supported_features` is not read anywhere in `calendar/` (verified). The dialog offers every calendar (`CalendarEventDialog.jsx:558`), so saving to a holiday or birthday feed fails after the form is filled in, with the error line at `:515`. The to-dos app reads its bitmask (`todos/hooks/useListFeatures.js:33`), but with the wrong bits: it takes 1, 2 and 4 for date, time and description, which in Home Assistant are create, delete and update. The right ones are 16, 32 and 64 (checked against `homeassistant/components/todo/const.py`). A list that can delete items therefore counts as "supports a time of day". Fixed in the same release. Refresh (`CalendarView.jsx:371`) re-queries Home Assistant, but Home Assistant polls remote calendars on its own schedule, so an event just added on the phone does not appear.
 
 **What ships:**
 - `listCalendars` carries `supported_features`; create is bit 1, delete bit 2, update bit 4.
@@ -2301,13 +2301,13 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 - Event detail shows edit and delete only where the bit is set, otherwise a quiet "read-only" line.
 - Refresh calls `homeassistant.update_entity` for the visible calendars and then reloads. Throttled to once per 30 s, because remote calendar APIs rate-limit.
 
-**Hook (verified):** `calendar/index.jsx:64` (`listCalendars`), `calendar/components/CalendarEventDialog.jsx:153–156` (default target), `:558` (target list), `:515` (error line), `calendar/CalendarView.jsx:371` (`handleRefresh`), `todos/hooks/useListFeatures.js:33` (the precedent).
+**Hook (verified):** `calendar/index.jsx:64` (`listCalendars`), `calendar/components/CalendarEventDialog.jsx:153–156` (default target), `:558` (target list), `:515` (error line), `calendar/CalendarView.jsx:371` (`handleRefresh`), `todos/hooks/useListFeatures.js:33–38` (wrong bits, to be corrected).
 
 **Effort:** Small — 3–4 h.
 
 **Why it fits:** A repair in the manner of #69: the card asks for something the source has already said it cannot do.
 
-**Files (estimate):** `calendar/index.jsx`, `calendar/components/CalendarEventDialog.jsx`, `calendar/CalendarView.jsx`, `de.js`/`en.js`.
+**Files (estimate):** `calendar/index.jsx`, `calendar/utils/kalenderRechte.js` (new), `calendar/components/CalendarEventDialog.jsx`, `calendar/CalendarView.jsx`, `todos/hooks/useListFeatures.js`, `de.js`/`en.js`.
 
 ---
 
