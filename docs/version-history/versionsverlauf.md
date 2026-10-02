@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2476 - 2026-10-03
+
+**Title:** 🗓️ Schedules look like tasks, and the header's white pill no longer goes missing behind the active button
+
+**Tags:** ui, schedules, bugfix
+
+- **The white pill behind the active header button:** in system views (schedules, tasks, news, notifications, …) the button of the shown page could be marked active — dark icon — without the white pill behind it. Cause: the pill of the action buttons and the pill of the device tabs were the same animated element at the same place in the tree. The header first renders without buttons (tab pill, opacity 1), then with buttons but before the view has reported its active button (target 0), and about 20 ms later with "overview" (target 1); depending on frame timing the animation finished at 0 and skipped the way back. The two pills are separate elements now, and the action pill appears invisible and fades in exactly once. In Chrome this showed when switching from one system view to another (9 of 98 switches before, 0 after); the reported "dark on first open" has the same mount sequence but did not reproduce on the test machine.
+- **Stale answers from a view that is already gone:** while switching views, the header could still read the active button of the view being unmounted for one render. A view's reference now stops answering as soon as it unmounts. The Integration view reports its active button too (overview, settings), which it never did.
+- **Schedules in the task design:** each schedule row is the same card as a task row — white round icon with the timer or schedule symbol in the domain colour, the domain as the small caps line (instead of the coloured badge), the device name as the title, the time and action in one line with an ellipsis (instead of fading out), and a chevron on the right. Same height, radius, spacing, hover and entry as tasks. A disabled schedule is dimmed; before, it was not marked at all. The filter bar, search row, empty and loading states use the task styles as well; the view no longer borrows the news styles, and its endless loading pulse is gone. Tapping a row opens the same edit view as before.
+- **A trap in the grouping:** with grouping set to "Rooms" and no schedule device assigned to a room, the grouping button disappeared together with the chips and there was no way back. The button now stays whenever the grouping is not on "Type".
+- The schedules view registers with numbers instead of arrays, so loading data no longer re-registers it each time.
+
+Verified in Chrome against scratch builds mounted as the card: header pill for eight views in both the old and the new bundle (first open, search and settings and back, switching between views); task row and schedule row measured side by side at desktop and phone width in German and English (card, icon circle, the three text lines, spacing); tasks and news unchanged against 1.1.2475. Three reviews; one regression found in review (a white pill without an active button after switching to Integration) fixed at its root and re-checked. All five guards green; the real built bundle opened schedules, tasks and schedules again with the pill visible each time (0 page errors). Bundle 612 340 B gzip.
+
 ## Version 1.1.2475 - 2026-10-02
 
 **Title:** 🪟 Glass windows centre on the card's panel instead of the browser window, without the close button below; to-do rows get a details button, a circle for done tasks and a red "overdue" pill
