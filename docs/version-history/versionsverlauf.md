@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2475 - 2026-10-02
+
+**Title:** 🪟 Glass windows centre on the card's panel instead of the browser window, without the close button below; to-do rows get a details button, a circle for done tasks and a red "overdue" pill
+
+**Tags:** ui, todos, popup
+
+Four points from screenshots.
+
+- **Windows centre on the panel:** a centred glass window (new task, calendar event, info, …) took its centre from the browser window. Inside Home Assistant, with its sidebar on the left, the window sat visibly beside the card's centre. It now centres on the visible part of the card's panel — the detail panels when a detail view is open, otherwise the search panel — horizontally and vertically. If the panel is too small to hold the window (a phone, where the container can be as low as the search bar), that axis falls back to the card and then to the visible area; the window always keeps a 12 px margin to the screen edge. Windows that unfold at their button (filter, category) are unchanged. Without a sidebar the horizontal position is the same as before; vertically the window now follows the panel, which can be higher than the middle of a tall browser window.
+- **No close button below the window:** the round ✕ under every glass window is gone, for all windows. They close by tapping the dimmed area, with Escape, and through their own buttons (Cancel, Done, Got it). The space it reserved is given back: a window may now be up to the screen height minus 24 px. A window without any control of its own keeps keyboard focus on itself, so Escape still works.
+- **Done tasks keep their circle:** a completed task showed a bare check mark; it now sits in the same round circle as an open task.
+- **Details button on every task row:** a round ⋯ button left of the circle, like the device list rows. It opens the task in a glass window that grows out of the button (title, list, date, time, description, profiles, delete). Tapping the row itself still opens the detail page. The button is not shown during multi-select, and a long press on it no longer starts a selection.
+- **Overdue as a pill:** "Overdue by 244 days" and "2 overdue" on the list cards are a red pill with white text instead of red text; the row height is unchanged. Long task titles are now capped at two lines, and on narrow screens the row tightens (smaller icon and button) so the pill fits.
+
+Verified in Chrome against a scratch build mounted as the card: a page imitating Home Assistant (306 px sidebar, 56 px header) — window centre equals panel centre within 2 px; phone viewport, low and narrow windows stay inside the screen; anchor windows measured at their button; no close button in the DOM; closing by backdrop and Escape, focus returns to the trigger. To-do rows measured in German and English at desktop and phone width (circle 32 px in both states, ⋯ 44 px, pill 17 px high, one window per tap, no extra row click). Three reviews, seven findings from the to-do review fixed and re-checked, all five guards green, the real built bundle loaded in Chrome (0 page errors). Bundle 611 967 B gzip. Known small edges: a four-digit day count is shortened in the German pill on a phone; on a window lower than about 600 px the delete button of the details window is reached by scrolling.
+
 ## Version 1.1.2474 - 2026-10-02
 
 **Title:** 📄 Third-party license notices travel with the bundle, and the README says plainly that the source is not published
