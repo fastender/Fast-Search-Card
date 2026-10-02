@@ -1941,6 +1941,8 @@ One format addition in this part: a **Files (estimate)** line per entry. Since t
 
 ### 72. Context lines, stage two — weather change, birthday countdown, all-day tomorrow, a custom line
 
+> ◐ **Partial — v1.1.2472** (2026-10-02): **S1 shipped** — `naechsterWechsel` in `utils/wetterVorhersage.js` reads the hourly cache (12 h horizon, nothing from a cache older than 3 h); "Regen/Schnee/Gewitter/Hagel ab 17 Uhr" when it is dry now, "Trocken ab 16 Uhr" after at least two dry hours in a row when it is wet. Fourth truth in the rotation, between tasks and the last house event. The cache is refreshed from the alert lane's existing 30-s tick, at most every 30 min, never in deep rest or a hidden tab; the entity is the one the Zen status line shows. A failed fetch no longer overwrites a good forecast. S2–S4 are open.
+
 **Pitch:** #57 ships three truths in rotation: next appointment, due tasks, last house event. Four small sentences are missing, and the data for every one of them is now in the bundle: "Regen ab 17 Uhr", "In 3 Tagen: Oma", "Morgen: Restmüll", and one line the household chooses itself.
 
 **Status quo:** The provider explicitly leaves weather change out ("needs forecast data") — that was true in August. Since #47 (v2443) `wetterVorhersage.js` holds an hourly forecast cache per weather entity, filled only while the calendar is open. The next-appointment truth skips all-day events, so the evening-before reminder (#58b) exists as a notification but never as a context line. Birthdays carry the 🎂 rule icon in the calendar, but neither the tile nor the context line counts down to them; the reminder stock holds only −1 h … +48 h. The Bento calendar tile loads −30/+14 days but never applies the rules.

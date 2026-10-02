@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2472 - 2026-10-02
+
+**Title:** 🌦️ "Regen ab 17 Uhr" — the context line knows when the weather changes (Roadmap #72 S1)
+
+**Tags:** start-screen, context-line, weather
+
+The context line under the greeting and in the typing loop rotated three truths: the next appointment, due tasks, the last thing that happened in the house. The weather change was left out in August because there was no forecast data in the card. Since the calendar got its weather (v1.1.2443) the hourly forecast has been cached — but only while the calendar was open.
+
+- **Fourth truth:** when it is dry now and the hourly forecast shows rain, snow, a thunderstorm or hail within the next 12 hours, the line says "Regen ab 17 Uhr" / "Rain from 5 PM" (also "Schnee ab …", "Gewitter ab …", "Hagel ab …"). When it is wet now, it says "Trocken ab 16 Uhr" / "Dry from 4 PM" — but only once at least two dry hours follow in a row, so a single gap in the rain is not announced. It sits in the rotation between tasks and the last house event.
+- **The same weather as the status line:** the sentence uses the weather entity the Zen status line shows (the chosen source, otherwise the card's own pick), then the one chosen in the calendar, then the first weather entity.
+- **Nothing in rest:** there is no new timer. The forecast is refreshed from the alert lane's existing 30-second tick, at most every 30 minutes, and never in deep rest, in a hidden tab or with context lines switched off. Statements only come from a forecast younger than three hours; an integration without hourly values simply stays silent.
+- **A failed fetch keeps the last good forecast:** before, an error replaced the cache with an empty forecast, which would now also have blanked the calendar's weather for up to ten minutes. The attempt is throttled, the data stays.
+- The calendar keeps its own ten-minute freshness, unchanged.
+
+Verified: the rules replayed in Node against the real modules (12 specified cases plus date change at night, unsorted and broken entries, midnight, both languages, horizon edges), four simulated hours of the 30-second tick with a fetch spy (two fetches per 30 minutes awake, none in deep rest, none in a hidden tab), two independent reviews with no blocking finding and three hints fixed by hand (reference value older than 90 minutes is ignored, failed fetch keeps the cache, entity choice follows the status line), all five guards green, and the real built bundle in Chrome with a mock forecast: the locked Zen page showed "Regen ab 21 Uhr" and, in English, "Rain from 9 PM" (0 page errors). Bundle 611 269 B gzip. Not verified against a live weather integration.
+
 ## Version 1.1.2471 - 2026-09-26
 
 **Title:** 🔔 Home Assistant's own notifications reach the card again — `persistent_notification/subscribe` instead of a three-year-old state scan (Roadmap #69 A)
