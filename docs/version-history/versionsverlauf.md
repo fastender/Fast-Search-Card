@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2473 - 2026-10-02
+
+**Title:** 🐞 No more sample to-dos in a home without to-do lists — "Aufgabe heute fällig" was a placeholder, not a task
+
+**Tags:** bugfix, todos
+
+Found while checking the weather context line of 1.1.2472: a home with no `todo.*` entity at all showed "Aufgabe heute fällig" on the locked start page. The to-do entity carried three sample tasks from its early days ("Milch kaufen", due today; "Meeting vorbereiten"; "Code Review machen") and returned them whenever no to-do list existed or a fetch failed — and in the first case wrote them into the entity attributes, where every reader took them for real.
+
+- **What showed the placeholders** (confirmed in Chrome against 1.1.2472): the context line on the Zen page and in the typing loop, a reminder in the alert lane with toast and Island badge ("Aufgabe heute fällig — Milch kaufen"), the content search ("milch" found a task), the to-do tile ("3 Aufgaben / 2 unerledigt") and the counters on the search card. The to-do view itself was honest: it already showed "Todo Integration nicht konfiguriert".
+- **Now:** without a to-do list the entity holds an empty list and zero counters; the sample data is deleted from the code. A failed fetch no longer returns anything invented: the attributes keep the last good state, and the view gets that same state back instead of an empty list.
+- **Last list removed in Home Assistant:** the manual refresh now clears the attributes as well (before, the old tasks stayed in tile, context line and reminders), and the first-display cache for the search is removed, so tasks of a deleted list are not offered after the next page load. A mount before Home Assistant is ready leaves that cache alone.
+- Homes with to-do lists behave exactly as before.
+
+Verified: both builds side by side in Chrome with a mock Home Assistant — without a to-do list the new build shows no task context line within 50 s, "0 Mitteilungen", no task hit for "milch" and the integration hint in the view; with one list (two tasks, one due today) context line, reminder, search and view are identical to 1.1.2472. The entity replayed in Node (no list, list, list removed, fetch throwing, mount without hass), a byte comparison of all 645 source files (one file changed), two independent reviews with no blocking finding and two hints applied by hand, all five guards green, 0 page errors. Bundle 611 136 B gzip.
+
 ## Version 1.1.2472 - 2026-10-02
 
 **Title:** 🌦️ "Regen ab 17 Uhr" — the context line knows when the weather changes (Roadmap #72 S1)
