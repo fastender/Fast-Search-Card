@@ -1,6 +1,6 @@
 # Versionsverlauf
 
-## Version 1.1.2476 - 2026-10-03
+## Version 1.1.2476 - 2026-10-02
 
 **Title:** 🗓️ Schedules look like tasks, and the header's white pill no longer goes missing behind the active button
 
