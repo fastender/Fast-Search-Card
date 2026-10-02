@@ -17,6 +17,7 @@
 !.gitignore
 !LICENSE
 !TRADEMARKS.md
+!THIRD-PARTY-NOTICES.md
 
 # Except docs folder
 !docs/

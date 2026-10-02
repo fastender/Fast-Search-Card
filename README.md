@@ -362,7 +362,7 @@ Preact · Framer Motion · Fuse.js · Chart.js · virtua · IndexedDB
 
 Single file. 604,876 bytes gzipped at v1.1.2409 (measured 2026-09-13).
 
-All open-source dependencies. No proprietary code. Fully auditable.
+Every bundled dependency is open source under MIT, Apache-2.0 or 0BSD. Their copyright notices and license texts are in [THIRD-PARTY-NOTICES.md](https://github.com/fastender/Fast-Search-Card/blob/main/THIRD-PARTY-NOTICES.md).
 
 <br>
 
@@ -400,20 +400,6 @@ No mystery. No pretending.
 
 </details>
 
-<details>
-<summary>Development setup</summary>
-
-<br>
-
-```bash
-# Requires Node.js 18+
-npm install
-npm run dev      # Hot reload
-npm run build    # Production bundle → dist/fast-search-card.js
-```
-
-</details>
-
 <br>
 
 ---
@@ -422,7 +408,8 @@ npm run build    # Production bundle → dist/fast-search-card.js
 
 Found a bug? Open an issue.
 Want a feature? Open an issue.
-Got code? Open a PR — contributions are merged under GPL-3.0 and credited.
+
+This repository ships the built bundle only. The source is not published, so code contributions aren't possible — issues and feature requests are how things get built here.
 
 Forks are legally allowed under the GPL but must use a different name. See [TRADEMARKS.md](https://github.com/fastender/Fast-Search-Card/blob/main/TRADEMARKS.md).
 
@@ -430,7 +417,9 @@ Forks are legally allowed under the GPL but must use a different name. See [TRAD
 
 ## License
 
-[GPL-3.0-or-later](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use. Modifications and forks must remain open-source under the same license.
+[GPL-3.0-or-later](https://github.com/fastender/Fast-Search-Card/blob/main/LICENSE). Free to use. Redistribution and derivative works are subject to the same license.
+
+Third-party components keep their own licenses — see [THIRD-PARTY-NOTICES.md](https://github.com/fastender/Fast-Search-Card/blob/main/THIRD-PARTY-NOTICES.md).
 
 The name "Fast Search Card" is reserved — see [TRADEMARKS.md](https://github.com/fastender/Fast-Search-Card/blob/main/TRADEMARKS.md) for the trademark notice and what forks may and may not do with the branding.
 
