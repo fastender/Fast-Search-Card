@@ -1570,6 +1570,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Standardansicht beim Öffnen** – mit welcher Ansicht der Kalender startet (Tag/Woche/Monat/Jahr).
 > - **Zum nächsten Termin springen** – ist die Startansicht leer, rückt der Kalender automatisch zum Zeitraum des nächsten Termins vor (sucht bis 90 Tage voraus).
 > - **Vergangene Events anzeigen** – aus: nur kommende Termine; an: auch bereits beendete.
+> - **Doppelte Termine zusammenfassen** – steht derselbe Termin (gleicher Titel, gleiche Zeit, gleicher Ort) in mehreren Kalendern, erscheint er einmal mit den Farben aller Quellen; in der Personen-Ansicht nur innerhalb einer Spalte.
 > - **Sortierung** – Reihenfolge der Event-Liste (auf-/absteigend nach Startzeit).
 > - **Wochenstart** – Montag oder Sonntag (wirkt auf Monats-/Wochenraster).
 > - **Zeitformat** – 24-Stunden oder 12-Stunden (AM/PM).
@@ -1582,6 +1583,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Default view on open** – which view the calendar starts in (Day/Week/Month/Year).
 > - **Jump to next event** – if the opening view is empty, the calendar rolls forward to the period of the next upcoming event (looks up to 90 days ahead).
 > - **Show past events** – off: only upcoming; on: also finished events.
+> - **Merge duplicate events** – if the same event (same title, time and place) is in several calendars, it appears once with the colours of all sources; in the People view only within one column.
 > - **Sort order** – order of the event list (ascending/descending by start time).
 > - **Week starts on** – Monday or Sunday (affects the month/week grid).
 > - **Time format** – 24-hour or 12-hour (AM/PM).

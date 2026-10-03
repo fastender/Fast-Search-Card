@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2478 - 2026-10-03
+
+**Title:** 🗓️ One event, one row — the same event in two calendars appears once and carries the colours of both (Roadmap #87)
+
+**Tags:** calendar
+
+A household often sees the same appointment twice: once in the shared family calendar and once in someone's own, or once in Google and once from a CalDAV copy. The calendar showed every copy as its own row.
+
+- **Merged rows:** events with the same title, start, end, all-day flag and location (spaces and capitals ignored) are shown once. The row shows up to three colour dots, one per source calendar, and the source line names them ("Family + Work", from three on "Family + Work +1"). The cards in the day and week columns get up to three thin colour bars instead of the single edge. A colour rule still wins for the whole event. The month view counts such an event once.
+- **Which copy opens:** the merged row opens the copy in a calendar that allows editing, so Save is there when it can be. Deleting a merged event deletes the copy you opened; the copy in the other calendar then appears as its own event — it still exists there.
+- **People columns:** the same event for two people stays in both columns — that is the information there. Inside one person's column copies are merged.
+- **Everywhere else, the same rule:** reminders in the notification lane, the context line, the content search and the calendar tile on the start page merge the same way, so a doubled event no longer produces two reminders.
+- **Setting:** Calendar → Display → "Merge duplicate events", on by default, directly below "Show past events". Off restores the old behaviour exactly. Note: because the match ignores the event id, two identical entries inside one calendar are merged as well.
+
+Verified with probes against the dev server: three calendars sharing one event (one spelled in lower case with extra spaces), one event in two calendars ten minutes ahead, events in one calendar only. With the setting on the list showed three rows instead of six with the expected colours and source names, the day column three cards with bars, the people view kept the event in both columns, and the notification lane produced one reminder; with the setting off everything was doubled as before. Two reviews without blocking findings; one hint applied (the content search index now rebuilds when the calendar setting changes). All five guards green, the real built bundle loaded in Chrome (0 page errors). Bundle 613 768 B gzip.
+
 ## Version 1.1.2477 - 2026-10-03
 
 **Title:** 🗓️ The calendar knows what a source can do — read-only calendars are no longer offered as a target, and edit and delete appear only where they work; to-do lists read their feature bits correctly (Roadmap #88)

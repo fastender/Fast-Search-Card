@@ -2268,6 +2268,8 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ### 87. One event, one row — duplicates across calendars
 
+> ✅ **Shipped v1.1.2478** (2026-10-03) — `calendar/utils/doppelte.js` (`fasseDoppelteZusammen`, key: normalised title, start, end, all-day, normalised location; no uid); list rows show up to three colour dots and joined source names, day/week cards up to three bars, a colour rule still wins; people columns merge only within a column; notification lane, context line, content search and Bento tile use the same helper; setting `display.mergeDuplicates` (on).
+
 **Pitch:** The same appointment held in two calendars shows once: a shared family calendar and a personal copy, or a holiday feed subscribed twice.
 
 **Status quo:** There is no duplicate handling (verified: none in `calendar/`). A forum user reported exactly this, "can't get rid of a double calendar entry". The only remedy today is switching a whole calendar off, which removes its other events too.
