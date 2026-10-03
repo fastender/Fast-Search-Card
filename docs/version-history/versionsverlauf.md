@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2477 - 2026-10-03
+
+**Title:** 🗓️ The calendar knows what a source can do — read-only calendars are no longer offered as a target, and edit and delete appear only where they work; to-do lists read their feature bits correctly (Roadmap #88)
+
+**Tags:** calendar, todos, bugfix
+
+Home Assistant tells for every calendar what it supports: creating, deleting and updating events. The card never read it. It offered a holiday or birthday feed as the target for a new event, and the save failed only after the form was filled in.
+
+- **New events:** the target list in the new-event window holds only calendars that accept new events, and the preselection falls back to the first of them — also when the saved default points to a read-only calendar. If no calendar accepts new events, the plus button shows a short notice instead of a form that cannot succeed.
+- **Existing events:** the edit window shows Save only where the calendar allows updates and Delete only where it allows deleting. Without update rights a quiet line under the title says the calendar is read-only; all fields stay readable. Events in fully writable calendars behave exactly as before.
+- **Settings:** the default-calendar picker for new events lists only writable calendars, and a saved default that is read-only is shown as "first available", which is what the new-event window uses.
+- **To-do lists:** the form decided about date, time and description from the wrong bits. Home Assistant uses bits 1, 2 and 4 for create, delete and update an item, and bits 16, 32 and 64 for due date, due date-time and description; the card read 1, 2 and 4. A list that can delete items was therefore treated as "supports a time", and a provider like Google Tasks was offered a time it then dropped. The form now follows bits 16, 32 and 64. The name check that hid date and description for lists called "shopping" or "Einkauf" is gone; the feature bits are the truth. With no list entity everything stays available, as before.
+- Planned but dropped: a refresh that asks Home Assistant to fetch remote calendars first. The calendar has no refresh button, so it would not have been reachable.
+
+Verified with probes against the dev server in German and English: five calendars with feature values 7, none, 2, 3 and 5 — target list, preselection, the notice without a writable calendar, Save/Delete/read-only line per combination, and the default-calendar picker; to-do lists with 79, 127, 16 and 48 and a list named "Einkaufsliste" with 127. Two reviews (behaviour; regressions on a byte comparison of all source files), one display finding fixed. All five guards green, the real built bundle loaded in Chrome (0 page errors). Bundle 612 704 B gzip.
+
 ## Version 1.1.2476 - 2026-10-02
 
 **Title:** 🗓️ Schedules look like tasks, and the header's white pill no longer goes missing behind the active button

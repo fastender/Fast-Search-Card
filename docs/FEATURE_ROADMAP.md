@@ -2291,6 +2291,8 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ### 88. The calendar knows what a source can do
 
+> ✅ **Shipped v1.1.2477** (2026-10-03) — `calendar/utils/kalenderRechte.js` (create 1, delete 2, update 4); new-event targets, preselection and the default-calendar picker list writable calendars only, a notice replaces the form when none is writable, Save/Delete follow the bits with a read-only line otherwise. To-do form bits corrected to 16/32/64 in the same release. **Not shipped:** the refresh part — the calendar has no refresh button, so `update_entity` on refresh was dropped by user decision.
+
 **Pitch:** Read-only calendars are not offered as a target for new events, edit and delete controls are absent where they cannot work, and the refresh button asks the integration for fresh data.
 
 **Status quo:** `listCalendars` (`calendar/index.jsx:64`) builds its entries from name, state and icon. `supported_features` is not read anywhere in `calendar/` (verified). The dialog offers every calendar (`CalendarEventDialog.jsx:558`), so saving to a holiday or birthday feed fails after the form is filled in, with the error line at `:515`. The to-dos app reads its bitmask (`todos/hooks/useListFeatures.js:33`), but with the wrong bits: it takes 1, 2 and 4 for date, time and description, which in Home Assistant are create, delete and update. The right ones are 16, 32 and 64 (checked against `homeassistant/components/todo/const.py`). A list that can delete items therefore counts as "supports a time of day". Fixed in the same release. Refresh (`CalendarView.jsx:371`) re-queries Home Assistant, but Home Assistant polls remote calendars on its own schedule, so an event just added on the phone does not appear.
