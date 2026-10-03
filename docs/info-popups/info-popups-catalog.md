@@ -1576,6 +1576,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Sortierung** – Reihenfolge der Event-Liste (auf-/absteigend nach Startzeit).
 > - **Wochenstart** – Montag oder Sonntag (wirkt auf Monats-/Wochenraster).
 > - **Zeitformat** – 24-Stunden oder 12-Stunden (AM/PM).
+> - **Ort öffnet Karte** – aus (Vorgabe), Karten-App des Geräts, OpenStreetMap oder Google Maps. Eingeschaltet wird der Ort eines Termins antippbar; erst bei diesem Tipp geht der Ortstext als Suchbegriff an den gewählten Anbieter, sonst an niemanden – die Karte selbst ruft dafür nichts ab.
 > - **Wochennummern** – KW-Spalte im Monatsraster ein-/ausblenden.
 > - **Wetter im Kalender** – Symbol und Tageshöchstwert im Tageskopf, Stundenwert neben Terminen (jenseits des Stunden-Horizonts der Tageswert). Vier Stufen: aus, nur Tagesköpfe, nur Termine, beides. Wetter-Entity: automatisch die der Wetter-Kachel oder eine gewählte.
 
@@ -1591,6 +1592,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Sort order** – order of the event list (ascending/descending by start time).
 > - **Week starts on** – Monday or Sunday (affects the month/week grid).
 > - **Time format** – 24-hour or 12-hour (AM/PM).
+> - **Location opens map** – off (default), the device's maps app, OpenStreetMap or Google Maps. When on, an event's location becomes tappable; only on that tap is the location text sent, as a search term, to the chosen provider, and to no one else – the card itself fetches nothing for it.
 > - **Week numbers** – show/hide the week-number column in the month grid.
 > - **Weather in the calendar** – condition icon and the day's high in each day header, the hourly value beside events (beyond the hourly horizon the day's value). Four levels: off, day headers only, events only, both. Weather entity: automatically the weather tile's, or a chosen one.
 

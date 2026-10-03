@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2480 - 2026-10-03
+
+**Title:** 🗺️ A location that opens a map — tap an event's place to open it in your maps app, OpenStreetMap or Google Maps; off by default (Roadmap #90)
+
+**Tags:** calendar, privacy
+
+- **Setting:** Calendar → Display → "Location opens map": Off (default), Device maps app, OpenStreetMap or Google Maps. With it off, nothing changes.
+- **In the list:** with a provider chosen, an event's location becomes a link. Tapping it opens the map in a new tab or app and does not open the event at the same time; Enter on the focused link behaves the same way.
+- **In the event editor:** a small "Open map" button next to the location field, shown only when the field is not empty and a provider is chosen.
+- **Fixed addresses only:** the location text is percent-encoded and placed as the search term into one of three fixed templates (OpenStreetMap search, Google Maps search, and for "device" Apple Maps on Apple devices, a `geo:` link on Android, otherwise OpenStreetMap). A location that itself looks like a web address — an invitation from outside could carry one — never becomes a link target; it is just another search term. Empty locations get no link.
+- **Privacy:** the card opens no connection for this — no request, no map preview, no geocoding. The location leaves the card only when you tap the link, and only to the provider you chose. `docs/SECURITY.md` describes this in its outbound section; the README's calendar sentence notes it.
+
+Verified with probes against the dev server, all other hosts blocked: with the setting off or unset no link anywhere; with OpenStreetMap and Google the exact encoded addresses for "Hauptstraße 1, Köln" and for "https://beispiel.invalid/x" (kept as an encoded search term); a click and Enter on the link opened only the new page, never the event window; the editor button appeared and disappeared with the field's content. A security review ran more than 40 crafted locations (schemes in mixed case, scripts, markup, control characters, very long text) through the link builder: every result starts with one of the fixed templates or is empty. Two reviews without blocking findings; two documentation hints applied. Known limit: in the narrow list column on a phone the location sits in the cut-off part of the row; there it is reached through the editor's "Open map" button. Not verified: opening `geo:` and Apple Maps links on real phones. All five guards green, the real built bundle loaded in Chrome (0 page errors). Bundle 617 251 B gzip.
+
 ## Version 1.1.2479 - 2026-10-03
 
 **Title:** ⏱️ Time at a glance — "in 45 min." and "tomorrow" next to the time, a thin line under the event that is running, and tinted weekends (Roadmap #89)

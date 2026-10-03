@@ -2341,6 +2341,8 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ### 90. A location that opens a map
 
+> ✅ **Shipped v1.1.2480** (2026-10-03) — `calendar/utils/kartenLink.js` (location only through `encodeURIComponent` into fixed OSM / Google / Apple-or-`geo:` templates; web-address-like locations stay search terms); list location as `<a target=_blank rel="noopener noreferrer">` that does not open the event, "Open map" button in the editor; setting `display.locationLink` (off by default); SECURITY.md outbound paragraph.
+
 **Pitch:** Tap an event's location and it opens in a maps app.
 
 **Status quo:** The location is plain text (`CalendarView.jsx:1029`) and searchable (`:555`). It leads nowhere.

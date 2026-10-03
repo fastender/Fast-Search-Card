@@ -94,6 +94,8 @@ The card makes exactly three categories of outbound requests:
 
 That's it. There are no analytics endpoints, no error reporting services, no usage-statistics uploads, no "phone home" beacons.
 
+**Calendar location links (opt-in, since v1.1.2480) — not a request the card makes.** Off by default (Calendar settings → Display → *Location opens map*). Only when you switch it on and pick a provider — your device's maps app, OpenStreetMap or Google Maps — does an event's location become a link. The location text leaves the card only when you deliberately tap that link (or the *Open map* button next to the location in the event editor), and only to the provider you chose: it is percent-encoded with `encodeURIComponent` and placed as the search term into one fixed URL template (`https://www.openstreetmap.org/search?query=…`, `https://www.google.com/maps/search/?api=1&query=…`, for the device's maps app on Apple devices `https://maps.apple.com/?q=…`, on Android `geo:0,0?q=…`, elsewhere the OpenStreetMap template). A location that itself looks like a web address (`https://…`, `javascript:…`, `www.…`) never becomes a link target of its own — it is just another search term. The link opens in a new tab with `rel="noopener noreferrer"`. The card itself opens no connection for this: no `fetch`, no map preview, no geocoding.
+
 ---
 
 ## Hardening measures
