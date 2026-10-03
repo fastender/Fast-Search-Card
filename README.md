@@ -269,7 +269,7 @@ Video backgrounds when you have them — drop `{domain}_{state}.mp4` into `/loca
 
 <br>
 
-Day, Week, Month, Year views. Native HA WebSocket integration. All events stay on your Home Assistant. No cloud, no account. Recurring events with five preset patterns. Add, edit, delete — without leaving the dashboard.
+Day, Week, Month, Year views. Native HA WebSocket integration. All events stay on your Home Assistant. No cloud, no account (an event's location goes to a map provider only if you switch on map links and tap one — see [SECURITY.md](docs/SECURITY.md)). Recurring events with five preset patterns. Add, edit, delete — without leaving the dashboard.
 
 Calendar groups, event rules and a lane per person for the family week; the week reads as day columns.
 
