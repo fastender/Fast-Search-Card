@@ -2317,6 +2317,8 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ### 89. Time at a glance — relative labels and the running event
 
+> ✅ **Shipped v1.1.2479** (2026-10-03) — `utils/minutenTakt.js` (one timeout aligned to the full minute, only with subscribers and a visible page), `calendar/utils/relativeZeit.js` and two leaf components; list rows get "in 45 min." / "tomorrow" / "in 3 days", running events a 2 px `scaleX` line; columns show minutes and hours only (the header names the day), narrow columns the line only; weekend headers tinted in month, day columns and week grid; settings `display.relativeTime`, `display.weekendTint`.
+
 **Pitch:** "in 45 min", "tomorrow", next to the absolute time. Under the event that is running now, a thin line showing how far along it is.
 
 **Status quo:** Event rows show absolute times only (`CalendarView.jsx:993–1030`). On a wall tablet read in passing, an absolute time asks for arithmetic.

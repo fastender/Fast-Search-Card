@@ -1571,6 +1571,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Zum nächsten Termin springen** – ist die Startansicht leer, rückt der Kalender automatisch zum Zeitraum des nächsten Termins vor (sucht bis 90 Tage voraus).
 > - **Vergangene Events anzeigen** – aus: nur kommende Termine; an: auch bereits beendete.
 > - **Doppelte Termine zusammenfassen** – steht derselbe Termin (gleicher Titel, gleiche Zeit, gleicher Ort) in mehreren Kalendern, erscheint er einmal mit den Farben aller Quellen; in der Personen-Ansicht nur innerhalb einer Spalte.
+> - **Relative Zeit anzeigen** – neben der Uhrzeit steht „in 45 Min.“, „in 3 Std.“, „morgen“ oder „in 3 Tagen“ (bis sechs Tage voraus); unter dem Termin, der gerade läuft, zeigt eine dünne Linie in seiner Farbe, wie weit er ist. In den Tages- und Personen-Spalten nennt der Kopf den Tag schon, dort steht nur „in 45 Min.“ oder „in 3 Std.“, in schmalen Spalten nur die Linie. Aktualisiert sich einmal pro Minute, nur solange der Kalender offen und die Seite sichtbar ist.
+> - **Wochenende hervorheben** – Samstag und Sonntag stehen in den Tagesköpfen von Monat und Woche in gedämpftem Rot.
 > - **Sortierung** – Reihenfolge der Event-Liste (auf-/absteigend nach Startzeit).
 > - **Wochenstart** – Montag oder Sonntag (wirkt auf Monats-/Wochenraster).
 > - **Zeitformat** – 24-Stunden oder 12-Stunden (AM/PM).
@@ -1584,6 +1586,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Jump to next event** – if the opening view is empty, the calendar rolls forward to the period of the next upcoming event (looks up to 90 days ahead).
 > - **Show past events** – off: only upcoming; on: also finished events.
 > - **Merge duplicate events** – if the same event (same title, time and place) is in several calendars, it appears once with the colours of all sources; in the People view only within one column.
+> - **Show relative time** – next to the time it says “in 45 min.”, “in 3 hr.”, “tomorrow” or “in 3 days” (up to six days ahead); under the event that is running right now, a thin line in its colour shows how far along it is. In the day and people columns the header already names the day, so only “in 45 min.” or “in 3 hr.” appears there, and narrow columns show just the line. Updates once a minute, only while the calendar is open and the page is visible.
+> - **Highlight weekends** – Saturday and Sunday appear in a muted red in the day headers of the month and week views.
 > - **Sort order** – order of the event list (ascending/descending by start time).
 > - **Week starts on** – Monday or Sunday (affects the month/week grid).
 > - **Time format** – 24-hour or 12-hour (AM/PM).

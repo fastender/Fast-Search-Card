@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2479 - 2026-10-03
+
+**Title:** ⏱️ Time at a glance — "in 45 min." and "tomorrow" next to the time, a thin line under the event that is running, and tinted weekends (Roadmap #89)
+
+**Tags:** calendar
+
+A wall calendar is read in passing. "14:30" asks for arithmetic; "in 45 min." does not.
+
+- **Relative labels:** in the event list a short label follows the time — "in 5 min." up to 90 minutes ahead, "in 3 hr." later the same day, "tomorrow" for the next day and "in 3 days" up to six days ahead. All-day events only get "tomorrow" and the day labels, never one for today. Events that are running, over or further away get none. The texts come from the browser's own relative-time formatter in the card's language.
+- **The running event:** instead of a label, a 2 px line in the event's colour under the row shows how far it has progressed. The same appears on the cards of the day, week and people columns. In those columns the header already names the day, so only minutes and hours are shown there, the label never pushes the title aside, and on narrow columns only the line remains.
+- **Weekends:** Saturday and Sunday headers in the month view (weekday row and day numbers), the day columns and the week grid are shown in a muted red — text colour only, no backgrounds. This follows the weekday, so a week starting on Sunday is tinted correctly.
+- **No load at rest:** labels and lines share one timer for the whole page, aligned to the full minute. It runs only while the calendar is open and the page is visible; with the calendar closed there is no timer and no listener. Only the labels and lines re-render each minute, not the calendar. The line moves by transform only, without transition or animation. The screensaver closes the calendar, so nothing ticks at rest.
+- **Settings:** Calendar → Display → "Show relative time" (labels and line) and "Highlight weekends", both on by default; off restores the previous look.
+
+Verified with probes against the dev server using a fixed clock: events starting in 5, 30, 89 and 91 minutes, later today, tomorrow, in 3, 6 and 7 days, all-day today and tomorrow, running (line at about 0.17 of its width, growing after one minute) and past, in German and English, list and columns; weekend headers with the week starting on Monday and on Sunday; with the calendar closed and after the screensaver no label nodes and no timer. A dedicated review counted timers and listeners (none on the start page, exactly one timer while open, none after closing or hiding the page). Three reviews; two layout findings in the people and day columns fixed and re-measured to the previous widths and heights. Not verified: the timer pausing in a real background tab. All five guards green, the real built bundle loaded in Chrome (0 page errors). Bundle 615 741 B gzip.
+
 ## Version 1.1.2478 - 2026-10-03
 
 **Title:** 🗓️ One event, one row — the same event in two calendars appears once and carries the colours of both (Roadmap #87)
