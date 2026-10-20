@@ -148,7 +148,7 @@ Spend the rest of your weekend on something that actually runs.
 
 ## Security
 
-No telemetry. No tracking. No external API calls. No authentication material stored.
+No telemetry. No tracking. No external API calls of its own — AI mode talks only to your Home Assistant, which passes the question and the card's device list to the AI provider you set up there. No authentication material stored.
 
 Audited on every release. Single-file bundle you can grep yourself.
 
@@ -346,7 +346,7 @@ Search every setting and jump straight to it, or list what you changed. Backgrou
 
 **Reliable.** Failed actions say so and roll back. A broken tile no longer empties the card. A version watcher notices when a wall tablet still runs old code after an update. Keyboard and screen readers reach settings rows, device tiles, chips, detail tabs, popups and every icon button.
 
-**Smart.** Predictive suggestions that learn your habits. List virtualization for thousands of entities. AI Mode (experimental).
+**Smart.** Predictive suggestions that learn your habits. List virtualization for thousands of entities. AI Mode through the AI task you set up in Home Assistant — it sees and switches only what the card shows.
 
 See [FEATURES.md](https://github.com/fastender/Fast-Search-Card/blob/main/docs/FEATURES.md) for the full list.
 
