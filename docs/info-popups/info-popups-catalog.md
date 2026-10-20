@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2409 (2026-09-13) — 63 `settingsInfo` keys in de.js and en.js, 63 sections below.
+> **Stand:** v1.1.2481 (2026-10-20) — 64 `settingsInfo` keys in de.js and en.js, 64 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -51,6 +51,7 @@
 | `sidebar` | Sidebar |
 | `homeScreen` | Startseite / Home Screen |
 | `tts` | Text-to-Speech |
+| `aiMode` | KI-Modus / AI mode (auch Unterseite „KI-Aufgabe“) |
 | `favorites` | Favoriten / Favorites (leeres Bento-Widget) |
 | `suggestions` | Vorschläge / Suggestions |
 | `toasts` | Toasts |
@@ -357,6 +358,40 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **TTS engine** – choose the Home Assistant speech service (e.g. Google, Piper, Cloud).
 >
 > *Why it matters:* only with an engine selected can announcements be spoken.
+
+## aiMode
+
+> ⓘ am Abschnitt „KI-Modus“ in Settings → Allgemein und auf dessen Unterseite „KI-Aufgabe“ (v1.1.2481).
+
+**DE**
+> ## KI-Modus
+>
+> Fragen und Befehle an deine eigene KI in Home Assistant. Text ins Suchfeld tippen: **Enter** wechselt in den KI-Modus, das **zweite Enter** schickt die Frage ab. **Tab** übernimmt zuerst einen angezeigten Vorschlag und wechselt sonst, **Alt+A** wechselt nur.
+>
+> - **Was gesendet wird** – nur Geräte, die die Karte zeigt (nicht über Filter, Ausschlussmuster oder Sichtbarkeit ausgeblendet): je entity_id, Name, Raum, Zustand, seit wann und wenige Werte (z. B. Helligkeit, Temperaturen, Medientitel). Dazu Datum, Uhrzeit, Zeitzone, Einheitensystem, deine Frage und die letzten 6 Chat-Beiträge. Höchstens 500 Geräte bzw. rund 60 000 Zeichen, schaltbare zuerst.
+> - **Wer schaltet** – die KI schaltet nie selbst. Sie schlägt Aktionen vor; die Karte prüft jede einzelne (nur gesendete Geräte, nur erlaubte Befehle, Werte im erlaubten Bereich) und führt sie erst dann aus. Einstellungen, die die Karte nicht kennt, werden abgelehnt.
+> - **Nur nach deinem Tipp auf „Ausführen“** – Schlösser, Alarmanlagen, Abdeckungen der Art Garage/Tor/Tür, Skripte und Tasten — auch Szenen und Gruppen, die so ein Gerät enthalten (auch verschachtelt).
+> - **Ohne Rückfrage** – alles andere, auch Szenen und Gruppen ohne solche Geräte, Automationen und Schalter. Sie können mehr schalten, als die Karte zeigt.
+> - **Abbrechen** – Schließen behält eine laufende Frage (ihre Aktionen laufen). „Neuer Chat“, Ausschalten und der Bildschirmschoner verwerfen sie. Ändert sich die Ausschlussliste, wird der Verlauf ebenfalls geleert.
+> - **Kosten** – jede Frage schickt die ganze Geräteliste erneut, grob 10 000–20 000 Tokens bei 300–500 Geräten. Sie laufen über deinen eigenen KI-Anbieter.
+> - **Voraussetzung** – Home Assistant ab 2025.8 mit einer „KI-Aufgabe“ deiner KI-Integration (z. B. Anthropic). „Automatisch“ nimmt die Vorgabe von Home Assistant.
+>
+> *Warum wichtig:* Der Assist-Agent von Home Assistant sieht alle freigegebenen Geräte — hier sieht die KI nur, was die Karte zeigt.
+
+**EN**
+> ## AI mode
+>
+> Questions and commands for your own AI in Home Assistant. Type into the search field: **Enter** switches to AI mode, the **second Enter** sends the question. **Tab** first accepts a shown suggestion and otherwise switches, **Alt+A** only switches.
+>
+> - **What is sent** – only devices the card shows (not hidden by filters, exclusion patterns or visibility): for each its entity_id, name, area, state, since when and a few values (e.g. brightness, temperatures, media title). Plus date, time, time zone, unit system, your question and the last 6 chat messages. At most 500 devices or about 60,000 characters, controllable ones first.
+> - **Who switches** – the AI never switches anything itself. It proposes actions; the card checks every single one (only sent devices, only allowed commands, values inside the allowed range) and only then runs it. Settings the card does not know are refused.
+> - **Only after you tap "Run"** – locks, alarm panels, covers of the garage/gate/door kind, scripts and buttons — also scenes and groups that contain such a device (nested too).
+> - **Without asking** – everything else, including scenes and groups without such devices, automations and switches. They can control more than the card shows.
+> - **Cancelling** – closing keeps a running question (its actions run). "New chat", switching off and the screensaver discard it. The history is also cleared when the exclusion list changes.
+> - **Costs** – every question sends the whole device list again, roughly 10,000–20,000 tokens for 300–500 devices. They are billed by your own AI provider.
+> - **Requirement** – Home Assistant 2025.8 or later with an "AI task" of your AI integration (e.g. Anthropic). "Automatic" uses the Home Assistant default.
+>
+> *Why it matters:* the Home Assistant Assist agent sees every exposed device — here the AI only sees what the card shows.
 
 ## favorites
 

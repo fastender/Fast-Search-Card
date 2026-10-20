@@ -613,16 +613,34 @@ Over 100 hand-drawn SVGs with on/off states. Washing machines spin. Locks rotate
 
 ## AI Mode
 
-> Experimental.
+> Through the AI task you set up in Home Assistant.
 
 <details>
 <summary><b>Chat with your home.</b></summary>
 
 <br>
 
-Currently a mock backend. Real LLM integration via HA Conversation API is on the roadmap.
+Type a question in the search field and press Enter: the card switches into AI mode, the second Enter sends. "Which windows are open?", "Turn off all lights in the kitchen", "Turn the heating up two degrees". Follow-up questions see the last few turns.
 
-See [FEATURE_ROADMAP.md](FEATURE_ROADMAP.md#1-echte-llm-conversation-statt-simulierte-ai) for the plan.
+It uses Home Assistant's AI task (`ai_task.generate_data`, Home Assistant 2025.8 or later) from whichever AI integration you added — Anthropic, OpenAI, Google, Ollama and others. Without one, AI mode shows how to add it.
+
+</details>
+
+<details>
+<summary><b>It sees only what the card shows.</b></summary>
+
+<br>
+
+The card sends its own device list — after your exclusion patterns, the hidden/diagnostic filters and the entity limit — with name, room, state and a few attributes. Excluded devices never leave the card. The AI cannot switch anything by itself: it answers with suggested actions, and the card checks each one against that list and a fixed set of allowed services before it calls Home Assistant. Values out of range are refused, not clamped.
+
+</details>
+
+<details>
+<summary><b>Sensitive things wait for your tap.</b></summary>
+
+<br>
+
+Locks, alarm panels, garage, gate and door covers, scripts and buttons — and scenes or groups that contain one of them — appear as a suggestion with "Run" and "Dismiss". Lights, switches, scenes and climate run right away, and each action shows whether it worked. Settings → General → AI mode turns it off or picks a different AI task.
 
 </details>
 

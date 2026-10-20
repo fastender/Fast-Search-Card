@@ -2,7 +2,7 @@
 
 This document is for users who install Fast Search Card via HACS and want to know what the card does — and doesn't do — with their Home Assistant data.
 
-If you just want the short version: **the card has no telemetry, no tracking, no external API calls, no analytics, and stores no authentication material.** Everything it needs already lives inside your Home Assistant instance.
+If you just want the short version: **the card has no telemetry, no tracking, no external API calls, no analytics, and stores no authentication material.** Everything it needs already lives inside your Home Assistant instance. The one feature that can send home data further is AI mode: it hands your question and the card's device list to an AI task *you* set up in Home Assistant, which forwards it to the AI provider you chose there (see [Outbound network behaviour](#outbound-network-behaviour)).
 
 The rest of this document is the long version, so you can verify that for yourself.
 
@@ -15,7 +15,7 @@ These are the categories of behaviour that are explicitly absent. They have been
 | Category | Status |
 |---|---|
 | Analytics / telemetry (Google Analytics, Sentry, PostHog, Mixpanel, Segment, Amplitude, etc.) | None — verified by grep |
-| External API calls with your data | None — the only outbound fetches are three plain `GET`s to GitHub-hosted markdown files (`versionsverlauf.md`, `lessons.de.md`, `lessons.en.md`) and `HEAD` probes to your local HA media folder. No body, no auth header, no cookies |
+| External API calls with your data | None from the card itself — the only outbound fetches are three plain `GET`s to GitHub-hosted markdown files (`versionsverlauf.md`, `lessons.de.md`, `lessons.en.md`) and `HEAD` probes to your local HA media folder. No body, no auth header, no cookies. AI mode (since v1.1.2481) sends data only to your Home Assistant; HA passes it to the AI provider you configured there |
 | Third-party CDN imports at runtime | None — all dependencies are bundled at build time via Vite and inlined into the single shipped file |
 | Hardcoded secrets, API keys, tokens | None — verified against patterns for JWT, Bearer, Stripe, Google, GitHub, Slack tokens |
 | Authentication material in localStorage / sessionStorage / IndexedDB | None — verified |
@@ -40,10 +40,10 @@ The card persists configuration, UI state, and performance caches in your browse
 | `fsc_favorites_snapshot_v1` | Array of entity IDs you marked as favourite | Restored across page reloads |
 | `fsc_suggestions_snapshot_v1` | Top suggested entities | Snappy suggestion list on cold start |
 | `excludedPatterns` | Wildcard patterns you defined in Settings | Your exclusion rules |
-| `systemSettings` | UI theme, language, toast preferences, grid columns, news/todos filters | Your settings |
+| `systemSettings` | UI theme, language, toast preferences, grid columns, news/todos filters, AI mode switch and chosen AI task | Your settings |
 | `darkMode`, `userLanguage`, `userCurrency` | Theme, language, currency strings | Convenience cache |
 | `newsSettings`, `todosSettings` | Per-feed and per-list preferences | Your settings |
-| `animations`, `soundEffects`, `notificationsEnabled`, `statsBarEnabled`, `predictiveSuggestions`, `aiModeEnabled` | Feature toggles | Your settings |
+| `animations`, `soundEffects`, `notificationsEnabled`, `statsBarEnabled`, `predictiveSuggestions` | Feature toggles | Your settings |
 | `confidenceThreshold`, `suggestionTimeWindow`, `maxSuggestions`, `maxEntitiesLimit`, `learningRate` | Suggestion-engine tuning parameters | Your settings |
 | `todos_profiles`, `todos_description_templates` | Reusable todo profiles and description snippets you created | Your data |
 | `news_articles_cache`, `news_event_cache`, `todosCache`, `versionsverlauf_cache`, `videoDefaultsCache` | Time-stamped JSON caches | Avoids re-fetching GitHub markdown, RSS feeds, and HA todo lists on every tab switch |
@@ -88,13 +88,15 @@ Three keys are written to Home Assistant's `frontend/set_user_data` WebSocket AP
 
 The card makes exactly three categories of outbound requests:
 
-1. **To your Home Assistant server.** Via `hass.callService()`, `hass.callApi()`, and the existing WebSocket connection. These are the same calls any Lovelace card makes — they go through HA's normal authentication and never leave your network.
+1. **To your Home Assistant server.** Via `hass.callService()`, `hass.callApi()`, and the existing WebSocket connection. These are the same calls any Lovelace card makes — they go through HA's normal authentication and never leave your network, with one exception you switch on yourself by setting up an AI task: AI mode (below).
 2. **To GitHub raw content** (`raw.githubusercontent.com`). The Changelog tab fetches `docs/version-history/versionsverlauf.md` and the Tipps tab fetches `docs/lessons/lessons.{de,en}.md`. These are public files. The fetch is a plain `GET` with no body, no custom headers, no cookies, no authentication.
 3. **HEAD requests to your local HA media folder** (`/local/fast-search-videos/*.mp4`) to check whether a video exists. The path is always local to your HA server.
 
 That's it. There are no analytics endpoints, no error reporting services, no usage-statistics uploads, no "phone home" beacons.
 
 **Calendar location links (opt-in, since v1.1.2480) — not a request the card makes.** Off by default (Calendar settings → Display → *Location opens map*). Only when you switch it on and pick a provider — your device's maps app, OpenStreetMap or Google Maps — does an event's location become a link. The location text leaves the card only when you deliberately tap that link (or the *Open map* button next to the location in the event editor), and only to the provider you chose: it is percent-encoded with `encodeURIComponent` and placed as the search term into one fixed URL template (`https://www.openstreetmap.org/search?query=…`, `https://www.google.com/maps/search/?api=1&query=…`, for the device's maps app on Apple devices `https://maps.apple.com/?q=…`, on Android `geo:0,0?q=…`, elsewhere the OpenStreetMap template). A location that itself looks like a web address (`https://…`, `javascript:…`, `www.…`) never becomes a link target of its own — it is just another search term. The link opens in a new tab with `rel="noopener noreferrer"`. The card itself opens no connection for this: no `fetch`, no map preview, no geocoding.
+
+**AI mode (since v1.1.2481) — through your own Home Assistant.** AI mode does something only if your Home Assistant (2025.8 or later) has an AI task from an AI integration you added (Anthropic, OpenAI, Google, Ollama, …); Settings → General → *AI mode* turns it off. Nothing is sent while you type: Enter in the search field only switches into AI mode, and only the second Enter (or a tap on a suggestion) sends. The card then calls `ai_task.generate_data` over the existing WebSocket. Home Assistant forwards the request to the provider behind that AI task — for a cloud provider, it leaves your network there, under that provider's terms and at your cost. **What is sent:** your question, the last six chat turns, date, time, time zone and unit system, and for each device the card shows — after your exclusion patterns, the hidden/diagnostic filters, the room requirement and the entity limit — its entity ID, name, room, state, since when, and a few attributes (for example brightness, temperatures, media title). At most 500 devices or about 60 000 characters, controllable ones first; every question sends the list again. **Not sent:** excluded, hidden or diagnostic entities, anything the card does not show, credentials. **Who switches:** the AI task gets no Home Assistant tools — it can only answer. It returns suggested actions as JSON; the card checks each one against the device list it sent and a fixed allow-list of services, refuses any action that carries a field it does not allow (so no `entity_id`, `area_id` or `target` from the AI), refuses values out of range, and only then calls the service itself with your Home Assistant user. Locks, alarm panels, garage/gate/door covers, scripts and buttons wait for your tap on *Run* — and so does any scene or group that contains one of them, at any depth; holding Enter cannot confirm more than one. Device names, states and titles are passed to the model as data, never as instructions — a suggestion that comes from text inside a device name still has to pass the same checks. The chat history lives only in memory; it is gone after a reload, *New chat*, the screensaver, or a change to your exclusion patterns (so an excluded device's name does not travel on in an earlier turn). Until the card has finished its first device load from Home Assistant after a reload, AI mode does not send anything.
 
 ---
 
