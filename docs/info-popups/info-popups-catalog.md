@@ -361,12 +361,12 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## aiMode
 
-> ⓘ am Abschnitt „KI-Modus“ in Settings → Allgemein und auf dessen Unterseite „KI-Aufgabe“ (v1.1.2481).
+> ⓘ am Abschnitt „KI-Modus“ in Settings → Allgemein und auf dessen Unterseite „KI-Aufgabe“ (v1.1.2481; automatischer Wechsel bei leerer Suche seit v1.1.2488).
 
 **DE**
 > ## KI-Modus
 >
-> Fragen und Befehle an deine eigene KI in Home Assistant. Text ins Suchfeld tippen: **Enter** wechselt in den KI-Modus, das **zweite Enter** schickt die Frage ab. **Tab** übernimmt zuerst einen angezeigten Vorschlag und wechselt sonst, **Alt+A** wechselt nur.
+> Fragen und Befehle an deine eigene KI in Home Assistant. Text ins Suchfeld tippen: **Enter** wechselt in den KI-Modus, das **zweite Enter** schickt die Frage ab. **Tab** übernimmt zuerst einen angezeigten Vorschlag und wechselt sonst, **Alt+A** wechselt nur. Findet die Suche nichts, wechselt sie nach kurzer Pause von selbst; dann schickt **ein Enter** die Frage ab. Gibt es wieder Treffer, geht es zurück zur Liste.
 >
 > - **Was gesendet wird** – nur Geräte, die die Karte zeigt (nicht über Filter, Ausschlussmuster oder Sichtbarkeit ausgeblendet): je entity_id, Name, Raum, Zustand, seit wann und wenige Werte (z. B. Helligkeit, Temperaturen, Medientitel). Dazu Datum, Uhrzeit, Zeitzone, Einheitensystem, deine Frage und die letzten 6 Chat-Beiträge. Höchstens 500 Geräte bzw. rund 60 000 Zeichen, schaltbare zuerst.
 > - **Wer schaltet** – die KI schaltet nie selbst. Sie schlägt Aktionen vor; die Karte prüft jede einzelne (nur gesendete Geräte, nur erlaubte Befehle, Werte im erlaubten Bereich) und führt sie erst dann aus. Einstellungen, die die Karte nicht kennt, werden abgelehnt.
@@ -381,7 +381,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 **EN**
 > ## AI mode
 >
-> Questions and commands for your own AI in Home Assistant. Type into the search field: **Enter** switches to AI mode, the **second Enter** sends the question. **Tab** first accepts a shown suggestion and otherwise switches, **Alt+A** only switches.
+> Questions and commands for your own AI in Home Assistant. Type into the search field: **Enter** switches to AI mode, the **second Enter** sends the question. **Tab** first accepts a shown suggestion and otherwise switches, **Alt+A** only switches. When the search finds nothing, it switches by itself after a short pause; then **one Enter** sends the question. Once there are results again, it goes back to the list.
 >
 > - **What is sent** – only devices the card shows (not hidden by filters, exclusion patterns or visibility): for each its entity_id, name, area, state, since when and a few values (e.g. brightness, temperatures, media title). Plus date, time, time zone, unit system, your question and the last 6 chat messages. At most 500 devices or about 60,000 characters, controllable ones first.
 > - **Who switches** – the AI never switches anything itself. It proposes actions; the card checks every single one (only sent devices, only allowed commands, values inside the allowed range) and only then runs it. Settings the card does not know are refused.
