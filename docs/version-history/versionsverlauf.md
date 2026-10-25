@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2483 - 2026-10-25
+
+**Title:** 🎯 Small fixes, round one — a bigger handle on the rings, the builder device list sits like the settings box, and the done circle matches the ⋯ button
+
+**Tags:** design, controls, tasks, device-builder
+
+Three measured size and spacing fixes in one release; nothing behaves differently.
+
+- **Ring handle:** the white handle on the multi-ring (covers, lights, climate and the rest) was barely wider than the track. Its radius goes from 9.5 to 13 units: 22.75 px instead of 16.6 px on desktop, 17.1 px instead of 12.5 px on the phone (the ring there is 211 px). While dragging it now grows to 1.22× instead of 1.5×, so it no longer covers the number (27.8 px). The shadow is a little softer for the bigger surface. The segmented ring of media players and builder gauges follows with handles of 11/13 instead of 9/11. Dragging sends exactly the same service call as before.
+- **Builder device list:** the dark box around a builder device's entity lists (Controls, Sensors, Diagnostics, Misc) sat in a 500 px column, 57 px in from each side, and ran 10 px past the bottom of the panel. It now spans the tab like the settings box: 20 px on the left, right and bottom, the remaining height instead of a fixed 420 px (so it shrinks with lower panels on wall tablets instead of being cut off), and the list scrolls inside. Same surface as settings: 0.15 dark, radius 24, no hairline. The picker sub-views fill the same box in Chrome and Safari. The phone sheet keeps its size; the box in the device list's quick-control window keeps its 190 px on the phone, because that rule is still in use there.
+- **Done circle in tasks:** the circle on the right of a task row was 32 px next to the 44 px ⋯ button and a shade lighter. It is now 44 px with the same surface and hover as the ⋯ button, with a 22 px check. On phones (480 px and below) the ⋯ button is 32 px since 1.1.2475, so both stay 32 px there.
+
+Verified with probes against the dev server in Chrome (desktop 1280 × 800, phone 390 × 844, tablet 1024 × 700) and for the builder list also in Playwright's WebKit: handle sizes, drag service call, builder box 558.5 px wide with 20/20/20 px clearance and no outer scrolling, picker fill, sheet size unchanged, done circle and ⋯ button identical in size and colour, focus ring on the larger circle, the same `todo.update_item` call. Not checked: Firefox's fallback surface, a real touch device, the active segment handle while dragging.
+
 ## Version 1.1.2482 - 2026-10-22
 
 **Title:** 🧊 Safari: no more flicker — tiles stay put while scrolling, the frosted glass no longer blinks away when a detail view opens or closes, and the first open no longer freezes
