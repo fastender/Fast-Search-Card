@@ -1,5 +1,18 @@
 # Versionsverlauf
 
+## Version 1.1.2486 - 2026-10-25
+
+**Title:** 🏝️ The island panel speaks the detail view's language — its filter buttons are the tab pill of a detail view, and each notification is the same card as in the notification centre
+
+**Tags:** design, island, notifications, accessibility
+
+- **Filter buttons = the tab pill:** the four round buttons in the open island (critical, warning, info, live) now use exactly the measurements of the tab pill in a detail view: 40 px buttons with 6 px gaps on 5 px padding on desktop, 36/4/3 px on phones, 20 px (phone 18 px) symbols with the same thin stroke, the same white slider with its spring and slight squash. One shared calculation drives both pills, and the detail view's own pill measured identical before and after. With "reduce motion" the slider jumps without animating.
+- **Keyboard:** the button row is now a tab list — one tab stop, arrow keys, Home and End move between the filters, Enter selects. Before, each of the four was a separate stop and the arrows did nothing.
+- **Notifications are cards:** each notification in the island is the card of the notification centre — the same component — with the danger, warning or info symbol in a white circle, the source as the small capital line, title, message with time, and the red "Critical" pill. On the right a ⋯ button opens a menu with the snooze times (15 minutes, 1 hour, until 7 tomorrow), "Dismiss" and "Open in notification centre"; it replaces the clock and the × of the old rows. The colours come from the island's own palette, so day and night look right.
+- **Removed:** the old island row, its dots and round buttons and their styles.
+
+Verified with probes against the dev server (desktop 1280 × 800, phones 390 and 320 px wide) with critical, warning and info notifications: button row 188 × 50 px on desktop and 162 × 42 px on phones like the detail pill, slider positions identical to the detail view at every index, cards in the task geometry, snoozing for one hour leaves exactly the state the old clock button left, dismissing a Home Assistant notice still calls `persistent_notification.dismiss` while alerts are acknowledged locally, the notification centre, the task cards and the detail tabs measured identical before and after, the panel keeps its size. Not checked: Safari, real touch devices and the swipe gesture starting on the button row. On 320 px phones the header text "6 notifications" shares less width with the larger buttons and relies on its existing scrolling band.
+
 ## Version 1.1.2485 - 2026-10-25
 
 **Title:** 🔔 The notification centre in the task design — the same box, chips with counts and cards as your to-dos
