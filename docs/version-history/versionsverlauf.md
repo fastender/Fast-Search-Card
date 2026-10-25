@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2487 - 2026-10-25
+
+**Title:** 🎛️ Lists, sources and groups move into the header — Tasks, News and Schedules get a pill with a menu, like choosing a Focus on iPhone
+
+**Tags:** design, tasks, news, schedules, accessibility
+
+In the overviews of Tasks, News and Schedules the long chip row mixed two kinds of filters. The "which list / which source / which group" part now lives in a pill at the top left of the header; the chip row keeps only the status filters.
+
+- **The pill:** shows the current choice with its symbol in a white circle ("All lists", "Shopping list", "Heise", "Living room"), a chevron, and opens a menu growing out of the pill. The header keeps its height; on sub-pages (an open task, article or schedule, settings) the header shows its usual two lines as before.
+- **The menu:** "All" first, then every list, source or group with its symbol and count; the active one has a check. Picking a row sets the filter and closes the menu. News and Schedules have a switch at the top for the grouping (Sources / Topics / Themes, Type / Devices / Rooms); switching keeps the menu open and resets to "All". Topics carry the colours of their article badges, task lists their list colour.
+- **What changed in behaviour:** the old chips toggled — a second tap on the active chip went back to all; now "All" is its own entry, also in News and Schedules, where there was none before. If a selected task list disappears, the filter falls back to all lists.
+- **Keyboard and screen readers:** the pill is a real button ("Shopping list, open selection"); in the menu the arrow keys, Home and End move, Enter picks, Escape closes — and Escape no longer ends a running multi-selection in Tasks at the same time.
+- **Chip rows:** Tasks keep All / Open / Today / Overdue / Done and profiles; News and Schedules keep their status chips. The removed list, source and group chips took their styles with them.
+
+Verified with probes against the dev server (desktop 1280 × 800, phone 390 × 844, plus 900 and 800 px): header height unchanged in all three views and on sub-pages, every list, source and group filters exactly what its chip filtered before, in all three groupings of News and Schedules; the menu stays inside the card, keyboard and Escape behave as described, no service calls. Calendar, notification centre, device tabs and the island measured identical before and after. Not checked: Safari, a real Home Assistant with many feeds, reduced motion. On phones the pill shares the row with the action buttons, so a long list name is shortened ("All list…"). The automated test that expected the task count in the overview header will need updating.
+
 ## Version 1.1.2486 - 2026-10-25
 
 **Title:** 🏝️ The island panel speaks the detail view's language — its filter buttons are the tab pill of a detail view, and each notification is the same card as in the notification centre
