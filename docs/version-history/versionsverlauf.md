@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2488 - 2026-10-26
+
+**Title:** 🧠 No results? The search turns into AI mode by itself — your text stays, one Enter asks; and an empty search no longer shows a blank panel
+
+**Tags:** ai, search, bugfix, accessibility
+
+- **Blank panel fixed:** typing something the search could not find left the panel empty — no list, no message. It now always shows "No results for …" with a hint, readable on the glass, on desktop and phone.
+- **Automatic AI mode:** when the search finds nothing and AI mode is usable (switched on in General → AI mode, an AI task set up, the device list loaded), the search switches to AI mode by itself after a short pause of 250 ms. The text stays in the field, the "Ask Anything" screen appears, and a single Enter sends the question. Switching never sends anything on its own.
+- **The way back:** if you change the text so that there are results again, or clear the field, the list returns — but only when AI mode was entered automatically and you have not asked anything yet. Once a question is sent, the chat stays. If you leave AI mode yourself (Escape, the symbol), it does not jump back for the same text; typing something new allows it again. With matches, Enter still works in two steps as before: the first switches, the second sends.
+- **With AI mode switched off** the search never switches; it shows the "No results" message.
+- **The symbol:** on switching, the category symbol turns into the brain with a short Siri-like glow around it (0.7 s, once). While a question is running the glow pulses softly; it stops with the answer and pauses when the card is at rest. With "reduce motion" there is no glow and no pulse.
+- **Screen readers** hear "No results, AI mode. Enter sends the question." when the search switches by itself.
+- **Escape** outside AI mode now also resets the search term behind the field, so the empty message and the automatic switch no longer refer to the old text.
+- The info popup of AI mode describes the automatic switch.
+
+Verified with probes against the dev server (desktop 1280 × 800, phone 390 × 844, also in Playwright's WebKit) with the AI task mocked: the empty message appears with and without AI, the switch happens at about 0.5 s with the text unchanged, the first Enter sends exactly one `ai_task.generate_data`, switched-off AI never switches or sends, fast typing switches at most once at the end, the way back and the lock behave as described, the glow animates only transform and opacity and leaves no running animation at rest. Not checked: a real AI integration. Known and unchanged: right after loading, the very first search term can miss matches in tips and the version history until their index is ready, and may then switch to AI mode.
+
 ## Version 1.1.2487 - 2026-10-25
 
 **Title:** 🎛️ Lists, sources and groups move into the header — Tasks, News and Schedules get a pill with a menu, like choosing a Focus on iPhone
