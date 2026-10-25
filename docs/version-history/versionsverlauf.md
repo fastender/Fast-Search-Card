@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2484 - 2026-10-25
+
+**Title:** 🗂️ Schedule and context tabs in the task design — timers, schedules, actions, favourites, surroundings and hints are now the same cards as your to-dos
+
+**Tags:** design, schedules, context, hints, accessibility
+
+The schedule tab and the context tab of every device still used small flat rows with coloured chips. They now use the card the task list uses: a white 52 px symbol circle (44 px on phones), a small capital line, the title, a second line, and round buttons on the right.
+
+- **Schedule tab:** timers and schedules show an hourglass or stopwatch in their colour (orange, cyan) instead of a chip; the capital line says Timer or Schedule, the title is the action, the second line the time and days ("08:00 → 10:00 · Mon, Tue"). Delete is a round button that turns red on hover. A tap on the card opens the editor as before, now growing out of the card.
+- **Context tab — actions and favourites:** scenes, scripts and automations show their symbol in their colour (magenta, blue, red); the capital line reads "SCRIPT · LIVING ROOM" instead of two chips, and the second line says when it last ran ("Last run 2h ago") if Home Assistant knows. Run (scenes and scripts) and favourite are round buttons; run keeps its green glow, favourite turns yellow with a filled heart.
+- **Context tab — surroundings:** related devices show a device symbol in their domain colour instead of the phone emoji, the capital line is domain and room, the second line the state.
+- **Hints:** each hint is a card with the warning or info symbol in its severity colour, the condition as title, the on/off switch and a round delete button. Paused hints are dimmed. The rows no longer use inline styles; tapping the text opens the editor as before, and the text part is now a proper button for keyboards and screen readers.
+- **Shared pieces:** timer and schedule glyphs and the domain colours live in one place for the schedules overview and the device tabs; the round-button row and its delete/run/favourite variants are shared classes the notification centre and the island will use next. About 410 lines of old row styles were removed.
+
+Verified with probes against the dev server (desktop 1280 × 800, phone 390 × 844) with timers, schedules, scenes, scripts, an automation and a hint seeded into the test house: every row is the task card (76 px minimum, radius 24, 12 px apart), no old rows left, the same service calls for delete (`scheduler.remove`), run (`script.turn_on`, `scene.turn_on`), favourite, switch and navigation, the editor opens from the card, the focus ring surrounds the card, and the schedules overview and the task list measured identical before and after. Not checked: Safari, the run glow after a tap, the English texts on screen.
+
 ## Version 1.1.2483 - 2026-10-25
 
 **Title:** 🎯 Small fixes, round one — a bigger handle on the rings, the builder device list sits like the settings box, and the done circle matches the ⋯ button
