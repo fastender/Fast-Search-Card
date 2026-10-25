@@ -709,6 +709,13 @@ A first-party `fast-search-card` integration would be the third companion — br
 
 So this integration should **not** grow a chore system. That ground is well covered by people who have been at it longer. Its scope stays what only it can do: sketchpad sync, notification history beyond the browser cache, cross-device favourites and profiles, sensor-roll storage. Rendering someone else's household layer well is the better use of the same effort — see #65, which does exactly that with no backend at all.
 
+**Requirements input from Music Assistant *(added 2026-10-25)*.** Two features cannot be built in the card, because Home Assistant's Music Assistant actions (`play_media`, `play_announcement`, `transfer_queue`, `search`, `get_library`, `get_queue`) carry neither. Both need the authenticated Music Assistant client that only runs on the server.
+
+- **Synchronised lyrics.** Music Assistant holds plain and time-stamped (LRC) lyrics for many tracks. An action that returns both for the current track would let the detail view show the line being sung, scrolling with the position the card already interpolates. Shown only when time stamps exist; plain text is no reading aid on a wall.
+- **Recommendations.** Music Assistant's own home rows (recently played, recently added, random, forgotten, most played) and similar tracks seeded from the listening history, as a "Discover" row in the library. The server caches the result, so the panel opens instantly and the card does not ask a streaming service on every open.
+
+**The contract for both:** the token stays on the server, the card only calls an action with `return_response`. Nothing about this widens the card's outbound list.
+
 ---
 
 ## Part five — twelve new ideas from competitive + community research
@@ -1913,6 +1920,8 @@ One format addition in this part: a **Files (estimate)** line per entry. Since t
 
 **Effort:** Medium — 6–8 h for slice 1, 4–6 h for slice 2.
 
+> ⤳ **Addendum 2026-10-25** — a second entry point for slice 2: an "All off" in the room head of the result list, with the same two-tap guard, for the lights of that room that the card shows. No new verb grammar; it reuses slice 2's service path.
+
 **Why it fits:** The search field is the card's premise; the two daily household questions are the one thing it cannot answer yet, and the chip mechanics that answer them already exist.
 
 **Files (estimate):** `utils/searchIntent.js`, `utils/searchSynonyms.js` (state table), `hooks/useFuzzySearch.js`, `SearchField/hooks/useSearchFieldState.js`, `SearchField.jsx`, `SearchField/utils/searchEventHandlers.js` (Backspace), `SearchField/components/SearchInputSection.jsx` (bulk line), `de.js`/`en.js`.
@@ -2365,9 +2374,233 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ---
 
+## Part thirteen — 2026-10-25 household devices and the quiet details (#91–#97)
+
+Seven entries from reading two room-by-room dashboard projects against the code at v1.1.2482. Ideas only, nothing taken from their code. Both are integrations with an editor of their own, so most of what they do needs a server part the card does not have: the editor and its versions, switch-off timers, pushes to the lock screen. What follows works over Home Assistant's standard APIs. Not taken: "turn off in 30 min" timers, because a card only keeps time while one of its instances is open (requirements input for #22); a solar-surplus hint, which waits on D3; syncing acknowledgements across devices, which is D14.
+
+---
+
+### 91. The alarm panel gets a view of its own
+
+**Pitch:** One large button says what will happen: "Arm · Away", "Disarm", "Cancel" with the countdown while arming, a red "Stop alarm" while triggered. The other modes sit below it. Before arming, the card names up to three open windows, doors or unlocked locks: "Heads up: kitchen window open, front door unlocked".
+
+**Status quo:** `alarm_control_panel` has no domain config. The registry maps seventeen domains (`utils/deviceConfigs/registry.js:28–43`); the alarm panel falls into the generic fallback (`utils/deviceConfigs/domains/fallback.js:22`), which shows the state text and nothing to press. #85 brings HA's code on unlock and reads `code_format`; arming is not covered there.
+
+**What ships:**
+- A domain config with the states `disarmed`, `arming`, `pending`, `armed_home`/`away`/`night`/`vacation`/`custom_bypass` and `triggered`, and the modes the panel offers through `supported_features`.
+- The services `alarm_control_panel.alarm_arm_*` and `alarm_disarm`. A code field only when `code_format` is set and, for arming, `code_arm_required`. The code input is shared with #85.
+- The warning before arming reads entities already loaded: `binary_sensor` with device class door, window, garage_door or opening in state `on`, and `lock` in state `unlocked`. Up to three are named, the rest are counted. Arming stays possible; the warning is the second tap.
+- Disarming never warns.
+
+**Hook (verified):** `utils/deviceConfigs/registry.js:28–43`, `utils/deviceConfigs/domains/fallback.js:22`; open/unlocked predicates as in `isEntityActive` (`utils/translations/helpers.js`); #85 for the code input.
+
+**Effort:** Medium — 6–8 h.
+
+**Why it fits:** A safety device that a wall tablet can see but not operate is the largest domain gap, next to the ones #77 and #82 already name.
+
+**Files (estimate):** `utils/deviceConfigs/domains/alarmControlPanel.js` (new), `registry.js`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 92. Household appliances live — washer, dryer, dishwasher
+
+**Pitch:** A running washer shows its progress, the time left and the program. When it is done, the card says "Done, laundry inside" until the door is opened or the state moves on.
+
+**Status quo:** The live sources cover timer, vacuum, cover, media player, script, automation and, opt-in, light, switch and climate (`utils/liveActivitySources.js:19`, `:100`). Appliances are missing. The notification design names "appliance finished" as an Info example, but the lane has no appliance logic (verified: no match in `providers/dataNotifications.js`).
+
+**What ships:**
+- **S1 — recognise.** An appliance is a device whose entities include a remaining-time or finish-time sensor (`device_class` duration or timestamp) together with an operation state or program sensor. Matched by device, not by name, through the `device_id` the entity gate already copies onto each entity (`providers/entityZulassung.js:56–59`). A smart plug with a power threshold is the fallback for machines without integration.
+- **S2 — live.** The appliance becomes a live source: progress bar, finish time and program in one line. Ends when the operation state leaves running.
+- **S3 — the lane.** "Done" enters the alert lane as Info and leaves it when the state changes again. The lane follows state, as everywhere else.
+- **Thermal rule:** no polling, no per-second timer. The remaining time is derived from the finish timestamp on the shared minute tick.
+
+**Hook (verified):** `utils/liveActivitySources.js:19` (`DOMAIN_PRIORITY`), `:100` (`extractLiveActivities`); `providers/entityZulassung.js:56–59` (`device_id`); `providers/dataNotifications.js` (lane); `utils/minutenTakt.js` (shared minute tick, #89).
+
+**Effort:** Medium — 8–10 h in three slices.
+
+**Why it fits:** The machine that finished is the most common household notification, and the lane already claims it in its design.
+
+**Files (estimate):** `utils/geraeteLauf.js` (new), `utils/liveActivitySources.js`, `providers/dataNotifications.js`, live-activity settings, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 93. Tidying the notification center — swipe, clear all, undo
+
+**Pitch:** Swipe a notification left to remove it. "Clear all" empties the list and offers "Undo" for ten seconds.
+
+**Status quo:** Each row has its own remove button (`system-entities/entities/notifications/NotificationsView.jsx:375`, `dismiss` from `useNotifications` at `:69`). There is no bulk action and no undo in the center. The undo store (`utils/undoStore.js:64`, `mitRueckgaengig`) and the selection primitive (`hooks/useMehrfachauswahl.js`) exist and are used elsewhere.
+
+**What ships:**
+- Swipe-to-remove on touch, with the remove button as the visible alternative. The swipe direction must not collide with the back swipe of the detail view.
+- "Clear all" with one confirmation, then `mitRueckgaengig` for ten seconds.
+- **One rule:** clearing a real `persistent_notification` calls HA's dismiss, which cannot be undone. Those wait until the undo window has passed; local acknowledgements apply at once.
+
+**Hook (verified):** `NotificationsView.jsx:69`, `:375`; `utils/notificationState.js:123` (`acknowledgeNotification`); `utils/undoStore.js:64`.
+
+**Effort:** Small — 3–4 h.
+
+**Why it fits:** Two existing primitives get a second consumer, and the center loses its last one-by-one chore.
+
+**Files (estimate):** `NotificationsView.jsx`, `NotificationsView.css`, `de.js`/`en.js`.
+
+---
+
+### 94. A ventilation hint in the context line
+
+**Pitch:** "Open the windows now: it is drier outside." Shown when a room is humid and the outside air holds less water.
+
+**Status quo:** The weather entity's `dew_point` is read (`system-entities/entities/integration/device-entities/WeatherDeviceEntity.js:150`) and used nowhere. The context line has its sentence builder (`utils/kontextZeilen.js:64`, `holeKontextZeile`). Indoor humidity and temperature sensors are already grouped per room for the room head.
+
+**What ships:**
+- Absolute humidity indoors from temperature and relative humidity of the same room, outdoors from the forecast's temperature and dew point.
+- The hint appears when indoor relative humidity is above a threshold (default 65 %) and the outdoor absolute humidity is clearly lower. It names the room when only one qualifies.
+- No hint while it rains or below a configurable outside temperature.
+- **Thermal rule:** computed when the line is built, never on a timer of its own.
+
+**Hook (verified):** `WeatherDeviceEntity.js:150`; `utils/kontextZeilen.js:64`.
+
+**Effort:** Small to medium — 3–5 h.
+
+**Why it fits:** A second consumer for the weather data and the room sensors, and a reason to look at the wall tablet that no tile gives.
+
+**Files (estimate):** `utils/lueftHinweis.js` (new), `utils/kontextZeilen.js`, settings register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 95. Scenes first in a category
+
+**Pitch:** Filter for "Licht" and the scenes that switch lights come first, above the lamps.
+
+**Status quo:** Scenes are tiles of their own subcategory. A domain filter shows the lamps only (`utils/searchIntent.js:94`, `applyIntentFilters`). A scene entity lists the entities it sets in `attributes.entity_id`; the card does not read it (verified: no match).
+
+**What ships:**
+- When the intent carries a domain, scenes whose `entity_id` attribute contains at least one entity of that domain lead the result list. With a room as well, only scenes that touch that room.
+- At most three, so the lamps stay visible. A scene that is currently active shows it.
+
+**Hook (verified):** `utils/searchIntent.js:94`; scene tiles from the scene/script/automation config (`utils/deviceConfigs/registry.js`).
+
+**Effort:** Small — 2–3 h.
+
+**Why it fits:** The quickest way to "light for the evening" is usually a scene, and the data that links the two is already loaded.
+
+**Files (estimate):** `utils/searchIntent.js` or `hooks/useFuzzySearch.js`, `de.js`/`en.js`.
+
+---
+
+### 96. Motion sensors say when they last saw someone
+
+**Pitch:** "11 h ago" instead of "Not detected".
+
+**Status quo:** Motion, moving and occupancy share one state word (`utils/translations/helpers.js:34`). The detail header already formats elapsed time (`components/DetailView/useDetailHeaderInfo.js:15`, `formatTimeAgo`). Whether list row and tile show it was not checked.
+
+**What ships:**
+- In the clear state, list row and tile show the time of the last detection.
+- **Honesty rule:** `last_changed` resets when Home Assistant restarts. The time is taken from the last `on` in history, one `history/history_during_period` call per sensor when it is first shown, cached until the next state change.
+- Over seven days the date replaces the elapsed time.
+
+**Hook (verified):** `utils/translations/helpers.js:34`; `components/DetailView/useDetailHeaderInfo.js:15`; `services/sensorStatistics.js` (existing `history_during_period` caller).
+
+**Effort:** Small — 3–4 h.
+
+**Why it fits:** "Not detected" is true and useless; the last detection is the information.
+
+**Files (estimate):** `utils/zuletztErkannt.js` (new), `utils/translations/helpers.js`, list row and tile state text, `de.js`/`en.js`.
+
+---
+
+### 97. Say why the card chose something
+
+**Pitch:** Where the card picks a value on its own, a line underneath says why: "Chosen automatically: battery sensor on the same device."
+
+**Status quo:** The card chooses silently in several places: the battery sensor of a device (`utils/batterieSensor.js:76`, `batterieStand`), presence (`utils/weckquellen.js:93`, `istJemandDa`), the weather entity, the default calendar. The settings search knows which values differ from their default (`components/tabs/SettingsTab/suche/vorgaben.js`), but not how an automatic value came about.
+
+**What ships:**
+- The choosing functions return a reason code next to the value: same device, name match, only candidate, first writable.
+- Settings rows with an automatic value show the reason in their subline. A wrong pick becomes visible and correctable in one place.
+
+**Hook (verified):** `utils/batterieSensor.js:76`; `utils/weckquellen.js:93`; `components/tabs/SettingsTab/suche/vorgaben.js`.
+
+**Effort:** Small — 3–4 h.
+
+**Why it fits:** It makes the configuration-free premise checkable: the card still decides, but no longer in the dark.
+
+**Files (estimate):** `utils/batterieSensor.js`, `utils/weckquellen.js`, the settings rows that show automatic values, `de.js`/`en.js`.
+
+---
+
+## Part fourteen — 2026-10-25 music on the wall tablet (#98–#100)
+
+Three entries from reading a pair of touch-first Music Assistant cards for wall tablets against the code at v1.1.2482. Ideas only, nothing taken from their code. That project ships a small integration of its own; its two largest features, synchronised lyrics and a recommendations tab, run through it and went to #22 as requirements input. Already in the card and not repeated here: radio mode after a track, moving the queue to another speaker, grouping, the queue with load-more, feedback lines on play.
+
+---
+
+### 98. A single track plays now and keeps the queue
+
+**Pitch:** Tap one song in the library and it plays at once. What was queued stays queued behind it.
+
+**Status quo:** A tap on a track in the library calls `play_media` with `enqueue: 'replace'` (`components/controls/ma/useMaBrowse.js:194`), so one tap throws the whole queue away. The play helper already accepts every mode Music Assistant knows, `play`, `replace`, `next`, `replace_next` and `add` (`utils/musicAssistant.js:104`, `:113–118`). The search results offer play, next and add as separate actions (`components/controls/MusicAssistantPanel.jsx:231–245`).
+
+**What ships:**
+- A single track uses `enqueue: 'play'`: it starts now, the rest of the queue is kept.
+- Albums, playlists, artists and radio stations keep `replace`. A container is a decision for a new queue; a single track usually is not.
+- With radio mode on, a single track keeps today's behaviour, because radio mode builds a new queue by design.
+- The feedback line says which of the two happened.
+
+**Hook (verified):** `components/controls/ma/useMaBrowse.js:194`; `utils/musicAssistant.js:104`, `:113–118`; `components/controls/MusicAssistantPanel.jsx:231–245`.
+
+**Effort:** Small — 1–2 h.
+
+**Why it fits:** One parameter, and the most common accidental loss in the music panel stops happening.
+
+**Files (estimate):** `components/controls/ma/useMaBrowse.js`, `MusicAssistantPanel.jsx`, `de.js`/`en.js`.
+
+---
+
+### 99. Volume limit and starting volume per speaker
+
+**Pitch:** In the children's room the slider ends at 60 %. A speaker left at full volume in the evening starts quieter the next morning.
+
+**Status quo:** The volume slider sends `volume_set` with the raw slider value (`utils/sliderHandlers.js:53–64`). The only bound is the range check 0 to 1 in the service layer (`utils/homeAssistantService.js:89`). Other writers set the volume as well: the AI mode (`utils/kiAktionen.js:89`) and the schedule settings (`components/common/domainSettingsConfigs.js:223`).
+
+**What ships:**
+- **Limit:** a per-player setting "maximum volume". The slider's end is the limit, the percentage shown is still the true one. Every writer goes through one clamp, so the AI mode and schedules cannot step past it.
+- **Starting volume:** optional. When a player changes to `playing` while its volume is above the starting value, the card sets it down once.
+- **Honesty rule, stated in the info popup:** the starting volume only acts while a card instance is open. The limit is a limit of the card, not of the speaker; a phone app can still go louder.
+
+**Hook (verified):** `utils/sliderHandlers.js:53–64`; `utils/homeAssistantService.js:89`; `utils/kiAktionen.js:89`; `components/common/domainSettingsConfigs.js:223`.
+
+**Effort:** Small — 3 h.
+
+**Why it fits:** A wall tablet in a family is operated by children too; a limit belongs where the slider is.
+
+**Files (estimate):** `utils/lautstaerkeGrenze.js` (new), `utils/sliderHandlers.js`, `utils/homeAssistantService.js`, media-player settings, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 100. Next and previous are sent once more when nothing happened
+
+**Pitch:** Some cast players swallow the first "next". If the title has not changed after 2.5 s, the card sends the command a second time.
+
+**Status quo:** The transport buttons call `media_next_track` and `media_previous_track` once (`utils/deviceConfigs/domains/mediaPlayer.js:40`, `:52`). Nothing checks whether the player followed.
+
+**What ships:**
+- After next or previous, the card remembers `media_content_id`, or title and artist when there is none. If neither has changed after 2.5 s and the player is still playing, it sends the command once more. Never a third time.
+- A newer press cancels the pending repeat.
+- A switch under the media-player settings, on by default.
+
+**Hook (verified):** `utils/deviceConfigs/domains/mediaPlayer.js:40`, `:52`.
+
+**Effort:** Small — 1–2 h.
+
+**Why it fits:** A transport button that sometimes does nothing reads as a broken card, whichever side the fault is on.
+
+**Files (estimate):** `utils/deviceConfigs/domains/mediaPlayer.js`, media-player settings, `de.js`/`en.js`.
+
+---
+
 ## Open decisions (2026-09-24)
 
-Thirteen questions that came out of the same pass and are deliberately not roadmap entries. Nothing here is decided or recommended; the columns give what each option costs and touches, read from the code at v1.1.2468. Where an entry above says "open decision Dn", it means one of these.
+Thirteen questions that came out of the same pass, plus D14 from 2026-10-25, and are deliberately not roadmap entries. Nothing here is decided or recommended; the columns give what each option costs and touches, read from the code at v1.1.2468. Where an entry above says "open decision Dn", it means one of these.
 
 | # | Question | Option A | Option B | Cost / effort | Touches |
 |---|---|---|---|---|---|
@@ -2384,6 +2617,7 @@ Thirteen questions that came out of the same pass and are deliberately not roadm
 | D11 | Empty gears (Tips, Version history, Schedules show "Einstellungen werden hier angezeigt") | Remove (1 h) | Fill with real settings | S | #46 register |
 | D12 | Per-feature off switches (#46 companion idea): a switched-off feature disappears from register, search and tiles | Build (M, 10–12 h, three slices; no bundle effect) | Do not | M | Register, tile building, content search |
 | D13 | Video doctor (#50) — pull it now? | Yes, one release (4–6 h, benefit 2) | Drop | S | prompt 19 (`docs/prompts/2026-09-11-optimierung/19-video-doktor.md`, unversioned) |
+| D14 | Acknowledge `alert.*` in HA as well (Part thirteen): acknowledging is local by design (`utils/notificationState.js:123`), so a warning acknowledged on the wall tablet stays open on the phone | Option: also call `alert.turn_off`, which HA shares with every device and user | Stays local, per device | S (2 h) | Reverses the "acknowledge is local" contract of the notification system; `alert.turn_on` would be the undo |
 
 ---
 
@@ -2392,7 +2626,7 @@ Thirteen questions that came out of the same pass and are deliberately not roadm
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **88 feature ideas + 2 parallel/long-term tracks** = 90 entries total.
+- The roadmap covers **98 feature ideas + 2 parallel/long-term tracks** = 100 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -2405,3 +2639,5 @@ Thirteen questions that came out of the same pass and are deliberately not roadm
   - **#65–#67** — 2026-09-04 household-task research pass. Three mature HA task integrations (Home Tasks, TaskMate, Better ToDo) read end to end; each is an integration because points, streaks, rotation and habits need per-task persistence a card cannot hold. Only what works over HA's standard `todo` platform became entries — the rest went to #22 as requirements input, along with two design contracts and a scope warning. #68 came from the discussion under one of those projects rather than its README — a user stuck on a cached build after updating. Ideas only.
   - **#69–#85** — 2026-09-24 re-analysis at v1.1.2468, after 97 builds since 1 September. Five sources read side by side (code seams with exactly one consumer, an HA API survey 2026.6–2026.9, neighbouring cards and family-tablet projects, the card's own release momentum, a first-evening user walk-through); 56 candidates through a hook checker and a skeptic. Mostly second consumers for existing modules, domain configs for fallback domains, and three repairs where HA moved under the card. HA standard APIs only, ideas only. Same pass: #2, #7, #14–#20, #23–#25, #32, #35, #37, #39, #41, #43 retired (see Out of scope); #5 and #26 re-scoped into #79 and #83; thirteen decision questions listed under "Open decisions".
   - **#86–#90** — 2026-10-02, from reading a combined calendar-and-tasks agenda card against the code at v1.1.2474. One medium entry (tasks in the calendar) and four small ones (duplicates, source capabilities, relative time, map link). Ideas only.
+  - **#91–#97** — 2026-10-25, from reading two room-by-room dashboard projects against the code at v1.1.2482. Two medium entries (alarm panel, household appliances) and five small ones (tidying the center, ventilation hint, scenes first, last motion, the reason behind automatic choices); an addendum to #70 and decision D14. Ideas only.
+  - **#98–#100** — 2026-10-25, from reading a pair of touch-first Music Assistant cards against the code at v1.1.2482. Three small entries (play now and keep the queue, volume limit and starting volume, a second next/previous); lyrics and recommendations went to #22 as requirements input. Ideas only.
