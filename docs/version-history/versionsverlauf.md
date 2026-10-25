@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2485 - 2026-10-25
+
+**Title:** 🔔 The notification centre in the task design — the same box, chips with counts and cards as your to-dos
+
+**Tags:** design, notifications, accessibility
+
+The notification centre sat directly on the glass with small chips and flat rows. It now looks like the task list next to it.
+
+- **Box and chips:** the centre gets the dark box of the tasks (0.2 dark, radius 24, at most 555 px high). The filter chips are the task pills and show how many notifications each holds (All 6 · Critical 1 · Warning 3 · Info 2); the coloured dot stays in front of the word. On phones the chip row scrolls sideways with the same arrow as the tasks. The detail view no longer scrolls behind the box.
+- **Overview cards:** every notification is a card with the danger, warning or info symbol in its colour inside the white circle, the source as the small capital line (Sensor, Watch, Reminder, HA alert, Notice), the title, and the message with the time below; critical ones carry a red "Critical" pill. Unread cards are a little brighter. On the right, ⋯ opens the snooze menu, which now also offers "Dismiss", and × dismisses directly. Both buttons have names for screen readers. Messages are never shortened; a notification without a title shows its whole message.
+- **Live tab:** running activities are cards with their device symbol and a chevron; a tap or Enter opens the device as before, and screen readers hear the name with its state.
+- **History:** keeps its compact timeline rows and day headers on purpose, so a long day stays readable; it only gets the box and the task chips. On phones the family and room chips scroll in one row instead of wrapping into three, so the list keeps its room. Because the list now has the task padding, history rows are 40 px narrower and a long one may wrap.
+- **Empty states** use the task style ("No notifications", "Nothing running").
+
+Verified with probes against the dev server (desktop 1280 × 800, phone 390 × 844) with critical, warning and info notifications, a running timer and a day of house events: box identical to the task box, chip counts match the list, the critical filter, all cards in the task geometry, the same calls as before (dismissing a Home Assistant notice calls `persistent_notification.dismiss`; alerts and watches are dismissed locally), snooze from the menu, the live tap. Not checked: Safari; the island still shows its own rows until its redesign. The automated test suite of the centre still looks for the old row classes and will fail until it is updated.
+
 ## Version 1.1.2484 - 2026-10-25
 
 **Title:** 🗂️ Schedule and context tabs in the task design — timers, schedules, actions, favourites, surroundings and hints are now the same cards as your to-dos
