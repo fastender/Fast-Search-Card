@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2494 - 2026-10-26
+
+**Title:** 🕑 Clocks, greetings, quiet hours, notifications and weather run on the same time helper — and a handful of small time bugs are gone (time zone, part 2 of 4)
+
+**Tags:** time-zone, notifications, weather, home-screen, bugfix
+
+Everything outside the calendar that shows a time or decides by the hour now goes through the shared time helper from 1.1.2493: the home screen clock and date, the greeting, the island's light/dark "auto", the night dimming of the wallpaper, quiet hours and deep rest, reminders ("Tomorrow: …", "starts at …", "snooze until 7 tomorrow"), the history tab with its day headers and times, "Recently at home", the context lines, news grouping, the date wheel and the history date picker. With this device's time zone — still the only one until part 4 — they show exactly what they showed before, except these fixes:
+
+- **Greeting:** the home screen greeting only changed with the language; it now moves on at noon and in the evening.
+- **History "yesterday":** on the day after a clock change, yesterday's entries were labelled with the date of the day before yesterday; they now say "Yesterday".
+- **News "yesterday":** the same off-by-one put an article from yesterday under "This week" after a clock change.
+- **Weather hours in English:** the hour strip of the weather tile read "20 PM, 21 PM"; it now reads "8 PM, 9 PM". The "Now" label of the hourly forecast is translated.
+- **Timestamp sensors:** sensors with a timestamp or date (last boot, next alarm, collection day) showed the raw ISO text in the detail header and the history; they are now formatted ("26 Oct 2026, 14:00", "28 Oct 2026").
+- **Context line "tomorrow":** an appointment or rain after midnight now says "Tomorrow at 07:30 …" / "Rain from 6 tomorrow".
+- **Night during deep rest:** if quiet hours began while the screen was already in deep rest, the night level only applied after the next touch; it now switches at the start of the window, and the display hand-over still sends its command only once.
+
+Verified with probes in browsers set to America/Los_Angeles and Europe/Berlin with fixed clocks: every listed view compared before and after (unchanged except the fixes above, each measured before and after), the clock-change cases (missing and repeated hour, 25-hour days) correct, a forced foreign zone switched the clock, greeting and quiet hours live, and 60 Home Assistant updates caused no extra renders. Not checked: Safari. Timestamp sensors on device cards and in entity lists still show their raw value; that follows with part 4.
+
 ## Version 1.1.2493 - 2026-10-26
 
 **Title:** 🕐 Due dates are read as your day, not as UTC — west of UTC a task due today no longer shows as overdue (time zone, part 1 of 4)
