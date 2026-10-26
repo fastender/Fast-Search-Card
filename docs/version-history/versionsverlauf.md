@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2493 - 2026-10-26
+
+**Title:** 🕐 Due dates are read as your day, not as UTC — west of UTC a task due today no longer shows as overdue (time zone, part 1 of 4)
+
+**Tags:** tasks, time-zone, bugfix
+
+A task with a plain due date ("2026-10-26", no time) was read as midnight UTC. West of UTC — the Americas — that is still the evening before, so a task due today showed as "Yesterday" and overdue, and was counted as overdue everywhere.
+
+- **One reader for due dates:** all places that read a due date now use one shared time helper (`utils/zeitzone.js`): the to-do list and its rows, the filter counts and list cards, the header of an open task, the overdue and today counts of the to-do device (search card, home screen tile), the home screen task tile, the context line, the reminder lane and the calendar. A plain date is always that calendar day; a due date with a time is shown at its time.
+- **Overdue across the clock change:** "Overdue for 3 days" counted one day too many when the span crossed a daylight-saving change (as it did since 25 October in Europe); it now counts calendar days.
+- **The open task's header** showed "Just now" for a task due in the future; it now says Today, Tomorrow 09:00, In 2 days or Overdue.
+- **At midnight** the counts and labels move on by themselves; before, they only updated after a reload.
+- The version history dates are read the same way.
+
+This is the foundation for a time-zone setting: the next parts move clocks, greetings, quiet hours, notifications and the calendar onto the same helper, and the last part adds General → Time zone (Automatic like your Home Assistant profile, this device, or the Home Assistant server). Until then the card uses this device's time zone everywhere.
+
+Verified with probes in a browser set to America/Los_Angeles and to Europe/Berlin with the clock fixed at 27 Oct 03:30 UTC (26 Oct 20:30 in Los Angeles): a task due on the 26th is "Today" and not overdue in every view listed above, one due on the 25th is "Yesterday" and overdue, counts 4 instead of 6 overdue; in Berlin everything stayed as before except the day counts across the clock change; across midnight the counts updated without a reload. Not checked: Safari.
+
 ## Version 1.1.2492 - 2026-10-26
 
 **Title:** 🪟 Desktop detail view like the phone — the cover lies under the whole card and the right half is the same glass sheet
