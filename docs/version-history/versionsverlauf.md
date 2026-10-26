@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2496 - 2026-10-26
+
+**Title:** 🌍 Choose the card's time zone — General → Time zone: automatic like your Home Assistant profile, this device, or the Home Assistant server (time zone, part 4 of 4)
+
+**Tags:** time-zone, settings, calendar, tasks, charts, schedules
+
+The last part: every date and time on the card now follows one time zone that you choose. Settings → General → **Time zone**, right below Time format:
+
+- **Automatic** (default) — like the time-zone choice in your Home Assistant profile: if your profile says "server", the card uses the server's time zone, otherwise this device's.
+- **This device** — the browser's time zone.
+- **Home Assistant server** — the server's configured time zone, handy for a wall tablet or a phone abroad.
+
+Each choice shows the zone it resolves to. The switch applies live, without a reload, and other open tabs follow. It is stored per device, like language and time format. If Home Assistant does not report a zone, the card falls back to this device.
+
+What follows the chosen zone: due dates, "today", "overdue" and the day counts of tasks, the calendar grid, all-day and timed events, the home screen clock, date and greeting, quiet hours and night, reminders and notifications, the history, charts with an hour axis, timestamp sensors, the context lines.
+
+What always stays on the server's time, because Home Assistant keeps it there — marked "server time" when your choice differs from the server:
+
+- **Schedules and timers** (scheduler): times are shown as the server runs them; a new timer now fires at the right moment even when this device is in another zone (before, it fired hours off).
+- **Date/time helpers** (`input_datetime`, `time`): set as server wall-clock time.
+- **Statistics bars** for week, month and year and their header, plus the activities of those periods: Home Assistant groups days and months on the server, so the card labels and fetches them the same way. The day view with its hour axis follows your choice.
+- **Daily weather forecast days.**
+
+Forms:
+
+- **Tasks:** a task without a time now stays a plain date — the form no longer adds 09:00 (new) or 00:00 (edit). With a time, the card sends the time in your chosen zone with its offset, and only to lists that support a due time; other lists get the date.
+- **Events:** the event dialog reads and writes times in your chosen zone, so a new event lands on the day you picked even when the device is elsewhere. With this device's zone every request is unchanged. The format of a series end (UNTIL) is unchanged.
+
+Also: timestamp and date sensors are formatted on device cards, in lists and in the quick stats of builder devices (they showed "2026" or the raw text); the week label shows the right year around New Year ("KW 1 2026", not 2025); the date picker of charts no longer greys out the current period when server and card zone differ; charts and activities reload together with their header at midnight; the general info popup explains the time zone and no longer claims the time format applies everywhere.
+
+Verified with probes in browsers set to America/Los_Angeles and Europe/Berlin with Home Assistant reporting Berlin or nothing, and the profile set to local or server: the five planned cases (automatic, server, profile server, device, unknown server zone) with tasks, an all-day event, clock, greeting, quiet hours and version dates all as expected; the live switch from the new settings page without a reload; the "server time" hint only when the zones differ; the written task and event data for date-only, timed, a list without due-time support and an event in a foreign zone; with this device's zone the calendar, tasks and charts identical to before (384 of 384 chart periods checked by an independent probe); 60 Home Assistant updates caused no extra renders. Not checked: Safari, a real Home Assistant accepting due times with an offset, Local To-do/CalDAV/Google Tasks behaviour.
+
 ## Version 1.1.2495 - 2026-10-26
 
 **Title:** 📆 The calendar counts in days, not in this device's midnight — ready for a card-wide time zone (time zone, part 3 of 4)
