@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) und `general` (Zeitzone) in v1.1.2496 (2026-10-26) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -169,6 +169,8 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## general
 
+> v1.1.2496 (Auftrag 31D): Punkte **Zeitzone** und **Serverzeit** ergänzt; die Zeitformat-Aussage berichtigt (sie betrifft nur die Uhrzeit-Räder, nicht „alle Uhrzeiten").
+
 **DE**
 > ## Allgemein
 >
@@ -176,9 +178,11 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **App-Sprache** – Sprache der Oberfläche (Menüs, Beschriftungen, Datums- und Wochentagsnamen). Unabhängig von der Sprache deines Home Assistant.
 > - **Währung** – Symbol und Format für alle Geldbeträge (z. B. Energiekosten, Tarife).
-> - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM). Betrifft alle Uhrzeiten in Charts, Aktivitäten, Zeitplänen und der Insel.
+> - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM) in den Uhrzeit-Rädern (Zeitpläne, Aufgaben, Termine, Zeit-Entitäten). Alle anderen Uhrzeiten folgen der App-Sprache; der Kalender hat ein eigenes Zeitformat.
+> - **Zeitzone** – in welcher Zone die Karte rechnet: was heute fällig oder überfällig ist, wo ein Tag beginnt und endet, welche Uhrzeit gilt und wann die Ruhezeiten laufen. Automatisch folgt deinem Home-Assistant-Profil (Profil „Server" → Zone des Servers, sonst dieses Gerät), Dieses Gerät nimmt die Zone des Browsers, Home-Assistant-Server die aus der Server-Konfiguration.
+> - **Serverzeit** – Zeitpläne, Datums- und Zeit-Helfer (input_datetime, time), Tages-, Wochen-, Monats- und Jahresbalken aus der Statistik und die tägliche Wettervorhersage richten sich immer nach dem Server. Weicht die Zone der Karte ab, steht bei Zeitplänen und Zeit-Helfern „Serverzeit".
 >
-> *Warum wichtig:* Sprache und Zeitformat sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist – die Währung wird für Energie- und Kosten-Widgets gebraucht.
+> *Warum wichtig:* Sprache, Zeitformat und Zeitzone sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist – die Währung wird für Energie- und Kosten-Widgets gebraucht.
 
 **EN**
 > ## General
@@ -187,9 +191,11 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 >
 > - **App Language** – language of the interface (menus, labels, date and weekday names). Independent of your Home Assistant's language.
 > - **Currency** – symbol and format for all money values (e.g. energy costs, tariffs).
-> - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM). Affects every time shown in charts, activities, schedules and the island.
+> - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM) in the time wheels (schedules, tasks, events, time entities). All other times follow the app language; the calendar has its own time format.
+> - **Time zone** – the zone the card calculates in: what is due today or overdue, where a day starts and ends, which time is shown and when quiet hours run. Automatic follows your Home Assistant profile (profile "server" → the server's zone, otherwise this device), This device uses the browser's zone, Home Assistant server the one from the server configuration.
+> - **Server time** – schedules, date and time helpers (input_datetime, time), daily, weekly, monthly and yearly bars from statistics and the daily weather forecast always follow the server. If the card's zone differs, schedules and time helpers show "server time".
 >
-> *Why it matters:* language and time format make everything read the way you're used to – the currency is needed for energy and cost widgets.
+> *Why it matters:* language, time format and time zone make everything read the way you're used to – the currency is needed for energy and cost widgets.
 
 ## statusGreetings
 
