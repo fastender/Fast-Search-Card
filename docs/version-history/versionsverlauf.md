@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2492 - 2026-10-26
+
+**Title:** 🪟 Desktop detail view like the phone — the cover lies under the whole card and the right half is the same glass sheet
+
+**Tags:** design, detail-view, liquid-glass, safari
+
+On phones the controls of a device with a cover (album art, news image, video background) sit on a glass sheet above the cover. On desktop the right half was part of the panel's frosted glass over the wallpaper, with the cover only on the left. Desktop now works like the phone.
+
+- **Cover under the whole card:** for a device with a cover the cover fills the whole card, and the right half carries the same glass layer as the phone sheet — Liquid Glass with its refraction in Chrome, frost and tint in Safari, and with Liquid Glass switched off the regular frosted glass. Under the cover the panel's own blur is switched off, so there is no second glass layer.
+- **When the cover comes late:** an image or video that loads after opening fades the dark base in over half a second; a video only counts once it plays, so video devices no longer jump from wallpaper to cover and back. If an image fails to load, the card falls back to the normal glass.
+- **Transitions:** the glass half fades with the same curve as the panel and its content keeps its slide, so opening and closing stay without a glass flash in Chrome and Safari.
+- **Devices without a cover** look as before (measured: the same panel glass; 34 pixels of anti-aliasing at the active tab pill differ in Chrome, none in Safari). Phones are unchanged.
+- **Album art** now covers the whole landscape card, as it covers the whole card on the phone; square covers are cropped at top and bottom.
+- The Liquid Glass settings text now names both surfaces.
+
+Verified with probes in Chrome and Playwright's WebKit at 1280 × 800 with an image cover, a video cover and a device without a cover, plus the phone at 390 × 844 compared pixel by pixel: the right half sits exactly where it was, the cover spans the card, no flash out and back on opening, switching tabs, scrolling or closing (brightness now changes in one step as the cover appears behind the glass, like on the phone), the same number of renders at rest. Not checked: a real Safari, Firefox, a tablet, GPU load. In headless Chrome without a GPU, opening a covered device with Liquid Glass showed a coarser frame rhythm (longest gap up to 333 ms instead of 133 ms; with Liquid Glass off 117 ms) — if it feels heavy, Appearance → Liquid Glass off is the switch. One automated detail test still looks for the header inside the panel and will need updating.
+
 ## Version 1.1.2491 - 2026-10-26
 
 **Title:** 📅 One agenda — your to-dos with a due date appear in the calendar on their day, with their checkbox, and overdue ones wait above today (Roadmap #86)
