@@ -267,25 +267,29 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## homeScreen
 
+> GEÄNDERT v1.1.2489 (Auftrag 28): Bento ist ab Werk an; nur ein gespeichertes
+> `startScreen.bento: false` zeigt die klassische Suchleiste in der Mitte.
+> Untertitel `alternativeHomeScreen` jetzt „Aus: klassische Suchleiste in der Mitte“.
+
 **DE**
 > ## Startseite
 >
 > Der Startbildschirm, den du beim Öffnen der Karte siehst.
 >
-> - **Bento-Grid aktivieren** – zeigt eine Kachel-Übersicht (Wetter, News, Kalender, Geräte …).
+> - **Bento-Grid aktivieren** – zeigt eine Kachel-Übersicht (Wetter, News, Kalender, Geräte …) als Einstieg. Ab Werk an; aus = klassische Suchleiste in der Mitte.
 > - **Widgets konfigurieren** – wähle, welche Kacheln erscheinen und in welcher Reihenfolge.
 >
-> *Warum wichtig:* Die Startseite ist das Erste was du siehst.
+> *Warum wichtig:* Die Startseite ist das Erste was du siehst – hier entscheidest du, welche Infos dich sofort begrüßen.
 
 **EN**
 > ## Home Screen
 >
 > The start screen you see when opening the card.
 >
-> - **Enable bento grid** – shows a tile overview (weather, news, calendar, devices …).
+> - **Enable bento grid** – shows a tile overview (weather, news, calendar, devices …) as the entry point. On by default; off = classic search bar in the middle.
 > - **Configure widgets** – choose which tiles appear and in what order.
 >
-> *Why it matters:* the home screen is the first thing you see.
+> *Why it matters:* the home screen is the first thing you see – here you decide which info greets you immediately.
 
 ## homeScreenSlots
 
@@ -1055,23 +1059,30 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 
 ## sidebarItems
 
+> GEÄNDERT v1.1.2489 (Auftrag 28): Satz zu den festen Einträgen Home und Suche;
+> Abschnitt auf den vollen Wörterbuchtext gebracht (war eine ältere Fassung).
+
 **DE**
 > ## Verfügbare Einträge
 >
-> Bausteine für deine Sidebar.
+> Aktiviere die Einträge, die in der Sidebar (links neben dem Suchpanel) erscheinen sollen.
 >
-> - Wähle aus der Liste, welche Bereiche und Verknüpfungen als Sidebar-Einträge verfügbar sind.
+> - Pro Eintrag ein Schalter – an = sichtbar in der Sidebar.
+> - **Home** und **Suche** sind feste Einträge: Home führt zurück zur Startseite, Suche öffnet das Geräte-Panel, ohne das Suchfeld zu fokussieren (auf dem Telefon also ohne Tastatur).
+> - **Reihenfolge** = Aktivierungsreihenfolge: bestehende Einträge zuerst, neu aktivierte landen am Ende.
 >
-> *Warum wichtig:* So bestimmst du den Inhalt deiner Schnellzugriff-Leiste.
+> *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
 
 **EN**
 > ## Available Items
 >
-> Building blocks for your sidebar.
+> Enable the items that should appear in the sidebar (next to the search panel).
 >
-> - Choose from the list which areas and shortcuts are available as sidebar items.
+> - One toggle per item – on = visible in the sidebar.
+> - **Home** and **Search** are built-in items: Home returns to the start screen, Search opens the device panel without focusing the search field (so no keyboard on the phone).
+> - **Order** = activation order: existing items first, newly enabled ones at the end.
 >
-> *Why it matters:* this decides the contents of your quick-access bar.
+> *Why it matters:* this is how you decide the contents and order of your quick-access bar.
 
 ## toastConfig
 
