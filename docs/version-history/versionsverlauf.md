@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2489 - 2026-10-26
+
+**Title:** 🍱 The tile home screen is on by default, and the sidebar gets "Search" next to "Home" — it opens the device panel without popping up the keyboard
+
+**Tags:** home-screen, sidebar, settings, mobile
+
+- **Bento on by default:** new installations start with the tile home screen. If you switched it off yourself, it stays off; if you never touched the switch, you get the tile home screen with this update. The switch is still in General → Home screen; its subtitle now says what "off" means: the classic search bar in the middle. The "Changed" button treats on as the default.
+- **"Search" in the sidebar:** a second fixed entry next to "Home" opens the device panel exactly as after a tap into the search field — category, chips and device grid — but without focusing the field: no cursor, no glow, and on phones no keyboard. It closes an open detail view first and leaves AI mode if it was on; your text stays in the field. "Home" closes the panel as before. A tap into the field still focuses it.
+- **Existing setups get it once:** if you saved your own sidebar list, "Search" is inserted once right after "Home". Remove it in Settings → Sidebar → Configure items and it stays removed.
+- **Phone dock:** with six entries the phone dock now shows all six where they fit (screens from 360 px wide); on narrower phones, and from seven entries, the last ones move into the ⋮ menu as before.
+- **No accidental AI:** opening the panel through "Search" never triggers the automatic AI mode on its own; a later tap into the field behaves as without it.
+
+Verified with probes against the dev server (desktop 1280 × 800, phones 390 and 320 px): a fresh mount starts with the locked tile home screen, a saved "off" shows the classic search bar, the sidebar reads Home, Search, Settings, Schedules, Tasks, News; "Search" opens the panel to full height with the device grid and the field not focused, "Home" closes it, a tap into the field focuses it as before; an old saved list gets "Search" once and keeps it removed after removing it; no service calls. Not checked: Safari, the real on-screen keyboard (measured as "field not focused"), the English texts on screen. Several automated test files assumed the classic home screen as the default and will need `revealIfLocked` or an explicit setting.
+
 ## Version 1.1.2488 - 2026-10-26
 
 **Title:** 🧠 No results? The search turns into AI mode by itself — your text stays, one Enter asks; and an empty search no longer shows a blank panel
