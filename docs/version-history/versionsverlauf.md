@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2490 - 2026-10-26
+
+**Title:** 📱 Phone home screen: the first two tiles share one panel — swipe or tap the dots to switch between them
+
+**Tags:** home-screen, mobile, performance, accessibility
+
+On phones the tile home screen stacked all tiles; the two big ones took a full screen height each. Widget 1 and widget 2 now share one panel with two pages and a small dot pill below it, the way the hero slides in a detail view do. The two small tiles stay below, the desktop is unchanged.
+
+- **Switching:** tap a dot, or swipe sideways on the header of widget 1 (its tabs) or on the row next to the dots. Swiping inside widget 1's device grid scrolls the grid, swiping on the slideshow of widget 2 still flips its slides; the outer swipe never steals those. A short or mostly vertical swipe springs back; there is no wrap-around at the ends.
+- **Keyboard and screen readers:** the dots are buttons ("Page 1 of 2"), the left and right arrow keys move between them, and the hidden page is taken out of the tab order and the reading order.
+- **The hidden page rests:** while widget 2 is out of view its slideshow stops (no slide changes, no calendar requests); the ocean scene behind widget 1 stops drawing while page 2 is shown. Both start again when they come back into view.
+- **Remembered:** the page you were on stays when you open a device and come back.
+- **Empty widget 2:** if widget 2 has nothing assigned, the panel shows only widget 1 without dots — on phones there is no longer a separate empty "+" tile for it; you can still assign widget 2 in the settings or on a larger screen.
+- The home screen on phones is now about one tile shorter to scroll.
+
+Verified with probes against the dev server (phones 390 × 844 and 320 × 640; desktop 1280 × 800 compared pixel by pixel): one shared cell of 50 % screen height, the dot pill clear of the sidebar dock, switching by tap, keys and the swipe zones above, no slide changes or calendar requests from the hidden page in 25 s, ocean drawing calls 0 on page 2 in Chrome and WebKit, the page survives opening a device, the desktop layout identical. Not checked: a real iPhone or the Home Assistant companion app with touch, rotating past 768 px while open. The automated home screen tests and the test helper that reveals the home screen on phones still look for the old separate tile and will need updating.
+
 ## Version 1.1.2489 - 2026-10-26
 
 **Title:** 🍱 The tile home screen is on by default, and the sidebar gets "Search" next to "Home" — it opens the device panel without popping up the keyboard
