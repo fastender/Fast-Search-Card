@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2491 - 2026-10-26
+
+**Title:** 📅 One agenda — your to-dos with a due date appear in the calendar on their day, with their checkbox, and overdue ones wait above today (Roadmap #86)
+
+**Tags:** calendar, tasks, settings, accessibility
+
+The calendar and the to-do lists were two separate apps. Open tasks with a due date now show up in the calendar — they stay tasks: the calendar never creates one and never turns one into an event.
+
+- **On their day:** in the list under the month, week and day grid, in the day columns of the week and in the person lanes, a task stands between the appointments of its day: all-day appointments first, then tasks without a time, then appointments and tasks with a time together by the clock. A task with a plain date never gets a time. Each row shows a hollow dot in the list colour, the title, time and list name, and the to-do app's checkbox.
+- **Tick it off right there:** the checkbox completes the task in Home Assistant (one `todo.update_item`); the row stays crossed out until you leave, so a mistaken tap can be undone. In the narrow day columns the hollow ring itself is the checkbox. A tap on the row opens the task in the to-do app.
+- **Month:** each day with an open task gets one hollow dot next to the up to three appointment dots.
+- **Overdue and without a date:** with "Due and overdue" an "Overdue" block stands above today — repeated identical tasks stacked like in the to-do app ("3× due"), ticking a stack completes all of it. "Tasks without a date" optionally adds such tasks below today.
+- **Person lanes:** a task goes to the person of its list; tasks from lists without a person go to "Shared".
+- **Setting:** Calendar → Settings → Tasks: Off / Due (default) / Due and overdue, plus "Tasks without a date". With Off the calendar is exactly as before — measured: same renders, no listener. Lists hidden in the to-do app stay hidden here.
+- **Days are local:** a task due today counts as today in every time zone (checked with Los Angeles and Auckland).
+
+Verified with probes against the dev server (1024 and 1280 px, phone 390 × 844) with tasks on today, the day after tomorrow, overdue, stacked and without a date: placement and order in the list, the day columns, the person lanes and the month; exactly one service call per tick and per untick, three for a stack; the overdue block only on today; the jump into the to-do app by tap and Enter; with Off no change at all. Not checked: Safari, a failing service call, a real external change while the calendar is open, the 12-hour format. In the list the checkbox is 32 px (the to-do app uses 44 px on desktop) so the row keeps the height of an appointment row.
+
 ## Version 1.1.2490 - 2026-10-26
 
 **Title:** 📱 Phone home screen: the first two tiles share one panel — swipe or tap the dots to switch between them
