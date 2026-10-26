@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20) — 64 `settingsInfo` keys in de.js and en.js, 64 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -137,6 +137,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 | `calEventRules` | **Kalender → Einstellungen** | REGELN / RULES |
 | `calPeople` | **Kalender → Einstellungen** | PERSONEN / PEOPLE |
 | `calDisplay` | **Kalender → Einstellungen** | ANZEIGE / DISPLAY |
+| `calTasks` | **Kalender → Einstellungen** | AUFGABEN / TASKS |
 | `calVisibleViews` | **Kalender → Einstellungen** | SICHTBARE ANSICHTEN / VISIBLE VIEWS |
 | `calNewEvents` | **Kalender → Einstellungen** | NEUE TERMINE / NEW EVENTS |
 | `calTitleTemplates` | **Kalender → Einstellungen** | TITEL-VORLAGEN / TITLE TEMPLATES |
@@ -1641,6 +1642,42 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Location opens map** – off (default), the device's maps app, OpenStreetMap or Google Maps. When on, an event's location becomes tappable; only on that tap is the location text sent, as a search term, to the chosen provider, and to no one else – the card itself fetches nothing for it.
 > - **Week numbers** – show/hide the week-number column in the month grid.
 > - **Weather in the calendar** – condition icon and the day's high in each day header, the hourly value beside events (beyond the hourly horizon the day's value). Four levels: off, day headers only, events only, both. Weather entity: automatically the weather tile's, or a chosen one.
+
+## calTasks
+
+> Kalender → Einstellungen. ⓘ am „Aufgaben"-Sektionskopf (v1.1.2491, Roadmap #86).
+
+**DE**
+> ## Aufgaben
+>
+> Offene Aufgaben aus der Aufgaben-App erscheinen im Kalender an ihrem Fälligkeitstag – zwischen den Terminen, mit ihrem Haken. Aufgaben bleiben Aufgaben: Der Kalender legt keine an und macht keine Termine daraus.
+>
+> - **Aufgaben im Kalender** – *Aus*: der Kalender zeigt nur Termine, wie zuvor. *Fällige* (Vorgabe): eine Aufgabe mit Fälligkeit steht an ihrem Tag – in der Liste unter dem Gitter, in den Tages-Spalten der Woche, als hohler Punkt im Monat und in der Personen-Spalte. *Fällige und überfällige*: zusätzlich steht über dem heutigen Tag der Block **Überfällig**; dieselbe Aufgabe, die im regelmäßigen Abstand mehrfach fällig war, wird dort eine Zeile mit Zähler.
+> - **Reihenfolge eines Tages** – ganztägige Termine, dann Aufgaben ohne Uhrzeit, dann Termine und Aufgaben mit Uhrzeit gemeinsam nach der Zeit. Eine Aufgabe mit reinem Datum bekommt nie eine Uhrzeit.
+> - **Erkennen** – der hohle Kreis in der Farbe der Liste unterscheidet die Aufgabe vom Termin (hat die Liste keine Farbe, die Farbe ihrer Person).
+> - **Abhaken** – wirkt sofort; die Zeile bleibt durchgestrichen stehen, solange der Kalender offen ist, damit du den Haken zurücknehmen kannst. Ein Stapel wird als Ganzes erledigt. Ein Tipp auf die Zeile öffnet die Aufgabe in der Aufgaben-App – sofern die Aufgaben-App in der Karte nicht ausgeblendet ist; sonst bleibt nur der Haken.
+> - **Aufgaben ohne Datum** – zeigt unter dem heutigen Tag den Block **Ohne Datum** mit den offenen Aufgaben ohne Fälligkeit. Vorgabe aus.
+> - **Personen** – eine Aufgabe steht in der Spalte der Person, der ihre Liste gehört (Aufgaben → Einstellungen → Listen), sonst in **Gemeinsam**. Der Überfällig-Block erscheint dort nicht.
+> - In der Aufgaben-App ausgeblendete Listen bleiben auch hier weg. Regeln, Zusammenfassen und Wetter gelten nur für Termine; die Jahresansicht zählt nur Termine.
+> - **Zum nächsten Termin springen** – Aufgaben zählen mit: Steht in der Startansicht eine fällige Aufgabe oder heute ein Block **Überfällig** bzw. **Ohne Datum**, gilt sie nicht als leer, und der Kalender bleibt bei heute.
+>
+> *Warum wichtig:* Der Kalender wird der eine Ort, der „Was steht an?" beantwortet – und die Aufgaben bleiben trotzdem in ihrer eigenen App.
+
+**EN**
+> ## Tasks
+>
+> Open tasks from the to-dos app appear in the calendar on their due day – between the events, with their checkbox. Tasks stay tasks: the calendar does not create any and never turns them into events.
+>
+> - **Tasks in the calendar** – *Off*: the calendar shows events only, as before. *Due tasks* (default): a task with a due date sits on its day – in the list below the grid, in the day columns of the week, as a hollow dot in the month and in the people columns. *Due and overdue*: on top of that, an **Overdue** block sits above today; the same task that fell due several times at a regular interval becomes one row with a counter there.
+> - **Order of a day** – all-day events, then tasks without a time, then events and timed tasks together by time. A task with a plain date never gets a time.
+> - **Telling them apart** – the hollow circle in the list's colour sets a task apart from an event (if the list has no colour, its person's colour).
+> - **Ticking off** – takes effect at once; the row stays, struck through, while the calendar is open, so you can untick it. A stack is completed as a whole. Tapping the row opens the task in the to-dos app – as long as the to-dos app isn't hidden in the card; otherwise only the checkbox works.
+> - **Tasks without a date** – shows a **No date** block below today with the open tasks that have no due date. Off by default.
+> - **People** – a task sits in the column of the person its list belongs to (To-dos → Settings → Lists), otherwise in **Shared**. The overdue block does not appear there.
+> - Lists hidden in the to-dos app stay hidden here too. Rules, merging and weather apply to events only; the year view counts events only.
+> - **Jump to next event** – tasks count too: if the opening view holds a due task, or today carries an **Overdue** or **No date** block, it is not empty and the calendar stays on today.
+>
+> *Why it matters:* the calendar becomes the one place that answers "what's coming up?" – while tasks stay in their own app.
 
 ## calVisibleViews
 

@@ -2254,6 +2254,8 @@ Five entries from reading a combined calendar-and-tasks agenda card against the 
 
 ### 86. One agenda — tasks live in the calendar
 
+> ✅ **Shipped v1.1.2491** (2026-10-26) — `calendar/utils/aufgabenImKalender.js` + `hooks/useAufgabenFuerKalender.js` (reads the to-do entity, listens only while the calendar is open and the mode is not off); open tasks with a due date stand on their day in the list, the day columns and the person lanes, with the to-do app's checkbox (one `todo.update_item`), a hollow dot per day in the month; "Overdue" block above today (stacked like the to-do app) and an optional "No date" block; setting Calendar → Tasks (Off / Due / Due and overdue, default Due) plus "Tasks without a date"; a tap on the row opens the task in the to-do app. Days are built in local time; the to-do app's own overdue helpers still read plain dates as UTC (west of UTC a task due today counts as overdue there) — not changed here. Deviations from the plan above: own settings section instead of under Display, plain-date tasks before timed entries, the jump into the task shipped.
+
 **Pitch:** A task due on Thursday appears on Thursday, among that day's appointments, with its checkbox. Above today: what is overdue. One place answers "what is coming up".
 
 **Status quo:** Calendar and to-dos are two apps. The calendar code never touches a to-do (verified: no to-do reference anywhere in `calendar/`). The card nevertheless merges both sources already, for the alert lane (`utils/reminderSources.js`) and for the context line (`utils/kontextZeilen.js`). The notification side knows that a dentist appointment and a due task belong to the same question. The calendar view does not.
