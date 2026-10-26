@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2495 - 2026-10-26
+
+**Title:** 📆 The calendar counts in days, not in this device's midnight — ready for a card-wide time zone (time zone, part 3 of 4)
+
+**Tags:** calendar, time-zone, bugfix
+
+The calendar carried its days as dates at this device's midnight and compared them by their text. That works on one device but cannot follow another time zone. It now works with plain day keys (2026-10-27) from the shared time helper everywhere: month, week, week as columns, day, year and person lanes, the overdue block and tasks in the calendar, the search hits, the home screen calendar tile, reminders, the next-event jump and the event dialog's prefill. All-day and multi-day events carry their own start and end day, so their exclusive end can never slip.
+
+With this device's time zone everything looks and behaves exactly as before — measured in Berlin and in Los Angeles: every view, every request for events, and every create, edit and delete call to Home Assistant unchanged. Two small fixes:
+
+- **Repeat end:** a series ending at a UTC date-time (as Google and CalDAV send it, e.g. "until 30 Oct 23:30 UTC") showed the UTC day; east of UTC that is the day before the meant one. It now shows your day. Saving such a series unchanged writes the same end as before.
+- **"Past" rule:** an all-day event that ends today could count as past west of UTC; it no longer does.
+- **At midnight** the calendar moves "today" and the overdue block on by itself.
+
+The time-zone menu follows with part 4, together with charts, the places that always use the Home Assistant server's time, and the event and task forms.
+
+Verified with probes in browsers set to Europe/Berlin and America/Los_Angeles (desktop and phone): fingerprints of all calendar views byte-identical before and after, the same requests and service calls, all-day and multi-day events on the right days, and with a forced foreign time zone the grid, the events and the tasks moved together. Not checked: Safari, week starting on Sunday, week numbers, English with 12-hour times.
+
 ## Version 1.1.2494 - 2026-10-26
 
 **Title:** 🕑 Clocks, greetings, quiet hours, notifications and weather run on the same time helper — and a handful of small time bugs are gone (time zone, part 2 of 4)
