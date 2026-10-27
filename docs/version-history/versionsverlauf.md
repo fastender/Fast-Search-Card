@@ -1,5 +1,19 @@
 # Versionsverlauf
 
+## Version 1.1.2498 - 2026-10-27
+
+**Title:** 🎬 Detail view: readable title over videos, video stays on the left, head pill as tall as the tabs
+
+**Tags:** detail-view, video, liquid-glass, legibility
+
+Three fixes in the detail view:
+
+- **Readable title over videos and pictures.** The white title and area were hard to read on a bright video. Behind the head of the left half there is now a soft blur with a light darkening that fades out downwards, like on Apple devices over photos. It appears with the video, album cover or article image, on desktop and phone, and stays on the left half when an album cover spans the whole card.
+- **On desktop the background video stays on the left half.** Since v1.1.2492 the video lay under the whole card, with the right half on top of it. Now the video fills only the left half again, and the right half is glass following your settings: Liquid Glass with your values when it is switched on, frosted glass otherwise, over the wallpaper behind the card. Album covers and article images still span the whole card. Phones keep their sheet design.
+- **The head pill is as tall as the tabs next to it.** The selection pill in the overviews of tasks, news and schedules ("All ⇕") is now as tall as the tab row on the right: 50 px on desktop, 42 px on phones, with the icon circle at the size of a tab button. The circles in its menu stay small.
+
+Verified with probes in Chrome and WebKit on desktop and at phone width: the video is exactly the left half, the panel itself has no blur or tint, the glass layer covers exactly the right half and is Liquid Glass with the default settings, the blur behind the title is visible, pill and tab row have the same height and top edge. Not checked: a real Safari and the Home Assistant apps, a bright video on a real wall tablet.
+
 ## Version 1.1.2497 - 2026-10-27
 
 **Title:** 🧠 AI mode writes code you can copy, and the chat history survives reloads
