@@ -490,7 +490,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Hintergrund-Modus** – Hell, Dunkel oder Automatisch.
 > - **Spalten** – wie viele Geräte-Kacheln nebeneinander passen.
 > - **Kachel-Form** – Rundung und Form der Karten (z. B. Squircle).
-> - **Hintergrund** – Helligkeit, Unschärfe, Kontrast, Sättigung und Graustufen.
+> - **Hintergrund** – Helligkeit, Unschärfe, Kontrast, Sättigung und Graustufen des Wallpapers, dazu die **Tönung** des Milchglases überall in der Karte.
 >
 > *Warum wichtig:* Hier passt du Lesbarkeit und Stil an.
 
@@ -502,7 +502,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Background mode** – Light, Dark or Automatic.
 > - **Columns** – how many device tiles fit side by side.
 > - **Card shape** – rounding and shape of the cards (e.g. squircle).
-> - **Background** – brightness, blur, contrast, saturation and grayscale.
+> - **Background** – brightness, blur, contrast, saturation and grayscale of the wallpaper, plus the **tint** of the frosted glass everywhere on the card.
 >
 > *Why it matters:* this is where you tune readability and style.
 

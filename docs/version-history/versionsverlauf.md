@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2500 - 2026-10-28
+
+**Title:** 🧊 New frosted glass everywhere (darker, neutral, with a fine light edge) and a Tint slider; the desktop detail view is one glass panel again
+
+**Tags:** glass, detail-view, desktop, appearance, settings
+
+Two changes to the look of the card:
+
+- **The desktop detail view is back to how it was before v1.1.2492.** The background video, album cover and article image fill only the left half, the whole panel is one glass, and there is no Liquid Glass on desktop any more. Since v1.1.2498 the right half first showed the panel glass, then faded a second glass layer over it for half a second and switched the panel glass off in one step. You saw this as glass on glass and a jump in brightness when a video arrived. On the built card this jump measured 6–7 %. Now it is 0 %, and nothing on the right changes when a video loads late. The title blur and the head pill height from v1.1.2498 stay.
+- **New frosted glass on every glass surface, in all browsers, on desktop and phone.** This covers the search bar, island and value capsule, bento tiles, sidebar, detail view, windows and info popups, toasts, undo bar, picker wheels, and the phone sheet without Liquid Glass. It is the look Liquid Glass has in Safari, built as plain CSS with live blur:
+  - the blur stays 20 px plus your Blur slider;
+  - saturation is 115 % instead of 180 % (times your Saturation slider);
+  - a neutral dark tint replaces the white milky gradient;
+  - a fine edge (a light line at the top plus a faint hairline all round) replaces the old frame and inner shadow.
+
+  Opaque panels (the "more" popup and the controls sheet) stay opaque in the same neutral tone. Coloured toasts keep their colour and also get the edge.
+- **New slider "Tint"** under Settings › Appearance › Background, 0–80 %, default 40 % (the previous tone). It darkens or lightens every glass surface live. The Background row shows "Customized" when it is not 40, the "Changed" list includes it, and the settings search finds it. The Liquid Glass sheet on the phone keeps its own Tint slider.
+- **Phone:** the Liquid Glass sheet is unchanged. With Liquid Glass switched off, the sheet uses the new frosted glass with exactly one light line at the top. The Liquid Glass texts now say that it only affects the phone sheet.
+
+Also fixed:
+
+- **The title blur over album covers now works.** Since v1.1.2498 it lay under the sharp cover and had no effect.
+- **Inactive device cards on picture tiles now take the glass tint.** They used to show a white 10 % fill, and the Tint slider did not reach them.
+- **No unblurred 1 px ring in the development preview.** Glass surfaces there no longer have a transparent frame that showed wallpaper around them. Home Assistant never had this frame.
+
+Verified on the built bundle mounted like in Home Assistant (Shadow DOM), in Chrome and WebKit:
+
+- The desktop detail view matches v1.1.2491 to 0.00 px, with no media, an album cover, a video and a task list, with Liquid Glass switched on and off.
+- No Liquid Glass elements appear on desktop.
+- While the video fades in, the right half changes by at most 0.04 % between frames.
+- The new recipe arrives on 19 surfaces, including windows, toasts and sheets.
+- The card has the same number of blurred layers (6/7/6/12) and running animations (1/1/1/0) at rest, with search open and with the detail view open.
+- Tint 0/40/80 works live and after a reload, and a stored 0 stays 0.
+- The phone Liquid Glass sheet is pixel-identical to v1.1.2499.
+- The phone carousel works.
+
+The bundle is 857 B smaller (651,523 B gzip, still above the warning threshold of 640,000).
+
+Known: when the detail view opens, the search glass and the detail glass overlap for a few frames by design (since v1.1.2482). With the darker glass, this hand-over now dips about 7 % below the resting brightness for 50–90 ms, instead of about 3 %. The white gradient used to offset it. The wallpaper never shows through sharply.
+
+Not checked:
+
+- Real Safari, iOS and the Home Assistant apps. Playwright's WebKit does not paint backdrop-filter, so blur pixels were measured only in Chrome.
+- Firefox.
+- A news article image in the desktop geometry.
+- How readable windows and the undo bar are over busy wallpapers. This was only judged by eye. Both are now more transparent: windows went from 0.58 to 0.4 tint, the undo bar from 0.78 to 0.4.
+
 ## Version 1.1.2499 - 2026-10-27
 
 **Title:** 🎠 Phone start screen: all widgets in one carousel, slideshow slides as their own pages, one row of dots
