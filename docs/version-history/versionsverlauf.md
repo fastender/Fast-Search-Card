@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2497 - 2026-10-27
+
+**Title:** 🧠 AI mode writes code you can copy, and the chat history survives reloads
+
+**Tags:** ai-mode, chat, code, history
+
+When you asked the AI for an automation, it said it cannot create one, and on a follow-up it pressed the whole YAML into one unreadable line. Two changes:
+
+- **Code with a Copy button.** The AI still cannot create automations or scripts itself, but it now writes the Home Assistant YAML as a code block, using the current syntax (`triggers:`, `actions:`, `action: light.turn_on`) and only devices the card shows, and says where to paste it (automation editor › ⋮ › Edit in YAML). The chat shows the block with its language, line breaks and indentation, and a **Copy** button that briefly confirms with "Copied". Copying also works when Home Assistant runs over plain http, where browsers block the modern clipboard. Inline `code` in answers is set off as well.
+- **The chat history stays.** It is saved on this device (the last 30 questions) and is back after a reload, after closing the AI mode and after the screensaver, which no longer clears it. Follow-up questions use it: the AI now sees the last 10 messages instead of 6, up to 1,500 characters each, and code keeps its line breaks. Only **New chat** deletes the history. A changed exclusion list or visibility filter still clears it, also when the change happened in another tab, so names of devices you have hidden never reach the AI as earlier conversation. Restored entries are read-only: a confirmation still open before the reload shows "Not confirmed", an action that was running shows "Result unknown", and a question still waiting for its answer shows "Interrupted".
+
+Also fixed: the card removed every code fence from the AI reply before reading it, so code inside an answer would have lost its fences. The AI mode info popup describes code, history and the 10 messages.
+
+Verified with a probe against a simulated AI task: the YAML block renders exactly as sent and is copied exactly, both with the modern clipboard and with the http fallback (focus returns to the button, no leftover helper field); a reply wrapped in a JSON fence is still read; the second question carries the first answer with its line breaks escaped on one line; after a reload all four entries are back, with no Run button on restored actions; a new question after the reload uses the old history; New chat empties the storage; a changed exclusion list discards the saved history; no horizontal overflow at phone width. Not checked: a real Home Assistant with a real model, Safari and the Home Assistant apps.
+
 ## Version 1.1.2496 - 2026-10-26
 
 **Title:** 🌍 Choose the card's time zone — General → Time zone: automatic like your Home Assistant profile, this device, or the Home Assistant server (time zone, part 4 of 4)
