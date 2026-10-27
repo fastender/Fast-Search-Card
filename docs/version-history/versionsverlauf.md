@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2499 - 2026-10-27
+
+**Title:** 🎠 Phone start screen: all widgets in one carousel, slideshow slides as their own pages, one row of dots
+
+**Tags:** bento, phone, carousel, slideshow
+
+On phones, the start screen used to show W1 and W2 as two pages with dots and W3/W4 stacked below. If W2 was the slideshow, it brought its own dots and pause button, so two rows of dots sat on top of each other. Now everything is one carousel:
+
+- **One carousel for W1 to W4.** The active page sits in the middle, and the previous and next pages peek in 20 px at the left and right edges, 12 px apart, all the same size with the same rounded corners. The first page has no neighbour on the left and the last none on the right. Below sits one capsule of dots, one dot per page, without a pause button. Empty slots are skipped.
+- **Slideshow slides become pages.** If W2 is the slideshow, each slide (weather, news, tasks, calendar, as far as available) is its own page with its colour, compact content and footer. The phone has no autoplay. Tapping a slide opens its device. On desktop, the slideshow still works as before (its own dots, pause, autoplay, tap shows the next slide). Both use the same slide component.
+- **Swipe, tap, keyboard.** One page per swipe, snapping into place, elastic at both ends. Swiping works almost anywhere on the page, also on the lists of news, tasks and calendar and on the favourites grid: sideways moves the carousel, up and down scrolls the list. Tapping a peeking neighbour brings it to the middle and opens nothing. Tapping a dot jumps to that page, and ←/→ on a focused dot moves one page. The carousel remembers the page for the session, by the widget or slide rather than by position, so the same page stays active when widgets change.
+- **Height fits the screen.** The carousel ends with its dots above the dock, measured from where the grid starts on the screen (header, island and search row included), and keeps at least 260 px on very flat screens.
+- **W1 header on narrow pages.** The tab row of W1 (Favourites, Suggestions, grid/list) became more compact on the phone. If it still does not fit, the count badges go first, and only on very narrow phones the tab texts end with "…".
+- **Quiet and accessible.** Only the active page counts as visible: the sea in W1 pauses while W1 is a neighbour, scrolling state text pauses on hidden pages, and hidden pages are hidden from screen readers and from the Tab key. The carousel is a labelled region, every page a group named like "Weather, page 2 of 7".
+
+Desktop is unchanged: the same four cells, the slideshow with its dots, pause and autoplay. Before/after measured at 1280×900 in Chrome and WebKit.
+
+Verified with probes in Chrome and WebKit at 390×844, 375×667 and 320×568: 7 pages and 7 dots for W1 + four slides + W3 + W4, exactly one row of dots, no horizontal overflow, page and dots fit above the dock, swiping to every page and back, neighbour tap, dot tap and arrow keys, remembered page after a remount, no autoplay after 11 s, the sea pauses as a neighbour, renders per update not higher than before. Touch swipes checked with simulated touch in Chrome (also on the news list and the favourites grid, and a tab tap with 5 px jitter), the built bundle checked at phone width. Not checked: a real phone, Safari on iOS and the Home Assistant apps, a screen reader's actual output, landscape phones.
+
 ## Version 1.1.2498 - 2026-10-27
 
 **Title:** 🎬 Detail view: readable title over videos, video stays on the left, head pill as tall as the tabs
