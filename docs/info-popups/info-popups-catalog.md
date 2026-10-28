@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) und `general` (Zeitzone) in v1.1.2496 (2026-10-26) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) und `design` (Tönung) in v1.1.2500/2501 (2026-10-28) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -490,7 +490,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Hintergrund-Modus** – Hell, Dunkel oder Automatisch.
 > - **Spalten** – wie viele Geräte-Kacheln nebeneinander passen.
 > - **Kachel-Form** – Rundung und Form der Karten (z. B. Squircle).
-> - **Hintergrund** – Helligkeit, Unschärfe, Kontrast, Sättigung und Graustufen des Wallpapers, dazu die **Tönung** des Milchglases überall in der Karte.
+> - **Hintergrund** – Helligkeit, Unschärfe, Kontrast, Sättigung und Graustufen des Wallpapers, dazu die **Tönung** des Milchglases überall in der Karte (Fenster und aufgeklappte Insel 20 Punkte dunkler, höchstens 80 %).
 >
 > *Warum wichtig:* Hier passt du Lesbarkeit und Stil an.
 
@@ -502,7 +502,7 @@ vermieden (Single Source bleibt der bestehende Key). Beim Ändern der Texte:
 > - **Background mode** – Light, Dark or Automatic.
 > - **Columns** – how many device tiles fit side by side.
 > - **Card shape** – rounding and shape of the cards (e.g. squircle).
-> - **Background** – brightness, blur, contrast, saturation and grayscale of the wallpaper, plus the **tint** of the frosted glass everywhere on the card.
+> - **Background** – brightness, blur, contrast, saturation and grayscale of the wallpaper, plus the **tint** of the frosted glass everywhere on the card (windows and the expanded island 20 points darker, capped at 80%).
 >
 > *Why it matters:* this is where you tune readability and style.
 

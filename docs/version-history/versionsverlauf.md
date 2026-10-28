@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2501 - 2026-10-28
+
+**Title:** 🌘 Darker windows: popups and the expanded island are 20 points darker than the Tint slider
+
+**Tags:** glass, popups, island, appearance
+
+Windows were hard to read over bright backgrounds with the 40 % tint from v1.1.2500. Now every window is 20 points darker than the Tint slider, capped at 80 %. With the default of 40 % that is 60 %. This covers the info popups, the task window, the ⋯ and snooze menus, the category and filter windows, chart date pickers, and the calendar and schedule windows.
+
+- **The expanded island counts as a window too.** It is 60 % when it shows notifications or live activities, and goes back to 40 % when it folds into its resting pill. The tint fades over about half a second while the island opens or closes, so there is no jump.
+- **Everything else stays at the slider value:** the search bar, the island at rest, the value capsule, tiles, sidebar, detail view, toasts and the undo bar.
+- **One slider still controls everything.** Tint 0 / 40 / 60 / 80 % gives windows 20 / 60 / 80 / 80 %. The slider text and the Appearance info popup say so.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), in Chrome and WebKit, on desktop and at phone width:
+- **Window tint:** info popup, task window, category window and the expanded island show 60 % by default. They show 20 / 80 / 80 % at Tint 0 / 60 / 80, live and after a reload.
+- **Brightness:** windows and the expanded island measure about 15–18 brightness steps darker over a bright test wallpaper. The search bar and the island at rest are unchanged.
+- **Island transition:** the tint changes in small steps while the island opens and closes, at most 0.018 per frame.
+- **Nothing else changed:** all other glass surfaces, the phone sheet, the desktop detail geometry, the number of blurred layers and running animations are the same as in v1.1.2500.
+
+Not checked: real Safari, iOS and the Home Assistant apps. Not every window was opened one by one (the schedule, calendar and chart windows share the same window style).
+
 ## Version 1.1.2500 - 2026-10-28
 
 **Title:** 🧊 New frosted glass everywhere (darker, neutral, with a fine light edge) and a Tint slider; the desktop detail view is one glass panel again
