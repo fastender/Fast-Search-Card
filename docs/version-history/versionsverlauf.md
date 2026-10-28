@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2502 - 2026-10-28
+
+**Title:** 🧭 Four fixes: topic list stays inside the panel, brain button for content-only results, long search text fades out, sidebar marks the open view
+
+**Tags:** search, ai-mode, sidebar, news, popups, bugfix
+
+- **Topic list no longer runs past the panel.** The Sources / Topics / Themes menu of the head pill in News could grow far below the panel, 418 px on a tall window. It now ends 12 px above the panel's bottom edge and scrolls inside. It has the same scroll bar as the other lists of the card instead of no bar at all. Short lists keep their height. Tasks and the schedules overview use the same menu and get the same fix. Filter, category and notification windows are unchanged.
+- **Brain button when the search finds only content.** If a search finds tasks, news or tips but no device, a brain button appears to the left of the ✕. Clicking it (or pressing Enter or Space on it) switches to AI mode with your text already in the field. Like every other switch to AI mode, it does not send yet: press Enter to ask. The button only shows when AI mode is enabled and an AI task entity exists. It does not show for device results, for no results (the automatic switch to AI mode still handles that) or in AI mode. The text field makes room for it, so typed text never runs under it.
+- **Long text in the search bar fades out.** The rotating search bar line (for example "Last: Kinderzimmer Präsenzmelder Belegung Occupied · 11:50") ran under the filter icon to the panel edge. It now ends at the field and fades out over the last 48 px, the same way device card names do. Its blinking cursor is hidden while the line is cut off.
+- **The typing cursor stays in the field.** When you typed more text than fits, the glowing cursor was drawn at the full text width, outside the field and behind the ✕. It now stops at the field's edge, also when the brain button is showing.
+- **Sidebar marks the open view.** The button of the view you are in now has a white circle with a dark icon, for example Settings while the settings are open. This works no matter how the view was opened (sidebar, search result, tile or island). When the sidebar is expanded the active entry is a white pill. On the phone dock, if the open view sits in the ⋮ menu, the ⋮ button gets the circle and the entry inside the menu is highlighted. Device details and AI mode mark nothing. Screen readers hear "current page".
+- **More room between sidebar and panel:** the gap on desktop grows from 12 to 20 px. The phone dock is unchanged.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), in Chrome and WebKit, on desktop and at phone width, against v1.1.2501:
+- **Topic list:** with 71 topics the menu ended 418 px below the panel (1345×1226) and 44 px below it on the phone. Now it ends 12 px above it in every size. Scrolling with the wheel and with 40 arrow-key presses works, and the scroll bar shows while scrolling and on hover.
+- **Brain button:** it appears only for content-only results. It sits left of the ✕, which stays in place. One click switches to AI mode with the text kept and no AI request sent; Enter then asks.
+- **Search bar text:** no text pixels under the filter icon any more (before: 718 on the phone), with a smooth fade before it. The typing cursor stays inside the field (before: 230 px outside it on an 800 px window).
+- **Sidebar:** exactly one marked button in every view tried (Home, Search, Settings, Schedules, Tasks, News), and the mark follows when a view is closed. The gap measures 20 px in every state.
+- **Nothing else changed:** detail view, search, AI mode, island, glass layers and running animations match v1.1.2501, apart from the sidebar moving 8 px left.
+
+Not checked: real Safari, iOS and the Home Assistant apps, the calendar, weather and integration icons inside the active circle, and the tasks and schedules menus with many entries (same component as News).
+
 ## Version 1.1.2501 - 2026-10-28
 
 **Title:** 🌘 Darker windows: popups and the expanded island are 20 points darker than the Tint slider
