@@ -1232,28 +1232,6 @@ Almost always a typo in the filename. Only exactly-named files are found.
 
 ---
 
-## Tipp liquid-glass - Appearance
-
-**Title:** What is Liquid Glass?
-**Hero:** none
-**Tags:** Appearance, Design
-
-A glass effect for the controls: refraction, sheen and colour fringe, as if real glass sat over the background.
-
-### Where
-Settings → Appearance → Design → Liquid Glass.
-
-### What's adjustable
-Fourteen dials — frost, refraction, colour fringe, tint, bend, sheen and sheen angle, specular, glow, brightness. Each with its own explanation behind the ⓘ.
-
-### For the impatient
-The default looks good without touching a single dial. The fourteen are there for fine-tuning, not as homework.
-
-### On Safari
-True refraction is a Chromium capability. On Safari and iOS a frost-and-tint mode takes over that comes very close.
-
----
-
 ## Tipp hinweise - Control
 
 **Title:** Can the card warn me when a value gets too high?

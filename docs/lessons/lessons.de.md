@@ -1232,28 +1232,6 @@ Fast immer ein Tippfehler im Dateinamen. Nur exakt benannte Dateien werden gefun
 
 ---
 
-## Tipp liquid-glass - Aussehen
-
-**Title:** Was ist Liquid Glass?
-**Hero:** none
-**Tags:** Aussehen, Design
-
-Ein Glas-Effekt für die Bedienelemente: Lichtbrechung, Glanz und Farbsaum, als läge echtes Glas über dem Hintergrund.
-
-### Wo
-Einstellungen → Darstellung → Design → Liquid Glass.
-
-### Was sich einstellen lässt
-Vierzehn Regler — Frost, Brechung, Farbsaum, Tönung, Biegung, Glanz und Glanzwinkel, Glanzlicht, Glow, Helligkeit. Jeder mit eigener Erklärung hinter dem ⓘ.
-
-### Für Ungeduldige
-Die Voreinstellung sieht gut aus, ohne dass du einen Regler anfasst. Die vierzehn sind für den Feinschliff da, nicht als Pflichtprogramm.
-
-### Auf Safari
-Die echte Lichtbrechung ist eine Chromium-Fähigkeit. Auf Safari und iOS greift ein Frost-und-Tönungs-Modus, der dem sehr nahekommt.
-
----
-
 ## Tipp hinweise - Steuerung
 
 **Title:** Kann die Card mich warnen, wenn ein Wert zu hoch wird?

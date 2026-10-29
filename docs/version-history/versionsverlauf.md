@@ -1,5 +1,33 @@
 # Versionsverlauf
 
+## Version 1.1.2503 - 2026-10-29
+
+**Title:** 🪟 No more live blur: glass now shows a pre-blurred copy of your wallpaper (fixes Safari seams), Liquid Glass removed
+
+**Tags:** glass, safari, performance, heat, appearance, settings
+
+In Safari the live glass blur (`backdrop-filter`) showed hard vertical seams in the AI window and the search panel, and flickered while resizing or scrolling. Live blur also costs the graphics chip work on every frame. The card no longer uses live blur anywhere, in any browser.
+
+- **Glass shows a blurred copy of your wallpaper.** The card reads Home Assistant's dashboard wallpaper, blurs it once with your Blur, Saturation, Brightness, Contrast and Greyscale sliders, and lines it up with the screen behind every glass surface. It redoes this only when the wallpaper, the window size or a slider changes, not on every frame. This covers the search bar and AI window, the island in every state, the value capsule, tiles, the sidebar and phone dock, the detail view, every window and popup, toasts, the undo bar, the warning banner and the phone sheet.
+- **Over card content, glass shows the wallpaper.** Live blur showed the blurred tiles behind an open window or the expanded island. The copy shows the blurred wallpaper there instead. With the window tint this is hard to see.
+- **Glass on glass is only tinted.** Rows, chips, buttons, inner cards and pickers inside windows sit on a surface that is already blurred, so they keep only their tint. Over sharp content (album cover, news image, background video) the tint is a little denser.
+- **Text stays readable over light wallpapers.** Windows, the expanded island, toasts, the undo bar and the phone sheet automatically get extra tint where the wallpaper behind them is bright. The brightness is measured once from the blurred copy. The Tint slider can always make them darker. Over dark wallpapers nothing changes.
+- **Wallpapers without an image:** with a colour or gradient, the glass shows that colour or gradient. If no copy is possible (no dashboard wallpaper, a video, an image from another server that does not allow it, several layers), glass falls back to a dense tint without blur. An image from another server is tried once per address.
+- **Dimmers only darken.** The dimming behind the island and windows no longer blurs, and the start-up overlay only fades.
+- **Liquid Glass is removed.** The Liquid Glass settings page (14 controls), its library and the light-bending effect on the phone sheet are gone, as is the in-app tip about it. The phone sheet uses the same glass as everything else. Switches and sliders keep their look. Old Liquid Glass settings are ignored.
+- **Info overlays in the detail view stay inside the panel**, as before.
+- **The bundle is 12.6 KB smaller** (639 958 bytes gzipped) and back under the size warning threshold.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with a test wallpaper behind the card, in Chrome and WebKit, on desktop and at phone width, against v1.1.2502:
+- **No live blur left:** 0 elements with `backdrop-filter` in 507 states (Chrome 298, WebKit 209), pseudo-elements included, and 0 in the bundle.
+- **Alignment:** the copy sits at most 0.4 px off the wallpaper at rest.
+- **Readability:** checked by day and by night, over light, dark and half-light wallpapers. No text on a floating surface is harder to read than in v1.1.2502, at the default tint and at Tint 80. The only exception is dark text on white active chips (up to 0.8 contrast steps, not visible). Over dark wallpapers toasts and the undo bar are unchanged; windows and the island change by at most 0.1 brightness steps.
+- **Heat:** nothing runs at rest, also with a detail view or the settings open on the phone. Dragging the Blur slider in WebKit is about as smooth as before.
+- **Start-up:** the card appears at about the same time (median −2 to +64 ms).
+- **Nothing else changed:** no new page errors, and the search, AI mode with the brain button, island, detail view, settings, news topic list, task window, toasts and undo bar work as in v1.1.2502.
+
+Not checked: real Safari, iOS and the Home Assistant apps (the reason for this change), Firefox, a real wallpaper on another server, moving the Tint slider between 40 and 80 while the card is open, and the schedule, calendar, history date and watch windows one by one. In real Safari the copy may trail transform animations by 1–2 px for one or two frames. Over light wallpapers the Tint slider has no effect below the default and only a small effect on windows above it.
+
 ## Version 1.1.2502 - 2026-10-28
 
 **Title:** 🧭 Four fixes: topic list stays inside the panel, brain button for content-only results, long search text fades out, sidebar marks the open view
