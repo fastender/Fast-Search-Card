@@ -854,7 +854,7 @@ Open the calendar — via search or the sidebar — then the plus button.
 Straight into your Home Assistant calendar, through the native interface. No middle service, no cloud of the card's own.
 
 ### Editing and deleting
-Tap the appointment, change it, save. Deleting asks twice — the second tap confirms.
+Tap the appointment, change it, save. The ⋯ button on the row opens the same thing in a window. Deleting acts at once; the undo pill brings the appointment back for six seconds.
 
 ---
 
@@ -880,13 +880,20 @@ Events from other calendars can carry more elaborate recurrences — "every seco
 **Hero:** none
 **Tags:** Calendar, Views
 
-Via the buttons along the top.
+Via the pill at the top right: a tap opens the menu, and the row of icons at its top switches the view.
 
 ### What each shows
 - **Day** — hour grid with events as blocks
-- **Week** — seven columns, same logic
-- **Month** — a grid with dots per event, today as a red circle
+- **Week** — the days as columns side by side
+- **Month** — a large grid with coloured bars per event, dots on a phone; today as a red circle
 - **Year** — twelve mini-months to jump between
+- **People** — one week with a column per person, once people are set up
+
+### The view on the left, the list on the right
+Tapping a day fills the list on the right, on a phone the sheet below.
+
+### Paging and filtering
+The arrows on the left page through, and a tap on the title between them opens months and years. "Today" sits next to them whenever today is out of view. In the pill menu you pick a group, a calendar or a person; that holds until you close the calendar.
 
 ### Hiding views
 Never use the year view? Hide it: Calendar → Settings → Visible views.

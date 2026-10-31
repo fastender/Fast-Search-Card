@@ -1524,9 +1524,9 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Schalter** rechts: Kalender ein-/ausblenden — ausgeblendete Termine verschwinden aus allen Ansichten.
 > - **Tippen auf die Zeile** öffnet die **Farbauswahl** — überschreibt die automatisch vergebene Farbe (oder „Standard" für die Auto-Farbe).
 > - In **Home Assistant versteckte oder deaktivierte** Kalender tauchen gar nicht erst auf — gesteuert über Einstellungen → Filter → Sichtbarkeit.
-> - **Gruppen** („Gruppe anlegen"): mehrere Kalender unter einem Namen, einer Farbe und **einem Schalter** — z. B. „Familie". Die Mitglieder erscheinen dann nur noch als Gruppe; in der Kalender-Ansicht schaltet ein Chip die Gruppe ein und aus. Die Gruppenfarbe färbt ihre Mitglieder, ein eigener Farb-Override bleibt möglich.
+> - **Gruppen** („Gruppe anlegen"): mehrere Kalender unter einem Namen, einer Farbe und **einem Schalter** — z. B. „Familie". Die Mitglieder erscheinen dann nur noch als Gruppe; in der Kalender-Ansicht wählt das Menü der Pille oben die Gruppe aus (vorübergehend); ein- und ausgeschaltet wird sie hier. Die Gruppenfarbe färbt ihre Mitglieder, ein eigener Farb-Override bleibt möglich.
 >
-> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe — und „nur Familie zeigen" ist ein Tipp statt sechs.
+> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe — und „nur Familie zeigen" ist eine Wahl statt sechs Schalter.
 
 **EN**
 > ## Calendars
@@ -1536,9 +1536,9 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Switch** on the right: show/hide a calendar — hidden events disappear from all views.
 > - **Tap the row** to open the **color picker** — overrides the auto-assigned color ("Default" restores it).
 > - Calendars **hidden or disabled in Home Assistant** don't appear at all — controlled via Settings → Filters → Visibility.
-> - **Groups** ("Create group"): several calendars under one name, one color and **one switch** — e.g. "Family". Members then show up only as their group; in the calendar view a chip toggles the group. The group color tints its members; an individual color override stays possible.
+> - **Groups** ("Create group"): several calendars under one name, one color and **one switch** — e.g. "Family". Members then show up only as their group; in the calendar view the pill menu at the top picks the group (temporarily); it is switched on and off here. The group color tints its members; an individual color override stays possible.
 >
-> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color — and "family only" becomes one tap instead of six.
+> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color — and "family only" becomes one choice instead of six switches.
 
 ## calEventRules
 
@@ -1575,24 +1575,24 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **DE**
 > ## Personen
 >
-> Ordne Kalender oder Gruppen einer Person zu — dann bekommt der Kalender einen **Personen**-Reiter: eine Woche, aber die Spalten sind Personen statt Tage. Wer macht was, wann.
+> Ordne Kalender oder Gruppen einer Person zu — dann bekommt der Kalender die Ansicht **Personen**: eine Woche, aber die Spalten sind Personen statt Tage. Wer macht was, wann.
 >
 > - **Person anlegen** – Name, Farbe, ihre Kalender und Gruppen (Mehrfachwahl), optional eine Home-Assistant-Person fürs Bild.
 > - Der Besitz wird hier **gesagt**, nicht aus Teilnehmerlisten geraten — die liefern die meisten Kalender-Integrationen nicht.
 > - Termine, die niemandem gehören, stehen in der Spalte **Gemeinsam** (Müll, Feiertage, Schulferien).
-> - **Tipp auf einen Spaltenkopf** filtert den ganzen Kalender auf diese Person — in jeder Ansicht; der Chip oben hebt den Filter wieder auf.
+> - **Tipp auf einen Spaltenkopf** filtert den ganzen Kalender auf diese Person — in jeder Ansicht; die Pille oben zeigt dann ihren Namen, „Alle" im Menü hebt den Filter wieder auf.
 >
 > *Warum wichtig:* Das ist die Ansicht, für die Familien-Kalender überhaupt gekauft werden — und die kein Kalender im Dashboard bisher gut kann.
 
 **EN**
 > ## People
 >
-> Assign calendars or groups to a person — the calendar then gets a **People** tab: one week, but the columns are people instead of days. Who is doing what, when.
+> Assign calendars or groups to a person — the calendar then gets a **People** view: one week, but the columns are people instead of days. Who is doing what, when.
 >
 > - **Create person** – name, colour, their calendars and groups (multi-select), optionally a Home Assistant person for the picture.
 > - Ownership is **stated** here, not guessed from attendee lists — most calendar integrations don't provide them.
 > - Events that belong to nobody sit in the **Shared** column (bins, holidays, school terms).
-> - **Tap a column header** to filter the whole calendar to that person — in every view; the chip at the top clears the filter.
+> - **Tap a column header** to filter the whole calendar to that person — in every view; the pill at the top then shows their name, and "All" in its menu clears the filter.
 >
 > *Why it matters:* this is the view family calendars are bought for — and the one no dashboard calendar does well yet.
 
@@ -1639,12 +1639,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > Offene Aufgaben aus der Aufgaben-App erscheinen im Kalender an ihrem Fälligkeitstag – zwischen den Terminen, mit ihrem Haken. Aufgaben bleiben Aufgaben: Der Kalender legt keine an und macht keine Termine daraus.
 >
-> - **Aufgaben im Kalender** – *Aus*: der Kalender zeigt nur Termine, wie zuvor. *Fällige* (Vorgabe): eine Aufgabe mit Fälligkeit steht an ihrem Tag – in der Liste unter dem Gitter, in den Tages-Spalten der Woche, als hohler Punkt im Monat und in der Personen-Spalte. *Fällige und überfällige*: zusätzlich steht über dem heutigen Tag der Block **Überfällig**; dieselbe Aufgabe, die im regelmäßigen Abstand mehrfach fällig war, wird dort eine Zeile mit Zähler.
+> - **Aufgaben im Kalender** – *Aus*: der Kalender zeigt nur Termine, wie zuvor. *Fällige* (Vorgabe): eine Aufgabe mit Fälligkeit steht an ihrem Tag – in der Liste, in den Tages-Spalten der Woche, als hohler Punkt im Monat und in der Personen-Spalte. *Fällige und überfällige*: zusätzlich steht über dem heutigen Tag der Block **Überfällig**; dieselbe Aufgabe, die im regelmäßigen Abstand mehrfach fällig war, wird dort eine Zeile mit Zähler.
 > - **Reihenfolge eines Tages** – ganztägige Termine, dann Aufgaben ohne Uhrzeit, dann Termine und Aufgaben mit Uhrzeit gemeinsam nach der Zeit. Eine Aufgabe mit reinem Datum bekommt nie eine Uhrzeit.
-> - **Erkennen** – der hohle Kreis in der Farbe der Liste unterscheidet die Aufgabe vom Termin (hat die Liste keine Farbe, die Farbe ihrer Person).
-> - **Abhaken** – wirkt sofort; die Zeile bleibt durchgestrichen stehen, solange der Kalender offen ist, damit du den Haken zurücknehmen kannst. Ein Stapel wird als Ganzes erledigt. Ein Tipp auf die Zeile öffnet die Aufgabe in der Aufgaben-App – sofern die Aufgaben-App in der Karte nicht ausgeblendet ist; sonst bleibt nur der Haken.
+> - **Erkennen** – in der Liste steht die Aufgabe wie in der Aufgaben-App, mit dem Symbol ihrer Liste und dem Haken rechts. Im Monat zeigt sie ein hohler Kreis in der Farbe der Liste (hat die Liste keine Farbe, die Farbe ihrer Person).
+> - **Abhaken** – wirkt sofort; die Zeile bleibt durchgestrichen stehen, solange der Kalender offen ist, damit du den Haken zurücknehmen kannst. Ein Stapel wird als Ganzes erledigt. Ein Tipp auf die Zeile öffnet die Aufgabe in der Aufgaben-App – sofern die Aufgaben-App in der Karte nicht ausgeblendet ist. Der ⋯-Knopf öffnet sie gleich hier im Fenster, zum Ändern und Löschen.
 > - **Aufgaben ohne Datum** – zeigt unter dem heutigen Tag den Block **Ohne Datum** mit den offenen Aufgaben ohne Fälligkeit. Vorgabe aus.
-> - **Personen** – eine Aufgabe steht in der Spalte der Person, der ihre Liste gehört (Aufgaben → Einstellungen → Listen), sonst in **Gemeinsam**. Der Überfällig-Block erscheint dort nicht.
+> - **Personen** – eine Aufgabe steht in der Spalte der Person, der ihre Liste gehört (Aufgaben → Einstellungen → Listen), sonst in **Gemeinsam**. In den Spalten erscheint der Überfällig-Block nicht.
 > - In der Aufgaben-App ausgeblendete Listen bleiben auch hier weg. Regeln, Zusammenfassen und Wetter gelten nur für Termine; die Jahresansicht zählt nur Termine.
 > - **Zum nächsten Termin springen** – Aufgaben zählen mit: Steht in der Startansicht eine fällige Aufgabe oder heute ein Block **Überfällig** bzw. **Ohne Datum**, gilt sie nicht als leer, und der Kalender bleibt bei heute.
 >
@@ -1655,12 +1655,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > Open tasks from the to-dos app appear in the calendar on their due day – between the events, with their checkbox. Tasks stay tasks: the calendar does not create any and never turns them into events.
 >
-> - **Tasks in the calendar** – *Off*: the calendar shows events only, as before. *Due tasks* (default): a task with a due date sits on its day – in the list below the grid, in the day columns of the week, as a hollow dot in the month and in the people columns. *Due and overdue*: on top of that, an **Overdue** block sits above today; the same task that fell due several times at a regular interval becomes one row with a counter there.
+> - **Tasks in the calendar** – *Off*: the calendar shows events only, as before. *Due tasks* (default): a task with a due date sits on its day – in the list, in the day columns of the week, as a hollow dot in the month and in the people columns. *Due and overdue*: on top of that, an **Overdue** block sits above today; the same task that fell due several times at a regular interval becomes one row with a counter there.
 > - **Order of a day** – all-day events, then tasks without a time, then events and timed tasks together by time. A task with a plain date never gets a time.
-> - **Telling them apart** – the hollow circle in the list's colour sets a task apart from an event (if the list has no colour, its person's colour).
-> - **Ticking off** – takes effect at once; the row stays, struck through, while the calendar is open, so you can untick it. A stack is completed as a whole. Tapping the row opens the task in the to-dos app – as long as the to-dos app isn't hidden in the card; otherwise only the checkbox works.
+> - **Telling them apart** – in the list a task looks as it does in the to-dos app, with its list's icon and the checkbox on the right. In the month a hollow circle in the list's colour marks it (if the list has no colour, its person's colour).
+> - **Ticking off** – takes effect at once; the row stays, struck through, while the calendar is open, so you can untick it. A stack is completed as a whole. Tapping the row opens the task in the to-dos app – as long as the to-dos app isn't hidden in the card. The ⋯ button opens it right here in a window, to edit or delete it.
 > - **Tasks without a date** – shows a **No date** block below today with the open tasks that have no due date. Off by default.
-> - **People** – a task sits in the column of the person its list belongs to (To-dos → Settings → Lists), otherwise in **Shared**. The overdue block does not appear there.
+> - **People** – a task sits in the column of the person its list belongs to (To-dos → Settings → Lists), otherwise in **Shared**. The overdue block does not appear in the columns.
 > - Lists hidden in the to-dos app stay hidden here too. Rules, merging and weather apply to events only; the year view counts events only.
 > - **Jump to next event** – tasks count too: if the opening view holds a due task, or today carries an **Overdue** or **No date** block, it is not empty and the calendar stays on today.
 >
@@ -1671,26 +1671,26 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **DE**
 > ## Sichtbare Ansichten
 >
-> Lege fest, welche Ansichts-Tabs (Tag / Woche / Monat / Jahr / Personen) oben angezeigt werden.
+> Lege fest, welche Ansichten (Tag / Woche / Monat / Jahr / Personen) im Menü der Pille oben stehen.
 >
 > - Mindestens eine bleibt immer aktiv.
 > - **Personen** erscheint nur, wenn unter „Personen" mindestens eine angelegt ist.
-> - **Woche** zeigt die Tage als Spalten nebeneinander, solange die Breite reicht (leere Tage bleiben sichtbar, damit die Spalten in der Flucht bleiben). Wird es eng, fallen hintere Tage weg – und am Ende zeigt sie die Kästchen-Ansicht mit Balken und Liste.
+> - **Woche** zeigt die Tage als Spalten nebeneinander, solange die Breite reicht (leere Tage bleiben sichtbar, damit die Spalten in der Flucht bleiben). Wird es eng, fallen hintere Tage weg – und am Ende zeigt sie die Kästchen-Ansicht mit Balken.
 > - Ist die aktuell offene Ansicht ausgeblendet, springt der Kalender auf die erste sichtbare.
 >
-> *Warum wichtig:* Reduziere die Tabs auf das, was du wirklich nutzt.
+> *Warum wichtig:* Reduziere die Ansichten auf das, was du wirklich nutzt.
 
 **EN**
 > ## Visible views
 >
-> Choose which view tabs (Day / Week / Month / Year / People) appear at the top.
+> Choose which views (Day / Week / Month / Year / People) appear in the menu of the pill at the top.
 >
 > - At least one always stays enabled.
 > - **People** only appears once at least one person is set up under "People".
-> - **Week** shows the days as columns side by side while the width allows (empty days stay visible so the columns keep their alignment). As it gets narrow, trailing days drop off – and at the floor it shows the cell view with bars and list.
+> - **Week** shows the days as columns side by side while the width allows (empty days stay visible so the columns keep their alignment). As it gets narrow, trailing days drop off – and at the floor it shows the cell view with bars.
 > - If the currently open view gets hidden, the calendar switches to the first visible one.
 >
-> *Why it matters:* trim the tabs down to the ones you actually use.
+> *Why it matters:* trim the views down to the ones you actually use.
 
 ## calNewEvents
 

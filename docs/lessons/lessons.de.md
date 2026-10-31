@@ -854,7 +854,7 @@ Kalender öffnen — über die Suche oder die Sidebar — dann den Plus-Knopf.
 Direkt in deinem Home-Assistant-Kalender, über die native Schnittstelle. Kein Zwischendienst, keine Cloud der Card.
 
 ### Bearbeiten und löschen
-Termin antippen, ändern, sichern. Löschen fragt zweimal — der zweite Tipp bestätigt.
+Termin antippen, ändern, sichern. Der ⋯-Knopf an der Zeile öffnet dasselbe im Fenster. Löschen wirkt sofort, die Rückgängig-Pille holt den Termin sechs Sekunden lang zurück.
 
 ---
 
@@ -880,13 +880,20 @@ Termine aus anderen Kalendern können ausgefeiltere Wiederholungen haben — „
 **Hero:** none
 **Tags:** Kalender, Ansichten
 
-Über die Knöpfe am oberen Rand.
+Über die Pille oben rechts: Ein Tipp öffnet das Menü, die Symbol-Reihe ganz oben wechselt die Ansicht.
 
 ### Was jede zeigt
 - **Tag** — Stundenraster mit den Terminen als Blöcke
-- **Woche** — sieben Spalten, gleiche Logik
-- **Monat** — Raster mit Punkten je Termin, heute als roter Kreis
+- **Woche** — die Tage als Spalten nebeneinander
+- **Monat** — großes Gitter mit farbigen Streifen je Termin, auf dem Telefon Punkte; heute als roter Kreis
 - **Jahr** — zwölf Mini-Monate zum Springen
+- **Personen** — eine Woche mit einer Spalte je Person, sobald Personen angelegt sind
+
+### Links die Ansicht, rechts die Liste
+Ein Tipp auf einen Tag füllt die Liste rechts, auf dem Telefon das Blatt darunter.
+
+### Blättern und filtern
+Die Pfeile links blättern, ein Tipp auf den Titel dazwischen öffnet Monate und Jahr. „Heute" steht daneben, sobald der heutige Tag nicht im Bild ist. Im Menü der Pille wählst du eine Gruppe, einen Kalender oder eine Person; das gilt, bis du den Kalender schließt.
 
 ### Ansichten ausblenden
 Nutzt du die Jahresansicht nie, blende sie aus: Kalender → Einstellungen → Sichtbare Ansichten.

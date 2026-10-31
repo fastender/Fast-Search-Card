@@ -1,5 +1,45 @@
 # Versionsverlauf
 
+## Version 1.1.2504 - 2026-10-31
+
+**Title:** 📅 Calendar redesign: big grid on the left, list on the right, one pill instead of tabs, a ⋯ window on every row
+
+**Tags:** calendar, design, popups, phone, tasks, readability, bugfix
+
+The calendar now follows the layout of the schedules overview. The grid fills the left half of the detail view, the list sits on the right, and the row of tabs is gone.
+
+- **The left half shows the calendar.** Month is a big grid with coloured event stripes and "+n" when a day is full. Narrow cells show dots instead. Week, day, year and people use the same space. The calendar's background image or video, its symbol and the "Calendar / System" lines are gone from this half, and the video is no longer loaded.
+- **Arrow pill on the left.** `‹ October 2026 ›` steps through periods directly. Tapping the text opens a menu with Today, the year and all 12 months. The heart stays on the right. A small Today button appears next to the pill only when today is outside the period you are looking at. On narrow phones the title picks the longest form that fits, and screen readers always get the full title.
+- **One pill on the right, the same on desktop and phone.** `≡ All · Month` opens a menu with the five views as a row of symbols, then groups, calendars and people with their event counts.
+- **The pill picks exactly one thing, and only for now.** The choice is not saved. The group chips are gone, and switching several groups on and off stays in the calendar settings.
+- **List rows look like tasks and schedules.** Each row has a coloured circle, the calendar name, the title, and time and place. Weather, relative time, the progress line and map links stay. The header reads "October 31 · 7 events" and counts tasks too. The monthly total is gone from this page.
+- **⋯ on every row.** The button opens a window that grows out of it and settles centred in the panel, where you can edit or delete without leaving the list. Tapping the row still opens the full page. Read-only calendars show a note and no Save or Delete. Tasks work the same way, with undo. "Go to Settings" in the task window, which did nothing at first in this redesign, opens the Profiles section of the task settings.
+- **Phone.** Grid on top, sheet with pill and list below, and the sheet starts half open so the whole month stays visible.
+- **Weekend colour is now a light salmon tone.** The old red had almost the same brightness as the glass over light wallpapers (1.1:1). Over dark wallpapers it looks paler than before.
+- **Tint behind the grid.** The left half gets a dark tint, stronger on the phone. Without it, day numbers over light wallpapers were much harder to read.
+
+Bugs fixed along the way:
+- **People view** loads the whole week it shows. At the end of a month the days of the next month were missing. This was already wrong in v1.1.2503.
+- **Group filter** finds a calendar that belongs to two groups.
+- **The hour axis of the day view** follows the 12-hour setting.
+- **Days with a clock change.** Events after the change sat one hour too low, and a 23:00 event could fall below the grid.
+- **Windows opened from the right edge** stay on screen on small phones. Windows that already fit do not move.
+- **Deleting twice.** A second tap on Delete while the window closes no longer sends the delete early.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, in Chrome and WebKit, at 1280, 390 and 320 px, against v1.1.2503:
+- **Rows match the task list** in position, sizes and spacing.
+- **Paths:** view changes in both directions, filters, people at month and year ends, ⋯ with save, delete and undo for events and tasks, and search. Pill, grid and list agree at every step. The end-of-month, undo and Go to Settings paths were driven after the final fixes. Two probes (arrow-pill title, cell header) were not repeated in full on the final build, but the code behind them did not change after they last passed.
+- **Nothing else changed:** the other 9 detail views checked and the head-pill windows of Tasks, Schedules and News match v1.1.2503. No page errors.
+- **Heat:** the same frame count at rest as v1.1.2503, no new endless animation, no `backdrop-filter`, no video requests.
+- **Readability by day and night.** Weekend numbers over a light wallpaper by day went from 1.36 to 2.24 on desktop and from 4.06 to 4.27 on the phone.
+- The final check was a targeted rerun of the existing checks plus the fixes, not a second broad search for new bugs.
+
+Known weak spots: over a light wallpaper by day, contrast on desktop stays below 4.5:1 (day numbers 3.3, weekend numbers 2.2, event titles about 3.0, the same range as the task list). The phone grid is readable there but weaker than in v1.1.2503, which had the dark sheet behind it (day numbers 5.7 instead of 12.5, weekdays 4.1 instead of 5.4). At 320 × 640 the pill shortens to "All …" and the sheet handle is hidden in its lowest position.
+
+The bundle grew by 5.7 KB to 645 698 bytes gzipped, which is over the warning threshold of 640 000 and under the limit of 700 000.
+
+Not checked: real Safari, iOS and the Home Assistant apps, real Home Assistant responses after saving and deleting (the test data does not store changes), recurring events in the ⋯ window, a calendar that can edit but not delete, ⋯ on a stacked overdue row, and the settings search. The Playwright suite was neither run nor updated. Its selectors for the old calendar rows and header probably no longer match.
+
 ## Version 1.1.2503 - 2026-10-29
 
 **Title:** 🪟 No more live blur: glass now shows a pre-blurred copy of your wallpaper (fixes Safari seams), Liquid Glass removed
