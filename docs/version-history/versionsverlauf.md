@@ -1,5 +1,47 @@
 # Versionsverlauf
 
+## Version 1.1.2505 - 2026-11-01
+
+**Title:** 🔔 Bell and values move into the side bar, ⋮ overflow on desktop too, new detail head with an Info button
+
+**Tags:** navigation, notifications, island, detail-view, phone, settings, bugfix
+
+The bell and the weather and power values leave the top of the card and join the navigation. One tap on the bell now opens the notification panel. The head of the left detail view gets the same buttons as the right one, plus an Info button that keeps the bottom row out of the way until you ask for it.
+
+- **The bell sits in the side bar on desktop and in the dock on the phone.** It keeps the number and the colour of the highest level. It lights up while the panel or the notification center is open.
+- **One tap opens the panel, top centre, with the highest level already selected.** A second tap closes it. The small capsule step in between is gone.
+- **The capsule stays only on the Zen start page.** Everywhere else, closing the panel in any way leaves nothing at the top. The round button at the top right is gone too, except in deep rest on the start page. Running devices are still one tap away through the wave symbol in the panel. The green "something is running" ring on the round button has no counterpart on the bell.
+- **Weather and power move into the side bar on desktop.** Symbol above value, with a label when the bar expands. A tap still opens the weather detail or the energy view. On the phone they stay at the top left.
+- **The ⋮ overflow now works on desktop too.** Up to six entries show directly, otherwise five plus ⋮. The window opens to the right of the bar and stays inside the window height.
+- **The phone dock has room for seven buttons from 360 px** (40 px each), so Tasks and News stay in the dock next to the bell. At 320 px there are six, below that a further entry moves into ⋮.
+- **The "Notifications" entry of the side bar is hidden while the bell is there.** Your saved list stays as it is.
+- **Fallback.** Below about 1360 px window width the side bar does not fit next to the 1200 px card, as in earlier versions. There, and with the side bar switched off or empty, and in the classic view, the button and values stay at the top, and a tap on the button opens the panel directly. An open Home Assistant sidebar raises that width accordingly.
+- **Island settings have one auto-close step.** "Collapse to capsule after" is now "Close after", and "To button after" is gone. Existing saved values do no harm.
+- **New detail head.** Back sits in its own pill, Info and the heart share one. Size, tint, spacing and the white active circle match the tabs of the right side. Both Info and the heart can be active. The active heart is now dark on white, the gold is gone. Over background video, album cover and news images the pills use a denser tint.
+- **Info button.** The bottom row with the entity ID button and values such as "23.5°C current" stays hidden until you tap Info. It is closed every time you open a device or switch to another one. The button appears only where there is something to show, and not in the calendar.
+- **Calendar:** the arrow pill and the Today button adjusted to the wider head, so nothing is cut off from 320 to 1039 px.
+
+Bugs fixed along the way:
+- **Phone: tapping ✕ under the panel opened the tile below it**, and so did tapping the dimmed area. This was already wrong in v1.1.2504.
+- **Critical banner over the panel.** It covered the level buttons, and a tap on them opened the notification center instead. The banner now steps back while the panel is open and returns afterwards. This also applies on the Zen start page.
+- **Classic view** no longer keeps the capsule on permanently.
+- **Empty value capsule.** With neither weather nor power, an empty 32 px remnant was left behind.
+- **Low windows.** Below 541 px window height the side bar tightens its spacing so it stays on screen down to about 440 px.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, in Chrome and WebKit, at 1440, 390 and 320 px, plus 1280, 900 and 300 px for layout, against v1.1.2504:
+- **Bell:** live changes of number and colour, preselected level, open and close by tap and by Enter, four quick taps in a row without a capsule in between.
+- **No capsule outside the start page** on any path: ✕, outside tap, dimmed area, repeated level, swipe, standby, detail open and close, empty live list, notification center and back. Start page and deep rest match v1.1.2504 apart from the critical banner behaviour above.
+- **Overflow** with 6, 7 and 12 entries at 1440 × 800, 600 and 480, including Esc, outside tap and the marked ⋮. Measured on the desktop at 1440 × 480 after the spacing fix.
+- **Dock:** 7 buttons at 390 and 360, 6 at 320, 5 at 300, nothing cut off.
+- **Nothing else changed:** 64 surfaces with all detail tabs compared. Sheet stops on the phone are unchanged. No page errors.
+- **Heat:** the same frame count at rest as v1.1.2504, no new endless animation, no `backdrop-filter`. Forty Home Assistant updates caused zero renders of the bar, the bell and the values. A changed number renders the bell alone.
+
+Known weak spots: over a white wallpaper the head buttons are much weaker than the old dark circles (desktop 2.2:1 by day and 3.5:1 at night, phone 2.4:1 and 3.6:1, before 8.9:1 and 13.4:1). The value is the same as for the right tabs on desktop, as requested. Over video and covers it is 4.9:1. The bell and values reach 2.5:1 by day and 5.6:1 at night over white, the same as the old value capsule.
+
+The bundle grew by 2.7 KB to 648 442 bytes gzipped, which is over the warning threshold of 640 000 and under the limit of 700 000.
+
+Not checked: real Safari, iOS and the Home Assistant apps, including a real touch swipe on the panel (in the test browser it does not fire in v1.1.2504 either), and the real Home Assistant sidebar (only simulated). Two cards on one page were not driven. The search-to-result path has no data in the test setup. The final broad check ran before the last spacing fix, which then got its own targeted check. The Chrome phone comparison of the broad check timed out and was replaced by narrower runs. The automated test suite was not run and not updated, and three of its files still describe the old layout.
+
 ## Version 1.1.2504 - 2026-10-31
 
 **Title:** 📅 Calendar redesign: big grid on the left, list on the right, one pill instead of tabs, a ⋯ window on every row

@@ -43,7 +43,7 @@ Mehr als suchen. Die Card ist ein vollständiges Dashboard in einer einzigen Lov
 ### Was drin steckt
 - **Suche & Steuerung** für alle Geräte deines Home Assistant
 - **Startseite** mit Uhr, Begrüßung und Live-Kacheln
-- **Die Insel** — eine Kapsel oben, die zeigt, was gerade wichtig ist
+- **Die Insel** — das Panel oben mittig mit Meldungen und laufenden Geräten, geöffnet über die Glocke
 - **Mitteilungs-Center** mit Verlauf, Schweregraden und Ruhezeiten
 - **Apps**: Kalender, Aufgaben, News, Zeitpläne, Tipps, Änderungsverlauf
 - **Energie-Dashboard** und ein Baukasten für eigene Geräte-Ansichten
@@ -166,40 +166,41 @@ Welche App in welchem Platz sitzt, bestimmst du selbst: Einstellungen → Allgem
 
 ## Tipp insel-was - Die Insel
 
-**Title:** Was ist die Kapsel oben in der Mitte?
+**Title:** Was ist die Insel, und wo finde ich die Glocke?
 **Hero:** none
 **Tags:** Insel, Überblick
 
-Die Insel — eine Glas-Kapsel, die immer genau **eine** Sache zeigt: die gerade wichtigste.
+Die Insel ist das Panel oben mittig: Meldungen und laufende Geräte an einem Ort. Du öffnest sie über die **Glocke**.
 
-### Die Rangfolge
-1. **Meldung** — Warnungen orange, Infos blau. Mehrere stapeln sich zu „N Mitteilungen".
-2. **Live-Aktivität** — ein laufender Timer mit Countdown, der Sauger, ein fahrendes Rollo, spielende Medien. Bei mehreren: die wichtigste plus „+N".
-3. **Ruhe** — Uhr, Wetter und ein Presence-Punkt. Grau heißt: nichts wartet.
+### Wo die Glocke sitzt
+- **Am Desktop** — in der Leiste links, unter den Einträgen. Darunter stehen Wetter und Leistung.
+- **Am Telefon** — im Dock unten, ganz rechts. Wetter und Leistung stehen oben links.
+- **Ohne Leiste** — ist die Leiste aus oder passt sie nicht neben die Karte, bleiben Knopf und Werte oben.
 
-### Das Ruhegesicht rollt
-Ist nichts los, wechselt die Insel im Takt durch die Fakten deines Zuhauses: Wetter, wie viele Lichter an sind, wie viele Fenster offen stehen. Jede Zahl ist antippbar und führt genau dorthin.
+### Die Zahl an der Glocke
+Sie zählt alle Meldungen und trägt die Farbe der höchsten Stufe: rot für Kritisches, orange für Warnungen, blau für Hinweise.
 
-### Warum eine statt vieler
-Eine ruhige Kapsel, die sich nur meldet, wenn es etwas zu sagen gibt — statt einer Leiste voller Widgets, die permanent um Aufmerksamkeit konkurrieren.
+### Auf der Startseite
+Auf der verriegelten Startseite steht statt der Glocke die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr. Nur dort gibt es die Kapsel.
 
 ---
 
 ## Tipp insel-tippen - Die Insel
 
-**Title:** Was passiert, wenn ich die Insel antippe?
+**Title:** Was passiert, wenn ich die Glocke antippe?
 **Hero:** none
 **Tags:** Insel, Interaktion
 
-Ein kurzer Tipp öffnet die Ansicht, die zum aktuellen Inhalt passt.
+Das Panel geht auf, und die höchste anliegende Stufe ist schon vorgewählt. Noch ein Tipp auf die Glocke schließt es.
 
-### Wohin es geht
-- **Bei einer Meldung** → ins Mitteilungs-Center
-- **Bei einer Live-Aktivität** → in die Detailansicht des laufenden Geräts
-- **Im Ruhezustand** → zu dem Bereich, den die gerade gezeigte Zahl betrifft (Wetter, Lichter, Fenster)
+### Im Panel
+- **❗ ⚠ ℹ** — filtern die Meldungen nach Stufe
+- **Wellen-Symbol** — zeigt, was gerade läuft
+- **Reiter** — filtern nach Herkunft
+- **Mitteilungszentrum öffnen** — führt zur Vollansicht
 
-### Der Übergang
-Die Kapsel morpht in die Zielansicht hinein — sie wächst an ihrer Stelle zur vollen Ansicht auf, statt dass ein neues Fenster darüberklappt. Beim Schließen läuft dasselbe rückwärts.
+### Schließen
+Mit der Glocke, dem ✕ unter dem Panel, einem Tipp daneben oder einem Wisch nach rechts. Nach einer Weile ohne Berührung schließt es sich von selbst.
 
 ---
 
@@ -209,20 +210,15 @@ Die Kapsel morpht in die Zielansicht hinein — sie wächst an ihrer Stelle zur 
 **Hero:** none
 **Tags:** Insel, Live
 
-Wenn mehr als eine Sache läuft, klappt ein Tipp auf die Insel die vollständige Liste auf — statt direkt in ein Gerät zu springen.
+Öffne das Panel über die Glocke und tippe auf das **Wellen-Symbol**. Die Liste zeigt alles, was gerade läuft.
 
-### Wann welche Reaktion kommt
-- **Mehrere laufende Vorgänge** → die Kapsel klappt zu einer Glasliste auf, jede Zeile öffnet ihr Gerät
-- **Genau ein Vorgang** → direkt in dessen Detailansicht
-- **Eine neue Meldung ist gerade eingetroffen** → ins Mitteilungs-Center
-- **Ruhezustand** → ebenfalls ins Mitteilungs-Center
-- **Bereits aufgeklappt** → ein weiterer Tipp schließt wieder
+### Was die Liste kann
+- Jede Zeile öffnet ihr Gerät.
+- Sind es viele, lässt sie sich scrollen.
+- Sie schließt sich von selbst, sobald nichts mehr läuft.
 
-### Scrollen in der Liste
-Sind es viele, lässt sich die aufgeklappte Liste scrollen. Sie schließt sich von selbst, sobald nichts mehr läuft.
-
-### Ein früheres Detail
-Bis v1.1.2205 brauchte diese Liste einen langen Druck. Seit v1.1.2206 genügt der normale Tipp — falls du das Gedrückthalten aus älteren Beschreibungen kennst, es wird nicht mehr gebraucht.
+### Wenn nichts läuft
+Dann führt das Wellen-Symbol direkt zur Live-Übersicht im Mitteilungszentrum.
 
 ---
 
@@ -251,7 +247,7 @@ Einstellungen → Allgemein → Toasts → Ruhezeiten. Dort legst du das Zeitfen
 **Hero:** none
 **Tags:** Mitteilungen, Center
 
-Im Mitteilungs-Center — such nach „Mitteilungen" oder tippe die Insel an, wenn sie eine Meldung zeigt.
+Im Mitteilungs-Center — such nach „Mitteilungen" oder tippe die Glocke an und dann „Mitteilungszentrum öffnen".
 
 ### Was zusammenläuft
 Drei Quellen an einem Ort:
@@ -281,7 +277,7 @@ Drei Wege, je nachdem wie endgültig es sein soll.
 - **Quittieren** — bestätigt die Meldung endgültig.
 
 ### Wo du sie findest
-Direkt in der Vorschau, wenn du die Insel gedrückt hältst — oder im Mitteilungs-Center an jeder Zeile.
+Im Panel der Glocke über das ⋯-Menü der Meldung — oder im Mitteilungs-Center an jeder Zeile.
 
 ### Was im Hintergrund passiert
 Bei echten Home-Assistant-Benachrichtigungen ruft die Card den passenden Dienst auf, sodass sie auch in HA verschwinden. Bei Alarm-Entitäten wird nur lokal quittiert — der Sensor selbst bleibt unangetastet, weil ihn nur die Ursache zurücksetzen kann.

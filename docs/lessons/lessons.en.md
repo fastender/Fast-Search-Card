@@ -43,7 +43,7 @@ More than search. The card is a complete dashboard inside a single Lovelace card
 ### What's inside
 - **Search and control** for every device in your Home Assistant
 - **A start screen** with clock, greeting and live tiles
-- **The Island** — a capsule up top that shows whatever matters right now
+- **The Island** — the panel top center with alerts and running devices, opened from the bell
 - **Notification Center** with history, severity levels and quiet hours
 - **Apps**: calendar, tasks, news, schedules, tips, changelog
 - **Energy dashboard** and a builder for your own device views
@@ -166,40 +166,41 @@ Which app sits in which slot is up to you: Settings → General → Home Screen.
 
 ## Tipp insel-was - The Island
 
-**Title:** What is the capsule at the top?
+**Title:** What is the island, and where is the bell?
 **Hero:** none
 **Tags:** Island, Overview
 
-The Island — a glass capsule that always shows exactly **one** thing: whichever matters most.
+The Island is the panel top center: alerts and running devices in one place. You open it from the **bell**.
 
-### The priority order
-1. **Alert** — warnings orange, infos blue. Several stack into "N notifications".
-2. **Live activity** — a running timer with countdown, the vacuum, a moving cover, playing media. With several: the most important plus "+N".
-3. **Rest** — clock, weather and a presence dot. Grey means nothing is waiting.
+### Where the bell sits
+- **On desktop** — in the sidebar on the left, below the items. Weather and power sit underneath.
+- **On phones** — in the dock at the bottom, far right. Weather and power sit top left.
+- **Without the sidebar** — if the sidebar is off or does not fit next to the card, the button and the values stay at the top.
 
-### The resting face rolls
-When nothing is going on, the island cycles through the facts of your home: weather, how many lights are on, how many windows are open. Every number is tappable and leads exactly there.
+### The number on the bell
+It counts all alerts and carries the color of the highest level: red for critical, orange for warnings, blue for infos.
 
-### Why one instead of many
-A calm capsule that only speaks up when there's something to say — instead of a bar full of widgets competing for attention all day.
+### On the start page
+On the locked start page the capsule sits below the greeting instead of the bell, weather and power below the clock. That is the only place the capsule exists.
 
 ---
 
 ## Tipp insel-tippen - The Island
 
-**Title:** What happens when I tap the island?
+**Title:** What happens when I tap the bell?
 **Hero:** none
 **Tags:** Island, Interaction
 
-A short tap opens the view that fits whatever it's currently showing.
+The panel opens with the highest pending level already selected. Another tap on the bell closes it.
 
-### Where it goes
-- **On an alert** → the Notification Center
-- **On a live activity** → the detail view of the running device
-- **At rest** → the area the currently shown number refers to (weather, lights, windows)
+### In the panel
+- **❗ ⚠ ℹ** — filter the alerts by level
+- **Wave symbol** — shows what is running
+- **Tabs** — filter by source
+- **Open notification center** — leads to the full view
 
-### The transition
-The capsule morphs into the target view — it grows into the full view from where it stands, instead of a new panel dropping over it. Closing runs the same thing backwards.
+### Closing
+With the bell, the ✕ below the panel, a tap next to it or a swipe to the right. After a while without touch it closes by itself.
 
 ---
 
@@ -209,20 +210,15 @@ The capsule morphs into the target view — it grows into the full view from whe
 **Hero:** none
 **Tags:** Island, Live
 
-When more than one thing is running, a tap on the island unfolds the full list instead of jumping straight into a device.
+Open the panel from the bell and tap the **wave symbol**. The list shows everything that is running.
 
-### Which reaction you get
-- **Several running activities** → the capsule unfolds into a glass list, each row opens its device
-- **Exactly one activity** → straight into its detail view
-- **A new alert just arrived** → the Notification Center
-- **At rest** → the Notification Center as well
-- **Already unfolded** → another tap closes it
+### What the list does
+- Each row opens its device.
+- When there are many, it scrolls.
+- It closes itself as soon as nothing is running anymore.
 
-### Scrolling the list
-When there are many, the unfolded list scrolls. It closes itself as soon as nothing is running anymore.
-
-### A note on older descriptions
-Up to v1.1.2205 this list needed a long press. Since v1.1.2206 a normal tap is enough — if you know the hold from older write-ups, it is no longer needed.
+### When nothing is running
+The wave symbol then leads straight to the Live overview in the Notification Center.
 
 ---
 
@@ -251,7 +247,7 @@ Settings → General → Toasts → Quiet hours. Set the window there — wrappi
 **Hero:** none
 **Tags:** Notifications, Center
 
-In the Notification Center — search for "Notifications" or tap the island while it's showing an alert.
+In the Notification Center — search for "Notifications", or tap the bell and then "Open notification center".
 
 ### What flows together
 Three sources in one place:
@@ -281,7 +277,7 @@ Three ways, depending on how final it should be.
 - **Acknowledge** — confirms the notification for good
 
 ### Where they are
-Right in the preview when you hold the island — or in the Notification Center on every row.
+In the bell's panel, through the alert's ⋯ menu — or in the Notification Center on every row.
 
 ### What happens behind the scenes
 For real Home Assistant notifications the card calls the matching service, so they disappear in HA too. For alert entities only a local acknowledgement happens — the sensor itself is left alone, because only the underlying cause can reset it.

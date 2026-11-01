@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) und `design` (Tönung) in v1.1.2500/2501 (2026-10-28) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -178,13 +178,14 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 > v1.1.2178: StatsBar-Beschreibung → Insel (die StatsBar ist seit v2170 die Insel).
 > v1.1.2371 (#57): Kontextzeilen-Aufzählungspunkt ergänzt.
+> v1.1.2505 (Auftrag 39): Insel-Zeile an Glocke und Panel angepasst.
 
 **DE**
 > ## Status & Begrüßung
 >
 > Die zwei Elemente ganz oben in der Karte.
 >
-> - **Insel** – die helle Karte oben: Dauerwerte und Meldungs-Knöpfe in Zeile 1, Live-Ticker (Timer, Sauger, Medien …) in Zeile 2. Details im ⓘ der Insel-Einstellungen.
+> - **Insel** – das Panel oben mittig mit Meldungen und laufenden Geräten; es öffnet über die Glocke in der Leiste. Details im ⓘ der Insel-Einstellungen.
 > - **Begrüßungs-Leiste (GreetingsBar)** – zeigt eine tageszeitabhängige Begrüßung. Rein dekorativ, jederzeit ein- und ausschaltbar.
 > - **Kontextzeilen** – die Tipp-Schleife der Suchzeile nennt gelegentlich statt eines Grußes einen wahren Satz: „Um 10:00 Zahnarzt", „2 Aufgaben heute fällig". Höchstens jede zweite Zeile, nie zwei Datenzeilen nacheinander. Die verriegelte Startseite zeigt denselben Satz still unter dem Gruß (wechselt alle paar Minuten). Aus = nur Grüße, Ruheseite ohne Zeile.
 >
@@ -195,7 +196,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > The two elements at the very top of the card.
 >
-> - **Island** – the light card on top: standing values and alert buttons in line 1, the live ticker (timers, vacuums, media …) in line 2. Details in the island settings' ⓘ.
+> - **Island** – the panel top center with alerts and running devices; it opens from the bell in the sidebar. Details in the island settings' ⓘ.
 > - **Greetings bar (GreetingsBar)** – shows a time-of-day greeting. Purely decorative, toggle on or off anytime.
 > - **Context lines** – the search bar's typing loop occasionally types one true sentence instead of a greeting: "Dentist at 10:00", "2 tasks due today". At most every other line, never two data lines in a row. The locked start page shows the same sentence quietly under the greeting (changes every few minutes). Off = greetings only, no line on the locked page.
 >
@@ -227,6 +228,8 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## sidebar
 
+> v1.1.2505 (Auftrag 39): Punkt „Glocke und Werte" ergänzt.
+
 **DE**
 > ## Sidebar
 >
@@ -235,6 +238,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Sidebar aktivieren** – blendet die seitliche Leiste mit deinen Schnellzugriffen ein oder aus.
 > - **Immer sichtbar** – hält die Sidebar dauerhaft offen.
 > - **Einträge verwalten** – lege fest, welche Bereiche und Verknüpfungen in der Sidebar erscheinen.
+> - **Glocke und Werte** – unter den Einträgen stehen die Glocke (öffnet die Meldungen) sowie Wetter und Leistung, am Telefon die Glocke im Dock und die Werte oben links. Auf der verriegelten Startseite stehen sie dort nicht.
 >
 > *Warum wichtig:* Die Sidebar ist dein Schnellzugriff.
 
@@ -246,6 +250,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Enable sidebar** – shows or hides the side bar with your quick shortcuts.
 > - **Always visible** – keeps the sidebar open permanently.
 > - **Manage items** – decide which areas and shortcuts appear in the sidebar.
+> - **Bell and values** – below the items sit the bell (opens the alerts) plus weather and power; on phones the bell sits in the dock and the values top left. They do not appear on the locked start page.
 >
 > *Why it matters:* the sidebar is your quick access.
 
@@ -771,30 +776,36 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > v1.1.2172 (Insel Phase 2b): ersetzt `statsBar` + `statsBarWidgets`.
 > v1.1.2242: komplett neu geschrieben für den ZWEIZEILER (v2239/40) — die
 > alte Kapsel mit Prioritätswahl (Meldung ▸ Live ▸ Ruhe) existiert nicht mehr.
+> v1.1.2505 (Auftrag 39): neu geschrieben — Glocke und Werte in der Leiste, Kapsel nur
+> noch auf der Startseite.
 
 **DE**
 > ## Die Insel
 >
-> Eine helle Karte oben mittig, zwei Zeilen:
+> Das Panel oben mittig: Meldungen und laufende Geräte an einem Ort.
 >
-> - **Zeile 1 — das Ruhige:** Wetter, aktuelle Leistung und ein Roll durch die Haus-Fakten („3 Lichter an" …). Rechts die **Meldungs-Knöpfe mit Zähler-Kugeln**: ℹ Infos (blau), ⚠ Warnungen (orange), ❗ Kritisches (rot), ▦ Laufendes (grau). Ein Knopf, dessen Zähler auf 0 steht, erscheint nicht.
-> - **Zeile 2 — das Lebendige:** ein Ticker durch die Live-Aktivitäten (Timer mit Countdown, Sauger, Medien …). Ruht das Haus, rollen hier die Haus-Fakten. Eine **neue** Meldung übernimmt die Zeile kurz mit einem Zeitring und zählt danach in ihrem Knopf.
-> - **Nachts** – in den Ruhezeiten (Toast-Einstellungen) dimmt Zeile 1 auf „nur Wetter"; Ticker und Knöpfe bleiben.
+> - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, die höchste anliegende Stufe ist vorgewählt. Noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen und trägt die Farbe der höchsten Stufe.
+> - **Knopfreihe** – ❗ Kritisch, ⚠ Warnung und ℹ Hinweis filtern die Liste, das **Wellen-Symbol** zeigt, was gerade läuft (Timer, Sauger, Medien …).
+> - **Wetter und Leistung** – stehen in der Leiste, am Telefon oben links. Wetter öffnet seine Entity, Leistung die Energie-Ansicht. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
+> - **Startseite** – auf der verriegelten Startseite steht die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr.
+> - **Ohne Leiste** – ist die Leiste aus oder passt sie am Desktop nicht neben die Karte, bleiben Knopf und Werte oben; der Knopf öffnet direkt das Panel.
 >
-> Kritisches (Leck, Rauch, Gas) erscheint zusätzlich als roter Banner. Jeder Wert ist ein eigenes Ziel: Wetter → seine Entity, Leistung → Energie, Fakten → ihre Geräteliste, Ticker → das Gerät, ℹ/⚠/❗ → Mitteilungen-Center, ▦ → die Live-Liste in der Karte.
+> Kritisches (Leck, Rauch, Gas) erscheint zusätzlich als roter Banner. Über „Mitteilungszentrum öffnen" im Panel geht es zur Vollansicht.
 >
 > *Warum wichtig:* Ein ruhiges Element statt vieler Widgets — es meldet sich nur, wenn es etwas zu sagen gibt.
 
 **EN**
 > ## The Island
 >
-> A light card top center, two lines:
+> The panel top center: alerts and running devices in one place.
 >
-> - **Line 1 — the calm:** weather, current power and a roll through the house facts ("3 lights on" …). On the right the **alert buttons with counter bubbles**: ℹ infos (blue), ⚠ warnings (orange), ❗ critical (red), ▦ running (gray). A button whose counter is 0 does not appear.
-> - **Line 2 — the lively:** a ticker through the live activities (timers with countdown, vacuums, media …). When the house is idle, the house facts roll here instead. A **new** alert briefly takes the line over with a timing ring, then counts in its button.
-> - **At night** – during quiet hours (toast settings) line 1 dims to weather-only; ticker and buttons stay.
+> - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel with the highest pending level preselected. Another tap closes it. The number on the bell counts all alerts and carries the color of the highest level.
+> - **Button row** – ❗ critical, ⚠ warning and ℹ info filter the list, the **wave symbol** shows what is running (timers, vacuums, media …).
+> - **Weather and power** – sit in the sidebar, top left on phones. Weather opens its entity, power the energy view. During quiet hours (toast settings) only the weather remains, dimmed.
+> - **Start page** – on the locked start page the capsule sits below the greeting, weather and power below the clock.
+> - **Without the sidebar** – if the sidebar is off or does not fit next to the card on desktop, the button and the values stay at the top; the button opens the panel directly.
 >
-> Critical alerts (leak, smoke, gas) additionally raise the red banner. Every value is its own target: weather → its entity, power → energy, facts → their device list, ticker → the device, ℹ/⚠/❗ → the notification center, ▦ → the live list inside the card.
+> Critical alerts (leak, smoke, gas) additionally raise the red banner. "Open notification center" in the panel leads to the full view.
 >
 > *Why it matters:* one calm element instead of many widgets — it only speaks up when there's something to say.
 
@@ -802,11 +813,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 > NEU v1.1.2243: Dauerwert-Picker (Wetter/Energie manuell statt Heuristik) —
 > der lange offene Rest der Insel-Settings-Reorg aus v2212.
+> v1.1.2505 (Auftrag 39): erster Satz nennt die neuen Orte.
 
 **DE**
 > ## Dauerwerte
 >
-> Woher die Insel (und die Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
+> Woher die Karte (Leiste, am Telefon oben links, Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
 >
 > - **Wetter** – Automatisch nimmt die erste Wetter-Entity der Geräteliste. Manuell lässt sich jede `weather.*`-Entity wählen — auch eine ohne zugewiesenen Raum.
 > - **Energie** – Automatisch nimmt den betragsstärksten Leistungssensor (in den meisten Häusern der Gesamtverbrauch). Manuell lässt sich jeder Sensor mit `device_class: power` wählen.
@@ -816,7 +828,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **EN**
 > ## Standing values
 >
-> Where the island (and the lock screen's status line) takes its two standing values from:
+> Where the card (sidebar, top left on phones, the lock screen's status line) takes its two standing values from:
 >
 > - **Weather** – Automatic takes the first weather entity of the device list. Manual lets you pick any `weather.*` entity — including one without an assigned room.
 > - **Power** – Automatic takes the strongest power sensor by magnitude (in most homes the total consumption). Manual lets you pick any sensor with `device_class: power`.
@@ -878,32 +890,28 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > v1.1.2361: Text an die Zwei-Koerper-Insel angepasst (Panel → Kapsel →
 > Statuszeile) — die Kaskade selbst wurde in dieser Version neu verdrahtet
 > (sie war seit dem Stadien-Umbau v2286 still tot).
+> v1.1.2505 (Auftrag 39): eine Stufe, die Zeile „Zum Knopf nach" (`knopfMs`) ist entfallen,
+> „Zur Kapsel nach" heißt „Schließen nach".
 
 **DE**
 > ## Standby
 >
-> Nach einer Weile ohne Berührung macht sich die Insel von selbst klein — in zwei Stufen:
+> Nach einer Weile ohne Berührung schließt sich ein offenes Panel (Meldungen oder Live-Liste) von selbst. Auf der verriegelten Startseite bleibt die Sammel-Kapsel stehen.
 >
-> 1. **Sammel-Kapsel** – ein offenes Panel (Meldungen oder Live-Liste) faltet zur kompakten Kapsel.
-> 2. **Statuszeile** – die Kapsel tritt ab; übrig bleiben die Dauerwerte links und der Meldungs-Knopf rechts (mit der Gesamtzahl in der Farbe der höchsten Stufe).
+> Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück; solange eine Ankündigung (Zeitring) läuft, schließt nichts. Die Glocke holt das Panel zurück.
 >
-> Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück; solange eine Ankündigung (Zeitring) läuft, faltet nichts. Zurück kommt alles durch einen Tipp auf Kapsel oder Knopf.
->
-> Die beiden Zeiten lassen sich hier einstellen (Tippen auf die Zeile wechselt den Wert).
+> Die Zeit lässt sich hier einstellen (Tippen auf die Zeile wechselt den Wert).
 >
 > *Warum wichtig:* Auf dem Wandtablet soll die Insel da sein, wenn etwas los ist — und sonst dem Hintergrund den Platz lassen.
 
 **EN**
 > ## Standby
 >
-> After a while without touch the island folds itself away — in two stages:
+> After a while without touch an open panel (alerts or live list) closes by itself. On the locked start page the capsule stays.
 >
-> 1. **Capsule** – an open panel (alerts or live list) folds to the compact capsule.
-> 2. **Status line** – the capsule steps back; what remains are the standing values on the left and the alert button on the right (carrying the total count in the color of the highest severity).
+> Every touch, scroll or key press resets the wait; while an announcement ring is running, nothing closes. The bell brings the panel back.
 >
-> Every touch, scroll or key press resets the wait; while an announcement ring is running, nothing folds. Everything comes back with a tap on the capsule or the button.
->
-> Both durations are set here (tapping a row cycles its value).
+> The duration is set here (tapping the row cycles its value).
 >
 > *Why it matters:* on a wall tablet the island should be there when something is happening — and otherwise leave the stage to the background.
 
@@ -1049,6 +1057,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 > GEÄNDERT v1.1.2489 (Auftrag 28): Satz zu den festen Einträgen Home und Suche;
 > Abschnitt auf den vollen Wörterbuchtext gebracht (war eine ältere Fassung).
+> v1.1.2505 (Auftrag 39): Punkte zum ⋮-Menü und zu „Mitteilungen" neben der Glocke.
 
 **DE**
 > ## Verfügbare Einträge
@@ -1058,6 +1067,8 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - Pro Eintrag ein Schalter – an = sichtbar in der Sidebar.
 > - **Home** und **Suche** sind feste Einträge: Home führt zurück zur Startseite, Suche öffnet das Geräte-Panel, ohne das Suchfeld zu fokussieren (auf dem Telefon also ohne Tastatur).
 > - **Reihenfolge** = Aktivierungsreihenfolge: bestehende Einträge zuerst, neu aktivierte landen am Ende.
+> - **Mehr als sechs Einträge** – die Leiste zeigt fünf und das ⋮-Menü mit dem Rest (am Telefon auf schmalen Bildschirmen früher).
+> - **Mitteilungen** – steht neben der Glocke nicht doppelt in der Leiste; die Vollansicht erreichst du über „Mitteilungszentrum öffnen" im Panel.
 >
 > *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
 
@@ -1069,6 +1080,8 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - One toggle per item – on = visible in the sidebar.
 > - **Home** and **Search** are built-in items: Home returns to the start screen, Search opens the device panel without focusing the search field (so no keyboard on the phone).
 > - **Order** = activation order: existing items first, newly enabled ones at the end.
+> - **More than six items** – the sidebar shows five and the ⋮ menu with the rest (earlier on narrow phone screens).
+> - **Notifications** – does not appear twice next to the bell; the full view is reached via "Open notification center" in the panel.
 >
 > *Why it matters:* this is how you decide the contents and order of your quick-access bar.
 
