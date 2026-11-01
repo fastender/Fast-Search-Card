@@ -457,10 +457,13 @@ One tap selects the chip, a second removes it — the same pattern as recipients
 Yes — with the microphone in the search row, left of the filter.
 
 ### How it works
-Tap the microphone and speak. Recording stops by itself when you stop talking, or with a second tap. The text then sits in the search field, nothing is sent. In AI mode, press Enter to ask.
+Tap the microphone and speak. Recording stops by itself when you stop talking, or with a second tap. The text then sits in the search field, nothing is sent. With text in the field the microphone becomes an Enter button: it works like the Enter key, so it switches to AI mode and sends the question there.
 
 ### When the microphone appears
 The card uses the speech recognition of your Assist pipeline in Home Assistant, otherwise the browser's. If neither is there, there is no button. The microphone needs a secure connection (https) and your permission on the first tap.
+
+### Turning it off
+Settings → General → Dictation. The switch covers search and new tasks, at once and without a reload. Off means no button and no access to the microphone.
 
 ---
 

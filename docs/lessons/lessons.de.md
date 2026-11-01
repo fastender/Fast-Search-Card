@@ -457,10 +457,13 @@ Ein Tipp wählt den Chip aus, ein zweiter löscht ihn — dasselbe Muster wie be
 Ja — mit dem Mikrofon in der Suchzeile, links neben dem Filter.
 
 ### So geht's
-Tippe aufs Mikrofon und sprich. Die Aufnahme endet von selbst, wenn du aufhörst, oder mit einem zweiten Tipp. Der Text steht dann im Suchfeld, abgeschickt wird nichts. Im KI-Modus fragst du mit Enter.
+Tippe aufs Mikrofon und sprich. Die Aufnahme endet von selbst, wenn du aufhörst, oder mit einem zweiten Tipp. Der Text steht dann im Suchfeld, abgeschickt wird nichts. Steht Text im Feld, wird aus dem Mikrofon ein Enter-Knopf: Er wirkt wie die Enter-Taste, wechselt also in den KI-Modus und sendet dort die Frage.
 
 ### Wann das Mikrofon erscheint
 Die Karte nutzt die Spracherkennung deiner Assist-Pipeline in Home Assistant, sonst die des Browsers. Fehlt beides, gibt es keinen Knopf. Das Mikrofon braucht eine sichere Verbindung (https) und deine Freigabe beim ersten Tipp.
+
+### Ausschalten
+Einstellungen → Allgemein → Diktat. Der Schalter gilt für die Suche und für neue Aufgaben, sofort und ohne Neuladen. Aus heißt: kein Knopf und kein Zugriff aufs Mikrofon.
 
 ---
 

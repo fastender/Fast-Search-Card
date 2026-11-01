@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.2508 - 2026-11-02
+
+**Title:** ↩️ Enter button in the search row, a switch for the microphone, side bar closes after a choice, task buttons level
+
+**Tags:** search, voice, navigation, tasks, settings, bugfix
+
+A short round from testing v1.1.2507. Most of it traces back to the tall line height Home Assistant passes into the card, so this round also searched the whole card for more cases.
+
+- **Enter button.** With text in the field, the microphone slot shows an Enter button. It does what the Enter key does: it switches to AI mode, and in AI mode it sends the question. It only appears where that leads somewhere, so not with AI mode off and not without an `ai_task` device. When the brain button is offered it stays, because it does the same thing.
+- **Switch for the microphone.** Settings → General → Dictation. It covers search and new tasks, applies at once and ends a running recording. Off means no button and no access to the microphone.
+- **Side bar closes after a choice,** even while the pointer stays over it. This also covers items from the ⋮ window, the bell and the values. It opens again the next time the pointer enters. A click on ⋮ keeps it open, and so does the dimmed weather value at night, which selects nothing.
+
+Bugs fixed:
+- **"More" disappeared** when the ⋮ window was open while the current view lived inside it: white text on the white circle.
+- **Task buttons at different heights.** The check circle sat 3 px above the ⋯ button in Home Assistant (2 px on the phone), in every row. Now 0 px in all row types, in Chrome and WebKit.
+- **Done circle in the task edit window:** same cause, 34 px high instead of 28. Now 28 and centred in its row.
+- **Count badges on the chips** were 20 × 25 ovals in Home Assistant. Now 20 × 20.
+- **Suggestion button on the phone** was 44 px in a 35 px slot. Now 35 px.
+- **Double text margin** while dictating with the brain button on offer.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 36 px offset above the card, in Chrome and WebKit at 1440 × 860 and 390 × 844, against v1.1.2507:
+- **Side bar with a real mouse:** opening, closing after a click on a symbol, a label, an item in the ⋮ window, the bell and a value, staying closed while moving inside, opening again after leaving. A click on ⋮ keeps it open.
+- **"More":** computed colour and painted pixels, dark on white. v1.1.2507 shows white.
+- **Enter:** position, no overlap with ✕ or the suggestion, both steps of the flow, no button without AI mode or `ai_task`, microphone at the right edge in empty AI mode, chips without text, keyboard focus.
+- **Switch:** off and on without a reload in search and in the task form, kept after a reload, found by the settings search.
+- **Task rows:** 9 row types, 0 px difference, also under the hover scale, in the painted edges.
+- **Sweep of 39 views at two widths** over about 2 300 controls for buttons meant to be round and for controls misaligned in a row. It found the chip badges, nothing else. The old task rows were flagged, so the sweep sees this kind of fault.
+- Guards green, load check without page errors.
+
+Not checked: real iPhone, Safari and Home Assistant apps, real Assist pipeline and microphone dialog, settings sub pages in the sweep, schedules beyond the overview, calendar beyond the default view and its tabs, task rows in the calendar, touch on a tablet with real hover emulation. Tests were not run.
+
+Known and left: on a touch tablet above phone width, a second tap on ⋮ can leave the bar open until the next tap elsewhere, as in earlier versions. Done tasks are struck through but not dimmed, because the card animation overrides that rule; also unchanged.
+
+**Bundle:** 2 307 892 bytes, 650 358 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2507 - 2026-11-02
 
 **Title:** 🎙️ Dictate a search, Quick Control on by default, videos without a reload, round side bar buttons, panel moved further up
