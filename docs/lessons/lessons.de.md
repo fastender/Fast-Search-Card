@@ -174,7 +174,7 @@ Die Insel ist das Panel oben mittig: Meldungen und laufende Geräte an einem Ort
 
 ### Wo die Glocke sitzt
 - **Am Desktop** — in der Leiste links, unter den Einträgen. Darunter stehen Wetter und Leistung.
-- **Am Telefon** — im Dock unten, ganz rechts. Wetter und Leistung stehen oben links.
+- **Am Telefon** — im Dock unten, rechts. Wetter und Leistung stehen direkt daneben, einzeln antippbar. Passt nicht alles ins Dock, liegen die übrigen Einträge im ⋮-Menü.
 - **Ohne Leiste** — ist die Leiste aus oder passt sie nicht neben die Karte, bleiben Knopf und Werte oben.
 
 ### Die Zahl an der Glocke
@@ -725,7 +725,7 @@ Im zweiten Reiter der Detailansicht: „Kontext".
 Alle Szenen, Skripte und Automationen, die dieses Gerät betreffen — automatisch gefunden, nach Relevanz sortiert.
 
 ### Die Filter
-Drei Reiter trennen **Aktionen**, **Favoriten** und **Umgebung**. „Umgebung" zeigt, was im selben Raum passiert, auch wenn es dieses Gerät nicht direkt anfasst.
+Chips mit Symbol und Zahl trennen **Aktionen**, **Favoriten** und **Umgebung**, bei beobachtbaren Geräten dazu **Hinweise**. Die Zahl nennt die Einträge, den Namen zeigt der Tooltip. „Umgebung" zeigt, was im selben Raum passiert, auch wenn es dieses Gerät nicht direkt anfasst.
 
 ### Ausführen
 Ein Tipp startet die Szene. Eine kurze Einblendung bestätigt, dass es geklappt hat — oder meldet den Fehler, wenn nicht.

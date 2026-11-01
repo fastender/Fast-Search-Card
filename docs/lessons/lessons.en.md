@@ -174,7 +174,7 @@ The Island is the panel top center: alerts and running devices in one place. You
 
 ### Where the bell sits
 - **On desktop** — in the sidebar on the left, below the items. Weather and power sit underneath.
-- **On phones** — in the dock at the bottom, far right. Weather and power sit top left.
+- **On phones** — in the dock at the bottom, on the right. Weather and power sit right next to it, each with its own tap. If not everything fits, the remaining items sit in the ⋮ menu.
 - **Without the sidebar** — if the sidebar is off or does not fit next to the card, the button and the values stay at the top.
 
 ### The number on the bell
@@ -725,7 +725,7 @@ In the second tab of the detail view: "Context".
 Every scene, script and automation that touches this device — found automatically, sorted by relevance.
 
 ### The filters
-Three tabs separate **Actions**, **Favorites** and **Surroundings**. "Surroundings" shows what happens in the same room even when it doesn't touch this device directly.
+Chips with a symbol and a count separate **Actions**, **Favorites** and **Surroundings**, plus **Hints** on watchable devices. The number counts the entries, the tooltip shows the name. "Surroundings" shows what happens in the same room even when it doesn't touch this device directly.
 
 ### Running one
 One tap starts the scene. A brief pop-in confirms it worked — or reports the error if it didn't.

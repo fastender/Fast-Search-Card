@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.2506 - 2026-11-01
+
+**Title:** 🧭 Bigger side bar, weather and power in the phone dock, red heart and blue Info, Schedule and Context in the Schedules design, panel moved up
+
+**Tags:** navigation, detail-view, phone, calendar, schedules, layout, bugfix
+
+A round of polish after the move into the side bar. The bar is easier to read and tap, the phone gets its values back, the detail head shows its state in colour, and the panel uses the room the top bar left behind.
+
+- **Bigger side bar.** Buttons 40 px (was 36), symbols 22 px (was 20), labels 17 px (was 16). Values use a 17 px symbol and a 12.5 px number. The ⋮ window uses 15 px text and 22 px symbols. The bar now needs a window of about 1364 px next to the card.
+- **Weather and power in the phone dock.** Two own slots right of the bell, symbol above number, each with its own tap. They never go into ⋮. The small capsule at the top of the phone stays only as the fallback when the dock is off.
+- **Dock sizes on the phone.** 8 slots at 44 px from 412 px width, 8 at 40 px from 375, 8 at 38 px from 360, 7 at 38 px from 320, 6 at 38 px below. With both values, Tasks and News sit in ⋮ by default from 360 px. A missing value hands its slot back to an entry.
+- **Back button on hover:** white circle, dark symbol, also for keyboard focus and in the calendar. Touch stays as it was.
+- **Active colours in the detail head.** The heart is red and Info is blue, each on the white circle.
+- **Schedule and Context tabs now look like the Schedules overview:** dark surface, chips at the top, the list scrolls inside. The old sliding tabs are gone. Context chips show a symbol and a real count. The name is in the tooltip and for screen readers.
+- **Calendar:** the arrow pill sits in the centre of the left detail view. With the Today button it stays centred while there is room and moves aside only when there is not.
+- **Panel and side bar moved up.** With the top bar gone, search, panel and detail sit 28 px higher on desktop and 24 px higher on the phone, the same on the start page, bento, search and detail. The side bar moves 14 px and stays centred on the panel. The classic view is unchanged.
+- **Low windows.** Below 600 px window height the side bar keeps to the window edge, also with a margin above the card. Below about 505 px its centre can sit up to 35 px off the panel centre.
+
+Bugs fixed along the way:
+- **The window for "New" grew out of the corner of the screen**, and the next window started at the previous anchor. Both were already wrong in v1.1.2505.
+- **"New" at the end of a full list lay under the dock on short phones.** List end, "New" and "+ Hint" now stop 20 px above the dock once scrolled.
+- **Calendar day title cut off** next to the Today button at window widths of 1080 to 1180 px. Below the limit it now uses the short title and the round button.
+- **Side bar cut off after loading** at window widths from 1320 to 1363 px until the first resize. The fallback now applies right away.
+- **Long lists in the Schedule tab on desktop** were cut off and did not react to the wheel. They now scroll, and "New" can be reached.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, in Chrome and WebKit, against v1.1.2505:
+- **Bar:** sizes, no clipped default label in German or English, smooth opening, the ⋮ window in view at 1440 × 800, 600, 540 and 480, and at 1366 × 768.
+- **Dock:** 300 to 430 px with 850 W, 2.4 kW and 12.4 kW, nothing cut off, real taps on weather, power, bell and ⋮. Night, no sensor and power only pass in both browsers.
+- **Head:** hover and colours on lights, media, video and calendar at 1440, 1280 and 700 px with a mouse, plus touch and keyboard focus.
+- **Schedule and Context:** counts, filters, scrolling, edit, delete, live hints, empty states and the sheet at 1440, 1280 and 390 px, with the new-entry button reachable at 320, 375, 390 and 430 px.
+- **Calendar pill:** 320 to 1280 px, German and English, at most 1 px off centre without Today, nothing cut off with it.
+- **Position:** search, panel, detail and grid moved by exactly 28 and 24 px, the bar by 14 px, no jumps at the end of transitions. Classic view unchanged.
+- **Nothing else changed:** 70 surfaces with all detail tabs compared before the final repairs, the differences were the intended ones. A hand-style pass through all areas ran on the final state with real mouse and touch input, 80 of 80 steps on desktop and 76 to 77 on the phone. No page errors.
+- **Heat:** no new endless animation, no `backdrop-filter`. Forty Home Assistant updates caused zero renders of the bar, the bell and the values. A changed value renders the values alone.
+
+Known weak spots: over a white wallpaper by day on desktop, inactive chips reach 2.4:1, their count badges 2.1:1 and the list details 2.1 to 2.4:1, under the 3:1 target. This is the same as the Schedules overview, and fixing it would change the overview too. At night it is 3.8:1, on the phone 6.1:1. The side bar values stay at 2.5:1 by day over white. The critical banner now overlaps the top edge of panel and detail by about 11 px on desktop and 15 px on the phone, the controls stay free. On a 320 × 640 phone the sheet handle in its lowest stop lies behind the dock until the page is scrolled. On short phones "New" in the half sheet needs a scroll first. A very large value such as 123.5 kW runs slightly over its 48 px slot.
+
+The bundle grew by 0.4 KB to 648 848 bytes gzipped, which is over the warning threshold of 640 000 and under the limit of 700 000.
+
+Not checked: real Safari, iOS and the Home Assistant apps, the real Home Assistant header, the on-screen keyboard with the dock, and browser zoom at 150 %. Two cards on one page were only read in the code. The disk ran full during the run, and later runs hit time limits, so the broad comparison was not repeated on the final state and several checks ran in one browser only, or not at all at the last step. WebKit has no real swipe in the test setup. One late frame count at rest read 10 against 0 for v1.1.2505 and stayed unexplained, the later measurement matched the earlier value of v1.1.2505. In the test setup the weather value came back a few seconds after its entity was removed, which may be a test data effect and was not compared with v1.1.2505. The automated test suite was not run and not updated. `tests/watches.spec.js` and `tests/bento-zen.spec.js` now contradict the card, and `tests/sidebar.spec.js` was already out of date.
+
 ## Version 1.1.2505 - 2026-11-01
 
 **Title:** 🔔 Bell and values move into the side bar, ⋮ overflow on desktop too, new detail head with an Info button

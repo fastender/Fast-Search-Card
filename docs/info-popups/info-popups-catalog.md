@@ -238,7 +238,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Sidebar aktivieren** – blendet die seitliche Leiste mit deinen Schnellzugriffen ein oder aus.
 > - **Immer sichtbar** – hält die Sidebar dauerhaft offen.
 > - **Einträge verwalten** – lege fest, welche Bereiche und Verknüpfungen in der Sidebar erscheinen.
-> - **Glocke und Werte** – unter den Einträgen stehen die Glocke (öffnet die Meldungen) sowie Wetter und Leistung, am Telefon die Glocke im Dock und die Werte oben links. Auf der verriegelten Startseite stehen sie dort nicht.
+> - **Glocke und Werte** – unter den Einträgen stehen die Glocke (öffnet die Meldungen) sowie Wetter und Leistung, am Telefon alle drei rechts im Dock. Auf der verriegelten Startseite stehen sie dort nicht.
 >
 > *Warum wichtig:* Die Sidebar ist dein Schnellzugriff.
 
@@ -250,7 +250,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Enable sidebar** – shows or hides the side bar with your quick shortcuts.
 > - **Always visible** – keeps the sidebar open permanently.
 > - **Manage items** – decide which areas and shortcuts appear in the sidebar.
-> - **Bell and values** – below the items sit the bell (opens the alerts) plus weather and power; on phones the bell sits in the dock and the values top left. They do not appear on the locked start page.
+> - **Bell and values** – below the items sit the bell (opens the alerts) plus weather and power; on phones all three sit at the right of the dock. They do not appear on the locked start page.
 >
 > *Why it matters:* the sidebar is your quick access.
 
@@ -786,7 +786,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, die höchste anliegende Stufe ist vorgewählt. Noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen und trägt die Farbe der höchsten Stufe.
 > - **Knopfreihe** – ❗ Kritisch, ⚠ Warnung und ℹ Hinweis filtern die Liste, das **Wellen-Symbol** zeigt, was gerade läuft (Timer, Sauger, Medien …).
-> - **Wetter und Leistung** – stehen in der Leiste, am Telefon oben links. Wetter öffnet seine Entity, Leistung die Energie-Ansicht. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
+> - **Wetter und Leistung** – stehen in der Leiste, am Telefon im Dock rechts neben der Glocke. Wetter öffnet seine Entity, Leistung die Energie-Ansicht. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
 > - **Startseite** – auf der verriegelten Startseite steht die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr.
 > - **Ohne Leiste** – ist die Leiste aus oder passt sie am Desktop nicht neben die Karte, bleiben Knopf und Werte oben; der Knopf öffnet direkt das Panel.
 >
@@ -801,7 +801,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel with the highest pending level preselected. Another tap closes it. The number on the bell counts all alerts and carries the color of the highest level.
 > - **Button row** – ❗ critical, ⚠ warning and ℹ info filter the list, the **wave symbol** shows what is running (timers, vacuums, media …).
-> - **Weather and power** – sit in the sidebar, top left on phones. Weather opens its entity, power the energy view. During quiet hours (toast settings) only the weather remains, dimmed.
+> - **Weather and power** – sit in the sidebar, on phones in the dock to the right of the bell. Weather opens its entity, power the energy view. During quiet hours (toast settings) only the weather remains, dimmed.
 > - **Start page** – on the locked start page the capsule sits below the greeting, weather and power below the clock.
 > - **Without the sidebar** – if the sidebar is off or does not fit next to the card on desktop, the button and the values stay at the top; the button opens the panel directly.
 >
@@ -818,7 +818,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **DE**
 > ## Dauerwerte
 >
-> Woher die Karte (Leiste, am Telefon oben links, Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
+> Woher die Karte (Leiste, am Telefon das Dock, Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
 >
 > - **Wetter** – Automatisch nimmt die erste Wetter-Entity der Geräteliste. Manuell lässt sich jede `weather.*`-Entity wählen — auch eine ohne zugewiesenen Raum.
 > - **Energie** – Automatisch nimmt den betragsstärksten Leistungssensor (in den meisten Häusern der Gesamtverbrauch). Manuell lässt sich jeder Sensor mit `device_class: power` wählen.
@@ -828,7 +828,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **EN**
 > ## Standing values
 >
-> Where the card (sidebar, top left on phones, the lock screen's status line) takes its two standing values from:
+> Where the card (sidebar, the dock on phones, the lock screen's status line) takes its two standing values from:
 >
 > - **Weather** – Automatic takes the first weather entity of the device list. Manual lets you pick any `weather.*` entity — including one without an assigned room.
 > - **Power** – Automatic takes the strongest power sensor by magnitude (in most homes the total consumption). Manual lets you pick any sensor with `device_class: power`.
@@ -1067,7 +1067,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - Pro Eintrag ein Schalter – an = sichtbar in der Sidebar.
 > - **Home** und **Suche** sind feste Einträge: Home führt zurück zur Startseite, Suche öffnet das Geräte-Panel, ohne das Suchfeld zu fokussieren (auf dem Telefon also ohne Tastatur).
 > - **Reihenfolge** = Aktivierungsreihenfolge: bestehende Einträge zuerst, neu aktivierte landen am Ende.
-> - **Mehr als sechs Einträge** – die Leiste zeigt fünf und das ⋮-Menü mit dem Rest (am Telefon auf schmalen Bildschirmen früher).
+> - **Mehr als sechs Einträge** – die Leiste zeigt fünf und das ⋮-Menü mit dem Rest. Am Telefon teilen sich Einträge, Glocke und Werte das Dock: je nach Breite sechs bis acht Plätze, was nicht passt, liegt im ⋮-Menü. Glocke und Werte rutschen nie hinein.
 > - **Mitteilungen** – steht neben der Glocke nicht doppelt in der Leiste; die Vollansicht erreichst du über „Mitteilungszentrum öffnen" im Panel.
 >
 > *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
@@ -1080,7 +1080,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - One toggle per item – on = visible in the sidebar.
 > - **Home** and **Search** are built-in items: Home returns to the start screen, Search opens the device panel without focusing the search field (so no keyboard on the phone).
 > - **Order** = activation order: existing items first, newly enabled ones at the end.
-> - **More than six items** – the sidebar shows five and the ⋮ menu with the rest (earlier on narrow phone screens).
+> - **More than six items** – the sidebar shows five and the ⋮ menu with the rest. On phones the items, the bell and the values share the dock: six to eight places depending on the width, whatever does not fit sits in the ⋮ menu. The bell and the values never move there.
 > - **Notifications** – does not appear twice next to the bell; the full view is reached via "Open notification center" in the panel.
 >
 > *Why it matters:* this is how you decide the contents and order of your quick-access bar.
