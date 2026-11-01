@@ -14,8 +14,8 @@ A short round from testing v1.1.2507. Most of it traces back to the tall line he
 
 Bugs fixed:
 - **"More" disappeared** when the ⋮ window was open while the current view lived inside it: white text on the white circle.
-- **Task buttons at different heights.** The check circle sat 3 px above the ⋯ button in Home Assistant (2 px on the phone), in every row. Now 0 px in all row types, in Chrome and WebKit.
-- **Done circle in the task edit window:** same cause, 34 px high instead of 28. Now 28 and centred in its row.
+- **Task buttons at different heights.** The check circle sat 3 px above the ⋯ button in Home Assistant, in every row, also on the phone. Now 0 px in all row types, in Chrome and WebKit.
+- **Done circle in the task edit window:** same cause, up to 35 px high instead of 28. Now 28 and centred in its row.
 - **Count badges on the chips** were 20 × 25 ovals in Home Assistant. Now 20 × 20.
 - **Suggestion button on the phone** was 44 px in a 35 px slot. Now 35 px.
 - **Double text margin** while dictating with the brain button on offer.
@@ -27,6 +27,7 @@ Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with 
 - **Switch:** off and on without a reload in search and in the task form, kept after a reload, found by the settings search.
 - **Task rows:** 9 row types, 0 px difference, also under the hover scale, in the painted edges.
 - **Sweep of 39 views at two widths** over about 2 300 controls for buttons meant to be round and for controls misaligned in a row. It found the chip badges, nothing else. The old task rows were flagged, so the sweep sees this kind of fault.
+- After the fixes from that run, the points were repeated on the final code: all in Chrome at 1440, Enter, badges, task rows and the edit window also in WebKit at 390.
 - Guards green, load check without page errors.
 
 Not checked: real iPhone, Safari and Home Assistant apps, real Assist pipeline and microphone dialog, settings sub pages in the sweep, schedules beyond the overview, calendar beyond the default view and its tabs, task rows in the calendar, touch on a tablet with real hover emulation. Tests were not run.
