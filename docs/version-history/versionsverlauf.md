@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2507 - 2026-11-02
+
+**Title:** 🎙️ Dictate a search, Quick Control on by default, videos without a reload, round side bar buttons, panel moved further up
+
+**Tags:** search, voice, quick-control, video, navigation, layout, bugfix
+
+A short round after testing v1.1.2506: one new button, one new default, and three things that looked wrong in a real Home Assistant.
+
+- **Microphone in the search row,** left of the filter. It uses the speech-to-text of your Assist pipeline, otherwise the browser's speech recognition. Without either there is no button. The text lands in the field like typed text, trailing punctuation is removed, and nothing is sent. While it listens the button turns blue and the field says "Speak now …". On an error it turns red for 4 seconds and says whether the microphone or the recognition failed. The button stays hidden while there is text, like the filter, and moves to the right edge when the filter is gone.
+- **Quick Control is on by default.** Anyone who turned it off keeps it off.
+- **Detail videos apply at once.** Turning videos on or off in the settings no longer needs a reload, also for the settings view that is open at that moment. A changed folder applies 500 ms after you stop typing.
+- **Panel moved further up.** With the bell and the values in the side bar or dock, the band above the panel was empty. It shrinks from 56 px to 12 px (52 to 12 on the phone), so search, panel, detail and side bar move up by 44 px and 40 px. The start page moves the same way, so nothing jumps when it opens. Below 1364 px window width, where the bell and values stay above the panel, the band stays. The notification capsule and the critical banner use the free space above the card, down to 6 px from the window edge.
+- **Smaller Quick Control window.** The gap between ring and buttons drops from 60 to 16 px, the one above the ring from 20 to 0 px. The window is 64 px shorter on desktop.
+
+Bugs fixed along the way:
+- **Side bar buttons were not round in Home Assistant.** Home Assistant passes down a tall line height, and the hidden label made every button 43 px high at 40 px wide. Test pages did not show this. They now use the same line height.
+- **Video check could set an old result.** Switching entity while a check was running could show the video of the previous one.
+- **The grip of the sheet at 320 × 640** no longer needs a scroll first. It moved up with the panel and can be grabbed at rest.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 36 px offset above the card:
+- **Desktop 1440 × 860, Chrome and WebKit:** panel position on the start page, after opening and in search, buttons 40 × 40, Quick Control window for fan, light, cover, climate and media player, dictation with browser recognition including error and stop, videos on and off without a reload.
+- **Assist dictation in Chrome** with a simulated pipeline and microphone: pipeline start, text from `stt-end`, subscription closed.
+- **Fallback at 1200 × 800 in Chrome:** the band stays, bell and values above the panel.
+- **Phone 390 × 844 in Chrome:** panel, dock, Quick Control window, dictation, bell window, critical banner. **320 × 640:** the grip of the sheet.
+- The bundle built with Node 26 equals the one built with Node 22 apart from the build date. Builds now use Node 26.
+- Load check: no page errors. Guards green.
+
+Weak spots:
+- **Critical banner:** it overlaps the top of the panel by about 30 px at 36 px above the card. With nothing above the card it reaches the search field until it is dismissed.
+- **The notification capsule** overlaps the panel when the space above the card is smaller than 38 px.
+- The side bar still sits 10 px above the panel centre.
+
+Not checked: real iPhone, Safari and Home Assistant apps, a real Assist pipeline, the real microphone permission dialog, Assist dictation in WebKit (the test browser waits for a real permission there), the position of the microphone in AI mode, a Home Assistant header, 150 % zoom. Tests were not run; `tests/bento-zen.spec.js` measures the band and now contradicts the card.
+
+**Bundle:** 2 305 402 bytes, 649 723 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2506 - 2026-11-01
 
 **Title:** 🧭 Bigger side bar, weather and power in the phone dock, red heart and blue Info, Schedule and Context in the Schedules design, panel moved up

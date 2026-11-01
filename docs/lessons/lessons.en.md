@@ -448,6 +448,22 @@ One tap selects the chip, a second removes it — the same pattern as recipients
 
 ---
 
+## Tipp suche-diktieren - Search
+
+**Title:** Can I dictate a search?
+**Hero:** none
+**Tags:** Search, Voice
+
+Yes — with the microphone in the search row, left of the filter.
+
+### How it works
+Tap the microphone and speak. Recording stops by itself when you stop talking, or with a second tap. The text then sits in the search field, nothing is sent. In AI mode, press Enter to ask.
+
+### When the microphone appears
+The card uses the speech recognition of your Assist pipeline in Home Assistant, otherwise the browser's. If neither is there, there is no button. The microphone needs a secure connection (https) and your permission on the first tap.
+
+---
+
 ## Tipp kategorien - Search
 
 **Title:** What are Devices, Sensors, Actions and Custom?
@@ -559,8 +575,8 @@ Settings → Appearance → Filter → Sort by time.
 
 With Quick Control the device icon on the card becomes the switch itself.
 
-### Turning it on
-Settings → Appearance → Quick Control. It's off out of the box — it noticeably changes what tapping does, so the choice is yours.
+### Turning it on and off
+It's on out of the box. You can turn it off under Settings → Appearance → Quick Control.
 
 ### After that
 - **Tap the icon** — switches immediately

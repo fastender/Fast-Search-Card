@@ -448,6 +448,22 @@ Ein Tipp wählt den Chip aus, ein zweiter löscht ihn — dasselbe Muster wie be
 
 ---
 
+## Tipp suche-diktieren - Suchen
+
+**Title:** Kann ich die Suche diktieren?
+**Hero:** none
+**Tags:** Suche, Sprache
+
+Ja — mit dem Mikrofon in der Suchzeile, links neben dem Filter.
+
+### So geht's
+Tippe aufs Mikrofon und sprich. Die Aufnahme endet von selbst, wenn du aufhörst, oder mit einem zweiten Tipp. Der Text steht dann im Suchfeld, abgeschickt wird nichts. Im KI-Modus fragst du mit Enter.
+
+### Wann das Mikrofon erscheint
+Die Karte nutzt die Spracherkennung deiner Assist-Pipeline in Home Assistant, sonst die des Browsers. Fehlt beides, gibt es keinen Knopf. Das Mikrofon braucht eine sichere Verbindung (https) und deine Freigabe beim ersten Tipp.
+
+---
+
 ## Tipp kategorien - Suchen
 
 **Title:** Wofür stehen Geräte, Sensoren, Aktionen und Custom?
@@ -559,8 +575,8 @@ Einstellungen → Darstellung → Filter → Nach Zeit sortieren.
 
 Mit der Schnellsteuerung wird das Geräte-Icon auf der Karte selbst zum Schalter.
 
-### Einschalten
-Einstellungen → Darstellung → Schnellsteuerung. Ab Werk ist die Funktion aus — sie verändert das Antippverhalten spürbar, deshalb entscheidest du.
+### Ein- und ausschalten
+Ab Werk ist die Funktion an. Ausschalten kannst du sie unter Einstellungen → Darstellung → Schnellsteuerung.
 
 ### Danach gilt
 - **Tipp aufs Icon** — schaltet sofort
