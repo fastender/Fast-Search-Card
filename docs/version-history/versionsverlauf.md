@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2510 - 2026-11-02
+
+**Title:** 🎯 Side bar centred on the panel, no greeting over the AI chat
+
+**Tags:** navigation, ai-mode, layout, bugfix
+
+- **Side bar exactly centred on the panel.** Since v1.1.2506 it sat 10 px above the panel centre on purpose. Now the gap above and below is the same on the start page, in search, AI mode and detail, at window heights from 560 to 1000 px. In very low windows, where the panel no longer fits, the bar still follows the window edge so it stays visible.
+
+Bug fixed:
+- **Greeting over the AI chat.** With the greetings bar switched on in the settings, a click next to the card in AI mode collapsed the panel internally while the chat stayed open. The old greetings bar then appeared and, since the narrow band of v1.1.2507, sat across the top edge of the panel. In the bento layout it now stays silent everywhere; the start page shows its own greeting. The classic layout keeps it.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 36 px offset above the card, against v1.1.2509: centre offset 0 px (was −10) at 1333 × 703, 1440 × 860, 1440 × 1000 and 1400 × 560 in Chrome, and at 1440 × 860 in WebKit; the greeting appears in v1.1.2509 after the outside click and no longer in this version. Guards green, load check without page errors.
+
+Not checked: real devices, the classic layout with the greetings bar. Tests were not run.
+
+Release note: commit cd9a2de9 ("Build v1.1.2509", 20:58) on main is a stray build of this code under the old number. The v1.1.2509 tag and release were not touched.
+
+**Bundle:** 2 307 927 bytes, 650 364 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2509 - 2026-11-02
 
 **Title:** ✅ Done tasks are dimmed for real, ⋯ and the check stay fully visible
