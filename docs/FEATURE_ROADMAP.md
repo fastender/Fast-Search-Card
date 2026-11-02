@@ -1,6 +1,6 @@
 # Feature Roadmap
 
-**Created:** 2026-05-22 · **Revised:** 2026-09-24
+**Created:** 2026-05-22 · **Revised:** 2026-11-02
 **Basis:** Versionsverlauf v1.0.0 → v1.1.2468 (Part eleven and the 2026-09-24 status pass read the code at v1.1.2468) · 16 session notes · code inspection
 **Status:** Proposal, not a commitment. Order and selection are open.
 
@@ -247,7 +247,7 @@ not a replacement for an HA automation, and it is not push. 24/7 delivery stays
 
 **Effort:** Small. The discipline (rate limit, quiet hours, mute) is most of it.
 
-*(2026-09-24: still open, and one slice dearer than written — the card's plain-text announcement path knows only the legacy `tts.<platform>_say` services (`musicAssistant.js:664–677`, call `:710`); `tts.speak` with `media_player_entity_id` (modern TTS entities) appears nowhere in `src`. A slice 0 — `tts.speak` first, `_say` as fallback — precedes E3.)*
+*(2026-11-02: still open. The plain-text path knows only the legacy `tts.<platform>_say` services (`utils/musicAssistant.js:674–700`, call `:710`). Slice 0 is #130 S1–S2: Music Assistant's `play_announcement` with `message` and `tts_entity_id` first (Home Assistant 2026.10), then `tts.speak`, which Home Assistant sends as an announcement, then `_say`. E3 reuses that ladder.)*
 
 #### E4 — Flap guard for the alert lane *(robustness, not a feature)*
 
@@ -709,12 +709,19 @@ A first-party `fast-search-card` integration would be the third companion — br
 
 So this integration should **not** grow a chore system. That ground is well covered by people who have been at it longer. Its scope stays what only it can do: sketchpad sync, notification history beyond the browser cache, cross-device favourites and profiles, sensor-roll storage. Rendering someone else's household layer well is the better use of the same effort — see #65, which does exactly that with no backend at all.
 
-**Requirements input from Music Assistant *(added 2026-10-25)*.** Two features cannot be built in the card, because Home Assistant's Music Assistant actions (`play_media`, `play_announcement`, `transfer_queue`, `search`, `get_library`, `get_queue`) carry neither. Both need the authenticated Music Assistant client that only runs on the server.
+**Requirements input from Music Assistant *(added 2026-10-25, corrected 2026-11-02)*.** Home Assistant's six Music Assistant actions (`play_media`, `play_announcement`, `transfer_queue`, `search`, `get_library`, `get_queue`) cover search, the library with sort and filter, playback, announcements, and the current and next queue item. What they do not carry needs the authenticated Music Assistant client that only runs on the server.
 
 - **Synchronised lyrics.** Music Assistant holds plain and time-stamped (LRC) lyrics for many tracks. An action that returns both for the current track would let the detail view show the line being sung, scrolling with the position the card already interpolates. Shown only when time stamps exist; plain text is no reading aid on a wall.
-- **Recommendations.** Music Assistant's own home rows (recently played, recently added, random, forgotten, most played) and similar tracks seeded from the listening history, as a "Discover" row in the library. The server caches the result, so the panel opens instantly and the card does not ask a streaming service on every open.
+- **Recommendations — the part that needs the server.** Rows from the user's own library (recently played, recently added, most played, least played, favourites) are card-side through `get_library` ordering (#134). What stays here: Music Assistant's curated recommendation folders, similar tracks seeded from the listening history, rows mixed across media types by time (the action returns no play dates), and history per person, because Music Assistant keeps one play log for the house. A server cache would let these open instantly.
+- **The full queue.** The list with paging, removing, moving and playing from an index. `get_queue` returns only the current and the next item and a count.
+- **Favourites both ways.** Unfavourite, favourite any item and not only the one playing, and "is favourite" for items outside the library.
+- **Numbers in lists.** Play counts, last-played dates and durations in library and search results. The sort keys exist; the values are not returned.
+- **Playback options.** Don't-stop-the-music, crossfade, smart shuffle, playback speed, start from the beginning for podcasts, and audiobook resume points.
+- **People.** The Music Assistant user list with each user's services, so a shared tablet could offer people instead of typed names.
+- **Fast start.** Cached full track objects, so a tap does not wait for a rate-limited streaming lookup, and a long list appended in the background once the first track plays.
+- **A house-wide "music is playing" entity** that follows Music Assistant's own player events.
 
-**The contract for both:** the token stays on the server, the card only calls an action with `return_response`. Nothing about this widens the card's outbound list.
+**The contract for all of them:** the token stays on the server, the card only calls an action with `return_response`. Nothing about this widens the card's outbound list.
 
 ---
 
@@ -971,7 +978,7 @@ Ideas that came up but didn't make either batch:
 - **#39 Context-aware auto-tab** *(retired)* — the media_player case is a no-op (Controls is always tab 0), the schedule case needs a WebSocket scan per open, and sensor → History changes the ring first-look. At most an opt-in "open sensors on History" (1.5 h; `DetailViewWrapper.jsx:394` `initialTab ?? rule`).
 - **#41 Video-background seam beyond the detail view** *(retired)* — video loops on tiles are constant load; the ocean widget (revealed only) and the photo frame hold the role.
 - **#43 Generic settings-bus consolidation** *(retired)* — the premise is gone: the generic `settingChanged` sender was removed in v2428; `broadcastSetting` + `createSettingsStorage` + the B49 sweep are the pattern. Seven raw `dispatchEvent` calls remain as audit refactor.
-- **#40 Glass presets** *(conditional)* — stays only if Liquid Glass is kept; then Small.
+- **#40 Glass presets** *(void since v1.1.2503)* — Liquid Glass was removed.
 
 ---
 
@@ -1007,7 +1014,7 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 ### 40. Glass presets (Frosted / Clear / Vibrant)
 
-> ⏸ **Conditional** — stays only if Liquid Glass is kept (open decision D2); then Small.
+> ⏹ **Void since v1.1.2503** — Liquid Glass was removed (D2 resolved).
 
 **Pitch:** Named one-tap presets that set all glass sliders at once.
 
@@ -1037,7 +1044,7 @@ A multi-agent pass (versionsverlauf trend analysis v2093→v1987, code-seam scan
 
 ### Recommended next three (momentum-aware)
 
-> ⚠ **Out of date since 2026-09-24** — #35 is retired and #40 is conditional on open decision D2; #36 is open decision D4 (tests only on explicit request). Kept as the July 2026 view.
+> ⚠ **Out of date since 2026-09-24** — #35 is retired and #40 is void since v1.1.2503 (D2 resolved: removed); #36 is open decision D4 (tests only on explicit request). Kept as the July 2026 view.
 
 1. **#36 Playwright harness** — closes the single biggest quality gap *and* the recurring glass-QA cost; the tool is already installed. Do this before widening glass (#35).
 2. **#35 Liquid Glass global surfaces** — the natural continuation of the last 11 releases; gated behind #36's browser matrix.
@@ -2532,7 +2539,7 @@ Seven entries from reading two room-by-room dashboard projects against the code 
 
 ## Part fourteen — 2026-10-25 music on the wall tablet (#98–#100)
 
-Three entries from reading a pair of touch-first Music Assistant cards for wall tablets against the code at v1.1.2482. Ideas only, nothing taken from their code. That project ships a small integration of its own; its two largest features, synchronised lyrics and a recommendations tab, run through it and went to #22 as requirements input. Already in the card and not repeated here: radio mode after a track, moving the queue to another speaker, grouping, the queue with load-more, feedback lines on play.
+Three entries from reading a pair of touch-first Music Assistant cards for wall tablets against the code at v1.1.2482. Ideas only, nothing taken from their code. That project ships a small integration of its own; its two largest features, synchronised lyrics and a recommendations tab, run through it and went to #22 as requirements input. Already in the card and not repeated here: radio mode after a track, moving the queue to another speaker, grouping, load-more in the library, feedback lines on play. *(Corrected 2026-11-02: the queue itself shows only the current and the next item; rows from the own library need no server and are #134, see #22.)*
 
 ---
 
@@ -2540,21 +2547,22 @@ Three entries from reading a pair of touch-first Music Assistant cards for wall 
 
 **Pitch:** Tap one song in the library and it plays at once. What was queued stays queued behind it.
 
-**Status quo:** A tap on a track in the library calls `play_media` with `enqueue: 'replace'` (`components/controls/ma/useMaBrowse.js:194`), so one tap throws the whole queue away. The play helper already accepts every mode Music Assistant knows, `play`, `replace`, `next`, `replace_next` and `add` (`utils/musicAssistant.js:104`, `:113–118`). The search results offer play, next and add as separate actions (`components/controls/MusicAssistantPanel.jsx:231–245`).
+**Status quo:** A tap on a track inside an album or playlist calls `play_media` with `enqueue: 'replace'` (`components/controls/ma/BrowseTab.jsx:59` → `components/controls/MusicAssistantPanel.jsx:232–243`), and so does the play button of a search hit (`components/controls/ma/SearchTab.jsx:196`), so one tap throws the whole queue away. The direct-play branch at `components/controls/ma/useMaBrowse.js:194` serves the top-level sections, which hold no tracks (`components/controls/ma/BrowseTab.jsx:17–24`); in practice it plays radio stations. The play helper already accepts every mode Music Assistant knows, `play`, `replace`, `next`, `replace_next` and `add` (`utils/musicAssistant.js:104`, `:113–118`). Search hits and album tracks offer play, next and add as separate actions (`components/controls/ma/SearchTab.jsx:196–198`, `components/controls/ma/BrowseTab.jsx:59–61`), all through one handler (`components/controls/MusicAssistantPanel.jsx:232–248`).
 
 **What ships:**
 - A single track uses `enqueue: 'play'`: it starts now, the rest of the queue is kept.
 - Albums, playlists, artists and radio stations keep `replace`. A container is a decision for a new queue; a single track usually is not.
 - With radio mode on, a single track keeps today's behaviour, because radio mode builds a new queue by design.
 - The feedback line says which of the two happened.
+- Inside an album or playlist, #135 S3 plays the container from the tapped track where `start_item` exists (Home Assistant 2026.11); `enqueue: 'play'` stays the fallback and the rule for search hits. *(added 2026-11-02)*
 
-**Hook (verified):** `components/controls/ma/useMaBrowse.js:194`; `utils/musicAssistant.js:104`, `:113–118`; `components/controls/MusicAssistantPanel.jsx:231–245`.
+**Hook (verified, corrected 2026-11-02):** `components/controls/ma/BrowseTab.jsx:59`; `components/controls/ma/SearchTab.jsx:196`; `components/controls/MusicAssistantPanel.jsx:232–243`; `utils/musicAssistant.js:104`, `:113–118`.
 
 **Effort:** Small — 1–2 h.
 
 **Why it fits:** One parameter, and the most common accidental loss in the music panel stops happening.
 
-**Files (estimate):** `components/controls/ma/useMaBrowse.js`, `MusicAssistantPanel.jsx`, `de.js`/`en.js`.
+**Files (estimate):** `components/controls/ma/BrowseTab.jsx`, `components/controls/ma/SearchTab.jsx`, `MusicAssistantPanel.jsx`, `de.js`/`en.js`.
 
 ---
 
@@ -2600,14 +2608,1072 @@ Three entries from reading a pair of touch-first Music Assistant cards for wall 
 
 ---
 
+## Part fifteen — 2026-11-02 the wall tablet's manners (#101–#119)
+
+Nineteen entries from reading the documentation of a kiosk browser app for Android wall tablets against the code at v1.1.2507; every hook below was re-read at v1.1.2509, and nothing from the list shipped in v1.1.2508 or v1.1.2509. Ideas only, nothing taken from its code or text. Much of what the app does is out of reach for a card in a browser: it switches the panel off with device rights, reads its own camera and light sensor, holds a microphone open for a wake word, stays in front as the home screen and restarts itself after a crash. Those parts were not transferable; where Home Assistant offers an entity for them, the card already uses one or can. What follows works over Home Assistant's standard APIs. It is grouped around five building blocks that several entries share: the source and position of a gesture, an intermediate stage in the deep-rest store, hold reasons in the idle store, a background without `url()` for black and gradients, and the tablet's identity in a "This tablet" section. Not taken: hidden corner actions (the gesture budget of #25 is spent), a sunrise wake light and an alarm list (#7: time logic belongs in HA), creating timer helpers from the card (#16, the config write path the card refuses), free time ranges for rest profiles (#61), a picture per motion in the house chronicle (D8, #19), camera streams as a screensaver (the heat rule, v1.1.2152), the card as a page of its own outside a dashboard, a tablet-to-tablet call with replies (it fills HA's bell for every user), own entities and events for the tablet's state (a server part, requirements input for #22), and the app's JavaScript bridge, which contradicts #49 and is listed as decision D15. Music, speaker and announcement ideas from the same pass went to Part seventeen (#128–#140). The bundle stands at 650 370 bytes gzip (v1.1.2509), 10.4 KB over the warning and 49.6 KB under the limit. No entry needs a library, but together they would not fit, so each names its cost and most need measuring.
+
+---
+
+### 101. Repair: deleting a merged event deletes every copy — then one event for several people
+
+**Pitch:** An appointment held in two calendars shows once since #87. Delete it and it is gone everywhere, instead of coming back from the second calendar at the next load. After the repair: pick two people when creating an event, and it lands in both calendars as one row.
+
+**Status quo:** #87 merges equal events into one row (`system-entities/entities/calendar/CalendarView.jsx:829–832`). The merged row keeps the calendar ids of its members (`quellen`, `system-entities/entities/calendar/utils/doppelte.js:50–58`), not their uids. Delete (`handleDeleteEvent`, `CalendarView.jsx:572–592`) and save (`speichereTermin`, `:543–565`) act on `ev.calendar_id` and `ev.uid` of the one member that stands for the row. So deleting a merged row deletes one copy, and the reload after it brings the event back from the other calendar. An edit changes one copy and the row splits in two. The dialog knows exactly one target calendar (`system-entities/entities/calendar/components/CalendarEventDialog.jsx:180`).
+
+**What ships:**
+- **S1 — repair (first, alone).** The merged row carries a pair of calendar id and uid for every member (`doppelte.js:50–58`). Delete and edit ask "In all 2 calendars · Only here" when a row has more than one member. "All" sends one `calendar/event/delete` or `calendar/event/update` per member through the existing WebSocket calls (`system-entities/entities/calendar/index.jsx:245`, `:296`); the recurrence scope (`:250`, `:302`) applies to each. Members in calendars without the delete or update bit (#88, `calendar/utils/kalenderRechte.js:21–23`) are skipped and named. A partial failure is named per calendar. One undo window covers all copies (`utils/undoStore.js:64`).
+- **S2 — one event for several people.** Person chips in the dialog with multiple choice plus "Everyone". One `calendar.create_event` per chosen writable calendar (`index.jsx:222`); #87 then shows them as one row. Without a chosen person the dialog keeps its single target.
+- **Honesty rule:** copies of a series in two calendars carry their own uids and recurrence ids. "This event only" acts per copy, matched by date.
+- No new display: the dots and bars of #87 stay.
+
+**Hook (verified):** `system-entities/entities/calendar/CalendarView.jsx:543–565`, `:572–592`, `:829–832`; `system-entities/entities/calendar/utils/doppelte.js:50–58`; `system-entities/entities/calendar/components/CalendarEventDialog.jsx:180`; `system-entities/entities/calendar/index.jsx:222`, `:245`, `:250`, `:296`, `:302`; `system-entities/entities/calendar/utils/kalenderRechte.js:21–23`; `utils/undoStore.js:64`.
+
+**Effort:** Medium — S1 3–4 h, S2 4–5 h. Bundle ≈ +1–1.5 KB.
+
+**Why it fits:** It is a fault in shipped code: the household deletes an appointment and it comes back. The repair goes first; the multi-person dialog reuses the same pairs.
+
+**Files (estimate):** `calendar/utils/doppelte.js`, `calendar/CalendarView.jsx`, `calendar/components/CalendarEventDialog.jsx`, `calendar/index.jsx`, `de.js`/`en.js`.
+
+---
+
+### 102. The timer rings — what happens when a timer ends
+
+**Pitch:** The kitchen timer runs out. The resting tablet wakes, the clock face says "Pizza · done" in the clock's own type, with only "Stop" and "+1 min" below it. A tone repeats until someone taps Stop or five minutes pass. A cancelled timer ends quietly.
+
+**Status quo:** A timer is live activity number one, but leaves the list without a trace once its state is not `active` (`utils/liveActivitySources.js:130–131`); a paused timer leaves it too. The island plays a 2-s "done" moment whenever the leading activity disappears, for any reason (`hooks/useIslandMomente.js:57–65`), so a cancelled or paused timer looks finished. #3 names "timer done" as an alert; nothing produces it. The tone module knows one double ping with a 1.5-s debounce (`utils/kritischTon.js:15–16`, `:34–46`). Timer services have no hit in `src` (#82 is open). The rest overlay lets every tap through (`utils/tiefeRuheStore.js:38`).
+
+**What ships:**
+- **S1 — paused stays, cancelled is not done.** A `paused` timer stays in the live list with its frozen remaining time. The island's done moment plays only when a timer reached its `finishes_at`.
+- **S2 — the ringing moment.** A cheap watcher on the state stream, in the pattern of the wake sources (`utils/weckquellen.js:56`), reads `active → idle`: the old `finishes_at` within ±2 s of now means finished, earlier means cancelled; a manual `timer.finish` counts as cancelled. Finished means: `weckeLeerlauf('timer')` (`utils/leerlaufStore.js:91`), display handoff on, a moment on the Zen clock with the name, and Stop and +1 min (`timer.start` with `duration`). A catching shield over the page makes a tap beside the two buttons do nothing; it is the same element as the cleaning shield of #115 S1 (`utils/schild.js`), built by whichever ships first. An entry in the house chronicle, and an Info entry in the alert lane that Stop acknowledges, as #3 designs and #92 S3 does for appliances.
+- **S3 — the tone.** `kritischTon.js` becomes one function with a pattern: critical (today) and timer (new); reminder and doorbell only if wanted. The shared debounce stays. The timer tone repeats with one `setTimeout` per round, only while it rings, with a gentle volume ramp, and stops after a mute time (default 5 min). The test button in the toast settings (`components/tabs/SettingsTab/components/ToastSettingsTab.jsx:192`) gets the pattern choice.
+- **S4 — after #82: a named timer from the search line.** "10 min pizza" shows an intent chip "Timer 10:00 Pizza" (`utils/searchIntent.js:20`), never started by itself. It takes the first idle `timer.*`; the name lives on this tablet only. The last used pairs sit below it. Without a timer helper, a hint names the helper; the card does not create one (#16).
+- **Per tablet:** which timers ring here (default: all the card shows).
+- **Honesty rule:** this only works while a card instance is open and the socket lives. Stop silences this tablet only. After a reload the browser blocks sound until the first touch (`kritischTon.js:7–10`), so the moment must work without sound; nothing rings late after a reload. `timer.finished` is not on HA's subscribe allow-list for non-admins (per the upstream check of this pass), hence the state route.
+- **Thermal rule:** no per-second tick; the ringing loop exists only while it rings.
+
+**Hook (verified):** `utils/liveActivitySources.js:19`, `:130–131`; `hooks/useIslandMomente.js:57–65`; `utils/kritischTon.js:7–10`, `:15–16`, `:34–53`; `utils/weckquellen.js:56`; `utils/leerlaufStore.js:91`; `utils/tiefeRuheStore.js:38`; `hooks/useEntityStream.js:281–296` (observers before the batch); `utils/searchIntent.js:20`; `components/tabs/SettingsTab/components/ToastSettingsTab.jsx:192`.
+
+**Effort:** Medium — S1 1–2 h, S2 5–6 h, S3 2–3 h, S4 3–4 h after #82. Bundle ≈ +2–3 KB.
+
+**Why it fits:** A timer that ends invisibly on the device whose job is the kitchen timer is a daily gap. S1 to S3 need neither #82 nor a decision.
+
+**Files (estimate):** `utils/timerEnde.js` (new), `utils/liveActivitySources.js`, `hooks/useIslandMomente.js`, `utils/kritischTon.js`, `hooks/useEntityStream.js`, `components/BentoZenView.jsx` + `.css`, `utils/searchIntent.js` (S4), toast settings, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 103. Hold the screensaver while something is going on
+
+**Pitch:** The screensaver no longer closes a half-typed appointment, a live camera or a running dictation. Someone in the room keeps the tablet awake. "Stay awake 1 h" for a party, from the side bar.
+
+**Status quo:** When the screensaver clock fires, it tidies up without asking (`hooks/useZenRueckkehr.js:62–64` → `components/SearchField.jsx:325–340`, `zenSchlafen`): detail view, search, filter, AI mode, a live camera stream in the detail view included. A clock fires once and then rests until the next gesture (`utils/leerlaufStore.js:37–45`); nothing can hold it. Presence counts only on the edge off → on (`utils/weckquellen.js:60–63`): a sensor that stays `on` for two hours does not stop the screensaver, and "nobody there" can only shorten the time (`useZenRueckkehr.js:69–71`). Four clocks hang on the idle store: decor (`components/Island.jsx:172`), island standby (`hooks/useIslandStandby.js:54`), return (`useZenRueckkehr.js:72`) and deep rest (`hooks/useTiefeRuhe.js:80`).
+
+**What ships:**
+- **S1 — hold reasons in the idle store.** `halte(grund, { maxMs })` returns a release function; inside is a set of reasons, not a counter. A clock marked as holdable that fires while the set is not empty re-arms itself instead of running its callback; the last release re-arms it. Only return and deep rest are holdable. The decor clock is the heat gate and keeps running. Every reason has a cap (default 30 min), so nothing sticks. Card-internal reasons: the detail view of a running `timer.*`, an open camera stream, dictation listening (`hooks/useDiktat.js:15`), a pending AI answer (`utils/kiStore.js:241–242`; `kiLaeuft` at `:267`, not exported), a dialog with unsent text.
+- **S2 — presence holds.** A switch "Stay awake while someone is there". When the clock fires, it asks `istJemandDa()` (`utils/weckquellen.js:93–107`) and re-arms on true. The falling edge, ignored today, re-arms the clock so it fires after the normal time. Only `binary_sensor` with motion, occupancy or presence holds: `person` and `device_tracker` in `home` (both offered by the picker, `:118–131`) would keep the tablet awake all evening. Cap 2 h in a row, never in quiet hours.
+- **S3 — by hand.** "Stay awake · 30 min · 1 h · until tonight" in the side bar's ⋮ window and in the screensaver section, with a quiet line "Kept awake until 21:30" and a tap to release. The end time lives in localStorage, so a reload cannot keep it stuck. No new gesture (#25).
+- **S4 — from Home Assistant:** through the command helper of #114 (verbs `wach` and `schlafen`), no extra helper here.
+- **Thermal rule:** no tick. A held clock re-arms on its own timeout, as today.
+- **Honesty rule:** a held tablet is a lit tablet; the info popup says so.
+
+**Hook (verified):** `hooks/useZenRueckkehr.js:62–72`; `components/SearchField.jsx:325–341`; `utils/leerlaufStore.js:37–45`, `:71–81`; `utils/weckquellen.js:60–63`, `:93–107`, `:118–131`; `components/Island.jsx:172`; `hooks/useIslandStandby.js:54`; `hooks/useTiefeRuhe.js:80`; `hooks/useDiktat.js:15`; `utils/kiStore.js:241–242`.
+
+**Effort:** Medium — S1 4–5 h, S2 2–3 h, S3 2–3 h. Bundle ≈ +1.5 KB.
+
+**Why it fits:** The screensaver throws away open work unconditionally. One set of reasons in the store fixes that, and #104 and #114 build on it.
+
+**Files (estimate):** `utils/leerlaufStore.js`, `hooks/useZenRueckkehr.js`, `hooks/useTiefeRuhe.js`, `utils/weckquellen.js`, `components/SearchSidebar.jsx` (⋮ entry), `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, register, `suche/vorgaben.js`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 104. Nobody presses reload — a connection line, a socket warning, stale code that reloads itself
+
+**Pitch:** When the connection to Home Assistant drops, the wall says so quietly: "No connection since 14:32", and the values dim. A tablet that runs stale code reloads itself at night while it rests, and comes back dark, not bright.
+
+**Status quo:** Nothing listens to connection events: no `ready` or `disconnected` listener, no `hass.connected`, no `navigator.onLine` (0 hits). The stream only re-subscribes when `hass.connection` changes (`hooks/useEntityStream.js:232`, `:314`). HA's frontend closes the socket a few minutes after the page is hidden unless the user profile turns that off (`suspendWhenHidden`, 0 hits in `src`). On a tablet whose browser reports a dark panel as hidden, wake sources, lux and notifications then run into nothing during the display handoff. The version watcher knows when code is stale, but reloading waits for a button (`utils/versionWaechter.js:142–149`, `components/StaleLeiste.jsx:21`, `components/tabs/SettingsTab/components/AboutSettingsTab.jsx:41`), and nobody presses it on a wall. After a reload, deep rest only returns after its clock (`hooks/useTiefeRuhe.js:80`), so the tablet starts bright at night. `hatGeschlafen` lives in memory only (`utils/displayUebergabe.js:42`, `:58–63`): after a reload during the handoff, the card never switches the display back on.
+
+**What ships:**
+- **S1 — the connection line.** `utils/verbindungStore.js` listens to `disconnected` and `ready` on `hass.connection`. After 20 s offline (one timeout, no tick), the Zen status line and the bell say "No connection since 14:32"; value tiles go to reduced opacity, the clock runs on. On `ready`: drop optimistic locks, read again, repeat nothing. A tap during the outage gets "not sent" from `dienstAufruf` (`utils/dienstAufruf.js:82`). A `connection.ping()` rides the existing reconcile tick while awake (`hooks/useDataProviderEvents.js:95–101`), none in deep rest; it catches half-open sockets after short Wi-Fi drops. Check first whether HA's own reconnect notice shows above the card; no double message.
+- **S2 — the socket warning.** With a screen entity chosen and `hass.suspendWhenHidden` not `false`, the handoff section (`startscreen/BildschirmschonerAbschnitt.jsx:394–400`) shows a line that points to the setting in the HA profile. Read only; the card never changes the profile. The info popup also names a known trap: on some Fire OS 8 tablets the panel goes off again seconds after a wake through the screen entity, with no signal to the card.
+- **S3 — stale code reloads itself in rest.** When the watcher says stale, deep rest is active and no hold reason is open (#103), the card calls `staleNeuLaden()` itself, at most once per target version (a lock in localStorage against loops). #68's rule stays: only on proven staleness, never as a release hint. A switch, default off, because a reload locks sound until the next touch (`utils/kritischTon.js:7–10`).
+- **S4 — start in the dark.** A reload while the page is locked and within quiet hours goes straight to deep rest instead of waiting for its clock. The handoff does not fire before the screen entity's state is known. The last auto-dim state and `hatGeschlafen` go to sessionStorage, so the overlay stands before `hass` arrives and the display wakes again after a reload. S3 ships only together with S4.
+- Not built: a reload every N days; no measurement shows a need.
+
+**Hook (verified):** `hooks/useEntityStream.js:232`, `:240`, `:314`; `hooks/useDataProviderEvents.js:95–101`; `utils/versionWaechter.js:142–149`; `components/StaleLeiste.jsx:21`; `components/tabs/SettingsTab/components/AboutSettingsTab.jsx:41`; `hooks/useTiefeRuhe.js:80`; `utils/displayUebergabe.js:20–23`, `:42`, `:58–63`; `utils/kritischTon.js:7–10`; `utils/dienstAufruf.js:82`; `components/tabs/SettingsTab/components/startscreen/BildschirmschonerAbschnitt.jsx:394–400`; `utils/translations/languages/de.js:1508` (`handoffConflict`).
+
+**Effort:** Medium — S1 3–4 h, S2 1 h, S3 2 h, S4 2–3 h. Bundle ≈ +1.5 KB.
+
+**Why it fits:** A wall tablet nobody touches must say when its values are old, and must not run old code for weeks. Each slice is small and needs no decision.
+
+**Files (estimate):** `utils/verbindungStore.js` (new), `components/BentoZenView.jsx`, `components/SearchSidebar.jsx` (bell), `utils/dienstAufruf.js`, `hooks/useDataProviderEvents.js`, `utils/versionWaechter.js`, `hooks/useTiefeRuhe.js`, `utils/displayUebergabe.js`, `utils/autoHelligkeit.js`, `startscreen/BildschirmschonerAbschnitt.jsx`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 105. Deep rest learns stages — who woke it, a reading stage, and its own echo
+
+**Pitch:** Someone walks past the photo frame and the picture stays; the room only gets a little brighter. At 3 a.m. the hallway sensor lifts the dim only a little. A normal notification is readable in deep rest while it stands, without waking the card. "Show now" previews deep rest and the night stage for 20 seconds.
+
+**Status quo:** The gesture listener of deep rest ignores its source and lifts the rest for every one (`hooks/useTiefeRuhe.js:81`), although the idle store passes the source (`utils/leerlaufStore.js:47–53`). The document listener passes neither event nor position (`:55`, `:62`). The store knows two dim values (`utils/tiefeRuheStore.js:22–23`), and the photo blend returns to them (`ruheStufe`, `:49`, `:73`). So motion stops the photo frame, the wallpaper jumps back, and two minutes later it all starts again. Wake sources ignore quiet hours (`utils/weckquellen.js:56–64`): at 3 a.m. the overlay goes from 0.62 to 0. A normal toast stands below the overlay (`styles/toast.css:19`, z-index 10000, under `tiefeRuheStore.js:39`) and is dimmed by 45–62 %; only critical notifications wake (`hooks/useNotificationLane.js:150–151`). The card's own `turn_on` of the screen entity returns as a wake edge (`weckquellen.js:75–80`). To check a setting today one waits 5 + 2 minutes, and the night stage cannot be seen by day (no preview in the screensaver section).
+
+**What ships:**
+- **S0 — show now.** "Show now" in the screensaver section starts deep rest at once for 20 s, day or night, photo frame included, never the handoff or a script. Any gesture ends it. Stepping the auto-brightness strength (a tap row through 25–65 %, `startscreen/BildschirmschonerAbschnitt.jsx:447`, `:451`) shows that strength for a few seconds.
+- **S1 — the seam.** The idle store hands its listeners `{ quelle, x, y }`; `aufGeste` reads the pointer position (`leerlaufStore.js:55`). `tiefeRuheStore` gets one intermediate-stage API: `oeffne(grund, stufe)` and `schliesse(grund)`, the strongest open reason wins, and `blende()` returns to it instead of the fixed value. One mechanism for the three uses below, not three special paths.
+- **S2 — the echo guard.** The store remembers the time of its own last stage change, blend and handoff call. For 20 s after it, motion sources are ignored; doorbell and critical never. This covers the own `turn_on` (`weckquellen.js:75–80`) and a tablet camera that reads a photo blend or the dark panel as motion.
+- **S3 — motion keeps the photo.** While the photo frame runs and no handoff is active, motion re-arms the clocks and opens the overlay to a photo stage (about 0.15) instead of lifting the rest; silence closes it again. Touch, doorbell and critical lift as before. A small, stated change to #62's stage discipline, only while the photo frame runs.
+- **S4 — a night rule for waking.** "During quiet hours, motion wakes: normally · dimmed · not at all". Dimmed keeps `tief` and opens to 0.45 for 30 s. A light source ends the night: the lux sensor rises above its bright threshold, or a chosen lamp turns on. The lux night and its own gate are built once, shared with #112 S1 (night in deep rest by the lux sensor). The lux edge exists in `bewerteLux` (`utils/autoHelligkeit.js:59–67`) but runs only with auto brightness on (`:70–74`), so the night source gets its own gate. With a screen entity, only "normally" and "not at all" are offered. Honest label: a tablet's own light sensor may report nothing while its panel is dark.
+- **S5 — a reading stage for a notification.** While a normal toast stands, the overlay opens to a reading stage without leaving `tief`, without handoff, without stopping the photo frame, and closes after it. `showToast` (`utils/toastNotification.js:39`) gets an end callback; today the toast goes with no callback (`:102–105`). A switch turns it off for the bedroom; the quiet-hours filters apply. Decide together with #75 S1.
+- **Thermal rule:** one opacity transition per edge and one `setTimeout` per open stage; nothing runs while a stage stands.
+
+**Hook (verified):** `hooks/useTiefeRuhe.js:53`, `:80–81`; `utils/leerlaufStore.js:47–55`, `:62`, `:84`; `utils/tiefeRuheStore.js:22–23`, `:38–39`, `:49`, `:64–76`, `:89–96`; `utils/weckquellen.js:56–64`, `:75–80`; `utils/autoHelligkeit.js:59–74`; `utils/quietHours.js:48`; `styles/toast.css:19`; `utils/toastNotification.js:39`, `:102–105`; `hooks/useNotificationLane.js:150–151`; `components/tabs/SettingsTab/components/startscreen/BildschirmschonerAbschnitt.jsx:447`.
+
+**Effort:** Medium to large — S0 2 h, S1 3–4 h, S2 1–2 h, S3 2 h, S4 3 h, S5 3 h; each its own release. Bundle ≈ +2 KB in total.
+
+**Why it fits:** Five ideas change the same two lines. Built once, it carries #106, the photo browsing of #107 S4 and the reading stage #75 S1 needs.
+
+**Files (estimate):** `utils/leerlaufStore.js`, `utils/tiefeRuheStore.js`, `hooks/useTiefeRuhe.js`, `utils/weckquellen.js`, `utils/autoHelligkeit.js`, `utils/toastNotification.js`, `hooks/useNotificationLane.js`, `utils/fotorahmen.js`, `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, register, `suche/vorgaben.js`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 106. Display off as a stage of its own
+
+**Pitch:** The photo frame runs for half an hour, then the panel goes dark. Today both happen at the same moment, and with a screen entity the photo frame keeps fetching pictures behind a dark panel.
+
+**Status quo:** Display handoff and photo frame both hang on the entry into deep rest (`utils/displayUebergabe.js:66–79`, `utils/fotorahmen.js:125–129`). With a screen entity set, the photo frame keeps changing pictures behind a switched-off panel. The conflict hint names only the kiosk app's own screensaver (`utils/translations/languages/de.js:1508`). The store knows `tief` and `nacht` only (`utils/tiefeRuheStore.js:15`); the idle store expects further stages as further clocks (`utils/leerlaufStore.js:19–21`). The card's own `turn_on` of the screen entity comes back as a wake edge (`utils/weckquellen.js:75–80`).
+
+**What ships:**
+- **S1 — now, alone.** A warning line in the handoff section when photo frame and screen entity are both on: "The photo frame runs behind a dark panel." Info-popup catalog in the same release.
+- **S2 — the stage `aus`.** A third clock behind `tief`: "Display off: with deep rest (today) · 5 · 10 · 30 min after", and a separate value for quiet hours. The default keeps today's behaviour. With a delay set, the handoff moves to `aus` and the photo frame stops there.
+- Motion during `aus` switches only the screen entity on; the stage falls back to `tief`, the photo runs again, the countdown starts over. This needs the source-aware gesture and the echo guard of #105 (S1, S2).
+- **Honesty rule:** waking by motion works only while page and socket live behind a dark panel (#104 S2), and a motion sensor fed by the tablet's camera may stop with the panel. The info popup says so.
+- "Black at zero brightness" instead of "panel off", for devices that handle screen-off badly, goes through the brightness entity of #110, not here.
+
+**Hook (verified):** `utils/displayUebergabe.js:52–63`, `:66–79`, `:84–99`; `utils/fotorahmen.js:104–129`; `utils/tiefeRuheStore.js:15`, `:89–96`; `utils/leerlaufStore.js:19–21`, `:71`; `utils/weckquellen.js:75–80`; `components/tabs/SettingsTab/components/startscreen/BildschirmschonerAbschnitt.jsx:339–400`; `utils/translations/languages/de.js:1508`.
+
+**Effort:** Medium — S1 1 h, S2 5–6 h. Bundle ≈ +1 KB.
+
+**Why it fits:** It removes a real contradiction between photo frame and dark panel with one more clock, on a store that was built for more clocks.
+
+**Files (estimate):** `utils/tiefeRuheStore.js`, `utils/displayUebergabe.js`, `utils/fotorahmen.js`, `hooks/useTiefeRuhe.js`, `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 107. Photo frame, stage two — load first, any HA source, fit, browse, a caption
+
+**Pitch:** The next photo appears only once it has loaded, at panel size, and every photo comes once before any repeats. Any album Home Assistant offers can be the source, also a camera or a generated image. Portrait photos stay whole. A tap on the right edge shows the next photo; a long press hides one for good. A small line says "June 2019 · Holiday".
+
+**Status quo:** The photo frame sets the URL 487 ms after the blend starts, without waiting for the picture (`utils/fotorahmen.js:100–101`); on an old tablet a large photo can appear after the overlay has opened again. Originals are decoded at full size and set with a fixed `center / cover` (`utils/viewWallpaper.js:113–132`, `:129`). Random order avoids only the previous picture (`fotorahmen.js:74–82`); the index resets with every list rebuild (`:70`). The source is a free-text path turned into a label (`startscreen/BildschirmschonerAbschnitt.jsx:314–317`, `fotorahmen.js:46–53`). The listing starts below `media-source://media_source` only (`services/mediaSourceService.js:23`), skips subfolders (`:60`) and returns file name and id without the folder title (`:67`). Every picture change also re-bakes the wallpaper copy (`utils/glasKopie/index.js:670`, `:676–679`); there is no deep-rest gate in that module. No picture metadata is read.
+
+**What ships:**
+- **S1 — load first, every picture once.** Load and decode before the blend (`new Image` plus `decode()`, or `ladeBild`, `utils/glasKopie/backen.js:36`), then blend, then swap. On failure the current picture stays and the next interval tries again. Downscale to panel width × device pixel ratio (cap about 1920): `createImageBitmap` with a target width where it works, else the canvas path of `verkleinere` (`backen.js:66`, to be exported), else the original. A shuffled queue with its position stored per device replaces the random draw and survives the list rebuild. The previous blob is freed only after the wallpaper copy has baked from the new picture. `blob:` stays limited to this direct call; `isSafeWallpaperUrl` (`viewWallpaper.js:31`) is not widened.
+- **S2 — sources from Home Assistant.** A browser picker over `media_source/browse_media` from the root of all sources, so any album an integration offers (a photo server or a NAS, for example) works without a key in the card. The setting stores a `media_content_id`; old path values are migrated. Subfolders optional, with a hard cap on the list, because a large album arrives as one WebSocket answer. A second source kind: an `image.*` or `camera.*` entity, its `entity_picture` read fresh per change, at most once a minute for cameras (no poller, #4). The URL builder inside `useUniversalHero` (`hooks/useUniversalHero.js:43–60`) moves into a util; no second builder. Plain text instead of a black screen when nothing is found.
+- **S3 — fit.** Crop only when the picture is close to the panel's format. Otherwise the whole picture sits over a tiny upscaled copy of itself, which gives a soft background without any filter. Hosts without CORS fall back to `cover`. Pairs of portrait photos on a landscape panel come later, as their own slice.
+- **S4 — browse and hide (opt-in).** In the photo frame, a tap on the outer fifth goes back or forward and restarts the interval; the rest stays (positions from #105 S1). A long press (500 ms, as `hooks/useMehrfachauswahl.js:10`) offers "Don't show this photo again": the id goes to a per-device exclusion list, with undo (`utils/undoStore.js:64`). Opt-in, because it changes #61's "any touch lifts". Unlike the hidden corner actions this pass left out, the zones act only while the photo frame runs and are named in the setting.
+- **S5 — a caption.** A small line in a lower corner over a gradient, no blur: the album from the folder title, the date from the file name, or from the picture's own date field when S1 already holds the bytes (a short parser, no dependency, JPEG only). No camera data, no location. It drifts with the clock block and is off at night. Shown in rest, so it waits on D10.
+- **Thermal rule:** one computing peak per interval; nothing runs between changes. Check whether the wallpaper copy can skip baking in deep rest, where no copy is visible.
+
+**Hook (verified):** `utils/fotorahmen.js:31`, `:46–53`, `:64–82`, `:100–101`, `:125–129`; `utils/viewWallpaper.js:31`, `:113–132`; `services/mediaSourceService.js:23`, `:37`, `:60`, `:67`, `:164`; `utils/glasKopie/backen.js:36`, `:66`; `utils/glasKopie/index.js:670`, `:676–679`; `hooks/useUniversalHero.js:43–60`; `hooks/useMehrfachauswahl.js:10`; `utils/undoStore.js:64`; `components/tabs/SettingsTab/components/startscreen/BildschirmschonerAbschnitt.jsx:314–317`.
+
+**Effort:** Large in five slices — S1 3–4 h, S2 4–6 h, S3 4–5 h, S4 3–4 h, S5 3–4 h. Bundle ≈ +4–6 KB in total; measure per slice.
+
+**Why it fits:** S1 repairs a visible fault and is the precondition for every other photo slice. S2 answers D10's side note on photo-server sources, with no key in the card.
+
+**Files (estimate):** `utils/fotorahmen.js`, `services/mediaSourceService.js`, `utils/viewWallpaper.js`, `utils/glasKopie/backen.js`, `utils/glasKopie/index.js`, `utils/heroBild.js` (new, out of `useUniversalHero`), `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, `components/BentoZenView.jsx` + `.css` (S5), `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 108. This tablet — name, room and setup in one place
+
+**Pitch:** One section, "This tablet", answers once what the card otherwise asks in five places: where it hangs, what it is called, which Home Assistant device it is. "Light off" in AI mode then means this room, search results from this room come first, and a template "Kitchen", "Hallway" or "Bedroom" sets up the rest chain in one tap.
+
+**Status quo:** No setting knows the tablet's room or name (0 hits). The AI context lists the room of every entity (`utils/kiKontext.js:155`), but its rules say nothing about where a question comes from (`:229–241`). Search filters by a typed room and ranks by name (`utils/searchIntent.js:20`, `:94`; `hooks/useFuzzySearch.js:216–219`). The whole rest chain is off by default: the screensaver (`hooks/useZenRueckkehr.js:33`), and deep rest only with the screensaver (`hooks/useTiefeRuhe.js:46–47`). Setting up a wall tablet means visiting several sections. The pickers for screen, motion and lux know nothing of the tablet's device: screen puts names matching a screen pattern first, motion sorts by name, lux by entity id (`utils/displayUebergabe.js:84–99`, `utils/weckquellen.js:118–131`, `utils/autoHelligkeit.js:95–99`). A sibling lookup by `device_id` exists for batteries (`utils/batterieSensor.js:37–50`). Settings already live per browser (`utils/systemSettingsStorage.js:7`), so a per-device value needs no store of its own.
+
+**What ships:**
+- **S1 — room and name.** "This tablet hangs in: [area]" and "Name: [Kitchen]" under General → This tablet. The AI instruction (`kiKontext.js:219`) gets one rule line: without a named room, this room is meant. The device list sent does not change, and the rule "only what the card shows" stays; `docs/SECURITY.md` names the room as sent. Search lifts results from this room. Once #70 exists, its state words act here first.
+- **S2 — which device is this tablet?** A pick from `hass.devices`. The card proposes screen, motion, lux and battery from that device's entities by domain and `device_class` (siblings as in `batterieSensor.js:37–50`), each with its reason (#97). It works for any kiosk app or integration that exposes the tablet as a device, not for one product.
+- **S3 — templates.** "Kitchen · Hallway · Bedroom" write existing settings only: screensaver on, deep rest, quiet-hours coupling, the wake rule and reading stage of #105, sound. Before applying, the template lists its changes like the "Changed" button of #46. Values only; nothing switches between profiles, so #15 stays retired.
+- Not built: the room in the hash of the start URL. Whether Lovelace navigation keeps a hash is unchecked; that question belongs before #33.
+- The name is shared with #114 (addressing) and #117 (the check).
+
+**Hook (verified):** `utils/kiKontext.js:46–51`, `:155`, `:219`, `:229–241`; `utils/searchIntent.js:20`, `:94`; `hooks/useFuzzySearch.js:216–219`; `hooks/useZenRueckkehr.js:33`; `hooks/useTiefeRuhe.js:46–47`; `utils/batterieSensor.js:37–50`; `utils/displayUebergabe.js:84–99`; `utils/weckquellen.js:118–131`; `utils/autoHelligkeit.js:95–99`; `utils/systemSettingsStorage.js:7`; `providers/entitiesLoader.js:63`.
+
+**Effort:** Medium — S1 3 h, S2 4–5 h, S3 3–4 h. Bundle ≈ +2 KB.
+
+**Why it fits:** Room and name are the identity five other ideas of this pass need. One place, set once per tablet.
+
+**Files (estimate):** `utils/diesesTablet.js` (new), `components/tabs/SettingsTab/components/GeneralSettingsTab.jsx`, `utils/kiKontext.js`, `hooks/useFuzzySearch.js`, `startscreen/useBildschirmschoner.js`, `register/allgemein.js`, `suche/vorgaben.js`, `docs/SECURITY.md`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 109. The calendar on the wall — stays current, says its state, shows where it went, a plan view
+
+**Pitch:** An appointment entered on the phone appears on the open wall calendar within minutes. When Home Assistant is unreachable, the appointments stay and a quiet line says "as of 14:32". After saving, the calendar jumps to the event's day and rings it for a moment. A plan view shows today on the left and the next two weeks on the right.
+
+**Status quo:** The calendar loads on a view or date change and after its own writes (`system-entities/entities/calendar/CalendarView.jsx:472–474`, `:565`, `:589`). The 30-min stock in the background serves reminders, the evening-before note and the context line, never the open view (`utils/reminderStore.js:160–167`). The calendar has no refresh button, so #88's `update_entity` refresh was dropped by user decision (`:499–502`). The load time is stored (`system-entities/entities/calendar/index.jsx:143`, `:176`, `last_loaded`) and never shown; an error appears as text after the count (`CalendarView.jsx:1476`). A weather interval in the same view already pauses on `document.hidden` and follows `hass?.connection` (`:312–318`). After saving, the old view reloads (`:565`), so an event moved to another month disappears without a word. A jump marker exists only for settings (`components/tabs/SettingsTab/suche/useSprungMarkierung.js`). The view modes are day, week, month, year and people (`CalendarView.jsx:114`); there is no continuous outlook.
+
+**What ships:**
+- **S1 — quiet reload.** Every 5 minutes, only while the calendar is open and the page visible (the same gate as `:312–318`), and after every reconnect. No loading line, never while a dialog is open. On failure the events stay and a quiet line shows `last_loaded`. No `update_entity` (#88).
+- **S2 — a subscription where HA offers one.** `calendar/event/subscribe` (in HA core per the upstream check of this pass) for the visible calendars and range. The 5-min reload stays as the fallback on `unknown_command`, because the card supports much older HA versions.
+- **S3 — the ring after the jump.** After saving, after a tap on a reminder and after an AI action (#118 S3), the view jumps to the event's day (`setAnkerTag`/`setGewaehlterTag`, as the Bento deep link does at `:476–498`) and the row carries a ring for a few seconds, opacity only. The first gesture ends it (`subscribeGeste`, `utils/leerlaufStore.js:84`).
+- **S4 — plan view.** A mode "Plan" in the head pill's menu (`:1152`). Left: today, large, with date, weather mark, the next event with relative time and the rest of the day including due tasks (#86). Right: 14 days as a list grouped by day, empty days folded. It reuses the event row and the person dots; the width ladder of #48 turns it into the list alone on a phone. Selectable as the default view.
+- **Thermal rule:** the reload timer exists only while the view is mounted and visible; none in deep rest.
+
+**Hook (verified):** `system-entities/entities/calendar/CalendarView.jsx:114`, `:312–318`, `:472–474`, `:476–498`, `:565`, `:589`, `:1089`, `:1152`, `:1476`; `system-entities/entities/calendar/index.jsx:143`, `:176`; `utils/reminderStore.js:160–167`; `utils/leerlaufStore.js:84`; `components/tabs/SettingsTab/suche/useSprungMarkierung.js`.
+
+**Effort:** Medium — S1 2–3 h, S2 3–4 h, S3 2 h, S4 6–8 h. Bundle ≈ +1 KB for S1–S3, S4 ≈ +3 KB (measure).
+
+**Why it fits:** An open calendar on the wall otherwise lies until the next view change. S1 is small and works on every HA version.
+
+**Files (estimate):** `calendar/CalendarView.jsx`, `calendar/index.jsx`, `calendar/utils/kalenderAbo.js` (new, S2), `calendar/components/PlanAnsicht.jsx` (new, S4), `calendarSettingsStorage.js`, `CalendarSettingsView.jsx`, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 110. Real panel brightness through an entity
+
+**Pitch:** In deep rest the panel itself gets darker, not only the page on it. With a brightness entity of the kiosk app or integration, the card writes one value per stage and follows the room's light: "now 42 lx → 38 %".
+
+**Status quo:** Auto brightness knows two thresholds and lays a black overlay over the page (`utils/autoHelligkeit.js:11–13`, `:52–67`). The panel stays fully backlit, and the overlay adds up with the deep-rest overlay above it (`:43`, below `utils/tiefeRuheStore.js:39`). #49 names real brightness as delegation to an entity. The handoff picker lists `switch`, `light` and `input_boolean` only (`utils/displayUebergabe.js:91`). In HA core, the kiosk integration #49 names exposes screen brightness as a `number` from 0 to 255, not as a light (per the upstream check of this pass; see the addendum to #49).
+
+**What ships:**
+- A picker "Brightness entity" (`number.*` or `light.*`) and a value for two stages, awake and rest; night uses the rest value. Lux moves the value along a line between a dark point and a bright point on a log scale. The existing dark and bright thresholds (`dunkelLux`, `hellLux`, chosen from `DUNKEL_STUFEN` and `HELL_STUFEN`, `utils/autoHelligkeit.js:11–22`) are the two points.
+- `number.set_value` mapped onto the entity's own `min` and `max`, or `light.turn_on` with `brightness_pct`.
+- **Write gate:** at most once per 60 s, only on a change of at least 5 points, on top of the existing hysteresis. Every write travels through HA to the device.
+- With an entity set, the overlay of auto brightness goes off, so two dims do not stack.
+- The value before the first write is saved and restored when the setting goes off or the card unmounts. Writing to such an entity changes the device's stored base value, and with the device's own adaptive brightness on, its maximum. A hint "use only one of the two" when the device runs its own curve.
+- **Two traps:** `light.turn_on` on a screen light switches a dark panel on, so with an active handoff the curve never writes in `tief` or `aus`. And a write must not come back through the wake sources as a display edge (echo guard of #105 S2).
+- The settings row shows the live value; no drag diagram.
+
+**Hook (verified):** `utils/autoHelligkeit.js:11–13`, `:43`, `:52–74`, `:83–90`; `utils/tiefeRuheStore.js:39`; `utils/displayUebergabe.js:82`, `:91`; `utils/weckquellen.js:75–80`.
+
+**Effort:** Medium — 5–7 h. Bundle ≈ +1.5 KB.
+
+**Why it fits:** It closes the limit #49 names, "CSS dims the page, not the panel", with the rule #49 set: a service call to an entity the user picks, no device-specific code.
+
+**Files (estimate):** `utils/autoHelligkeit.js`, `utils/panelHelligkeit.js` (new), `startscreen/BildschirmschonerAbschnitt.jsx`, `startscreen/useBildschirmschoner.js`, register, `suche/vorgaben.js`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 111. What may stand in deep rest — only what deviates (most of it waits on D10)
+
+**Pitch:** In deep rest the wall stays calm while all is well. If the garage is open or the front door unlocked, one quiet pill under the clock says so. A running timer or a finished washer is one line. On the start page, a favourite can show only when it matters: the garage only when it is open.
+
+**Status quo:** Deep rest keeps only the clock: date, status, greeting, context and grip go to opacity 0 (`components/BentoZenView.css:490–495`), and the island folds to its button (`components/Island.jsx:315–322`), so a running timer is invisible there. Live activities are computed inside the island's tick (`hooks/useIslandDaten.js:68–71`, `:102`) and by the notification center (`system-entities/entities/notifications/NotificationsView.jsx:310`), never by the rest view. The context line has one "next event" reader, which skips all-day events (`utils/reminderStore.js:120–126`); the stock reaches +48 h (`:51–57`). The rest view already listens to entities and to a 1-s throttled hass (`components/BentoZenView.jsx:124`, `:197`) and has a 15-s clock tick (`:343`). The drift block carries text only (`:432–441`, `:667`). Favourites show whatever their state (`:126–129`). D10 is open: whether more than the clock may stand in deep rest decides every slice below except S1.
+
+**What ships:**
+- **S1 — a favourite only when it matters (no D10 needed).** A favourite gets an optional state list "show only when: open · on · unlocked …", chosen from the entity's states. Outside it, the favourite steps out and the others move up within the favourites tile. No thresholds, no operators (#3, #54). Empty or unknown values drop out by themselves.
+- **S2 — the deviation row (after D10).** Up to four chosen entities, each "always" or "only in state X", inside `.bento-zen-above` so the drift carries it; tinted surfaces, no blur. Default: deviation mode, empty when all is well. Blocks: this tablet's battery only when low and not charging, the next alarm within 24 h (addendum to #72), sunset, moon phase (`readMoonPhase`, `components/bento/widgets/ocean/oceanWeather.js:87`; that file imports the ocean scene module, `:7`, so take the function out first). Read only; a tap lifts the rest like any gesture. The avatars of #71 R2 may become a block here.
+- **S3 — the one urgent line (after D10).** Exactly one text line under the clock, by rank: timer ringing, timer running ("Pasta · 4 min"), appliance done (#92), a waiting notification. Data from `extractLiveActivities`, which is pure (`utils/liveActivitySources.js:100`), on the 15-s tick; the remaining time from `endsAt` on that tick, not on the island's 30 s. No animation, no ticker.
+- **S4 — the day plan as a rest face (after D10).** The clock smaller on the left; the rest of today plus one entry of tomorrow on the right, with the calendar people's colours. A new reader over the reminder stock, all-day included. The freshness gate (`reminderStore.js:167`) must open for this face too. Empty means the normal clock face.
+- **Privacy rule:** a wall shows what it shows to guests too. Titles in rest only from calendars the household picks; otherwise "2 appointments today" without titles. The same applies to S2 and S3.
+- **Thermal rule:** no new subscription and no new tick; everything reads on the existing 15-s tick.
+
+**Hook (verified):** `components/BentoZenView.css:490–495`; `components/BentoZenView.jsx:124`, `:126–129`, `:197`, `:343`, `:432–441`, `:667`; `components/Island.jsx:315–322`; `hooks/useIslandDaten.js:68–71`, `:102`; `utils/liveActivitySources.js:100`; `utils/reminderStore.js:51–57`, `:120–126`, `:167`; `components/bento/widgets/ocean/oceanWeather.js:7`, `:87`.
+
+**Effort:** Medium — S1 3–4 h; after D10: S2 5–6 h, S3 3 h, S4 5–6 h. Bundle ≈ +1 KB for S1, +3–5 KB for S2–S4.
+
+**Why it fits:** One answer to D10 decides six ideas of this pass, and the deviation default keeps the calm of #61.
+
+**Files (estimate):** `components/BentoZenView.jsx` + `.css`, `utils/ruheReihe.js` (new), `utils/reminderStore.js`, `components/bento/widgets/ocean/oceanWeather.js` (S2), favourites settings, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 112. Rest faces — night by the house, a black night clock, a still sky, a clock of its own size
+
+**Pitch:** Night begins when the house gets dark, not at 20:00. At night the wall goes truly black, with a muted red clock and nothing else. By day the rest can show a still sky that follows the weather. The rest clock can be larger or another colour, and stacks hours over minutes on a portrait panel.
+
+**Status quo:** The "auto" dark mode is fixed to 20:00–6:00 (`utils/zeitzone.js:556–559`), used by the island theme (`components/Island.jsx:93–101`) and the wallpaper overlay (`components/WallpaperModeOverlay.jsx:57`); both listen only to `darkModeChanged` (`Island.jsx:358`, `WallpaperModeOverlay.jsx:39`). Night in deep rest means quiet hours only (`hooks/useTiefeRuhe.js:53`); `istAutoDunkel()` is exported with no consumer (`utils/autoHelligkeit.js:92`). At night the clock gets a warmer tone under a deeper overlay (`components/BentoZenView.css:504`); the wallpaper stays visible, and the photo frame changes pictures all night because it does not read `nacht` (`utils/fotorahmen.js:128`). The curtain covers only the card (`BentoZenView.css:57–59`); the wallpaper lives in HA's view background, and `applyFullscreenWallpaper` always writes a `url()` (`utils/viewWallpaper.js:129`). The clock is fixed at 82 px (68 px on the phone), weight 500 (`BentoZenView.css:136–137`, `:419`), and nothing handles portrait panels (0 hits). The ocean widget holds pure weather and sun mappings and a sky palette (`components/bento/widgets/ocean/oceanWeather.js:11`, `:68`, `:80`; `OceanFallback.jsx:13–34`, not exported).
+
+**What ships:**
+- **S1 — night by the house.** The dark mode gets two values: "like the sun" (`sun.sun` below the horizon) and "like Home Assistant" (`hass.themes.darkMode`). One function replaces both callers of `istNachtAuto`; a change arrives from the state stream and fires `darkModeChanged`. The default `auto` stays as it is. Night in deep rest becomes quiet hours **or** dark by the lux sensor, and the lux edge re-evaluates the night in `useTiefeRuhe`. Measure by day and by night (the veil trap).
+- **S2 — a background without `url()`.** `applyFullscreenWallpaper` gets a second form for a plain colour or a CSS gradient, with the same restore path (`viewWallpaper.js:136–138`, `applyWallpaperFromSettings` at `:172`). The wallpaper copy can bake gradients without an image (`backeOhneBild`, `utils/glasKopie/backen.js:401`).
+- **S3 — the night clock (opt-in).** Under `data-nacht`: the view background goes black through S2, the deep-rest overlay and the auto-dim overlay (`utils/autoHelligkeit.js:43`) go to zero, the clock takes a chosen night colour (default muted red), the photo frame pauses, and blocks follow a "hide at night" switch. Check side bar, bell and island button at night. On an LCD the backlight stays on; this is not display off (#106).
+- **S4 — a still sky (opt-in).** A source "Sky" next to "Folder" in the photo frame: every 10 minutes or on a weather change, a gradient from the weather state and the sun's elevation, swapped through the existing blend. No shader, no particles, no animation. Fallbacks: the last state, or a neutral overcast sky. The palette is exported, not copied.
+- **S5 — clock size and colour.** A size slider for the rest clock (a transform scale in deep rest, so the island's `offsetTop` measurement is untouched) and a clock colour. On a portrait panel, hours over minutes, the size taken from the panel height the height ladder already measures (`utils/hoehenLeiter.js:178–179`). Hands and flip faces only on demand later; no font files.
+- **Thermal rule:** a gradient is a static value, the sky changes at most every 10 minutes, the night clock is CSS.
+
+**Hook (verified):** `utils/zeitzone.js:556–559`; `components/Island.jsx:93–101`, `:358`; `components/WallpaperModeOverlay.jsx:39`, `:57`; `hooks/useTiefeRuhe.js:53`, `:80`; `utils/autoHelligkeit.js:43`, `:92`; `components/BentoZenView.css:57–59`, `:136–137`, `:419`, `:504`; `utils/fotorahmen.js:128`; `utils/viewWallpaper.js:113`, `:129`, `:136–138`, `:172`; `utils/glasKopie/backen.js:401`; `components/bento/widgets/ocean/oceanWeather.js:11`, `:68`, `:80`; `components/bento/widgets/ocean/OceanFallback.jsx:13–34`; `utils/hoehenLeiter.js:178–179`.
+
+**Effort:** Medium to large — S1 2–3 h, S2 2 h, S3 3–4 h, S4 3–4 h, S5 2–3 h. Bundle ≈ +2–3 KB.
+
+**Why it fits:** Night and day hang on two fixed clocks today. One background form without `url()` carries both the black night and the still sky.
+
+**Files (estimate):** `utils/zeitzone.js`, `components/Island.jsx`, `components/WallpaperModeOverlay.jsx`, `utils/viewWallpaper.js`, `utils/autoHelligkeit.js`, `hooks/useTiefeRuhe.js`, `utils/fotorahmen.js`, `utils/ruheHimmel.js` (new), `ocean/OceanFallback.jsx`, `components/BentoZenView.css`, appearance and screensaver settings, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 113. Lean deep rest — the card really sleeps under the curtain
+
+**Pitch:** Under the curtain the tiles stop rendering, and state changes stop costing work unless they can wake the tablet. Measured first, built second.
+
+**Status quo:** In deep rest, reconcile and the island tick drop to 30 s (`hooks/useDataProviderEvents.js:95–101`, `hooks/useIslandDaten.js:102`) and animations are gated. The tiles stay mounted at opacity 0; the rest view listens to `useEntities()` and a 1-s throttled hass (`components/BentoZenView.jsx:124`, `:197`); the flush throttle stays at 150 ms (`hooks/useEntityStream.js:148–154`). The stream subscribes to every `state_changed` with full old and new state (`:299`), and every event runs through the observers and the batch (`:281–296`). `content-visibility` was removed in v1.1.2482 because WebKit painted ghost cards (`styles/perceivedSpeed.css:48–50`).
+
+**What ships:**
+- **S0 — measure.** Render counts through `options.__r` and events per minute, on a real wall tablet, not in a hidden pane. On the check page (#117), "Listen for one minute" counts events per `entity_id` for 60 s on a tap and lists the ten loudest, with a jump to the exclusion filter. Local only, never in the copy text (#51's redaction rule). The hint says that an exclusion does not stop all work: known entities still pass the gates.
+- **S1 — the panel sleeps.** In deep rest, the tile panel unmounts or gets `display: none` behind a mount gate like the curtain's. The flush throttle goes to 5–10 s in `tief` and flushes at once on wake (`subscribeTief`, `utils/tiefeRuheStore.js:98–101`). Wake sources, lux and chronicle run before the batch (`useEntityStream.js:281–296`) and stay immediate. No `content-visibility`.
+- **S2 — a narrower subscription, only if S0 shows the lever.** In deep rest the full subscription gives way to `subscribe_entities` with an entity list: wake sources, doorbell, lux, screen entity, watches, danger entities, the timers that ring here (#102 S2), the command helper (#114 S3), the lock entity (#115 S2) and a quiet-hours entity (addendum to #3). On wake: back to the full subscription, one reconcile, the chronicle refilled from the logbook. Check the parameters against HA core first. HA's own frontend keeps its own subscription in the same browser, so only the card's share is saved.
+- **Rule:** blocks that show fresh values in rest (#111) declare their entities, which join the narrow list.
+
+**Hook (verified):** `hooks/useDataProviderEvents.js:95–101`; `hooks/useIslandDaten.js:102`; `components/BentoZenView.jsx:124`, `:197`; `hooks/useEntityStream.js:136`, `:148–154`, `:281–296`, `:299`; `styles/perceivedSpeed.css:48–50`; `utils/tiefeRuheStore.js:98–101`.
+
+**Effort:** Medium — S0 2–3 h, S1 3–4 h, S2 5–6 h. Bundle ≈ +1 KB.
+
+**Why it fits:** "Zero long-runners in rest" covers timers. This is the remaining per-event cost on a resting wall tablet, and it starts with a measurement, as every thermal round did.
+
+**Files (estimate):** `components/BentoZenView.jsx`, `hooks/useEntityStream.js`, `utils/stromZaehler.js` (new, S0), the check page of #117, `utils/hausChronikStore.js` (S2 refill), `de.js`/`en.js`.
+
+---
+
+### 114. Automations reach one tablet
+
+**Pitch:** An automation shows the front-door camera on the hallway tablet for 30 seconds, sends a notification to the kitchen tablet only, or puts all tablets to sleep. Home Assistant's own notifications show their bold text and links instead of raw asterisks.
+
+**Status quo:** Home Assistant cannot address the card; it is no entity. The state stream sees every `state_changed` without admin rights (`hooks/useEntityStream.js:299`), and the wake sources show the cheap-gate pattern (`utils/weckquellen.js:56`). `fsc-open-entity` and the deep-link guest open any entity Home Assistant knows and no exclusion pattern hides (`providers/entityZulassung.js:98–109`). Persistent notifications arrive with their `notification_id` (`utils/persistentNotificationStore.js:15`, `:53`) and become an id `pn:…` (`providers/dataNotifications.js:80`); no prefix is read. The center and the message card show `n.message` raw (`system-entities/entities/notifications/NotificationsView.jsx:387`, `system-entities/entities/notifications/components/MeldungsKarte.jsx:61–63`). A safe markdown parser has three consumers (`utils/miniMarkdown.js:101`); it allows only `http`, `https`, `mailto` and anchors (`:48`) and opens links in a new tab (`:89–90`); `_` triggers nothing, so entity ids stay intact. Sleep and wake scripts get no variables (`utils/displayUebergabe.js:55`, `:62`).
+
+**What ships:**
+- **S1 — notification text renders.** Center and message card run `message` through `miniMarkdown` in an inline variant. Relative HA paths such as `/config/…` become taps that navigate inside HA instead of opening a tab.
+- **S2 — addressing by id.** A documented naming rule for `notification_id`: `fsc_<tablet>_<level>_<id>`, for example `fsc_kueche_kritisch_waschmaschine`. Only the named tablet (its name from #108) shows it, in the named level; the others keep it in their history. Without the prefix everything stays as it is. The text is untouched, so HA's own bell shows a normal notification — to every user, the limit that kept the tablet call out of this pass; the prefix only steers the card. The filter sits before the merger.
+- **S3 — the command helper.** An optional `input_text` per tablet; an automation writes `kueche|zeige|camera.haustuer|30`. Each instance checks the target (its name or `alle`) and a verb from a fixed list: `wecken`, `schlafen`, `wach` (a hold reason of #103, with a cap), `neu_laden`, `zeige <entity> <s>` (opens the detail with a hold reason, then goes back), `seite <system view>`. No service calls, no URLs, no risky domains; the tap rule is untouched. A command counts only if `last_changed` is under 60 s old, so a reload replays nothing. `input_text` reports no change for an equal value, so the contract asks for a counter field or for the automation to clear the helper; 255 characters at most. The user creates the helper, never the card.
+- **S4 — the other direction.** Sleep and wake scripts get `variables`: `quelle` (motion, doorbell, critical, gesture) and `geraet` (the tablet's name). `weckeLeerlauf` already knows the source (`utils/leerlaufStore.js:91–94`); `subscribeTief` has to pass it on to the handoff (`displayUebergabe.js:66–79`).
+- **Honesty rule:** all of this acts only while a card instance is open on that tablet.
+
+**Hook (verified):** `hooks/useEntityStream.js:281–296`, `:299`; `utils/weckquellen.js:56`; `utils/leerlaufStore.js:91–94`; `providers/entityZulassung.js:98–109`; `utils/persistentNotificationStore.js:15`, `:53`; `providers/dataNotifications.js:80`, `:87`; `system-entities/entities/notifications/NotificationsView.jsx:387`; `system-entities/entities/notifications/components/MeldungsKarte.jsx:61–63`; `utils/miniMarkdown.js:48`, `:80–90`, `:101`; `utils/displayUebergabe.js:55`, `:62`, `:66–79`; `utils/kioskMode.js:235` (HA's own navigation fires `location-changed`).
+
+**Effort:** Medium — S1 2 h, S2 2–3 h, S3 4–5 h, S4 1–2 h. Bundle ≈ +2 KB.
+
+**Why it fits:** The card has no back channel and needs none: the state stream and the notification subscription it already holds carry a small, fixed vocabulary.
+
+**Files (estimate):** `utils/befehlHelfer.js` (new), `hooks/useEntityStream.js`, `providers/dataNotifications.js`, `utils/miniMarkdown.js`, `NotificationsView.jsx`, `MeldungsKarte.jsx`, `utils/displayUebergabe.js`, `utils/tiefeRuheStore.js`, This-tablet settings (#108), `de.js`/`en.js`, info-popup catalog, a short doc page with the naming rule.
+
+---
+
+### 115. The lock, stage two — a cleaning shield, a lock that follows HA, an allow list
+
+**Pitch:** "Shield for 60 s" lets you wipe the screen: the page stays visible and current, and every touch lands on the shield. An automation locks the tablet in the evening and unlocks it in the morning. While locked, calendar, tasks and light stay usable, and settings ask for the PIN.
+
+**Status quo:** Both body overlays let every touch through (`utils/tiefeRuheStore.js:25–46`, `utils/autoHelligkeit.js:42`); no catching overlay exists. #85 (a PIN before settings and reset) is not built (0 hits for its modules) and announces a way out for a forgotten PIN without naming one. The side bar renders its configured list with no lock (`components/SearchSidebar.jsx:95–106`, `:362–385`). The card deliberately does not block the context menu globally (`utils/kioskMode.js:201–203`).
+
+**What ships:**
+- **S1 — the cleaning shield (no #85 needed).** An entry in the side bar's ⋮ window: shield for 30 s, 60 s or until released. A transparent overlay on `body` catches all pointers while the card runs on below; a tap shows the remaining time; five quick taps release it, or the PIN window once #85 exists. One `setTimeout` for the end, nothing else. The shield does not re-arm the idle clocks on every tap. #102 S2 uses the same element. Stated limit: it covers the page, not the system bars of the tablet.
+- **S2 — the lock follows an entity (with #85).** "Lock follows: [input_boolean · switch · alarm_control_panel]", armed meaning locked. A cheap gate on the state stream, as the wake sources use (`utils/weckquellen.js:56`), no timer, no service call. When the entity goes off, the lock and its PIN prompt go too. This is #85's way out: switch the helper from the phone. Without an entity, #85's own way out stays. The schedule lives in HA; #7 stays untouched.
+- **S3 — an allow list (with #85).** While locked, a positive list of side-bar entries and device domains (calendar, tasks, lights; music once #140 S1 gives it an entry, D16). What is not allowed stays visible, dimmed with a lock, and asks for the PIN. The gate sits at the mount, as in #85, so search and jumps cannot bypass it. Reset and cache are never allowed. The tap-rule domains follow the same list. While locked, long-press menu and text selection are off on the card root. Stated limit: search reaches devices without the side bar; this is a guard against slips, not security.
+
+**Hook (verified):** `utils/tiefeRuheStore.js:25–46`; `utils/autoHelligkeit.js:42`; `components/SearchSidebar.jsx:95–106`, `:362–385`; `utils/kioskMode.js:201–203`; `utils/weckquellen.js:56`; `utils/leerlaufStore.js:62`.
+
+**Effort:** Small, then Medium — S1 2–3 h; after #85: S2 2 h, S3 4–5 h. Bundle ≈ +1.5 KB.
+
+**Why it fits:** S1 is a household chore the card can solve alone. S2 gives #85 the way out it announced. S3 is the step from "settings locked" to "a tablet children can use".
+
+**Files (estimate):** `utils/schild.js` (new), `components/SearchSidebar.jsx`, `utils/tabletSperre.js` (#85), `components/common/PinFenster.jsx` (#85), `components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx`, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 116. Old and small devices — a performance level and a rung for 480-pixel panels
+
+**Pitch:** On a slow tablet the card can switch to "Lean": no depth transition, no animated icons, no ocean, cheaper edges. A 960 × 480 panel gets a layout that fits instead of a panel cut off at the bottom.
+
+**Status quo:** Only the ocean widget regulates itself. The animation gate knows decor, deep rest and reduced motion (`utils/animationsTor.js:26–34`); several overlays read reduced motion themselves (`utils/depthTransition.js:74`, `utils/tiefeRuheStore.js:41`, `utils/autoHelligkeit.js:45`). 18 CSS lines and 22 JS/JSX lines query reduced motion, 70 places use `mask-image`. No hardware probe exists (0 hits for `hardwareConcurrency` and `deviceMemory`). The height ladder (`utils/hoehenLeiter.js:58–66`): at 960 × 480 without HA's header the budget is 480 − 12 − 56 = 412 (`:52–53`, `:178–179`; the narrow window keeps the 56-px band), which gives the rung "abwerfen" with a 312-px grid. Search and detail panels still hold `PANEL_MIN` 436 (`:51`), which with the band is 492 px, past the screen edge; with HA's header 68 px are missing. 800 × 480 lands in the desktop path too (`utils/isMobileStore.js:21`, breakpoint 768).
+
+**What ships:**
+- **S1 — the hand choice.** "Performance: Full · Lean · Minimal" under Appearance, as `data-leistung` on the card root (in the PurgeCSS safelist). Lean switches off through existing exits: the depth transition becomes a fade, animated icons go through `animationsTor`, gauge and hero autoplay through `useAutoplayErlaubt`, the ocean shows its fallback, the wallpaper copy runs dense, and the costliest `mask-image` edges go. Minimal adds no ocean and no video backgrounds. The JS queries take the level as a fourth bit of the gate; the CSS gets one `[data-leistung]` selector next to the `@media` blocks where it matters. No PostCSS copy step (`postcss.config.cjs` is not in git); measure the growth.
+- **S2 — automatic, later and only as a suggestion.** One probe per start: `hardwareConcurrency`, the start time from the perf marks, long tasks in the first 30 s; never in a hidden tab, where rAF is dead. The result is a line "This device looks slow — switch to Lean?". The hand choice always wins.
+- **S3 — the rung "winzig".** Below a budget of 436: panels follow the budget, the head goes to one line, Zen shows W1 plus values. Measure at 800 × 480, 960 × 480 and 1024 × 600, each also with app zoom. The new rung joins the safelist.
+- The text scale for the wall stays #3b E7.
+
+**Hook (verified):** `utils/animationsTor.js:26–34`; `hooks/useAutoplayErlaubt.js`; `utils/depthTransition.js:74`; `utils/tiefeRuheStore.js:41`; `utils/autoHelligkeit.js:45`; `utils/hoehenLeiter.js:51–53`, `:58–66`, `:178–179`; `utils/isMobileStore.js:21`.
+
+**Effort:** Large — S1 6–8 h, S2 3–4 h, S3 6–8 h. Bundle ≈ +1–2 KB for S1; S3 to be measured.
+
+**Why it fits:** Wall tablets are often old and small. The card already has the exits; it lacks the switch and the lowest rung.
+
+**Files (estimate):** `utils/leistungsStufe.js` (new), `utils/animationsTor.js`, `hooks/useAutoplayErlaubt.js`, `utils/depthTransition.js`, `utils/hoehenLeiter.js`, `components/tabs/SettingsTab/components/AppearanceSettingsTab.jsx`, the CSS files with the costliest rules, `scripts/check-purgecss-dynamic.py` (safelist), register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 117. The tablet's check — what this device can do right now
+
+**Pitch:** A page "Tablet check" under About (name, room and setup stay in #108's "This tablet" section under General) lists each precondition with its purpose and status: secure connection (for the microphone), sound unlocked (for timer and critical tone), microphone permission, dictation path, AI task, admin right, screen entity reachable. A block on top names what needs attention.
+
+**Status quo:** The critical tone reports success even while the browser blocks sound (`utils/kritischTon.js:48–53`); #3b E2 asked for a visible "sound is blocked" note, which is not in the code. A dictation path probe exists (`utils/diktat.js:55`), and since v1.1.2508 a switch for the microphone. The card never reads `hass.user.is_admin` (0 hits); `hass.user` serves only the name (`components/BentoZenView.jsx:401`) and the id behind "by you" in the chronicle (`system-entities/entities/notifications/NotificationsView.jsx:167`). The error boundary heals throws in the running tree only (`components/common/Fehlergrenze.jsx`). #51's remainder names a capability line and "why is entity X missing?". The version watcher (`utils/versionWaechter.js:115`), the orphan check of #76 S1 and the error boundary each know something the household never sees in one place.
+
+**What ships:**
+- **S1 — the readiness list.** Lines with Ready · Missing (an active feature needs it) · Not needed, each with one sentence of help and a button where one helps: "Test sound" (which also unlocks it), "Ask for microphone". Probes run only when the page opens, no tick. It reads `isSecureContext`, the AudioContext state (a getter in `kritischTon.js`, whose context is private today, `:12–23`), the Permissions API where present, `diktatVerfuegbar` and the dictation switch, `ai_task` and STT presence in `hass.services`, `hass.user.is_admin`, and the state of the chosen screen, lux and doorbell entities.
+- **S2 — needs attention.** On top: stale code, orphaned settings (#76 S1 once built), a chosen key entity `unavailable`, an empty photo-frame folder, a caught error boundary, sound still blocked. Each line jumps to its setting (`useSprungMarkierung`). E2's "sound is blocked, tap once" note shows here and in the center.
+- **S3 — why now.** The current rest stage, the next stage and when, the last waking source with its time, the last lux value, "connected since" (#104), and the noisiest entities once #113 S0 exists.
+- **#51's capability line** folds into S1 (`:has()`, WebGL, `color-mix`, secure context, engine version), counts and capabilities only, no names. "Why is entity X missing?" stays #51.
+- **Restricted user:** with `is_admin` false, a line names what is unavailable for that reason, and the card does not retry admin-only calls.
+- Not built: a "safe start" after three failed starts. A card has no restart counter of its own; a reload by hand is the only start it sees.
+
+**Hook (verified):** `utils/kritischTon.js:7–10`, `:12–23`, `:48–53`; `utils/diktat.js:55`; `components/BentoZenView.jsx:401`; `components/common/Fehlergrenze.jsx`; `utils/versionWaechter.js:115`; `components/tabs/SettingsTab/suche/useSprungMarkierung.js`; `components/tabs/SettingsTab/components/AboutSettingsTab.jsx`; `components/tabs/SettingsTab/components/ToastSettingsTab.jsx:192`.
+
+**Effort:** Medium — S1 4–5 h, S2 3–4 h, S3 2–3 h. Bundle ≈ +2–3 KB.
+
+**Why it fits:** Most questions about a wall tablet are "why is it silent" and "why no microphone". The answers are all in the browser and in HA, and the page asks only when it is opened.
+
+**Files (estimate):** `components/tabs/SettingsTab/components/TabletCheckSeite.jsx` (new), `utils/faehigkeiten.js` (new), `utils/kritischTon.js`, `AboutSettingsTab.jsx`, the notification center (E2 note), register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 118. AI mode and dictation — saved questions, appointments by tap, a microphone that shows it hears
+
+**Pitch:** "Are all windows closed?" becomes a button of your own, and the answer shows the windows as live rows. "Dentist Thursday 3 pm" in AI mode proposes an appointment card that you confirm. While you dictate, a bar follows your voice and says "Too quiet" when nothing arrives.
+
+**Status quo:** AI mode offers three fixed suggestions (`components/ai/AIModeInterface.jsx:204`). The answer is text plus actions (`utils/kiAktionen.js:475`, JSON shape at `utils/kiKontext.js:257`); entities named in an answer are not shown live. The allow list knows no calendar, to-do or timer (`kiAktionen.js:51–108`), and the check refuses a service whose domain differs from the entity's (`:330`). Calendars and timers usually have no room and fall out of the list sent (`hatRaum`, `kiKontext.js:46–51`). Calendar update and delete are WebSocket commands, not services (`system-entities/entities/calendar/index.jsx:245`, `:296`). Dictation asks for 16 kHz and reports a fixed 16 000 to the pipeline without checking the real rate (`utils/diktat.js:24`, `:137`, `:169`). It handles `run-start`, `stt-end`, `error` and `run-end` only (`:150–162`) and gives no feedback while listening besides the blue button.
+
+**What ships:**
+- **S1 — saved questions.** Your own questions replace the three fixed suggestions; a tap asks at once. This is the AI-mode half of #31's saved prompts; #31's per-entity prompts with structured output stay there. Every tap costs one model call, and the info says so. No schedule (#13 stays dropped), no tile.
+- **S2 — live rows under the answer.** The answer JSON gets an optional `show` with entity ids. Each id is checked against the list that was sent, exactly as actions are, and shown as a small live row; a tap opens the detail (`fsc-open-entity`). `show` goes into the stored history under the same fingerprint rule (`utils/kiStore.js:72`, `:81–92`, `:186`).
+- **S3 — appointments and timers by tap.** An action type of its own, not a service on the allow list: "create appointment", and "start timer" once #82 exists. Always with the tap rule and a preview card (title, day, person, calendar). The context gets the calendar people and the writable calendars, nothing else. The card computes the date, not the model. Moving and cancelling come later, because they need events in the context, which widens what is sent; `docs/SECURITY.md` ("What is sent") changes with each step. After saving, the jump and ring of #109 S3.
+- **S4 — dictation shows it hears.** While recording, and only then, the level per block from the samples already in hand (`diktat.js:137–146`) drives a `scaleX` bar on the button, at most 8 changes per second. `stt-vad-start` → "Listening", `stt-vad-end` → "Processing". About 3 s below 0.005 → "Too quiet"; only zeros → "Microphone delivers nothing". The pipeline gets the real `ctx.sampleRate`, since HA resamples (per the upstream check of this pass), with a fallback to the default rate when a 16-kHz context fails.
+- Not built: sending on end of speech and reopening the microphone after a question. Both break the dictation contract: text is never submitted on its own, the microphone opens only from a visible tap (`diktat.js:18–20`).
+
+**Hook (verified):** `components/ai/AIModeInterface.jsx:204`; `utils/kiAktionen.js:51–108`, `:314–336`, `:475`; `utils/kiKontext.js:46–51`, `:219`, `:257`; `utils/kiStore.js:72`, `:327`; `system-entities/entities/calendar/index.jsx:222`, `:245`, `:296`; `utils/diktat.js:18–20`, `:24`, `:122`, `:137–146`, `:150–162`, `:169`; `hooks/useDiktat.js:6`, `:64–67`.
+
+**Effort:** Medium — S1 2–3 h, S2 3 h, S3 5–6 h, S4 2–3 h. Bundle ≈ +2–3 KB.
+
+**Why it fits:** AI mode already checks every id against what it sent; saved questions and live rows reuse that gate. The dictation fix is a correctness slice in a module that has two consumers since v1.1.2507.
+
+**Files (estimate):** `components/ai/AIModeInterface.jsx`, `utils/kiAktionen.js`, `utils/kiKontext.js`, `utils/kiStore.js`, `utils/kiTermin.js` (new, S3), `utils/diktat.js`, `hooks/useDiktat.js`, `SearchField/components/SearchInputSection.jsx`, `docs/SECURITY.md`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 119. The side bar — order by arrows, only what can act here, Home Assistant's own pages
+
+**Pitch:** Move side-bar entries up and down in the settings. An entry with nothing to do on this tablet hides itself and says why. Energy, History or Map from Home Assistant can be a side-bar entry or a search result.
+
+**Status quo:** The side-bar settings know switches only; the order is the order of activation, and drag-to-reorder is noted as future work (`components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx:11–14`, `:139`). Since v1.1.2505 and v1.1.2506 the order matters: six to eight dock slots and the ⋮ overflow. The side bar renders its list without checking whether an entry can act (`components/SearchSidebar.jsx:362–385`). In kiosk mode the card hides HA's header and sidebar and offers no way to HA's own pages (`hass.panels`, `pushState`: 0 hits); it only listens to `location-changed` (`utils/kioskMode.js:235`).
+
+**What ships:**
+- **S1 — arrows.** Up and down in the list; the saved order is already read (`SearchSidebar.jsx:95–106`). No drag, no gesture collision.
+- **S2 — hide what cannot act.** Entries without a basis (a calendar without calendars, schedules without the scheduler component) stay ticked but hidden, and the settings list names the reason. Home and a way to the settings are guaranteed. The same list feeds #115 S3.
+- **S3 — Home Assistant's pages.** Search finds HA's panels from `hass.panels` (energy, history, map, media, to-do, integration panels), optionally as side-bar entries; admin panels only for admins. The jump uses HA's own navigation (`history.pushState` plus `location-changed`, the event `kioskMode.js` already hears). The way back is the weak spot: without HA's header and sidebar only the back gesture leads to the card, so an entry is offered only when a way back exists, and the info popup says so.
+
+**Hook (verified):** `components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx:11–14`, `:139`, `:148`; `components/SearchSidebar.jsx:95–106`, `:362–385`; `components/tabs/SettingsTab/suche/vorgaben.js`; `utils/kioskMode.js:235`.
+
+**Effort:** Small to medium — S1 1–2 h, S2 2–3 h, S3 3–4 h. Bundle ≈ +1 KB.
+
+**Why it fits:** The dock made order and space matter, and a wall tablet in kiosk mode otherwise strands the household on one page.
+
+**Files (estimate):** `SidebarItemsSettingsTab.jsx`, `components/SearchSidebar.jsx`, `utils/haSeiten.js` (new, S3), `hooks/useFuzzySearch.js` (S3), `suche/vorgaben.js`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+**Addenda from the same pass**
+
+- **#33 — `location-changed`, not only `hashchange`.** HA's own `navigate()` uses `pushState` or `replaceState` and fires `location-changed`; no `hashchange` comes with it (per the upstream check of this pass). A dashboard button with `action: navigate` never reaches a `hashchange` listener, and `action: url` opens a new window. "Card emits hashchange events" should read: the card listens to `location-changed` as well, which `utils/kioskMode.js:235` already hears. Whether Lovelace navigation keeps a hash at all is unchecked and must be settled before #33.
+- **#49 and #63 — the brightness entity type.** The kiosk integration #49 names has no `light` platform in HA core: screen on and off is a switch, screen brightness a `number` from 0 to 255 (per the upstream check of this pass). #49's "a light entity that does screen on/off and brightness in one" and #63's "screen light entity" should read "screen switch" and "brightness number". The handoff picker already lists switches (`utils/displayUebergabe.js:91`); #110 maps onto the number's own min and max.
+- **#63 — one more line for its info popup:** on some Fire OS 8 tablets the panel goes off again seconds after a wake through the screen entity, with no signal to the card (#104 S2).
+- **D10 — what one answer decides, and who sees it.** The answer decides six ideas of this pass: the deviation row, the urgent line and the day-plan face (#111 S2–S4), the photo caption (#107 S5), and with them status and context line. Add to the options: whatever stands in rest is shown to guests too — titles only from chosen calendars, or counts without titles. Its side note on a photo server as a source of its own is answered by #107 S2, through HA's media source and with no key in the card.
+- **#3b E2 — marked shipped, two parts missing.** The re-arm on the first tap after a reload has no listener (the AudioContext is created only at the first tone, `utils/kritischTon.js:18–23`), and the "sound is blocked, tap once to enable" note was never built; `spieleKritischTon()` returns true while the context is still suspended (`utils/kritischTon.js:48–53`). The note lands in #117 S2 and the center.
+- **#12 — strike the wake-word part.** A browser card cannot hold a microphone open in rest: the heat rule forbids it, the permission belongs to a visible tap, and there is no microphone without a secure context. The wake word belongs on a satellite or the kiosk app; the card only shows.
+- **#72 — a fifth truth in the evening:** "Alarm tomorrow 6:30", only when an alarm comes within 24 h. Found as `sensor.*` with `device_class: timestamp` and the ending `next_alarm` (the companion app's sensor and comparable kiosk-app sensors), read from `hass.states`, mapped to a person through their phone where that is unambiguous; the evening hour from `utils/reminderSources.js:34`. Also a block of #111 S2.
+- **#75 S1 — a reading stage instead of a lift.** For appointment reminders, the reading stage of #105 S5 is the better answer than lifting a stage; decide both together.
+- **#82 — the end and the name.** What happens when a timer ends, and a named timer from the search line, are #102; #82 keeps the controls.
+- **#84 — one more kind:** "should charge, does not" — a chosen battery sensor below its threshold while the charging sensor of the same device reads off. Battery thresholds exist as watches already (`utils/watchSuggestions.js:29–31`).
+- **#85 — the announced way out** for a forgotten PIN is #115 S2: the lock follows an HA entity, switched from the phone.
+- **#4 — two slices for the full-frame camera view, once it exists.** Pinch to zoom and pan on still or stream (transform only, clamped at the edges, a double tap resets, the back swipe belongs to panning while zoomed). A sound button on the WebRTC stream, which is muted today (`components/controls/WebRtcHeroStream.jsx:37`), muted again on leaving. Not called a baby monitor: a browser card fails silently. Keeping the view open runs through a hold reason of #103 with a cap, stated as deliberate load.
+- **D8 — a third option.** A still-image wall: on open, one snapshot per camera with a width; afterwards only the tile whose motion sensor on the same device reports an edge is fetched again; each tile shows its age; a tap goes live for that camera only. No poller, so the v1.1.2152 heat objection does not apply. Cameras without a motion sensor stay at their opening state.
+- **D5 — a new argument.** Some fields are bound to one device (room, name, screen entity, brightness entity, the end time of a manual hold, and this tablet's speaker of #138 S1) and must never travel in a shared settings package.
+- **#21 — HA's own state words.** Tile states and the chronicle could use `hass.formatEntityState` where the card's language equals the HA profile language, with the card's word list as fallback (0 hits today). Start with the chronicle. No bundle saving planned; search needs the words anyway.
+- **#22 — requirements input (not music).** Entities for the tablet's own state that HA can read (resting, held, display stage, connection); a timer that rings on the tablet with no card open; a list of satellite voice timers, which HA keeps without entities; a call to one tablet and its answer without a persistent notification in everyone's bell; events from the card (call answered, alarm acknowledged), which need admin rights or a server part.
+- **D15 — a new open decision:** whether the card may use a kiosk app's JavaScript bridge. See the table under "Open decisions".
+
+---
+
+## Part sixteen — 2026-11-02 charts and schedules (#120–#127)
+
+Eight entries and six addenda (a worked one to #3, short ones to #59, #21, #96, D3 and #22) from reading two cards against the code at v1.1.2509: a large statistics chart card and a small card for Home Assistant's schedule helper. Ideas only, nothing taken from their code or wording. Both comparisons turned up repairs in the card's own code, and those come first in each group.
+
+**Charts (#120–#124).** Five entries from reading a large statistics chart card for Home Assistant against the chart pipeline at v1.1.2509: its documentation, its releases, its issue tracker and its data layer. Ideas only, nothing taken from its code or its wording. Most of that card is dashboard-builder surface: a dozen chart modes, zoom, sync between cards, templates and hundreds of options. None of that fits a configuration-free touch card. What carries over is how it treats data: attribute history needs every update, statistics rows already carry min, max and change, a running period is compared only with the same part of the last one, and an outage is a gap. Reading this card's chart code next to it turned up the repairs in #120 and #121, which come first. Not taken: extra chart modes, heat maps and zoom (each a new renderer or plugin, and the gesture budget is spent), templates and value scripts (against #3, #54 and D9), cost views (#6 dropped), mini graphs on tiles (#26 retired), export, a comfort band built from the card's text thresholds, number formatting for the charts alone (a card-wide #21 question), weather attributes as chips, price and forecast arrays read from attributes, and moving the history call from REST to the WebSocket. Two wishes that need the server went to #22 as requirements input: long-term statistics for attributes, and on-time statistics for on/off entities.
+
+**Schedules (#125–#127).** Three entries and one addendum from reading a small single-purpose card against the code at v1.1.2509. That card shows Home Assistant's built-in schedule helper in three ways: on or off, the next switch with a countdown, and a band of on-blocks over up to seven days. Ideas only, nothing taken from its code. The comparison turned up two things in the card itself: it does not know the schedule helper at all, and its scheduler editor loses data on ordinary saves. What follows works over Home Assistant's standard APIs and the scheduler integration the card already talks to. Not taken: the source's poll every few minutes and its half-minute render timer, replaced by state changes and the shared minute tick; hover tooltips, replaced by a tap; per-card colours, a manual hour window and a visual card editor, because the card is configured in its own settings; schedule blocks inside the calendar views, where they would bury the family's events; a countdown in seconds, which needs a one-second runner; a week band for one device's scheduler plans, which would have to guess sun offsets and the workday sensor on other days; editing the helper's blocks from the card, which needs an admin user that wall tablets rarely run; binding a helper to a device, which is requirements input for #22.
+
+---
+
+### 120. Charts tell the truth — four repairs
+
+**Pitch:** These are fixes, not features. Today a history chart can show a wrong number in four places: a big 0.00 above a chart full of values, a dimmed lamp that never seems to dim, a kWh helper drawn as its meter reading, and an energy view that labels Wh as kWh.
+
+**Status quo:**
+1. Every numeric entity without a `state_class` is sent as `measurement` (`utils/entityChartConfig.js:49`). The headline asks for long-term statistics and gets an empty answer. It then returns 0 (`services/sensorStatistics.js:514–516`) before it reaches the branch that shows the current state (`:526–531`). The chart beside it falls back to history (`:787–797`) and shows real values. This hits `number`, `input_number` and `counter` entities, template sensors without a state class, and new sensors whose statistics are not built yet. The comment at `components/charts/ChartsHistoryView.jsx:269–273` expects the history path for these. Headline and chart also fetch separately (`components/charts/SensorChartView.jsx:155–169`, `:174–206`). On the history path that is the same call twice (`sensorStatistics.js:457`, `:297`). Counters add two baseline calls (`:544`, `:780`). The headline is read once and goes stale while the view is open.
+2. Attribute charts use the REST history call with Home Assistant's default significance filter (`sensorStatistics.js:69–72`). For light, fan and cover the filter drops rows where only an attribute changed, because these are not among the recorder's significant domains. Dimming or a speed change while the device stays on never reaches the chart. The chart shows only the value at each state change. Climate, humidifier and water heater are not affected: under the filter the recorder does not select `last_changed`, so the time on each row is its update time.
+3. `shouldUseStatistics` knows only `measurement` and `total_increasing` (`sensorStatistics.js:277–281`). A sensor with `state_class: total` takes the history path and is drawn as bucket means of its meter reading. The most common case is the Riemann-sum integration helper that turns watts into kWh, because Home Assistant sets `total` there. Net-consumption utility meters are another. Plain utility meters are `total_increasing` and are fine. The unit list (`:247–256`) misses MJ, GJ, TWh, mL and CCF.
+4. The energy view reads the statistics metadata as an object keyed by id (`system-entities/entities/integration/device-entities/components/EnergyChartsView.jsx:59`). Home Assistant returns a list with `statistics_unit_of_measurement`, so the unit is always the 'kWh' fallback. Its period energy is a difference of `state` values (`:268–270`). The history fallback in `fetchStatistics` (`system-entities/entities/integration/device-entities/energyDashboardCalculations.js:256–292`) reads the compressed `lu` time in seconds as milliseconds (`:84`) and multiplies the value by 1000 (`:92`). It only runs when the statistics call throws. When it does run, every row is dated 1970.
+
+**What ships:**
+- **S1 — one answer, one headline.** The headline comes from the chart's answer. A counter shows the sum of its buckets. A measurement sensor shows the current state for the running period and the last value for a past one. Empty statistics no longer give 0.00. The second fetch goes. Counters read `change` from the rows they already get: the call sends no `types`, so Home Assistant includes `change`, computed against the sum before the window. The baseline fetch goes too. While the view is open, the running headline follows `hass.states`, without the spring animation on live updates. The two-bar year chart for counters keeps its current-year bar as the headline.
+- **S2 — dimming is history too.** Attribute series of light, fan and cover add `significant_changes_only=0`, which is a REST parameter. They also take `last_updated` before `last_changed` (`:98`). The two changes belong together. Without the filter the recorder includes the real `last_changed`, and for an attribute-only row that is the last time the state changed.
+- **S3 — `total` counts as a counter.** A `total` sensor with an energy or volume unit takes the counter path, as `total_increasing` does, including the year special case (`:740`). The unit list gets the missing units. Net meters can go negative, so `total` is not clamped to 0 (`:815`).
+- **S4 — tidy the energy side.** Remove the history fallback in `fetchStatistics` and rethrow instead; the callers already catch. `aggregateHistory` (`:73–107`) and `naechsteBucketGrenze` (`:52`) have no other caller and go with it. Removing the fallback stands either way, because `fetchStatistics` is shared. Only if D3 keeps the energy view: read the unit from the metadata list entry, and take period energy from the summed `change`.
+- **Honesty rule:** S2 changes the light charts everyone sees. Check one dimmable light against Home Assistant's own history before release.
+
+**Hook (verified):** `utils/entityChartConfig.js:49`; `services/sensorStatistics.js:69–72`, `:98`, `:247–256`, `:277–281`, `:297`, `:363–384`, `:457`, `:514–516`, `:526–531`, `:544`, `:740`, `:780`, `:787–797`, `:815`; `components/charts/SensorChartView.jsx:139–150`, `:155–169`, `:174–206`; `components/charts/ChartsHistoryView.jsx:269–273`; `energyDashboardCalculations.js:52`, `:73–107`, `:246–252`, `:256–292`; `EnergyChartsView.jsx:50–65`, `:268–270`.
+
+**Effort:** Medium — 5–6 h in four small slices (S1 2 h, S2 1 h, S3 1–2 h, S4 1 h). Bundle about ±0 KB: S4 deletes about 0.5 KB, S1 deletes the baseline fetch, S2 and S3 add about 0.2 KB.
+
+**Why it fits:** People read a wall tablet; they don't debug it. A big 0.00 above a full chart makes every other number on the screen suspect. Like #69, these are repairs without a design question.
+
+**Files (estimate):** `services/sensorStatistics.js`, `components/charts/SensorChartView.jsx`, `utils/entityChartConfig.js`, `energyDashboardCalculations.js`, `EnergyChartsView.jsx`.
+
+---
+
+### 121. The running period at full width, and a fair "so far"
+
+**Pitch:** At 10:00 the day chart keeps all its hours: the morning is drawn, the rest is empty, and a quiet line marks now. Yesterday's ghost runs to midnight. The header says "−4 % so far vs. yesterday" and compares today until 10:00 with yesterday until 10:00.
+
+**Status quo:**
+- The statistics path builds its labels from the rows it gets back (`services/sensorStatistics.js:799–823`). At 10:00, ten hourly rows fill the whole width. An hour without a row drops off the axis and leaves no gap.
+- The history path does the opposite. It fills every hour, day and month of the period with the last value, into the future (`:212–237`). It draws the time before the first value as 0 (`:199`). v1.1.2448 stopped this for picked ranges only (`:866–870`).
+- The ghost has 24 values but only ten labels (`components/charts/SensorChartView.jsx:300–303`), so yesterday's afternoon is cut off.
+- The delta sums or averages all buckets of both periods (`SensorChartView.jsx:345–366`). For a kWh meter at 10:00 that is ten hours against 24, about −60 % every morning. For a measurement sensor it compares a morning mean with a whole-day mean. The v1.1.2373 probe already wrote "partial day" next to its result.
+- `unavailable` rows are skipped (`sensorStatistics.js:94`) and the carried value bridges the gap (`:193–200`). History buckets average per sample (`:195`), while Home Assistant's statistics are time-weighted.
+
+**What ships:**
+- **S1 — slots.** Both paths use one slot list per period: the hours of the day (23, 24 or 25), the days of the week or month, the months of the year. Each period keeps the zone it already uses. The history path already builds this list (`:212–237`); the statistics path maps its rows onto it by `start`. Slots after now stay empty, and so does the time before the first value. History slots use a time-weighted mean, like the statistics. A static now line is drawn once, with no animation. `spanGaps` stays off. The tooltip and axis callbacks get a null guard (`energyChartConfigs.js:297`, `:323–325`).
+- **S2 — a fair delta.** The delta uses only the slots the current period has filled, and the same slots of the previous period. It counts up to the last filled slot, not to now, because the statistics row for the running hour is only written once the hour has ended. While the period runs, the label says "so far". The ghost keeps its full length and is aligned by slot key, not by index.
+- **S3 — outages are gaps.** `unavailable` rows stay as markers. A slot is empty when the sensor was unavailable for most of it. Silence is not an outage: a setpoint held for hours keeps its line.
+- **S4 — the base of the comparison (optional).** A choice next to the switch: the previous period, or for the day view the same weekday last week, and for week, month and year the same period a year earlier. The ghost's tooltip names its own date. The choice is stored per sensor, with the switch (`utils/chartVergleich.js`).
+- **One rule:** the two-bar year chart for counters (`sensorStatistics.js:740–742`) stays as it is.
+
+**Hook (verified):** `services/sensorStatistics.js:94`, `:186–240`, `:740–742`, `:799–823`, `:866–870`; `components/charts/SensorChartView.jsx:222–224`, `:297–327`, `:345–366`, `:373–387`; `system-entities/entities/integration/device-entities/components/energyChartConfigs.js:232`, `:297`, `:323–325`; `energyDashboardCalculations.js:144–227` (`calculatePeriodDates`); `components/charts/ChartPeriodHeader.jsx:194–210` (the switch lives in the calendar).
+
+**Effort:** Medium — 6–9 h (S1 3 h, S2 2 h, S3 1–2 h, S4 2 h). Bundle about +0.7 KB.
+
+**Why it fits:** The comparison is the only analysis the charts offer, and every morning it is wrong. This corrects #59 rather than adding to it.
+
+**Files (estimate):** `services/sensorStatistics.js`, `components/charts/SensorChartView.jsx`, `energyChartConfigs.js`, `components/charts/ChartDatePopover.jsx` and `utils/chartVergleich.js` (S4), `de.js`/`en.js`.
+
+---
+
+### 122. How long was it on — a band for on/off entities
+
+**Pitch:** A switch, a lamp, a window contact or a lock gets a coloured band across the day: "on 3 h 12 min · 13 %". The week view shows seven slices with each day's share. A thermostat chart shows the hours the heating actually ran as a soft band under the temperature line.
+
+**Status quo:** On/off entities get no chart. Their history opens on the logbook list (`utils/entityChartConfig.js:154–156`, `:165`; `components/charts/ChartsHistoryView.jsx:280–284`). Nothing in the card shows a duration or a share of time. A thermostat's history has two chips, current and target temperature, each with its own fetch and shown one at a time (`utils/entityChartConfig.js:55–75`). `hvac_action` is read for the live strip (`utils/liveActivitySources.js:206`), never for history.
+
+**What ships:**
+- **S1 — the band for day and week.** One history call per window, with `minimal_response` and `no_attributes`. The segments are built in one pass. The active state comes from `isEntityActive` (`utils/translations/helpers.js:189`). Unavailable, unknown, the future and the time before the first row are grey. The share is active time divided by the time with data. The band is plain positioned elements with percentage widths, without Chart.js. Segments narrower than a pixel merge, because a motion sensor can flip thousands of times a day. Tapping a segment shows "18:02–18:47 · 45 min" under the band. The band sits above the logbook list, which stays. A universal device gets one band per on/off control entity.
+- **S2 — month.** Day slices shaded by their share.
+- **S3 — the thermostat.** The current-temperature chart reads `hvac_action` from the rows it already loads; the climate fetch carries full attributes. It draws heating or cooling time as a band under the line and puts "heated 4 h 10 min" in the header. The target becomes a thin stepped line in the same chart. An integration without `hvac_action` gets no band.
+- **Honesty rule:** Home Assistant keeps no long-term statistics for on/off states or for attributes. Beyond the recorder's retention (ten days by default) the band is grey and says why. Long-term on-time is a requirement for #22.
+- **Thermal rule:** everything is computed once per fetch. Nothing ticks: the running segment ends at the fetch time until the view reloads.
+- **PurgeCSS rule:** use inline style variables. No composed class names.
+
+**Hook (verified):** `utils/entityChartConfig.js:55–75`, `:154–156`, `:165`; `components/charts/ChartsHistoryView.jsx:241–284`; `components/charts/DeviceActivitiesView.jsx:95–135`; `services/sensorStatistics.js:54–114` (the history call to reuse; today it parses numbers only); `utils/translations/helpers.js:189`; `utils/liveActivitySources.js:206`.
+
+**Effort:** Medium — 9–12 h (S1 5–6 h, S2 1–2 h, S3 3–4 h). Bundle about +1.5 to 2.5 KB.
+
+**Why it fits:** "How long was the heating on" and "how long was the window open" are what a household asks of history. Today the card answers with a list of timestamps.
+
+**Files (estimate):** `components/charts/ZustandsBand.jsx` (new), `utils/zustandsSegmente.js` (new), `services/sensorStatistics.js`, `components/charts/ChartsHistoryView.jsx`, `components/charts/SensorChartView.jsx` and `energyChartConfigs.js` (S3), `de.js`/`en.js`.
+
+---
+
+### 123. Opening a day or a span with the same numbers as the period views
+
+**Pitch:** Tap a bar in the month view, and that day opens. Pick a single day in the calendar, and it opens as a normal day with arrows and comparison. Pick a span ("our holiday", "last winter"), and a meter shows its consumption, as in the week and month views, reaching back as far as the statistics go.
+
+**Status quo:** The chart has no `onClick` (`system-entities/entities/integration/device-entities/components/energyChartConfigs.js:256–330`). A tap only shows the tooltip (`:264`). To see one day of a month, the user opens the calendar and taps that day twice (`components/charts/ChartDatePopover.jsx:109–121`). That makes a picked span, unless the day is today (`components/charts/ChartsHistoryView.jsx:170–173`, v1.1.2449). Picked spans use raw history only and ignore the state class (`services/sensorStatistics.js:897–913`, `:916–928`). A kWh meter then shows bars of its meter reading and the reading as its headline; the v1.1.2447 note records this as "the real 122 → 156 kWh curve". Beyond the recorder's retention the span is empty for every sensor.
+
+**What ships:**
+- **S1 — one day is a day.** A single picked day opens as the day view at its `periodIndex`, as v1.1.2449 already does for today. It gets the statistics path, the arrows and the comparison.
+- **S2 — tap a bar.** The first tap keeps the tooltip and marks the bar; the existing highlight already colours one bar (`components/charts/SensorChartView.jsx:275–288`). A pill under the chart, "Wed 14 Oct — open", opens that day, or that month from the year view. A "‹ Month" chip goes back one level. The pill disappears on a tap elsewhere or when the period changes. Only plain taps on the canvas: no long-press and no swipe, because the gesture budget is spent (#25, Out of scope).
+- **S3 — spans read statistics.** An entity on the statistics path calls `recorder/statistics_during_period` with the bucket the span already uses: hourly up to two days, daily up to 92 days, monthly beyond (`sensorStatistics.js:864–892`). A counter takes `change` per bucket, and their sum is the headline. A measurement sensor takes `mean`; when the span ends today, the headline is the current state. An entity without statistics keeps raw history and says so when the span starts before the oldest row.
+- **One trap:** `ChartsHistoryView` resets `periodIndex` to 0 whenever `timeRange` changes (`:96`). S1 and S2 must set the range and the index in one step.
+- **One trap:** a bar's target day comes from its date key in the zone of its period, not from its timestamp. Week and month bars are server-zone days, while the day view runs in the card zone. Spans are card-zone days (`ChartsHistoryView.jsx:177–178`), so for spans up to 92 days, hourly rows re-bucketed in the card zone are the safe choice (about 2,200 rows).
+- Comparison stays off for spans, as decided.
+
+**Hook (verified):** `energyChartConfigs.js:256–330`, `:264`; `components/charts/ChartDatePopover.jsx:109–121`; `components/charts/ChartsHistoryView.jsx:94–96`, `:164–181`; `components/charts/SensorChartView.jsx:161–165`, `:182–186`, `:275–288`; `services/sensorStatistics.js:848–894`, `:897–913`, `:916–928`.
+
+**Effort:** Medium — 8–10 h (S1 1 h, S2 3 h, S3 4–6 h). Bundle about +1 KB.
+
+**Why it fits:** Today the same meter shows consumption in one view and its meter reading in the next. Getting from "which day was high" to "what happened that day" should be one tap on a touch screen.
+
+**Files (estimate):** `components/charts/ChartsHistoryView.jsx`, `components/charts/SensorChartView.jsx`, `services/sensorStatistics.js`, `de.js`/`en.js`.
+
+---
+
+### 124. Peaks that survive — true extremes and a five-minute day
+
+**Pitch:** When the oven peaked at 4.2 kW, the Max pill of a power sensor says 4.2 kW, not the 1 kW of its hourly mean. The day curve shows the kettle and the dip while the window was open. The year view finds the coldest night of the year, not only of the last ten days.
+
+**Status quo:** The statistics call sends no `types` (`system-entities/entities/integration/device-entities/energyDashboardCalculations.js:246–252`), and Home Assistant then returns every type, `min` and `max` included. Only `mean` is used (`services/sensorStatistics.js:805–808`). The pills take the extremes of the bucket means (`components/charts/SensorChartView.jsx:373–387`). The day view uses hourly rows (`sensorStatistics.js:747`), and the tooltip title assumes whole hours (`energyChartConfigs.js:284–288`). The high and low in Activities come from raw history over the whole period (`sensorStatistics.js:574–604`, called from `components/charts/DeviceActivitiesView.jsx:107–117`). In a month or year view they cover only the recorder's retention. For a meter they are its first and last reading.
+
+**What ships:**
+- **S1 — honest pills.** Measurement buckets keep `min` and `max`. The pills show the lowest min and the highest max. History buckets compute both from their samples. In the week, month and year views, the Activities high and low become the extreme day or month from daily or monthly statistics, with its date, instead of a raw-history fetch. Counters show no high or low derived from readings.
+- **S2 — five minutes.** The day view of a measurement sensor asks for `period: '5minute'`, at most 288 rows. If the answer is empty because the short-term rows are already purged, it falls back to hourly. Counters stay hourly bars. The tooltip names the slot ("10:05–10:10"). This needs #121 S1 first.
+- **S3 — the band in the day view.** A soft min–max band behind the line, drawn as two transparent datasets with `fill: '-1'`. Filler is already registered (`utils/chartKern.js:24`, `:55`). For the bars of the week, month and year views, decide with a mockup first. The ghost gets no band.
+
+**Hook (verified):** `energyDashboardCalculations.js:246–252`; `services/sensorStatistics.js:574–604`, `:747`, `:799–823`; `components/charts/SensorChartView.jsx:373–387`; `energyChartConfigs.js:284–288`; `components/charts/DeviceActivitiesView.jsx:107–117`; `utils/chartKern.js:24`, `:55`.
+
+**Effort:** Medium — 6–9 h (S1 2–3 h, S2 2–3 h, S3 2–3 h). Bundle about +1 KB.
+
+**Why it fits:** The data is already in the answer the card receives. Today the card averages away exactly the moments people look for.
+
+**Files (estimate):** `services/sensorStatistics.js`, `components/charts/SensorChartView.jsx`, `energyChartConfigs.js`, `components/charts/DeviceActivitiesView.jsx`.
+
+---
+
+### 125. Scheduler edits keep what they did not touch
+
+**Pitch:** Open a plan, change the time, save. The days, the other time slots, the conditions, the date range, the name and whether it repeats stay as they were. Today an ordinary save can turn a one-shot timer into a weekly plan, a Mon–Fri plan into a one-day plan, or fail.
+
+**Status quo:** Read, not run. The editor works from the plan switch's attributes, which do not hold the whole plan.
+- The overview sorts items into timers and plans by `attributes.repeat_type` (`system-entities/entities/all-schedules/AllSchedulesView.jsx:243–244`). The scheduler switch does not carry it; its attributes are weekdays, timeslots, entities, actions, current_slot, next_slot, next_trigger and tags. Every item counts as a plan, and the Timer chip stays at zero.
+- Overview items have no end time (`AllSchedulesView.jsx:232–251`). The plan editor then keeps its default end `'01:00'` (`ScheduleTab/utils/editStateLoaders.js:127–129`, `ScheduleTab/hooks/useScheduleForm.js:77`, `:131`) and saves it as `stop` (`components/tabs/ScheduleTab.jsx:441`). A timer edited from the overview comes back as a weekly plan "HH:MM–01:00".
+- In the device tab every plan without an end time is a timer (`utils/scheduleUtils.js:244–245`). The timer editor saves one weekday (`ScheduleTab.jsx:374`, from `ScheduleTab/utils/scheduleHelpers.js:19–43`). A repeating start-only plan made elsewhere, such as "Mon–Fri 06:30 heating on", runs on one day after a save.
+- `repeat_type` is always `'repeat'` (`utils/scheduleUtils.js:168`, `:192–207`). It is loaded into the picker (`editStateLoaders.js:105`, `:133`) and saved back (`ScheduleTab.jsx:380`, `:445`). A one-shot timer repeats every week after an edit.
+- Only slot 0 and action 0 are read (`utils/scheduleUtils.js:254–255`, `:290–291`). The edit sends one slot without conditions (`ScheduleTab.jsx:436–446`). The integration replaces the whole slot list, so the other slots and every condition are gone.
+- The edit sends no `start_date` or `end_date`. The integration's edit schema fills both with null and writes them, so a plan's date range is cleared.
+- Every edit sends a generated name (`ScheduleTab.jsx:379`, `:434`, `:444`), which differs from the name given at creation (`:399`). A name change makes the integration remove the switch from the entity registry and announce the plan as new, and the switch's id is derived from the name. Automations that point at the old id break.
+- Weekday labels do not round-trip. `formatWeekdays` is called without a language (`utils/scheduleUtils.js:274`, default `'de'` at `utils/scheduleConstants.js:62`) and knows neither `daily`, `workday` nor `weekend`. Its "Werktags" is not the picker's "Mo-Fr", and unknown labels fall to their first three letters (`ScheduleTab/utils/scheduleHelpers.js:81`): "wer", "woc", "dai", "wor", and in English "mo". The integration rejects them, so saving a Mon–Fri plan fails unless the days are picked again. The overview checks for `'weekdays'` where the integration writes `'workday'` (`AllSchedulesView.jsx:187`).
+- Sun-based slots ("sunrise-00:30:00") are cut to five characters and read "sunri" (`utils/scheduleUtils.js:25–27`, `:31`; `AllSchedulesView.jsx:237`).
+
+**What ships:**
+- The plans are read with the integration's own WebSocket list (`{type: 'scheduler'}`, no admin needed). It returns each plan whole: repeat type, all slots with conditions and actions, weekdays, date range, name and entity id. One call when the Schedule tab or the overview opens, and again when one of the plan switches changes in `hass.states`.
+- A save sends the plan back with only the touched slot changed. Other slots, conditions, dates and the repeat type go back as they came. The name is sent only when the user changed it.
+- Timer or plan follows the repeat type in both places. A repeating plan with a start time only opens in the plan editor with its days; the countdown editor is for one-shot timers.
+- One weekday map in both directions (`mon`…`sun`, `daily`, `workday`, `weekend`), with labels from the dictionary in the current language.
+- Sun slots read "☀ sunrise −0:30" and are saved unchanged.
+- **One rule:** stored fields that are null (end time, condition attribute, condition type) are left out on save, because the edit schema rejects null there.
+
+**Hook (verified):** `AllSchedulesView.jsx:187`, `:232–251`, `:243–244`; `utils/scheduleUtils.js:25–31`, `:168–170`, `:192–207`, `:244–245`, `:254–255`, `:274`, `:290–291`; `utils/scheduleConstants.js:62–98`; `components/tabs/ScheduleTab.jsx:226–230`, `:264–267`, `:372–381`, `:434–446`, `:462`; `ScheduleTab/utils/editStateLoaders.js:105`, `:127–133`; `ScheduleTab/utils/scheduleHelpers.js:19–43`, `:53–82`; `ScheduleTab/hooks/useScheduleForm.js:77`, `:131`.
+
+**Effort:** Medium — 5–7 h. Bundle about +0.5–1 KB gzip.
+
+**Why it fits:** A save that changes what it did not touch is the worst kind of bug on a shared tablet: nobody notices until the heating stays off. The fix uses the integration the card already requires.
+
+**Files (estimate):** `utils/scheduleUtils.js`, `utils/scheduleConstants.js`, `components/tabs/ScheduleTab.jsx`, `ScheduleTab/utils/editStateLoaders.js`, `ScheduleTab/utils/scheduleHelpers.js`, `ScheduleTab/hooks/useScheduleData.js`, `system-entities/entities/all-schedules/AllSchedulesView.jsx`, `de.js`/`en.js`.
+
+---
+
+### 126. Home Assistant's schedule helper — a view of its own, a week band, a place in the overview
+
+**Pitch:** A `schedule.*` helper opens to "On · until 20:00" or "Off · from Fri 08:00", with the running block's values as chips, such as "21 °C". Below it, seven day rows show when it runs, today first, with a line at the current time. The schedules overview lists the helpers too, so it is useful without a third-party integration.
+
+**Status quo:** The card does not know the helper. The registry has no `schedule` module (`utils/deviceConfigs/registry.js:24–42`), so the fallback shows a power toggle for any on/off state (`utils/deviceConfigs/domains/fallback.js:25`, `:56`). Its default handler calls `turn_on` or `turn_off` on the entity's own domain (`utils/domainHandlers.js:89–95`, `components/tabs/UniversalControlsTab.jsx:451–463`). `schedule.turn_on` does not exist; the helper offers only `get_schedule` and `reload`. The Schedule tab is offered for it (`utils/detailTabs.js:53–57`) and would build `schedule.turn_on` actions (`ScheduleTab/utils/serviceActionBuilders.js:119–125`). `next_event` and `get_schedule` have no match in `src`. The overview lists `switch.schedule_*` only (`AllSchedulesView.jsx:353–357`); without the scheduler integration, the overview behind the default W2 tile is empty. No view in the card is proportional to time across a week, and the day grid has no now-line (`system-entities/entities/calendar/components/TagesRaster.jsx:7–8`).
+
+**What ships:**
+- **S1 — the helper view.** A domain config `schedule` with a read-only ring in the state colour. Centre text: "On · until 20:00" or "Off · from Fri 08:00". The relative part ("in 1 h 05 min") is a small leaf on the shared minute tick, so the ring does not re-render each minute. Chips show the running block's values: every attribute except `next_event`, `editable`, `friendly_name` and `icon`. No power toggle. The Schedule tab is dropped for this domain.
+- **S2 — the week band.** Seven rows, today first and tinted. Each is a 24-hour track with the blocks painted in and the day's total at the end. A tap on a row lists that day's blocks with from–to, length and values. The data comes from `schedule.get_schedule` through `call_service` with `return_response`. It covers UI and YAML helpers alike, needs no admin and is addressed by entity id. Fetched on open, and again when the entity's state or `next_event` changes. The visible hours are automatic: earliest start to latest end of the week, rounded to two hours, at least six. Days in the server's zone, with the "server time" hint when the zones differ.
+- **S3 — the overview.** Helpers appear as a third kind next to timers and plans, from the same `hass.states` snapshot, with a chip and count of their own in the overview. One `get_schedule` call per helper when the overview opens, through the same cache as S2. A tap opens the helper view through `fsc-open-entity`, which also reaches helpers without a room.
+- **Honesty rule:** `next_event` is the next boundary, not the end of the block. Touching blocks keep the state on, at midnight and between two blocks on the same day. "Until" therefore comes from the merged blocks, which is why S1 makes the `get_schedule` call too. Without blocks the line says "changes at 00:00", never "until".
+- **Thermal rule:** blocks are static spans in percent. The now-line is one element moved with `transform` on the shared minute tick, on today's row only. No polling and no subscription of its own; nothing runs once the view is closed.
+- **Traps:** `get_schedule` returns 24:00 as `"23:59:59.999999"`. Days with a clock change keep 24 wall-clock units. Empty days stay visible ("–"). A 15-minute block is a few pixels wide on a phone, so the whole row is the touch target.
+
+**Hook (verified):** `utils/deviceConfigs/registry.js:24–42`; `utils/deviceConfigs/domains/fallback.js:25`, `:56`; `utils/domainHandlers.js:89–95`; `utils/detailTabs.js:53–57`; `components/controls/PresetButtonsGroup.jsx:55–74` (custom render slots, home of the band); `utils/wetterVorhersage.js:58` (`call_service` with `return_response`); `utils/minutenTakt.js:75–103`; `system-entities/entities/calendar/utils/relativeZeit.js:64`; `utils/zeitzone.js:252`, `:259`, `:338`; `AllSchedulesView.jsx:323–327`, `:353–357`; `providers/entityZulassung.js:28–31`, `:109`; `system-entities/entities/notifications/NotificationsView.jsx:254` (`fsc-open-entity`).
+
+**Effort:** Medium — 12–15 h in three slices (S1 3–4 h, S2 6–8 h, S3 3 h). Bundle about +5–6.5 KB gzip in total (S1 1–1.5, S2 3–4, S3 1).
+
+**Why it fits:** The schedule helper is built into Home Assistant, and today the card shows it with a button that fails. Home Assistant shows the week only in the helper editor of its settings; the wall tablet is where people ask when the heating runs.
+
+**Files (estimate):** `utils/deviceConfigs/domains/schedule.js` (new), `utils/deviceConfigs/registry.js`, `utils/detailTabs.js`, `utils/zeitfenster.js` (new: fetch, cache, merge, "until"), `components/controls/WochenBand.jsx` (new) and its CSS, `PresetButtonsGroup.jsx`, `AllSchedulesView.jsx`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 127. The next run, from the scheduler itself
+
+**Pitch:** Scheduler rows say "Mon 06:30 · in 2 d 3 h" instead of "Remaining 1430 min". The overview sorts by what runs next. The W2 tile on the start page reads "Next: heating 06:00" instead of the word "Overview".
+
+**Status quo:** The scheduler writes the next run onto each plan switch as `next_trigger`; the card never reads it (no match in `src`). `nextExecution` reads an attribute that does not exist (`utils/scheduleUtils.js:279`), and nothing reads `nextExecution`. The timer countdown guesses today or tomorrow regardless of weekday (`utils/scheduleUtils.js:306–313`), and the row prints raw minutes (`ScheduleTab/components/ScheduleListItem.jsx:43`). The overview sorts by the clock string of the first slot (`AllSchedulesView.jsx:395–397`). While timers exist, the device tab reloads every 60 s (`ScheduleTab/hooks/useScheduleData.js:83–96`). Each run sets `isLoading` (`:40`), which swaps the list for the loading text (`ScheduleTab/components/ScheduleList.jsx:46–49`), so the rows mount again and replay their entry animation every minute (read, not run). The W2 tile returns the fixed word "Overview" (`components/DeviceCard.jsx:541–543`, name at `:578`). The calendar tile beside it already names its next event (`:493–528`).
+
+**What ships:**
+- **S1 — rows and order.** The rows read `next_trigger`. "In" counts in minutes under 90, then hours, then days and hours, from a pure function in a minute-tick leaf. The absolute time keeps its server-time hint. The overview sorts by `next_trigger`, with disabled and finished plans last. The hand-made countdown and the 60-s reload go. The list refreshes when one of its plan switches changes in `hass.states`.
+- **S2 — the tile.** W2 shows the earliest next run over the enabled plans, with the calendar tile's day words (today, tomorrow, weekday). The value is mirrored into the overview's system entity and read through `useSystemEntityAttributes`, like the notification count. With #126 shipped, `schedule.*` helpers count too, with their next start from #126's merged blocks; `next_event` alone can be the end of a block (#126 honesty rule). Without any plan, the tile keeps "Overview".
+- **Thermal rule:** no scan of all states per tick. The mirror keeps the list of plan ids, rebuilt only when the number of states changes, reads those by id and writes only when its signature changes. In rest the tile sits under the curtain.
+- **Traps:** `next_trigger` is null for finished plans and can still be set for disabled ones, so the switch state decides first. Sun-based slots have a valid `next_trigger` although their slot text is not a clock time.
+
+**Hook (verified):** `utils/scheduleUtils.js:279`, `:306–313`; `ScheduleTab/components/ScheduleListItem.jsx:36`, `:43`; `ScheduleTab/components/ScheduleList.jsx:46–49`; `ScheduleTab/hooks/useScheduleData.js:40`, `:83–96`; `AllSchedulesView.jsx:395–397`; `components/DeviceCard.jsx:161`, `:493–528`, `:541–543`, `:578`; `hooks/useNotificationLane.js:283–300` (mirror with signature); `components/bento/constants.js:92` (W2 default); `utils/minutenTakt.js:75–103`.
+
+**Effort:** Small — 3–5 h in two slices. Bundle about +0.5 KB gzip, partly paid back by the removed countdown and interval.
+
+**Why it fits:** The integration already knows when each plan runs; the card guesses instead, and polls to keep the guess fresh. W2 is a default tile on every fresh install, and today it says nothing.
+
+**Files (estimate):** `utils/scheduleUtils.js`, `ScheduleTab/hooks/useScheduleData.js`, `ScheduleTab/components/ScheduleListItem.jsx`, `AllSchedulesView.jsx`, `components/DeviceCard.jsx`, `system-entities/entities/all-schedules/index.js` (mirror), `de.js`/`en.js`.
+
+---
+
+**Addenda from the same pass**
+
+- **#59 — #121 corrects its delta.** Today the running period is compared, in its elapsed part, with the whole previous one; the v1.1.2373 probe already noted "partial day". #121 also fixes the ghost being cut to the current label count (`components/charts/SensorChartView.jsx:300–303`), and #121 S4 adds the comparison base (same weekday last week, same period last year).
+- **#21 — chart numbers.** Charts format with `toFixed(2)` and a dot (`components/charts/SensorChartView.jsx:144`, `:383–385`; `energyChartConfigs.js:297`, `:323–325`; axis ticks read "1500.00 W"). Following `hass.locale.number_format` must be decided card-wide, because tiles show raw state strings. Dropping the forced decimals on axis ticks touches the v1.1.1757 user decision ("always two decimals").
+- **#96 — hook correction.** It names `services/sensorStatistics.js` as an existing `history_during_period` caller, but that file uses the REST `history/period` call (`sensorStatistics.js:69–77`). The only WebSocket `history/history_during_period` call is the broken fallback at `energyDashboardCalculations.js:261–268`, which #120 S4 removes. #96 should reuse the REST call inside `fetchHistoryData` (`:69–72`), which is module-private and parses numbers only (`:95–97`), so on/off rows need the state parsing #122 S1 adds; or it brings its own WebSocket call.
+- **D3 — one more cost line.** #120 S4's unit fix for the energy view and its period energy from `change` apply only if D3 keeps the energy view. Removing the broken fallback in `fetchStatistics` stands either way.
+- **#22 — requirements input.** Long-term statistics for chosen attributes (thermostat current and target temperature, humidifier humidity, light brightness), imported by the companion as external statistics, so attribute charts and #122 S3 reach beyond the recorder's retention (ten days by default). Daily on-time statistics for chosen on/off entities, stored as statistics, so the week, month and year views of #122 reach beyond retention too. A companion service that binds a schedule helper (its state, or one key of its block data such as a setpoint) to a target entity and action, so the native helper can replace the third-party scheduler for the common heating case.
+
+**Addendum to #3 — quiet hours can follow a Home Assistant entity.**
+
+**Pitch:** Quiet hours can follow a schedule helper, an `input_boolean` or a `binary_sensor` instead of one fixed window. Weekend nights can differ, every tablet in the house uses the same nights, and they are edited in Home Assistant.
+
+**Status quo:** One fixed daily window per device, stored in the browser (`utils/quietHours.js:16–21`, check at `:48–57`, next boundary at `:64–81`). Every consumer goes through these functions and asks about the current instant: `components/Island.jsx:407`, `hooks/useIslandDaten.js:96`, `hooks/useTiefeRuhe.js:54` and `:97`, `hooks/useZenRueckkehr.js:41`, `hooks/useNotificationLane.js:124`, `utils/toastSettings.js:110`.
+
+**What ships:**
+- A source setting: time window (today's behaviour) or entity. With an entity, quiet means state `on`. The next boundary is `next_event` for a schedule helper and unknown for the other two.
+- The picker offers `schedule`, `input_boolean` and `binary_sensor` only. #61's night coupling follows on its own, because it reads the same check.
+- **Honesty rule:** if the entity is missing or unavailable, the fixed window applies, and the settings row says so.
+- `useTiefeRuhe` arms its timer from the next boundary (`:97`). With an `input_boolean` or `binary_sensor` there is none, so a flip of the entity triggers the same re-check as a settings change.
+- Settings row, register entry, info text and catalog entry. #3b E6 (manual mute with a duration) stays separate; an `input_boolean` source only makes a house-wide mute possible.
+
+**Hook (verified):** `utils/quietHours.js:16–21`, `:48–57`, `:64–81`; `hooks/useTiefeRuhe.js:97`; the consumers above.
+
+**Effort:** Small — 3–4 h. Bundle about +0.6–0.8 KB gzip.
+
+**Why it fits:** #61 promised the night axis without a new time-range editor. This keeps the promise: Home Assistant owns the schedule.
+
+---
+
+## Part seventeen — 2026-11-02 Music Assistant, done properly (#128–#140)
+
+Thirteen entries from reading a pair of touch-first Music Assistant cards for wall tablets, Home Assistant's Music Assistant and media-player APIs, and the card's own music code. Every hook below was re-read at v1.1.2509; v1.1.2510 changed nothing in music. Ideas only, nothing taken from their code or text. #128–#133 are repairs: each names a failure the code shows today. #134–#140 are everyday gains, ordered by how often a household meets them. Everything runs over Home Assistant's standard services; where a field is new in a recent Home Assistant release, the card reads it from `hass.services` before using it. Not taken: the full queue list and queue editing, synchronised lyrics, similar-track rows, unfavouriting, play counts in lists and Music Assistant's curated folders, because no Home Assistant action carries them (requirements input for #22, whose recommendations text is corrected below); a direct connection to the Music Assistant server, which would put a second credential in the browser; lyrics from an outside service, because the card sends no data out; the tablet as a synchronised speaker; a Music Assistant account per person on the shared tablet (Home Assistant cannot list those accounts, and a shared tablet has one screen for everyone, which is why #15 is retired); a moving progress bar or an animated equaliser on the start page or in rest (heat rule); music as a reason to hold the screensaver (#103); a pause button in the island's live row (D6). Music in deep rest waits on D10 and is an addendum to #111. Bundle: 650 364 bytes gzip at v1.1.2510, 10.4 KB over the warning. The repairs cost about +1 KB together, because dead code goes out. #128–#137 cost about +4.5–5.5 KB. #130 S3, #138, #139 and #140 cost about +9–11 KB more and need measuring per release; #140 needs a decision first (D16), and with Liquid Glass gone since v1.1.2503, D3 is the only counter-financing left.
+
+---
+
+### 128. Music Assistant is recognised, and its dead paths go
+
+**Pitch:** A Music Assistant speaker that is switched off, or plays the TV input or AirPlay, still has its Music Assistant button and still appears in every group and move list. Calls that can only fail are removed. Two versions of a song no longer look the same.
+
+**Status quo:**
+- Detection needs `app_id === 'music_assistant'` or `mass_player_id` (`utils/musicAssistant.js:21–28`). The player list repeats the test (`:571–581`), and the control row asks it with attributes only (`utils/deviceConfigs/domains/mediaPlayer.js:29`, `:57–71`). Home Assistant never sets `mass_player_id`. It drops `app_id` with all media attributes while a player is `off`, and Music Assistant reports the outside source as `app_id` while one plays. Its own attribute `mass_player_type` is always there. Failure: the kitchen speaker is off, so its detail view has no Music Assistant button, and the group and move lists of every other speaker leave it out.
+- The artist tap always opens `ma_search` (`components/tabs/UniversalControlsTab.jsx:264–269`, set at `:688`). Players without Music Assistant have no such group (`mediaPlayer.js:99–104`; `components/controls/PresetButtonsGroup.jsx:41`), so the ring hides (`UniversalControlsTab.jsx:540–543`) and nothing takes its place. From the code the tap may not fire at all today: the ring's drag surface (`components/controls/SegmentedRingGauge.jsx:272–311`) is a later absolute sibling with `inset: 0` above the artist line (`:263–267`), and the volume ring is always draggable while a player is active (`utils/deviceConfigs/rings.js:92–96`). Check once in a browser.
+- `music_assistant.queue_command` does not exist; Home Assistant has six Music Assistant actions. Skip-to and remove never run (`components/controls/MusicAssistantPanel.jsx:250–283`, gate `:300–302`; `utils/musicAssistant.js:215–242`, `:544–551`), and the clear fallback never helps (`:884–887`). The second transfer variant sends `target_player`, which the schema does not know (`:749–756`). Three of the four library variants fail on every version, because `media_type` takes one value (`:510–516`); a failed open costs up to 24 calls.
+- The favourite button is found by `favori` in the entity ids of the device (`:778–803`). A renamed entity id or a language whose generated id lacks that stem means no heart; without a device id, any favourite button containing the first token of the player's entity id matches (`:793–801`). A filled heart presses again and says "added" again (`components/controls/ma/components.jsx:135–144`).
+- The item shapers read `owner`, `provider`, `publisher`, `author` and `duration`, which Home Assistant never sends, and drop `version`, `explicit` and `favorite` (`utils/musicAssistant.js:150–177`, `:274–303`). Playlist, radio and podcast subtitles are always empty; "Song" and "Song (Live)" look identical.
+
+**What ships:**
+- **S1 — detection.** `mass_player_type` (`player`, `stereo_pair`, `group`) first. Where `hass` is at hand, `hass.entities[id].platform === 'music_assistant'` as a second test, without device class `tv`: Music Assistant's dashboard displays (Home Assistant 2026.11) carry no `mass_player_type` and its actions refuse them. `mass_player_id` goes. Unavailable players stay out.
+- **S2 — the artist tap.** The centre line sits above the drag surface. The handler is set only where an `ma_search` group exists; elsewhere the artist is plain text. The mobile sheet uses the same gate.
+- **S3 — dead paths out.** The `queue_command` wrappers and their gate, transfer variant 2, library variants 2 to 4. `get_queue` only while `attributes.active_queue` is set: once S1 shows the panel for a speaker on an outside source, `get_queue` raises "No active queue found" there.
+- **S4 — favourite.** The button is the `button.*` entity with `platform` `music_assistant`, `translation_key` `favorite_now_playing` and the player's `device_id`; the display registry carries all three. The name fallback goes. A filled heart says "Already a favourite" and does not press. Removing a favourite needs the server (#22).
+- **S5 — read what Home Assistant sends.** `version` after the name, `explicit` as a small "E", a favourite dot. The dead fields go.
+
+**Hook (verified):** `utils/musicAssistant.js:21–28`, `:150–177`, `:215–242`, `:274–303`, `:510–516`, `:544–551`, `:571–581`, `:749–756`, `:778–803`, `:884–887`; `utils/deviceConfigs/domains/mediaPlayer.js:29`, `:57–71`, `:99–104`; `components/tabs/UniversalControlsTab.jsx:264–269`, `:540–543`, `:688`; `components/controls/SegmentedRingGauge.jsx:263–267`, `:272–311`; `utils/deviceConfigs/rings.js:92–96`; `components/controls/MusicAssistantPanel.jsx:250–283`, `:300–302`; `components/controls/ma/components.jsx:135–144`.
+
+**Effort:** Medium — 5–6 h in five slices; bundle about −0.5 KB.
+
+**Why it fits:** The music button vanishes exactly when the speaker is silent and someone wants to start music, and a third of the service code can only fail.
+
+**Files (estimate):** `utils/musicAssistant.js`, `utils/deviceConfigs/domains/mediaPlayer.js`, `components/tabs/UniversalControlsTab.jsx`, `components/controls/SegmentedRingGauge.jsx`, `components/controls/MusicAssistantPanel.jsx`, `components/controls/ma/components.jsx`, `components/controls/ma/QueueList.jsx`, `de.js`/`en.js`.
+
+---
+
+### 129. When something fails, the panel says what
+
+**Pitch:** Typing "beatles" never shows hits for "beat". While Music Assistant restarts, the panel says so and offers one retry, instead of "No matches" or "Library not available in this MA version". A second message no longer vanishes after 0.8 s.
+
+**Status quo:**
+- The debounced search awaits the call and writes the result unconditionally (`components/controls/ma/useMaSearch.js:47–55`); cleanup only clears the timer (`:67`). An answer for "beat" that arrives after the one for "beatles" wins, turns the spinner off early (`:55`) and lands in the history (`:57–65`). There is no minimum length (`:40–45`). The wrapper returns `null` on an error (`utils/musicAssistant.js:89–93`), which the tab shows as "Keine Treffer" (`components/controls/ma/SearchTab.jsx:136–140`).
+- If all six library sections come back empty, the library is marked off in `sessionStorage` (`components/controls/ma/useMaBrowse.js:106–113`; `utils/musicAssistant.js:415–427`), and later opens return at once (`useMaBrowse.js:61–67`; `utils/musicAssistant.js:485`). Empty also means "every call failed" (`:518–541`). On a wall tablet a browser session lasts weeks; only "↻ Aktualisieren" brings it back (`components/controls/ma/BrowseTab.jsx:104–110`). The text blames the MA version and points to the console (`utils/translations/languages/de.js:868`, `:873`). A new, empty library gets the same text.
+- The config entry lookup takes a loaded entry or the first one and ignores its state (`utils/musicAssistant.js:40–57`). With Music Assistant in `setup_retry`, every call fails into the two cases above.
+- `showFeedback` starts a new 1.8-s timeout without clearing the old one (`components/controls/MusicAssistantPanel.jsx:221–224`). Every announcement failure reads "Nicht unterstützt" (`:497`; `de.js:909`). The queue header shows the developer note "nur aktueller + nächster" (`de.js:933`).
+
+**What ships:**
+- **S1 — search.** A sequence number per call; only the newest answer writes results, spinner and history. Two characters minimum. The wrapper returns `{ error }`, and the line says "Search failed — Music Assistant did not answer".
+- **S2 — library.** One service form (one `media_type`). "Call failed" and "library empty" are separate states, and nothing switches itself off. The old marker is removed once. An empty library says "Your library is empty — search finds music from your services".
+- **S3 — Music Assistant's state.** `config_entries/get` already returns `state` and needs no admin. Anything but `loaded` shows one line, "Music Assistant is not connected", with one retry. Read on open and when the player becomes available again, never on a timer.
+- **S4 — messages.** One feedback timer; the last message wins. Every failure names its step ("Speaker did not respond", "No voice reachable"). The developer texts go.
+- **Honesty rule:** a failed call never looks like an empty result.
+
+**Hook (verified):** `components/controls/ma/useMaSearch.js:40–45`, `:47–55`, `:57–67`; `utils/musicAssistant.js:40–57`, `:89–93`, `:415–427`, `:485`, `:518–541`; `components/controls/ma/SearchTab.jsx:131–140`; `components/controls/ma/useMaBrowse.js:61–67`, `:106–113`; `components/controls/ma/BrowseTab.jsx:76–81`, `:104–110`; `components/controls/MusicAssistantPanel.jsx:221–224`, `:497`; `utils/translations/languages/de.js:868`, `:873`, `:909`, `:933`.
+
+**Effort:** Medium — 4–5 h; bundle about +0.15 KB.
+
+**Why it fits:** Today a restarting Music Assistant looks like a broken card, and the library stays off long after the restart is over.
+
+**Files (estimate):** `components/controls/ma/useMaSearch.js`, `components/controls/ma/useMaBrowse.js`, `components/controls/ma/SearchTab.jsx`, `components/controls/ma/BrowseTab.jsx`, `components/controls/MusicAssistantPanel.jsx`, `utils/musicAssistant.js`, `de.js`/`en.js`.
+
+---
+
+### 130. Announcements speak with today's text-to-speech, then a sheet for the house (addendum to #3b E3)
+
+**Pitch:** "Dinner is ready" is spoken on the kitchen speaker with Piper, Home Assistant Cloud or any other voice, with Music Assistant's chime, and the music comes back afterwards. Later, one sheet sends it to several rooms at once.
+
+**Status quo:**
+- Plain text goes only through the legacy `tts.<engine>_say` services (`utils/musicAssistant.js:674–700`, call `:710`). The comment that `play_announcement` takes no text (`:610–615`) is out of date: since Home Assistant 2026.10 it takes `message` with `tts_entity_id`. Piper and most engines set up in the UI offer only a `tts.*` entity, so text fails there.
+- The settings page lists `_say` services only and otherwise says "Keine TTS-Integration aktiv" (`components/tabs/SettingsTab/components/general/TtsSettingsView.jsx:17–19`, `:41–53`). Its own hint asks the user to add Piper (`utils/translations/languages/de.js:1527`, `:1539`); after doing so, the page still says there is none.
+- A failure reads "Nicht unterstützt" (`components/controls/MusicAssistantPanel.jsx:497`). The chime box is greyed but clickable for text (`components/controls/ma/AnnouncePanel.jsx:112–124`). Announcing is a toggle tab inside one speaker's panel, with one target (`MusicAssistantPanel.jsx:396–404`, `:488–501`).
+
+**What ships:**
+- **S1 — the ladder (repair; #3b E3 slice 0, widened).** (1) A Music Assistant speaker, and `hass.services.music_assistant.play_announcement.fields.message` exists: `play_announcement` with `message`, `tts_entity_id`, `use_pre_announce` and, optionally, `announce_volume`. (2) Otherwise `tts.speak` on a `tts.*` entity with `media_player_entity_id`, `message` and `language`. Home Assistant sends it as an announcement, so a speaker that supports announcements resumes its music. (3) The legacy `_say` services last. `message` and `tts_entity_id` always travel together; a URL and a text never do. An unavailable voice is skipped.
+- **S2 — the settings page.** `tts.*` entities first, legacy services after. A stored `cloud_say` maps once to the Cloud voice entity when it exists. The chime switch shows only where it acts. Info popup `settingsInfo.tts` (de+en) and the catalog in the same release.
+- **S3 — the sheet (after a bundle check).** Its own sheet, from the side bar and from the music panel. Room chips from the areas, "Everyone" included; each room gets its best target: `assist_satellite.announce` (`message`, `preannounce`) for a voice satellite, route 1 for a Music Assistant speaker, route 2 for any other speaker. A text field with the existing dictation button, own quick phrases per browser, a status word per target (sent, failed, offline), a warning in quiet hours (`utils/quietHours.js`).
+- **Honesty rule:** a speaker without announcement support stops its music and does not resume. Its chip says so.
+- **Rate rule:** at most one send per 3 s. From the sheet, nothing is sent from a notification text or an AI answer without a tap; #3b E3's opt-in spoken alerts keep their own rules (per-severity opt-in, quiet hours, mute E6, never twice for one instance).
+- #3b E3 (spoken alerts) reuses this ladder instead of a second one.
+
+**Hook (verified):** `utils/musicAssistant.js:610–615`, `:635–660`, `:674–700`, `:706–712`; `components/tabs/SettingsTab/components/general/TtsSettingsView.jsx:17–19`, `:41–53`; `components/controls/MusicAssistantPanel.jsx:396–404`, `:488–501`; `components/controls/ma/AnnouncePanel.jsx:45–49`, `:72–96`, `:112–124`; `utils/translations/languages/de.js:909`, `:1527`, `:1539`.
+
+**Effort:** S1–S2 Small — 3–4 h, bundle about +0.4 KB. S3 Medium — 6–8 h, bundle about +1.5–2 KB.
+
+**Why it fits:** Text announcements fail on the setup Home Assistant now recommends, and calling the family to dinner is what a wall tablet is bought for.
+
+**Files (estimate):** `utils/musicAssistant.js` (or a new `utils/durchsage.js`), `TtsSettingsView.jsx`, `components/controls/ma/AnnouncePanel.jsx`, `MusicAssistantPanel.jsx`, settings register, `de.js`/`en.js`, info-popup catalog; S3: a sheet component and a side-bar entry.
+
+---
+
+### 131. A touch never changes the music by accident, and every button fits a finger
+
+**Pitch:** A child brushing the ring no longer sets the speaker to 90 %, and a tap on the lower arc no longer jumps the song. In the music panel every button is big enough for a finger and says what it does. The keyboard opens only when asked for.
+
+**Status quo:**
+- A pointer-down anywhere on a draggable segment sets the value to that angle (`components/controls/SegmentedRingGauge.jsx:275–291`); the pointer-up sends it even without a move (`:304–309`), as `volume_set` or `media_seek` (`utils/sliderHandlers.js:51–65`). The volume ring is draggable also while idle (`utils/deviceConfigs/rings.js:46–54`).
+- Now-playing buttons are 32 px (`components/controls/MusicAssistantPanel.css:82–85`), tabs about 30 px (`:375–384`), row actions 32 px (`:653–655`), queue remove 28 px (`:694–697`), the history ✕ 18 px (`:820–825`); the file has no `pointer: coarse` rule. "Play next" is drawn as a skip glyph (`components/controls/ma/icons.jsx:56–61`) and explained only by `title` (`components/controls/ma/components.jsx:448–471`).
+- Search and announce take the focus on open (`MusicAssistantPanel.jsx:118–125`; `components/controls/ma/AnnouncePanel.jsx:45–49`), so the on-screen keyboard covers half the panel. "Radio" and "Ansage" look like tabs but switch a mode and an overlay, and radio mode resets on every open (`MusicAssistantPanel.jsx:81–83`, `:385–404`).
+
+**What ships:**
+- **S1 — no jump.** For the media gauge only: a drag starts near the bead (about ±12°) or moves from the current value after a small dead zone; a plain tap on the arc does nothing. Other domains and the keyboard path stay as they are. Thresholds are tuned on a real tablet. Sits next to #99's clamp.
+- **S2 — targets.** Under `@media (pointer: coarse)`, 44-px buttons and 40-px tabs. Literal class names only (PurgeCSS guard).
+- **S3 — one labelled menu.** One ⋯ per row in the existing MorphPopup: "Play now", "Play next", "Add to queue", "Start radio from this" (`radio_mode` with replace). "Radio" leaves the tab bar. "Ansage" leaves it once #130 S3 exists.
+- **S4 — keyboard.** Autofocus only with a fine pointer.
+
+**Hook (verified):** `components/controls/SegmentedRingGauge.jsx:275–291`, `:304–309`; `utils/sliderHandlers.js:51–65`; `utils/deviceConfigs/rings.js:46–54`; `components/controls/MusicAssistantPanel.css:82–85`, `:375–384`, `:653–655`, `:694–697`, `:820–825`; `components/controls/ma/icons.jsx:56–61`; `components/controls/ma/components.jsx:448–471`; `components/controls/MusicAssistantPanel.jsx:81–83`, `:118–125`, `:385–404`; `components/controls/ma/AnnouncePanel.jsx:45–49`.
+
+**Effort:** Medium — 5–7 h; bundle about +0.35 KB.
+
+**Why it fits:** A family wall tablet is touched by children and by people walking past; a tap that changes the volume and a skip glyph that means "next in queue" are daily slips.
+
+**Files (estimate):** `components/controls/SegmentedRingGauge.jsx`, `components/tabs/UniversalControlsTab.jsx` (ring flag), `components/controls/MusicAssistantPanel.css`, `components/controls/ma/components.jsx`, `MusicAssistantPanel.jsx`, `AnnouncePanel.jsx`, `de.js`/`en.js`.
+
+---
+
+### 132. Now playing holds still, and the live row tells the truth
+
+**Pitch:** On a track change the panel's header stays where it is. An idle speaker shows a small header from which it can be switched on and grouped before the music starts. Pausing a song no longer flashes the island's green "done" moment.
+
+**Status quo:**
+- The now-playing header renders only for `playing` and `paused` (`components/controls/ma/components.jsx:67`, `:106`), while the card counts `buffering` and `on` as active (`utils/deviceHelpers.js:189–191`). A player that passes through `buffering` drops the header, and the tabs below jump. Idle also closes group and move (`ma/components.jsx:89–95`). The detail cover is keyed by its URL (`components/DetailView/DetailLeftPane.jsx:104–131`).
+- The media live source keeps only `playing` (`utils/liveActivitySources.js:163–179`). A pause or a moment of buffering removes the activity, and the island shows its 2-s "done" moment for the vanished front row (`hooks/useIslandMomente.js:57–65`). Playback without a title is "Wiedergabe" (`liveActivitySources.js:175`), so a soundbar on the TV input fills the island all evening with that word.
+
+**What ships:**
+- **S1 — the header.** Shown for `playing`, `paused`, `buffering` and `on`. Idle shows a small header with power (gated on its feature bit, the same button as #137) and one entry to group and move; #138 S2 owns that while idle, and once it exists the entry opens its speaker sheet. Title and cover are held while buffering, keyed by `media_content_id`, for a few seconds at most.
+- **S2 — the live row.** Buffering counts as playing. A paused player stays as "Paused" until its `last_changed` is three minutes old, checked when the list is built and on the shared minute tick (`utils/minutenTakt.js`); no timer of its own. Playback without a title is not a live activity.
+- **Honesty rule:** a media row that disappears never triggers "done". Done is for things that finish. This is the same change to `hooks/useIslandMomente.js:57–65` as #102 S1 (timers): one rule for every domain, built by whichever ships first.
+- No button in the row; D6 stays open.
+
+**Hook (verified):** `components/controls/ma/components.jsx:67`, `:89–95`, `:106`; `utils/deviceHelpers.js:189–191`; `components/DetailView/DetailLeftPane.jsx:104–131`; `utils/liveActivitySources.js:163–179`; `hooks/useIslandMomente.js:57–65`.
+
+**Effort:** Medium — 4 h; bundle about +0.4 KB.
+
+**Why it fits:** A "done" flash on every pause and a jumping header are small lies the eye catches every evening.
+
+**Files (estimate):** `components/controls/ma/components.jsx`, `utils/liveActivitySources.js`, `hooks/useIslandMomente.js`, `de.js`/`en.js`.
+
+---
+
+### 133. The open panel stops costing
+
+**Pitch:** While the music panel is open, the card no longer receives every state change of the house a second time, and a long playlist no longer redraws every second. Covers load with the right priority, and public covers show on https.
+
+**Status quo:**
+- The panel subscribes to all `state_changed` events and filters by entity in JavaScript (`utils/musicAssistant.js:378–393`; `components/controls/MusicAssistantPanel.jsx:190–219`). That stream comes on top of the card's own entity subscription, for every entity of the house. The same information is in `hass.states[entityId]`.
+- The controls tab commits on a 250-ms throttled `hass` (`components/tabs/UniversalControlsTab.jsx:133`) and ticks every second while playing (`:222`; `hooks/useMediaPositionTick.js:28–42`), also while the ring is hidden behind the panel (`UniversalControlsTab.jsx:540–543`). Neither the preset group nor the panel is memoised (`components/controls/PresetButtonsGroup.jsx:23–40`; `MusicAssistantPanel.jsx:39`). A 139-track drill-down with three framer buttons per row (`components/controls/ma/components.jsx:409–419`, `:448–471`) redraws every second. The player list and the favourite button scan all states on each commit (`:70–80`).
+- A blurred cover lies under a sharp cover of the same size (`components/DetailView.css:359–374`, `:380–398`).
+- Up to 36 covers are fetched twice and rendered `eager` with `fetchpriority="high"` (`components/controls/ma/useMaBrowse.js:83–102`; `components/controls/ma/icons.jsx:17–37`; `ma/components.jsx:333–336`). Every absolute `http` cover is dropped on an https page, public hosts included (`utils/mediaUrl.js:15–32`).
+
+**What ships:**
+- **S1 — no second stream.** A signature watch on `hass.states[entityId]` (`state`, `media_content_id`, `media_title`, `shuffle`, `repeat`, `active_queue`) feeds the existing 800-ms queue refresh. The subscription goes.
+- **S2 — less redraw.** The position tick pauses while the ring is hidden or covered. A memo comparator on the player's signature and `lang`. Player list and favourite lookup memoised on that signature.
+- **S3 — long lists.** The first 50 rows and "Show all". Plain buttons with a CSS `:active` scale.
+- **S4 — images.** High priority only for the first visible row, no second fetch. `http` on a public host becomes `https`, as browsers do for mixed images anyway; LAN addresses stay dropped. The blur layer goes after a visual check in Chrome and WebKit.
+- **Thermal rule:** render counts are measured with `options.__r` on a visible page, before and after. The queue refresh still fires on a track change.
+
+**Hook (verified):** `utils/musicAssistant.js:378–393`; `components/controls/MusicAssistantPanel.jsx:39`, `:190–219`; `components/tabs/UniversalControlsTab.jsx:133`, `:222`, `:540–543`; `hooks/useMediaPositionTick.js:28–42`; `components/controls/PresetButtonsGroup.jsx:23–40`; `components/controls/ma/components.jsx:70–80`, `:333–336`, `:409–419`, `:448–471`; `components/DetailView.css:359–374`, `:380–398`; `components/controls/ma/useMaBrowse.js:83–102`; `components/controls/ma/icons.jsx:17–37`; `utils/mediaUrl.js:15–32`.
+
+**Effort:** Medium — 5–7 h; bundle about +0.2 KB.
+
+**Why it fits:** A tablet that plays music for hours should not pay for the music panel twice; this is the heat rule applied to the one view that stays open longest.
+
+**Files (estimate):** `components/controls/MusicAssistantPanel.jsx`, `utils/musicAssistant.js`, `hooks/useMediaPositionTick.js`, `components/tabs/UniversalControlsTab.jsx`, `components/controls/PresetButtonsGroup.jsx`, `components/controls/ma/components.jsx`, `components/controls/ma/useMaBrowse.js`, `components/controls/ma/icons.jsx`, `utils/mediaUrl.js`, `components/DetailView.css`.
+
+---
+
+### 134. Home rows from your own library — the panel opens on music (correction to #22)
+
+**Pitch:** Open the panel and see Recently played, Your playlists, Liked songs, Stations and Recently added. One tap plays or opens. Each library section sorts, filters and loads twelve more on its own.
+
+**Status quo:**
+- The library is six rows sorted by name (`utils/musicAssistant.js:487`, `:492`; `components/controls/ma/useMaBrowse.js:71–78`), with radio last and no tracks (`components/controls/ma/BrowseTab.jsx:17–24`). The panel opens on the search tab (`components/controls/MusicAssistantPanel.jsx:46`).
+- "Load more" raises one shared limit and reloads all six sections from the start, up to 96 each (`useMaBrowse.js:35–37`, `:124–139`).
+- Home Assistant's `get_library` has taken `order_by` since 2025.1 (`last_played_desc`, `timestamp_added_desc`, `play_count_desc`, `random`, `random_play_count` and more), plus `favorite`, `offset`, `album_type` and `album_artists_only`.
+
+**What ships:**
+- **S1 — a "Start" tab first.** One `get_library` per row, one media type, limit 12. Albums and playlists by `last_played_desc` ("Recently played"); playlists by name ("Your playlists"); tracks with `favorite: true` ("Liked songs"); radio with `favorite: true`, else by `last_played_desc` ("Stations"); albums by `timestamp_added_desc` ("Recently added"). Optional: albums by `play_count_desc` ("Most played"), albums by `random_play_count` ("Rediscover"; Music Assistant puts the least played first, shuffled). Rows load in view order and hide when empty. A module cache of ten minutes per row; "↻" refreshes. Choice and order of rows as a switch list in the music settings.
+- **S2 — library sections.** Each section has its own sort (A–Z, recently added, recently played, most played, year), a favourites chip and album kinds (album, single, EP, compilation). "Load more" adds 12 to that section only, by `offset`. The sort is remembered per section and browser.
+- **Honesty rule:** the rows come from the library and say so. Music Assistant keeps one play log for the house, so "Recently played" is the household's.
+- **Traps:** the answer carries no play dates or counts, so each row holds one media type; a mixed timeline is #22. Random orders change per call, so the cache holds them for the panel session. An unknown `order_by` fails on the server; the row falls back to name. The sort keys are read from the service description (`hass.services.music_assistant.get_library.fields.order_by`).
+
+**Hook (verified):** `utils/musicAssistant.js:483–492`; `components/controls/ma/useMaBrowse.js:35–37`, `:71–78`, `:124–139`; `components/controls/ma/BrowseTab.jsx:17–24`; `components/controls/MusicAssistantPanel.jsx:46`.
+
+**Effort:** Medium — 8–11 h in two slices; bundle about +1.7–2.2 KB.
+
+**Why it fits:** Walk up, tap, music. #22 files these rows under "needs the server"; most of them do not.
+
+**Files (estimate):** `utils/musicAssistant.js`, `components/controls/ma/useMaBrowse.js`, `components/controls/ma/BrowseTab.jsx`, a new `components/controls/ma/StartTab.jsx`, `MusicAssistantPanel.jsx`, music settings, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 135. Search that opens what it found, finds your own music first, and plays from the tapped track (addendum to #98)
+
+**Pitch:** "Queen" shows your own Queen albums first, then "More from your services". An album hit opens. Track 5 of an album plays the album from track 5. A filter field finds one song in a long playlist.
+
+**Status quo:**
+- Search hits never open (`components/controls/ma/SearchTab.jsx:191–199`); a row opens only when it gets `onOpen` (`components/controls/ma/components.jsx:426–437`). One call goes over all services, eight per type (`utils/musicAssistant.js:74–79`, `:268`; `components/controls/ma/useMaSearch.js:49–52`); `library_only` and the server-side type filter are unused.
+- A track inside an album or playlist plays alone with `replace` (`components/controls/ma/BrowseTab.jsx:59` → `components/controls/MusicAssistantPanel.jsx:232–243`), and so does a search hit (`SearchTab.jsx:196`). `media_id` is always one string (`utils/musicAssistant.js:113–121`).
+
+**What ships:**
+- **S1 — your music first.** Two searches side by side: `library_only: true`, shown first as "Your music", and the full one below as "More from your services", without duplicates by URI. The type pill passes `media_type`, so the services narrow on their side. Needs #129 S1's sequence number. `library_only` sits in a section of the service description (`search_options`); detect it there.
+- **S2 — hits open.** Album, artist and playlist hits open the existing drill-down (`media_player/browse_media`). The artist line in the ring (#128 S2) opens the artist.
+- **S3 — play from here.** Inside a container: `play_media` with `media_id` = the container and `start_item` = the track (Home Assistant 2026.11; detected through `hass.services.music_assistant.play_media.fields.start_item`). Podcasts offer "Newest episode" (`start_item: 'latest'`). Without `start_item`, #98's `enqueue: 'play'`.
+- **S4 — filter.** Drill-downs longer than 20 rows get a filter field over the rows already loaded. No call.
+- **S5 (with #52).** A selection of rows plays as one queue; `media_id` takes a list.
+
+**Hook (verified):** `components/controls/ma/SearchTab.jsx:191–199`, `:196`; `components/controls/ma/components.jsx:426–437`; `utils/musicAssistant.js:74–79`, `:113–121`, `:268`; `components/controls/ma/useMaSearch.js:49–52`; `components/controls/ma/BrowseTab.jsx:59`; `components/controls/MusicAssistantPanel.jsx:232–243`.
+
+**Effort:** Medium — 5–7 h; bundle about +0.9 KB.
+
+**Why it fits:** Search is today's main path into music, and it neither opens what it finds nor knows what the household already owns.
+
+**Files (estimate):** `components/controls/ma/useMaSearch.js`, `components/controls/ma/SearchTab.jsx`, `components/controls/ma/components.jsx`, `components/controls/ma/useMaBrowse.js`, `MusicAssistantPanel.jsx`, `utils/musicAssistant.js`, `de.js`/`en.js`.
+
+---
+
+### 136. A tap you can see worked, and one honest queue tab (addendum to #100)
+
+**Pitch:** The tapped cover shows a spinner until the speaker really plays it, and a second tap replaces the first instead of mixing the queue. The queue tab says "Now · Next · +37 more"; a tap on the next song skips to it, the radio shows the song on air, and "Clear" asks once.
+
+**Status quo:**
+- The only feedback is a 1.8-s text line (`components/controls/MusicAssistantPanel.jsx:221–227`). Play calls fire without a guard (`:232–248`; `components/controls/ma/useMaBrowse.js:190–201`).
+- Two tabs show current plus next, and next only (`components/controls/ma/QueueList.jsx:20–27`; `MusicAssistantPanel.jsx:369–384`, `:440–474`). Queue rows are never tappable, because their actions hang on `queue_command` (`QueueList.jsx:62–71`). "Clear" empties the queue on one tap (`MusicAssistantPanel.jsx:286–295`). `stream_title` and `stream_details` are dropped (`utils/musicAssistant.js:247–264`). Home Assistant's `get_queue` returns `current_item`, `next_item`, `items` as a count, `current_index`, and per item `stream_title` and `stream_details`.
+
+**What ships:**
+- **S1 — confirmation.** The tapped row waits until the player's `media_content_id` or `media_title` changes from its value before the tap. A container starts with its first track, so the check is "changed", not "equal". After 15 s: "Speaker did not start — try again". Play calls are queued per panel with a generation number, so an older answer never overwrites a newer tap. One watcher, shared with #100.
+- **S2 — one queue tab.** "Now", "Next", "+N more" (N = `items − current_index − 2`, at least 0; the item right after the current one is Next). A tap on Next sends `media_next_track`. Radio shows `current_item.stream_title`; a quality line from `stream_details` when present ("FLAC 24/96"). "Clear" asks a second tap, because `clear_playlist` cannot be undone. An idle speaker with a `current_item` offers "Resume" (`media_play`). The second tab goes.
+
+**Hook (verified):** `components/controls/MusicAssistantPanel.jsx:221–227`, `:232–248`, `:286–295`, `:369–384`, `:440–474`; `components/controls/ma/useMaBrowse.js:190–201`; `components/controls/ma/QueueList.jsx:20–27`, `:62–71`; `utils/musicAssistant.js:247–264`.
+
+**Effort:** Medium — 5–6 h; bundle about +0.3–0.5 KB.
+
+**Why it fits:** A slow streaming lookup makes the panel look dead, and a queue tab that hides its size behind a developer note is not a queue tab.
+
+**Files (estimate):** `components/controls/MusicAssistantPanel.jsx`, `components/controls/ma/QueueList.jsx`, `components/controls/ma/components.jsx`, `components/controls/ma/useMaBrowse.js`, `utils/musicAssistant.js`, the #100 watcher, `de.js`/`en.js`.
+
+---
+
+### 137. Media basics: power, mute, volume steps, sources on Music Assistant speakers, skip 30 s
+
+**Pitch:** Switch a speaker on or off, mute it, step the volume by 5 %, pick the TV input of a Music Assistant soundbar, skip 30 s in a podcast — all without dragging an arc.
+
+**Status quo:** The control row has previous, play, next, the Music Assistant or settings button, shuffle and repeat (`utils/deviceConfigs/domains/mediaPlayer.js:35–98`). It reads no `supported_features`. The ring shows no power (`:155`, `:185`). Source and sound mode are hidden for Music Assistant speakers by an either-or (`:57–71`), although Music Assistant reports both for speakers that have them.
+
+**What ships:**
+- Each button is gated on its feature bit: `turn_on`/`turn_off`; `volume_mute` with `is_volume_muted`; `volume_up`/`volume_down`, or `volume_set` ± 5 %; `media_stop`; `select_source` and `select_sound_mode` through the existing settings picker, now for Music Assistant speakers too; `media_seek` ± 15/30 s only for podcasts, audiobooks and items longer than 20 minutes.
+- ± and mute sit at the ring's volume value, not as four more buttons in a row that already scrolls. Power sits on the idle and off ring.
+- Every volume write goes through #99's clamp. Switching off a Music Assistant group switches off its members; the line says so.
+
+**Hook (verified):** `utils/deviceConfigs/domains/mediaPlayer.js:35–98`, `:57–71`, `:155`, `:185`.
+
+**Effort:** Medium — 4–6 h; bundle about +0.7–1.0 KB.
+
+**Why it fits:** A speaker that cannot be switched off or muted from its own detail view sends the household back to the phone.
+
+**Files (estimate):** `utils/deviceConfigs/domains/mediaPlayer.js`, `utils/deviceConfigs/rings.js`, `components/tabs/UniversalControlsTab.jsx`, `utils/sliderHandlers.js`, `de.js`/`en.js`.
+
+---
+
+### 138. Where the music plays — this tablet's speaker, one speaker sheet, a sleep timer (addendum to #108)
+
+**Pitch:** The kitchen tablet knows the kitchen speaker. A pill names where the music plays and opens one sheet: this speaker or group with its volume, the other speakers with a check and a slider each, and "Move here". "Stop in 30 minutes" works even when the tablet goes dark.
+
+**Status quo:**
+- The panel is bound to the detail view's player (`components/controls/MusicAssistantPanel.jsx:98`; `components/controls/PresetButtonsGroup.jsx:55–56`). No setting names a default speaker (no match in `src`).
+- Group and move are two buttons with two lists and no volume (`components/controls/ma/components.jsx:202–219`, `:257–294`), only while playing or paused (`:89–95`). The service helpers exist (`utils/musicAssistant.js:738–765`, `:828–867`).
+- There is no sleep timer. The card already creates single-run schedules for the scheduler integration (`utils/scheduleUtils.js:383`, `:456–461`).
+
+**What ships:**
+- **S1 — this tablet's speaker.** A per-browser setting in #108's "This tablet": one `media_player`. Proposed from the tablet's own device or the Music Assistant speaker in its area, with the reason (#97). Never synced. Missing or unavailable falls back to the speaker that is playing.
+- **S2 — the sheet.** One MorphPopup with three sections; it works while idle. This speaker or group with its volume. Group members with a check and a slider (`media_player.join` with `group_members`, `unjoin`, `volume_set` per member). Other speakers to move to (`music_assistant.transfer_queue` with `source_player` and `auto_play`; `turn_on` first for a target that is off).
+- **S3 — group-aware.** A member that plays its leader's queue (`active_queue`) says "plays via Living room", and transport goes to the leader. Followers fold under their leader.
+- **S4 — sleep timer.** Music Assistant's sleep select on the speaker's device (0/30/60/90/120 minutes) through `select.select_option`; it is off by default, so often absent. Otherwise, with the scheduler integration, a single-run `media_player.media_pause` at now + N. Otherwise no button. The remaining minutes run on the shared minute tick.
+- **Traps:** check whether `volume_set` on a sync leader already scales its members, so S2 never scales twice. `join` needs grouping support and compatible protocols; Music Assistant's refusal is shown. Music Assistant group players are fixed groups. A row waits until `group_members` changes, 10 s at most. Every volume write goes through #99.
+
+**Hook (verified):** `components/controls/MusicAssistantPanel.jsx:98`; `components/controls/PresetButtonsGroup.jsx:55–56`; `components/controls/ma/components.jsx:89–95`, `:202–219`, `:257–294`; `utils/musicAssistant.js:738–765`, `:828–867`; `utils/scheduleUtils.js:383`, `:456–461`.
+
+**Effort:** Medium — 9–12 h in four slices; bundle about +2–2.6 KB.
+
+**Why it fits:** On a wall the question is not "what does this speaker do" but "where is the music, and can it come here".
+
+**Files (estimate):** `utils/diesesTablet.js` or #108's store, a new `components/controls/ma/SpeakerSheet.jsx`, `components/controls/ma/components.jsx`, `utils/musicAssistant.js`, `utils/scheduleUtils.js`, settings register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 139. AI mode plays music, and music ducks while the tablet listens (addendum to #1)
+
+**Pitch:** "Play some jazz in the kitchen", "shuffle on", "next song in the living room", "a bit quieter" — through the same check as every AI action. Tap the microphone and the speaker goes quiet until dictation ends.
+
+**Status quo:** The allow list for `media_player` holds transport, `volume_set`, `volume_mute` and on/off (`utils/kiAktionen.js:82–92`). The check refuses any service whose domain differs from the entity's (`:330`), so `music_assistant.play_media` cannot pass. The context sends title and volume only (`utils/kiKontext.js:114`); `beschreibeKiDienste` tells the model what is allowed (`kiAktionen.js:428`). Dictation starts in `starteDiktat` (`utils/diktat.js:202`), and nothing lowers the music.
+
+**What ships:**
+- **S1 — one narrow exception.** `music_assistant.play_media` on speakers that #128 S1 recognises, with `media_id` as plain text of at most 120 characters, `media_type` and `enqueue` from fixed lists, and `radio_mode` as a yes/no. Also `shuffle_set`, `repeat_set`, `select_source` from `source_list`, and `volume_up`/`volume_down`. The context marks Music Assistant speakers, groups and this tablet's speaker (#138 S1) as the default target. Unlike #118 S3, which adds an action type of its own with a preview card, this is one listed service that may pass the domain check, with fixed fields; the tap rule stays as it is.
+- **S2 — limits.** A `media_id` with `://` or a leading `/` is refused, because Music Assistant would play URLs and server file paths. The target must be in the list that was sent. What really started is reported by #136 S1's watcher, because Music Assistant's name lookup can pick another item. Volume goes through #99. `docs/SECURITY.md` changes in the same release.
+- **S3 — ducking (optional, off by default).** While dictation runs and this tablet's speaker plays, its volume drops to a fifth. It is restored only if nobody changed it meanwhile; a backup left behind is restored at the next start.
+
+**Hook (verified):** `utils/kiAktionen.js:82–92`, `:330`, `:428`; `utils/kiKontext.js:114`; `utils/diktat.js:202`.
+
+**Effort:** Medium — 6–8 h; bundle about +0.8 KB.
+
+**Why it fits:** AI mode already switches what the card shows; music is the one everyday request it refuses.
+
+**Files (estimate):** `utils/kiAktionen.js`, `utils/kiKontext.js`, `utils/diktat.js`, `docs/SECURITY.md`, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+### 140. Music beyond the detail view — a Music page, a now-playing tile, music in the search (needs a bundle decision)
+
+**Pitch:** One tap in the side bar opens Music, full width on a landscape tablet: big cover, transport and volume on the left, Start, Search and Queue on the right, the speaker as a pill on top. While music plays, a tile on the start page and on the locked Zen page shows cover, title, play/pause and next. Typing "Abba" in the card's search offers the Abba album and "Search Music Assistant for Abba".
+
+**Status quo:**
+- Music is reachable only through a player's detail view (`components/controls/PresetButtonsGroup.jsx:55–56`), inside the controls column, 420 px high at base (`components/controls/MusicAssistantPanel.css:13`). The side bar lists Home, Search and the registered system entities (`components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx:55–94`); none of them is about music (`system-entities/entities/`).
+- The rich tile router has no `media_player` case (`components/bento/richRouter.jsx:21–62`). The Zen slots render plain tiles with a 1-s throttled `hass` (`components/BentoZenView.jsx:197`, `:595`).
+
+**What ships:**
+- **S1 — Music page.** A system entity "Music" whose view hosts the panel's parts in a full-width layout. The speaker is #138 S1's, else the playing Music Assistant speaker (latest `last_changed`), else the last one used. The detail-view entry stays.
+- **S2 — the tile.** Cover from `entity_picture_local`, then `entity_picture` (`utils/mediaUrl.js:40–46`), title, artist, `media_play_pause`, `media_next_track`. A fixed speaker, or "follows this tablet's speaker". Idle shows "Nothing playing · Open Music" or hides (setting).
+- **S3 — the main search.** The Music entity offers #134's cached rows as content, plus a row that opens the Music page with the query. No call per keystroke (#8's rule).
+- **Thermal rule:** nothing runs while the page is closed. The tile has no progress bar; at most "3 min left" on the minute tick. One opacity crossfade per track, with the old cover held until the new one has loaded. No `get_queue` from the tile.
+- **Bundle rule:** S1 and S2 cost about +4–5.5 KB. Liquid Glass is gone since v1.1.2503, so D3 (the energy view, −20 to −22.6 KB) is the only counter-financing on the table. Decide before building (D16).
+- #115 S3's lock allow list gets a "music" entry. No composed class names. Buttons on the tile stop the tap from opening the detail view.
+
+**Hook (verified):** `components/controls/PresetButtonsGroup.jsx:55–56`; `components/controls/MusicAssistantPanel.css:13`; `components/tabs/SettingsTab/components/SidebarItemsSettingsTab.jsx:55–94`; `components/bento/richRouter.jsx:21–62`; `components/BentoZenView.jsx:197`, `:595`; `utils/mediaUrl.js:40–46`.
+
+**Effort:** Medium to large — 16–22 h in three slices; bundle about +4.5–6 KB.
+
+**Why it fits:** It is the step from "a feature of one speaker" to "music on the wall", and it reuses the panel instead of building a second one.
+
+**Files (estimate):** `system-entities/entities/music/` (new), `components/controls/MusicAssistantPanel.jsx` (layout prop), `components/bento/widgets/BentoRichMedia.jsx` (new), `components/bento/richRouter.jsx`, side-bar settings, register, `de.js`/`en.js`, info-popup catalog.
+
+---
+
+**Addenda from the same pass**
+
+- **#22 — corrected in place.** The Music Assistant requirements paragraph now separates the rows the card builds itself from `get_library` ordering (#134) from what needs the server, and lists seven more server-only wishes: the full queue, favourites both ways, numbers in lists, playback options, people, fast start, and a house-wide "music is playing" entity.
+- **#98 — corrected in place.** Its status quo and hook named the wrong tap (`useMaBrowse.js:194` serves the top-level sections, in practice radio); the single-track taps are in `BrowseTab.jsx:59` and `SearchTab.jsx:196`. Inside an album or playlist, #135 S3 plays from the tapped track.
+- **#99 — more writers for the one clamp.** Add to **What ships:** "Further writers that go through the clamp: the volume steps and mute of #137, the member and group volumes of #138, `volume_up`/`volume_down` in AI mode (#139), the ducking of #139 S3, and `announce_volume` of #130 (a room limited to 60 % is not announced into at 100 %). #131 S1 (no jump on a tap) sits next to it."
+- **#100 — one watcher.** Add to **What ships:** "The check whether the player followed is one module, shared with #136 S1. For Music Assistant speakers `media_content_id` carries the URI, so the check is exact there."
+- **#3b E3 — note updated in place.** Slice 0 is wider (Music Assistant's `play_announcement` with `message` first, then `tts.speak`, then `_say`) and its hook moved; slice 0 is #130 S1–S2.
+- **#1 — music commands:** #139. **#8 — music as content:** #140 S3. **#52 — a further adopter:** rows of the music panel (#135 S5). **#108 — the speaker:** #138 S1 lives in "This tablet".
+- **#77 — a consumer.** Music Assistant exposes a speaker's own sound options (bass, treble, subwoofer level, tone mode and similar) as `number`, `select` and `switch` entities on the speaker's device, many of them off by default. With #77's controls, a "Sound" group in the speaker's detail view lists those siblings.
+- **#111 — music in rest.** S3's rank list has no music. "Playing: title" from this tablet's speaker, with play/pause and next, is either a further rank or its own strip; it needs #105 S1's gesture position, so the buttons do not lift the rest. Decide with D10.
+- **#103 — music is not a hold reason.** A playing speaker would keep the panel lit for hours; the answer is the tile of #140 S2 on the locked page.
+- **#115 S3 — the allow list** gets a "music" entry from #140 S1.
+- **D16 — a new open decision:** where music lives on the wall tablet. See the table under "Open decisions".
+- **Part fourteen — correction to its intro.** "The queue with load-more" was listed as already in the card; load-more exists only in the library, and the queue shows the current and the next item.
+
+---
+
 ## Open decisions (2026-09-24)
 
-Thirteen questions that came out of the same pass, plus D14 from 2026-10-25, and are deliberately not roadmap entries. Nothing here is decided or recommended; the columns give what each option costs and touches, read from the code at v1.1.2468. Where an entry above says "open decision Dn", it means one of these.
+Thirteen questions that came out of the 2026-09-24 pass (Part eleven), plus D14 from 2026-10-25 and D15–D16 from 2026-11-02, and are deliberately not roadmap entries. D1 and D2 are resolved and marked; nothing open here is decided or recommended. The columns give what each option costs and touches, read from the code at v1.1.2468 (D14 at v1.1.2482, D15–D16 at v1.1.2509). Where an entry above says "open decision Dn", it means one of these.
 
 | # | Question | Option A | Option B | Cost / effort | Touches |
 |---|---|---|---|---|---|
 | D1 | ✅ **Resolved 2026-10-20: built (option B, via `ai_task.generate_data`), shipped v1.1.2481 — see #1.** AI mock (#1): `AIModeInterface.jsx:54–72` answers via `setTimeout` with a fixed text and fake sources (`:123–127`); entry points Alt+A (`searchEventHandlers.js:221–228`), Tab without a suggestion, Enter with text (`:297–306`); `aiModeEnabled` has no switch | Remove: component, the three keyboard entry points, i18n; redefine Enter (e.g. open the first result) | Build for real: `ai_task.generate_data` + `ai_task/preferences/get` (question/answer without device control, M) or `conversation.process` with an agent picker and tool-call rendering (L); push-to-talk via `assist_pipeline/run end_stage=tts` (`diktat.js:160`, per the checker) as voice input | A: −2.4…3.3 KB, S · B: +2–4 KB, M/L | #31, the #12 remainder, the bulk-action alternative in #70 |
-| D2 | Liquid Glass (#35/#37/#40): one library for one mobile sheet (`DetailRightSheet.jsx:14` is the only importer, `:241/:262` two `<Glass>`); the user approved the look in v2085 (`liquidGlassSettings.js:14–17`). ✅ **Answered 2026-10-26 (v1.1.2492): keep** — the desktop detail view now uses the same glass layer over the cover (`DetailView/DetailRightGlas.jsx`, shared optics in `DetailView/glasOptik.js`), so the library has two consumers. **v1.1.2500 (2026-10-27): desktop half removed again** (user decision: desktop as before v1.1.2492, no Liquid Glass on desktop; the CSS frosted glass everywhere takes over the Safari look). The library is back to one consumer (`DetailRightSheet.jsx`, optics still in `DetailView/glasOptik.js`). | Remove: library + copy path + settings page (12 sliders), register/defaults/catalog/i18n; the sheet becomes CSS glass | Keep: #40 three presets (S), #37 capability line (S), #35 never | A: −16.2 KB (audit B12), S/M — the sheet's look changes visibly on Chromium tablets | #35, #37, #40 |
+| D2 | ✅ **Resolved 2026-10-29 (v1.1.2503): removed** — Liquid Glass went out with all live blur; it is no longer available as counter-financing, which leaves D3. Liquid Glass (#35/#37/#40): one library for one mobile sheet (`DetailRightSheet.jsx:14` is the only importer, `:241/:262` two `<Glass>`); the user approved the look in v2085 (`liquidGlassSettings.js:14–17`). ✅ **Answered 2026-10-26 (v1.1.2492): keep** — the desktop detail view now uses the same glass layer over the cover (`DetailView/DetailRightGlas.jsx`, shared optics in `DetailView/glasOptik.js`), so the library has two consumers. **v1.1.2500 (2026-10-27): desktop half removed again** (user decision: desktop as before v1.1.2492, no Liquid Glass on desktop; the CSS frosted glass everywhere takes over the Safari look). The library is back to one consumer (`DetailRightSheet.jsx`, optics still in `DetailView/glasOptik.js`). | Remove: library + copy path + settings page (12 sliders), register/defaults/catalog/i18n; the sheet becomes CSS glass | Keep: #40 three presets (S), #37 capability line (S), #35 never | A: −16.2 KB (audit B12), S/M — the sheet's look changes visibly on Chromium tablets | #35, #37, #40 |
 | D3 | Energy Dashboard (#6): six roots; `energyDashboardCalculations.js` is imported by six modules outside it (chronicle, center, chart header, logbook, statistics) | Remove in three slices: move the shared functions + B29 (3 h, needs no user yes) → soft shutdown with a delete button for stored energy devices (3 h) → cut (3–4 h) | Keep, do not extend | −20…22.6 KB (audit B03), M (8–12 h); breaking for third-party installs with a stored energy device (`deviceConfigStorage.js` user_data key) | Slice 1 is a refactor gain regardless of the answer |
 | D4 | Test suite (#36): 13 specs / 107 tests, state v2317; the modules since then have no net | Bring up to v2468 | Leave as is | M | Hard rule: only on explicit request — hence no planning here, only the question |
 | D5 | Back up settings in HA: the builder uses `frontend/get_user_data` + `set_user_data` (`deviceConfigStorage.js:86–114`); everything else lives only in localStorage | "Save to HA / load from HA" under one key with an allow-list (caches excluded), variant "changed only" | Stays browser-local | +2–3 KB, M (6–8 h); user_data is USER-bound — kiosk user ≠ phone user; roadmap Out of scope lists "Backup/Restore settings as JSON" | Automatic sync (L) only on a yes |
@@ -2620,6 +3686,8 @@ Thirteen questions that came out of the same pass, plus D14 from 2026-10-25, and
 | D12 | Per-feature off switches (#46 companion idea): a switched-off feature disappears from register, search and tiles | Build (M, 10–12 h, three slices; no bundle effect) | Do not | M | Register, tile building, content search |
 | D13 | Video doctor (#50) — pull it now? | Yes, one release (4–6 h, benefit 2) | Drop | S | prompt 19 (`docs/prompts/2026-09-11-optimierung/19-video-doktor.md`, unversioned) |
 | D14 | Acknowledge `alert.*` in HA as well (Part thirteen): acknowledging is local by design (`utils/notificationState.js:123`), so a warning acknowledged on the wall tablet stays open on the phone | Option: also call `alert.turn_off`, which HA shares with every device and user | Stays local, per device | S (2 h) | Reverses the "acknowledge is local" contract of the notification system; `alert.turn_on` would be the undo |
+| D15 | A kiosk app's JavaScript bridge (Part fifteen): some kiosk browser apps for wall tablets put a JavaScript object into every page, with calls for screen on and off, brightness, keeping the app awake and native sound. The card reaches the panel only through HA entities (#49, #63: no integration-specific code, `utils/displayUebergabe.js:20–23`); nothing says such an app is in use here | A thin, optional adapter: detect the object and use only the two calls that have no entity equivalent — keep the app from idling while a hold reason is open (#103), and native sound that is not blocked after a reload (#102). Everything else stays on entities. No call is ever built from notification text, AI output or other outside data; a SECURITY.md paragraph | Stay entity-only, as today | A: S–M (4–6 h), < 2 KB gzip; untestable without the device; the object is open to every script on the page | #49, #63, #102, #103, #110, `docs/SECURITY.md` |
+| D16 | Where does music live on the wall tablet (Part seventeen)? Today only inside a speaker's detail view (`components/controls/PresetButtonsGroup.jsx:55–56`) | Only there, made better by #128–#139 (the announcement sheet of #130 S3 and AI mode of #139 reach speakers from outside, but add no music surface) | Also a Music page in the side bar and a now-playing tile on the start and Zen pages (#140) | B: about +4–5.5 KB gzip on a bundle already over the warning; D3 is the only counter-financing left | #140, #115 S3, D3 |
 
 ---
 
@@ -2628,7 +3696,7 @@ Thirteen questions that came out of the same pass, plus D14 from 2026-10-25, and
 - This roadmap is a **proposal**, not a commitment. Selection and order are open.
 - Effort estimates are rough: Small < 4 h, Medium 4–16 h, Large > 16 h.
 - Structural refactors (see `memory/project_structural_refactor_plan.md`) are a parallel track and don't compete with this roadmap.
-- The roadmap covers **98 feature ideas + 2 parallel/long-term tracks** = 100 entries total.
+- The roadmap covers **138 feature ideas + 2 parallel/long-term tracks** = 140 entries total.
   - **#1–#10** — May 2026's "what was clearly missing then" baseline.
   - **#11–#20** — June 2026's "what users keep asking about post-Quick Control".
   - **#21** — Localization track (parallel, community-paced).
@@ -2643,3 +3711,6 @@ Thirteen questions that came out of the same pass, plus D14 from 2026-10-25, and
   - **#86–#90** — 2026-10-02, from reading a combined calendar-and-tasks agenda card against the code at v1.1.2474. One medium entry (tasks in the calendar) and four small ones (duplicates, source capabilities, relative time, map link). Ideas only.
   - **#91–#97** — 2026-10-25, from reading two room-by-room dashboard projects against the code at v1.1.2482. Two medium entries (alarm panel, household appliances) and five small ones (tidying the center, ventilation hint, scenes first, last motion, the reason behind automatic choices); an addendum to #70 and decision D14. Ideas only.
   - **#98–#100** — 2026-10-25, from reading a pair of touch-first Music Assistant cards against the code at v1.1.2482. Three small entries (play now and keep the queue, volume limit and starting volume, a second next/previous); lyrics and recommendations went to #22 as requirements input. Ideas only.
+  - **#101–#119** — 2026-11-02, from reading the documentation of a kiosk browser app for Android wall tablets against the code at v1.1.2507, every hook re-read at v1.1.2509. One repair first (deleting a merged calendar event), then the wall tablet's manners: the timer end, holding the screensaver, the connection, deep-rest stages, display off, the photo frame, the tablet's own identity, the calendar on the wall, real brightness, what stands in rest, rest faces, a lean deep rest, automations for one tablet, the lock, old devices, the tablet's check, AI mode and dictation, the side bar. Addenda to thirteen existing entries and three open decisions (D5, D8, D10), and decision D15. Music, speaker and announcement ideas from the same pass went to Part seventeen. Ideas only.
+  - **#120–#127** — 2026-11-02, from reading a statistics chart card and a card for Home Assistant's schedule helper against the code at v1.1.2509. Five chart entries (repairs first, then a fair running period that corrects #59, on-time bands, picked days with statistics, true extremes) and three schedule entries (scheduler edits that lose data, the schedule helper, the next run); an addendum to #3, notes on #59, #96, #21 and D3, and requirements input for #22. Ideas only.
+  - **#128–#140** — 2026-11-02, a deep Music Assistant pass: a pair of touch-first Music Assistant cards for wall tablets read in full, Home Assistant's Music Assistant and media-player APIs, and the card's own music code, all checked against Home Assistant's source. Six repairs first (detection of idle and off speakers with their dead service paths, error states, announcements over modern TTS, accidental ring taps, a steady now-playing header and an honest live row, the open panel's cost), then home rows from the own library, search, honest feedback, media basics, the speaker sheet with a sleep timer, music in AI mode, and a Music page that waits on D16. #22's music text, #98's hook, the #3b E3 note and Part fourteen's intro corrected in place; addenda to ten more entries and decision D16. Ideas only.
