@@ -948,7 +948,7 @@ Open Tasks, plus button, type a title.
 - **Add a note** — with templates if you've set any up
 
 ### Completing
-One tap on the circle at the left. The task gets struck through and leaves the list depending on your filter.
+One tap on the circle at the right. The task gets struck through and dimmed, and leaves the list depending on your filter.
 
 ---
 

@@ -1,5 +1,51 @@
 # Versionsverlauf
 
+## Version 1.1.2509 - 2026-11-02
+
+**Title:** ✅ Done tasks are dimmed for real, ⋯ and the check stay fully visible
+
+**Tags:** tasks, calendar, bugfix
+
+Done tasks have been described as struck through and dimmed since v1.1.2359, but the task list only ever showed the strike. The entry animation writes `opacity: 1` onto the row, and that beats the dimming rule on the same element. In the calendar, whose task rows have no such animation, the rule did work and dimmed the whole row, ⋯ and check included.
+
+- **Dimming moved from the row to its content.** The list circle and the text now sit at 55 %, in the task list and in the calendar. The row surface, ⋯ and the check stay at 100 %. It uses `opacity` only, with no `backdrop-filter` and no new animation.
+- **Done title without its own colour.** It used to add 60 % on top, which would have given 2.3:1 on the grey test wallpaper by day. It now only takes the 55 % and reaches 3.6:1.
+- **Calendar buttons back at full strength.** On the grey wallpaper by day, ⋯ goes from 2.7:1 to 4.7:1 and the check from 3.8:1 to 7.5:1.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 36 px offset above the card, in Chrome and WebKit at 1440 × 860 and 390 × 844, by day and at night, on a grey and a white wallpaper. That is 16 runs, compared with v1.1.2508 in Chrome.
+
+Computed opacity, the same in all 16 runs:
+
+| Row | Row surface | Circle | Text | ⋯ | Check |
+|---|---|---|---|---|---|
+| Open | 1 | 1 | 1 | 1 | 1 |
+| Done | 1 | 0.55 | 0.55 | 1 | 1 |
+| Overdue | 1 | 1 | 1 | 1 | 1 |
+
+Contrast of the done row. Text is its colour and opacity over the measured row surface, buttons are measured pixels. Open and overdue rows, and ⋯ and the check in the done row, match v1.1.2508.
+
+| Wallpaper | Title | List name | Date | ⋯ | Check |
+|---|---|---|---|---|---|
+| Grey, day, desktop | 3.6 | 2.4 | 2.7 | 4.7 | 7.6 |
+| Grey, night, desktop | 4.3 | 2.7 | 3.1 | 5.7 | 9.6 |
+| Grey, day, phone | 4.2 | 2.6 | 3.0 | 5.4 | 8.9 |
+| White, night, desktop | 2.9 | 2.0 | 2.2 | 3.5 | 5.2 |
+| White, day, desktop | 1.9 | 1.6 | 1.7 | 2.2 | 3.0 |
+
+- **Check:** a real click or tap dims the row, a second one restores it, in both browsers.
+- **⋯ on a done row** opens its window on the phone, in both browsers.
+- **Hover:** the scale still runs and the dimming stays, on desktop in both browsers.
+- **Keyboard ring** stays on the row at full strength, on desktop in Chrome.
+- **Long title:** it stays in its column and leaves ⋯ and the check reachable, at phone width in both browsers.
+- **Calendar row after ticking** matches the task row in both browsers at both sizes.
+- Guards green, no `backdrop-filter` in the bundle, no page errors.
+
+Weak spots: the list name and date of a done row miss the 3:1 target on most wallpapers, at 2.4:1 and 2.7:1 on grey by day. On a white wallpaper by day on desktop all text of a done row is below 2:1, where v1.1.2508 had 2.1:1 to 2.4:1 and an open row has 2.1:1 to 3.0:1. Dimmed past events in the calendar still dim the whole row, ⋯ included.
+
+Not checked: real iPhone, Safari and Home Assistant apps, multi-select with done rows. Task cards in the day and person columns have their own style and are unchanged. Tests were not run.
+
+**Bundle:** 2 307 941 bytes, 650 370 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2508 - 2026-11-02
 
 **Title:** ↩️ Enter button in the search row, a switch for the microphone, side bar closes after a choice, task buttons level

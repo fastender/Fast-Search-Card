@@ -948,7 +948,7 @@ Aufgaben öffnen, Plus-Knopf, Titel eintippen.
 - **Notiz** ergänzen — mit Vorlagen, wenn du welche angelegt hast
 
 ### Erledigen
-Ein Tipp auf den Kreis links. Die Aufgabe wird durchgestrichen und wandert je nach Filter aus der Liste.
+Ein Tipp auf den Kreis rechts. Die Aufgabe wird durchgestrichen und abgeblendet und wandert je nach Filter aus der Liste.
 
 ---
 
