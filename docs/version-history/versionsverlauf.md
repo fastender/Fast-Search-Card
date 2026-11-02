@@ -1,5 +1,20 @@
 # Versionsverlauf
 
+## Version 1.1.2511 - 2026-11-02
+
+**Title:** 📏 Start page exactly as tall as the search panel
+
+**Tags:** start-page, layout, bugfix
+
+- **Same height as the search panel.** The start page was 22 px taller than the open search panel, so the tiles ran past the panel's bottom edge and the side bar looked off-centre on the start page. The height ladder still counted the search row as 72 px, but the row has been 94 px tall since v1.1.2275. The tile grid now takes the real row into account: 94 + 24 + 554 = 672 px, the same as the search and detail panels. On lower windows the grid follows the same steps as the panel. The search and detail panels themselves do not change.
+- **No more tiles cut off at the window edge.** On the compact step (for example 1333 × 703) the extra 22 px pushed the bottom row of tiles past the bottom of the window. It now fits.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 36 px offset above the card, against v1.1.2509/2510: start page, search panel and detail panel share top and bottom edge to the pixel at 1440 × 1000 and 1440 × 860 (672 px, was 694 on the start page), 1333 × 703 and 1024 × 700 (592 px, was 614) and 1400 × 560 (496 px) in Chrome, and at 1440 × 860 in WebKit; the side bar sits on the centre of all three. The phone carousel is unchanged (390 × 844). In very low windows (about 470 px), where the search panel keeps its minimum height of 436 px and runs past the window, the start page stays inside the window and is shorter than the panel, as before. Guards green, load check without page errors.
+
+Not checked: real devices. Tests were not run.
+
+**Bundle:** 2 307 929 bytes, 650 421 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2510 - 2026-11-02
 
 **Title:** 🎯 Side bar centred on the panel, no greeting over the AI chat
