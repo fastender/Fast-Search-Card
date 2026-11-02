@@ -644,6 +644,15 @@ Locks, alarm panels, garage, gate and door covers, scripts and buttons — and s
 
 </details>
 
+<details>
+<summary><b>Calendar and tasks, by tap.</b></summary>
+
+<br>
+
+"Dentist Thursday 3 pm", "Move lunch to tomorrow at one", "Put milk on the shopping list", "The parking permit is done", "What's on tomorrow?". The AI sees the calendars and to-do lists the card shows, their events of the next two weeks and the open tasks, and proposes creating, changing, moving or deleting an event, or adding, renaming, completing or deleting a task. Every one of these is a preview card (title, day, time, calendar or list) that only runs after you tap "Run". The card works out the day and time in its own time zone, checks the calendar's and list's permissions, and changes a repeating event only for that one occurrence. Settings → General → AI mode → *Calendar and tasks* switches it off; then nothing from calendars or lists is sent.
+
+</details>
+
 <br>
 
 ---

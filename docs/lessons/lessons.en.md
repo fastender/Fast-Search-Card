@@ -467,6 +467,25 @@ Settings → General → Dictation. The switch covers search and new tasks, at o
 
 ---
 
+## Tipp ki-termine-aufgaben - Search
+
+**Title:** Can the AI create events and tasks?
+**Hero:** none
+**Tags:** AI mode, Calendar, Tasks
+
+Yes. In AI mode write for example "Dentist Thursday 3 pm", "Move lunch to tomorrow at one", "Put milk on the shopping list" or "The parking permit is done".
+
+### What happens then
+The AI only proposes the change. Below it sits a preview with title, day, time and calendar or list. Only your tap on "Run" creates, changes or deletes; "Dismiss" leaves everything as it is.
+
+### What the AI sees for this
+The calendars and lists the card shows, the events from today to 13 days ahead and the open tasks, each with only title, time, place and due date. Descriptions are not sent. For a repeating event it changes only that one occurrence.
+
+### Turning it off
+Settings → General → AI mode → Calendar and tasks. Off means the AI no longer sees calendars and tasks, and the chat is cleared.
+
+---
+
 ## Tipp kategorien - Search
 
 **Title:** What are Devices, Sensors, Actions and Custom?

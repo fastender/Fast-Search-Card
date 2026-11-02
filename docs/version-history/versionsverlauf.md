@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2513 - 2026-11-02
+
+**Title:** 🗓️ AI mode creates and edits events and tasks, always after your tap
+
+**Tags:** ai-mode, calendar, tasks, privacy
+
+AI mode can now work with your calendar and to-do lists. "Dentist Thursday 3 pm", "Move lunch to tomorrow at one", "Put milk on the shopping list", "The parking permit is done", "What's on tomorrow?".
+
+- **What the AI sees.** The calendars and task lists the card shows, with what each one allows. Also the events from today to 13 days ahead (at most 80: title, time, place, whether they repeat) and the open tasks (at most 120: title, due date). Calendar settings, groups, hide rules, Home Assistant visibility, list settings and exclusion patterns all apply. Descriptions, completed tasks, people and colours are not sent. The AI gets a table of the next 14 days to read dates from.
+- **What it can do.** Create, change, move and delete events, and add, rename, complete, reopen and delete tasks. A repeating event is changed or deleted only as that one occurrence.
+- **Always after your tap.** Every calendar and task action is a preview card (title, day, time, place, note, calendar or list) with "Run" and "Dismiss". Nothing is written before the tap.
+- **Checked twice.** Existing items reach the AI only as short references (`E3`, `T2`), never as their internal ids. The card checks every proposal when the answer arrives and again at the tap: the calendar or list was sent and is still shown, it allows the change, there are no unknown fields, and the date lies between yesterday and two years ahead. Right before changing or deleting an event, the card loads it again. If the event is gone, hidden now, or has changed since the question, the action is refused with "ask again" instead of overwriting the newer version.
+- **Times.** The card works out day and time in its own time zone. Moving an event keeps its duration, a new end time keeps the end day, a new end date keeps the end time. Moving a task's due date keeps its due time. All-day ends follow Home Assistant (exclusive end).
+- **Switch.** Settings → General → AI mode → *Calendar and tasks*, on by default. Off means nothing from calendars or lists is sent and such actions are refused. Turning it off or on, switching off a calendar, group or list, or changing a hide rule clears the chat history, so titles the card no longer shows do not travel on.
+- **Footer and suggestions.** The footer of each answer says how many events and tasks were sent. With the switch on, the third suggestion asks "What is on tomorrow?".
+
+An adversarial review before the release found seven problems, all fixed in this version. An edit could silently undo a newer change to the same event. Group membership and hide rules were missing from the history fingerprint. A description written by the AI did not show in the preview. Changing only the end time cut multi-day and overnight events short. An end date without an end time was ignored. Moving a task's due date dropped its time. And refusals spoke of a "device".
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with a mock Home Assistant (three calendars, one of them read-only, one task list, a mocked AI task) in Chrome, the browser in UTC−8:
+- The prompt contains the day table, calendars with their rights, 13 events as E1–E13 and the two open tasks as T1–T2.
+- 7 valid proposals wait without a single call to Home Assistant, and 5 invalid ones are refused: read-only calendar, invented reference, unknown field, the year 2099, a raw uid as reference.
+- After the taps the calls are correct: create 15:00 local as 23:00 UTC, a move keeping one hour, delete by uid, an all-day end of the following day, a due time sent with its offset, complete, remove.
+- After the fixes: the multi-day and overnight end, the end date alone, the refusal without an end time, the note in the preview, due date and due time each kept, an event renamed elsewhere refused as changed, a new hide rule clearing the chat.
+- English labels and the phone layout at 390 × 844. After a reload the history shows the previews as "Not confirmed" without buttons.
+
+Guards green, load check without page errors.
+
+Not checked: a real Home Assistant with a real AI model and real calendar integrations (Google, CalDAV, local), and the WebKit engine for this feature. Tests were not run.
+
+**Bundle:** 2 331 981 bytes, 658 171 gzip (+8 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2512 - 2026-11-02
 
 **Title:** 📱 Phone start page as tall as the search panel, also after a search

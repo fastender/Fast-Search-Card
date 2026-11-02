@@ -467,6 +467,25 @@ Einstellungen → Allgemein → Diktat. Der Schalter gilt für die Suche und fü
 
 ---
 
+## Tipp ki-termine-aufgaben - Suchen
+
+**Title:** Kann die KI Termine und Aufgaben anlegen?
+**Hero:** none
+**Tags:** KI-Modus, Kalender, Aufgaben
+
+Ja. Schreib im KI-Modus zum Beispiel „Zahnarzt Donnerstag 15 Uhr“, „Verschieb das Mittagessen auf morgen 13 Uhr“, „Milch auf die Einkaufsliste“ oder „Der Parkausweis ist erledigt“.
+
+### Was dann passiert
+Die KI schlägt die Änderung nur vor. Darunter steht eine Vorschau mit Titel, Tag, Uhrzeit und Kalender bzw. Liste. Erst dein Tipp auf „Ausführen“ legt an, ändert oder löscht, „Verwerfen“ lässt alles, wie es ist.
+
+### Was die KI dafür sieht
+Die Kalender und Listen, die die Karte zeigt, die Termine von heute bis in 13 Tagen und die offenen Aufgaben, jeweils nur Titel, Zeit, Ort und Fälligkeit. Beschreibungen gehen nicht mit. Bei einem Serientermin ändert sie nur den einen Termin.
+
+### Ausschalten
+Einstellungen → Allgemein → KI-Modus → Termine und Aufgaben. Aus heißt: Die KI sieht keine Kalender und Aufgaben mehr, der Chat wird geleert.
+
+---
+
 ## Tipp kategorien - Suchen
 
 **Title:** Wofür stehen Geräte, Sensoren, Aktionen und Custom?

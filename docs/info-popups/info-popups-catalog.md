@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -354,7 +354,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## aiMode
 
-> ⓘ am Abschnitt „KI-Modus“ in Settings → Allgemein und auf dessen Unterseite „KI-Aufgabe“ (v1.1.2481; automatischer Wechsel bei leerer Suche seit v1.1.2488; Code, gespeicherter Verlauf und 10 Beiträge seit v1.1.2497).
+> ⓘ am Abschnitt „KI-Modus“ in Settings → Allgemein und auf dessen Unterseite „KI-Aufgabe“ (v1.1.2481; automatischer Wechsel bei leerer Suche seit v1.1.2488; Code, gespeicherter Verlauf und 10 Beiträge seit v1.1.2497; Termine und Aufgaben seit v1.1.2513).
 
 **DE**
 > ## KI-Modus
@@ -365,8 +365,9 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Wer schaltet** – die KI schaltet nie selbst. Sie schlägt Aktionen vor; die Karte prüft jede einzelne (nur gesendete Geräte, nur erlaubte Befehle, Werte im erlaubten Bereich) und führt sie erst dann aus. Einstellungen, die die Karte nicht kennt, werden abgelehnt.
 > - **Nur nach deinem Tipp auf „Ausführen“** – Schlösser, Alarmanlagen, Abdeckungen der Art Garage/Tor/Tür, Skripte und Tasten — auch Szenen und Gruppen, die so ein Gerät enthalten (auch verschachtelt).
 > - **Ohne Rückfrage** – alles andere, auch Szenen und Gruppen ohne solche Geräte, Automationen und Schalter. Sie können mehr schalten, als die Karte zeigt.
+> - **Termine und Aufgaben** – mit dem Schalter **Termine und Aufgaben** gehen zusätzlich die Kalender und Aufgabenlisten mit, die die Karte zeigt, dazu ihre Termine von heute bis in 13 Tagen (höchstens 80: Titel, Zeit, Ort) und die offenen Aufgaben (höchstens 120: Titel, Fälligkeit). Beschreibungen gehen nicht mit. Die KI kann Termine anlegen, ändern, verschieben und löschen, Aufgaben anlegen, umbenennen, erledigen und löschen — **jede** dieser Aktionen erst nach deinem Tipp auf „Ausführen“, mit Vorschau (Titel, Tag, Uhrzeit, Kalender bzw. Liste). Bei Serienterminen nur den einen Termin. Ohne den Schalter sieht die KI keine Kalender und Aufgaben.
 > - **Code** – Automationen und Skripte legt die KI nicht selbst an. Sie schreibt das YAML als Codeblock mit Knopf **Kopieren**, zum Einfügen in Home Assistant.
-> - **Verlauf** – der Chat bleibt auf diesem Gerät gespeichert (die letzten 30 Fragen), auch nach Neuladen und Bildschirmschoner. Die KI sieht davon die letzten 10 Beiträge. **Neuer Chat** löscht ihn, eine geänderte Ausschlussliste ebenfalls. Offene Bestätigungen gelten nach dem Neuladen nicht mehr.
+> - **Verlauf** – der Chat bleibt auf diesem Gerät gespeichert (die letzten 30 Fragen), auch nach Neuladen und Bildschirmschoner. Die KI sieht davon die letzten 10 Beiträge. **Neuer Chat** löscht ihn, eine geänderte Ausschlussliste ebenfalls, ebenso ein abgeschalteter Kalender oder eine abgeschaltete Liste und der Schalter **Termine und Aufgaben**. Offene Bestätigungen gelten nach dem Neuladen nicht mehr.
 > - **Abbrechen** – Schließen und der Bildschirmschoner behalten eine laufende Frage (ihre Aktionen laufen). „Neuer Chat“ und Ausschalten verwerfen sie.
 > - **Kosten** – jede Frage schickt die ganze Geräteliste erneut, grob 10 000–20 000 Tokens bei 300–500 Geräten. Sie laufen über deinen eigenen KI-Anbieter.
 > - **Voraussetzung** – Home Assistant ab 2025.8 mit einer „KI-Aufgabe“ deiner KI-Integration (z. B. Anthropic). „Automatisch“ nimmt die Vorgabe von Home Assistant.
@@ -382,8 +383,9 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Who switches** – the AI never switches anything itself. It proposes actions; the card checks every single one (only sent devices, only allowed commands, values inside the allowed range) and only then runs it. Settings the card does not know are refused.
 > - **Only after you tap "Run"** – locks, alarm panels, covers of the garage/gate/door kind, scripts and buttons — also scenes and groups that contain such a device (nested too).
 > - **Without asking** – everything else, including scenes and groups without such devices, automations and switches. They can control more than the card shows.
+> - **Calendar and tasks** – with the **Calendar and tasks** switch, the calendars and task lists the card shows are sent too, with their events from today to 13 days ahead (at most 80: title, time, place) and the open tasks (at most 120: title, due date). Descriptions are not sent. The AI can create, change, move and delete events, and add, rename, complete and delete tasks — **each** of these only after you tap "Run", with a preview (title, day, time, calendar or list). For repeating events only that one occurrence. Without the switch the AI sees no calendars or tasks.
 > - **Code** – the AI does not create automations or scripts itself. It writes the YAML as a code block with a **Copy** button, to paste into Home Assistant.
-> - **History** – the chat stays saved on this device (the last 30 questions), also after a reload and the screensaver. The AI sees the last 10 messages of it. **New chat** deletes it, and so does a changed exclusion list. Open confirmations no longer apply after a reload.
+> - **History** – the chat stays saved on this device (the last 30 questions), also after a reload and the screensaver. The AI sees the last 10 messages of it. **New chat** deletes it, and so does a changed exclusion list, a calendar or list switched off, and the **Calendar and tasks** switch. Open confirmations no longer apply after a reload.
 > - **Cancelling** – closing and the screensaver keep a running question (its actions run). "New chat" and switching off discard it.
 > - **Costs** – every question sends the whole device list again, roughly 10,000–20,000 tokens for 300–500 devices. They are billed by your own AI provider.
 > - **Requirement** – Home Assistant 2025.8 or later with an "AI task" of your AI integration (e.g. Anthropic). "Automatic" uses the Home Assistant default.
