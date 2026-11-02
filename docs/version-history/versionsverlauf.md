@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2512 - 2026-11-02
+
+**Title:** 📱 Phone start page as tall as the search panel, also after a search
+
+**Tags:** start-page, phone, layout, bugfix
+
+On the phone the start page shows one carousel over all tiles. Its height was worked out from the window, not from the search panel, which led to two bugs:
+
+- **Taller than the search panel.** On a phone of 398 × 860 with the Home Assistant header, the tiles ended 16 px below the bottom edge of the open search panel.
+- **Shrank after a search.** The card measured where the tiles start even while the search panel was open, and found them below the panel (756 instead of 158 px from the top). Back on the start page the carousel then fell to its minimum height of 260 px and stayed there until the next reload.
+
+The carousel now takes its height from the search panel: its page ends exactly at the panel's bottom edge, and the dots sit below it. The window measurement is gone, so nothing can go stale between views. A carousel with a single page (no dots) ends at the same edge.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with test data, the line height of Home Assistant and a 56 px header above the card, against v1.1.2511: the tile bottom equals the search panel bottom to the pixel before and after going to the search and back, at 398 × 860 in Chrome and WebKit and at 375 × 667, 412 × 915 and 768 × 1024 in Chrome. Desktop unchanged (1440 × 1000). Guards green, load check without page errors.
+
+Trade-off on small phones: the search panel on the phone is always 672 px tall. Where the window is shorter than that plus the dock (at 375 × 667 for example), the start page now also reaches under the dock like the search panel does; before, it shrank to fit the window. The dots can be scrolled into view.
+
+Not checked: real devices, a carousel with a single page. Tests were not run.
+
+**Bundle:** 2 307 312 bytes, 650 213 gzip, over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2511 - 2026-11-02
 
 **Title:** 📏 Start page exactly as tall as the search panel
