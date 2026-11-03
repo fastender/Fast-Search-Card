@@ -475,6 +475,8 @@ Multi-shape response handling — works across MA versions.
 
 Tap the artist in the media ring to search Music Assistant for them (only on Music Assistant speakers). Results and queue show the version ("Song (Live)"), an "E" for explicit and a dot for favourites; the heart finds Music Assistant's favourite button by what Home Assistant registers for it and never presses twice (v1.1.2519, roadmap #128). Calls Home Assistant does not have are gone.
 
+When Music Assistant fails, the panel says what happened instead of looking empty: "Search failed", "Library not loaded" with "Try again", "Your library is empty" only when it really is, "Queue not loaded", and failures that name their step ("Speaker did not respond", "No voice reachable"). While Music Assistant restarts the panel shows "Music Assistant is not connected" and comes back by itself when Home Assistant reports it loaded — no timer. Search answers in order, so "beatles" never shows the hits for "beat" (v1.1.2521, roadmap #129).
+
 </details>
 
 <details>

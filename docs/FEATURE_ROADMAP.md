@@ -3369,6 +3369,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 
 ### 129. When something fails, the panel says what
 
+> ✅ **Shipped v1.1.2521** (2026-11-03) — S1: a run number per search (only the newest answer writes results, spinner and history), two characters minimum (an artist tap is exempt; one-letter history entries are dropped), the wrapper returns `{ error }` and the tab says "Search failed". S2: no session marker any more (removed once), failed (`null`) vs. empty (`[]`), a failed row keeps its old state and a lasting "Not everything loaded" line shows while it has nothing, `invalid_format` (a type this HA version lacks) stays silent, failed refresh / load-more name their step and keep the list, a drill-down that fails says so, a failed `get_queue` keeps the old queue or says "Queue not loaded". S3: `getMusicAssistantEntry` returns `verbunden` / `getrennt` / `fehlt`; "not connected" with one retry replaces the tabs; re-read on open, on retry, when the player leaves `unavailable`, after a completely failed search or first library load, and — only while disconnected — on `config_entries/subscribe` reporting `loaded`; never on a timer. S4: one feedback timer, step-named failures (speaker, voice, clearing, grouping, ungrouping), developer texts gone. Bundle +1.1 KB (estimate was +0.15 KB; the queue, partial-row and event parts were added in review).
+
 **Pitch:** Typing "beatles" never shows hits for "beat". While Music Assistant restarts, the panel says so and offers one retry, instead of "No matches" or "Library not available in this MA version". A second message no longer vanishes after 0.8 s.
 
 **Status quo:**

@@ -1,5 +1,59 @@
 # Versionsverlauf
 
+## Version 1.1.2521 - 2026-11-03
+
+**Title:** 🎵 Music Assistant says what went wrong
+
+**Tags:** music-assistant, repair
+
+**Four repairs from roadmap #129. A failed call no longer looks like an empty result.**
+- **Search (S1).** Typing "beatles" no longer shows the hits for "beat". Each search carries a number, and only the newest answer writes the results, the spinner and the history. Before, a late answer for an older word won, stopped the spinner early and landed in the history. Search starts at two characters. A tapped artist with a one-letter name ("X") is still searched, and one-letter entries left in the history by older versions are dropped. When Music Assistant does not answer, the panel says "Search failed — Music Assistant did not answer" instead of "No matches".
+- **Library (S2).** The library no longer switches itself off. Before, six empty rows marked it as unavailable for the whole browser session, and on a wall tablet a session lasts weeks. Six empty rows also came back when every call failed, for example while Music Assistant restarted. Now:
+  - "Call failed" and "library empty" are two different states. A failed library says "Library not loaded" and offers "Try again". An empty library says "Your library is empty — search finds music from your services".
+  - The old marker is removed once.
+  - A row that fails while others load keeps its last state, and a short message says "Not everything loaded". A row type this Home Assistant version does not know (such as audiobooks on older versions) stays hidden without a message.
+  - A failed refresh or "Load more" keeps the list on screen and names its step. "Load more" stays available after a failure.
+  - An album, playlist or podcast that cannot be opened says so, instead of "No tracks".
+  - A failed queue request no longer looks like an empty queue.
+- **Music Assistant's state (S3).** The panel reads the state of the Music Assistant integration, not just its ID. While it is not loaded (`setup_retry` during a restart), the panel shows one line, "Music Assistant is not connected", with one retry, instead of empty results in every tab. The state is read when the panel opens, on "Try again" and when the speaker becomes available again. While the panel is disconnected, Home Assistant's config-entry events say when Music Assistant is back. There is no timer. After reconnecting, a library that failed during the outage loads again by itself.
+- **Messages (S4).** One message timer: the last message wins. Before, a second message vanished after 0.8 s because the first one's timer cleared it. Failures name their step:
+  - "Speaker did not respond" when playing, queueing or an announcement fails on the speaker.
+  - "No voice reachable" when no text-to-speech is set up or the voice rejects the text.
+  - "Clearing failed", "Grouping failed" and "Ungrouping failed".
+  - The developer notes are gone: "Library not available in this MA version", "Console lists available services" and "current + next only" in the queue header.
+
+An adversarial review before the release confirmed ten distinct problems, all fixed:
+- A failed refresh over an empty library still said "Your library is empty".
+- After Music Assistant came back, the library stayed on "not loaded"; a load still running during the outage could also write its failure afterwards.
+- A failed refresh said "Loading more failed".
+- A row that failed while others loaded just disappeared.
+- Tapping refresh while "Load more" was pending could make "Load more" vanish for good.
+- A failed ungroup said "Grouping failed".
+- An artist with a one-letter name was no longer searched, and one-letter history entries from older versions became dead buttons.
+- On Home Assistant up to 2026.9, the re-check after a restart could arrive before Music Assistant was fully loaded and leave the panel on "not connected"; the panel now listens for Home Assistant's config-entry event while disconnected.
+- After reconnecting, the list had no scroll bar until the next tab change.
+- A text announcement the speaker rejected was reported as "No voice reachable".
+
+A second pass over those fixes found four more, also fixed:
+- In the common case, the library still did not reload after a restart, because the connection state did not change on the way. A completely failed first load (and a failed search) now re-reads the state, so the "not connected" path takes over and reloads once Music Assistant is back.
+- "Not everything loaded" showed for only 1.8 s. It now stays as a line above the library while a failed row has nothing to show.
+- One voice failing on the language turned every speaker failure into "No voice reachable". It now says so only when every voice failed at the voice step.
+- A one-letter search from an artist tap could still be written to the history.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant in Chrome:
+- **Restart:** with Music Assistant in `setup_retry` the panel shows "not connected" and searches nothing; "Try again" or Home Assistant's "loaded" event brings it back and runs the search. No re-read at rest over 3 s; one re-read when the speaker comes back from unavailable.
+- **Search:** "beat" answered after "beatles" — the results and the history keep "beatles". One character sends nothing and shows no "No matches". A failed search shows its own line. The artist "X" is searched and not saved to the history.
+- **Messages:** a second message one second after the first is still shown 1.1 s later.
+- **Library:** failed → "not loaded" with "Try again"; empty → "Your library is empty"; one row failing → the other rows plus a lasting line; failed refresh and failed "Load more" keep the 60 cards and name their step, and "Load more" stays; a failed album says "Content not loaded". A failed first load during an outage turns into "not connected" and loads by itself after the "loaded" event. The old session marker is gone after loading.
+- **Queue:** a failed first request says "Queue not loaded" in both queue tabs; a later failure keeps the old list.
+- **Announcements:** no voice → "No voice reachable"; a voice failing on the language → the same; a speaker failure (also mixed with a language failure) → "Speaker did not respond".
+
+Guards green, load check without page errors.
+
+Not checked: a real Music Assistant restart against a real Home Assistant, real config-entry events and real text-to-speech engines. Tests were not run.
+
+**Bundle:** 2 362 899 bytes, 668 824 gzip (+1.1 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2520 - 2026-11-03
 
 **Title:** 📈 Charts tell the truth
