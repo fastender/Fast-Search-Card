@@ -374,6 +374,8 @@ Bento integration: next event as hero, four follow-ups.
 
 **Week as day columns:** the week tab shows one column per day with all-day pills on top and timed events as small cards below; on narrow screens it steps down from seven to five to three days and finally to the compact week grid (v1.1.2387–2388, roadmap #48).
 
+**One event in several calendars:** it shows once with the colours of all its calendars (v1.1.2478, #87). Editing or deleting it asks *In all 2 calendars · Only here*; "all" is the default and changes or deletes every copy under one undo, skipping and naming read-only calendars (v1.1.2518, #101).
+
 </details>
 
 <details>

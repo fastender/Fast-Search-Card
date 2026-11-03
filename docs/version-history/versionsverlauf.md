@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.2518 - 2026-11-03
+
+**Title:** 📅 A deleted appointment stays deleted in every calendar
+
+**Tags:** calendar, repair
+
+**The repair (roadmap #101 S1).** An appointment that sits in two calendars shows once since v1.1.2478 (#87). Deleting it removed only the copy that stood for the row; at the next load it came back from the other calendar. Editing changed one copy, and the row split in two.
+
+**Now.** Opening such an event shows a choice above the delete button: *In all 2 calendars* (with their names) or *Only here*. "All" is the default:
+- **Save:** every copy gets the change. Title, time, all-day and place are the same in all copies (that is how #87 recognises them). Description and recurrence may differ; they only go to the other copies if you changed them, otherwise each copy keeps its own.
+- **Delete:** every copy is deleted under one undo pill; while it runs, those copies are hidden.
+- **Series:** if the row you opened is a single appointment and the copy in another calendar belongs to a series, only that one occurrence is changed or deleted there, never the whole series.
+- **Calendars that do not allow it** (holidays, ICS feeds) are skipped and named right when you tap: "Not deleted in Holidays – not allowed there." Their copy stays visible.
+- **Failures** are named per calendar in one message.
+- **Only here** acts on the copy the row stands for; the other copy then shows as its own row.
+- **Same calendar:** two entries in the same calendar are separate appointments, not copies; they get no choice.
+
+The same choice appears in the row's ⋯ window. Events in one calendar only look and work as before.
+
+An adversarial review before the release confirmed six findings, all fixed:
+- "All" on a single appointment would have deleted or changed a whole series in the other calendar.
+- The recurrence counted as changed without being touched, because the dialog rewrites rules (second Tuesday, end with a time), and was then pushed onto other copies.
+- Two entries in the same calendar counted as copies ("in all 2 calendars" with one calendar).
+- Read-only copies vanished during the undo window and came back, named only afterwards.
+- The two messages overlapped.
+- The failure message did not say what failed.
+
+A second pass over those fixes found two more, also fixed:
+- When only one occurrence of a series is deleted, the undo window hid the whole series. The undo marker now carries that occurrence.
+- "Read-only there" was wrong for calendars that may delete but not change.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant with three calendars (two writable, one read-only) in Chrome:
+- **Edit "all":** both copies change; the work calendar keeps its own description.
+- **Delete "all":** the read-only copy is skipped, named at the tap and stays visible.
+- **Only here:** only the row's copy goes; the other one becomes its own row.
+- **Series:** a single appointment plus a weekly series occurrence: the series loses only that occurrence (`recurrence_id`), and only that occurrence is hidden while undo is possible.
+- **Same calendar / single event:** no choice.
+- **Title change:** the single copy does not turn into a series.
+
+Guards green, load check without page errors.
+
+Not checked: real calendar integrations (CalDAV, Google, local) with copies of the same event. Tests were not run.
+
+**Bundle:** 2 360 385 bytes, 667 393 gzip (+1.0 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2517 - 2026-11-03
 
 **Title:** 🗓️ Editing a schedule keeps what you did not touch
