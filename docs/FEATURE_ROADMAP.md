@@ -3095,6 +3095,8 @@ Eight entries and six addenda (a worked one to #3, short ones to #59, #21, #96, 
 
 ### 120. Charts tell the truth — four repairs
 
+> ✅ **S1–S4 shipped v1.1.2520** (2026-11-03) — S1: `getChartData`, the history path, the year comparison and the custom range return the headline (`kopf`) from their own answer; `SensorChartView` has no separate headline fetch (`getCustomRangeValue` removed); counters use the rows' `change`, the baseline fetch runs only when a row lacks it; a running measurement headline follows its one value through the hass store without the spring; nothing = "–". S2: attribute series of light, fan and cover add `significant_changes_only=0`; attribute rows read `last_updated` first. S3: `total` with an energy/volume unit takes the counter path incl. the year comparison, not clamped to 0; units TWh, MJ, GJ, mL, CCF added. S4: `fetchStatistics` rethrows instead of its broken history fallback; `aggregateHistory`/`naechsteBucketGrenze` removed. The D3-dependent part of S4 (energy view unit from the metadata list, period energy from summed `change`) stays open. Honesty rule open: not checked against a real dimmable light's Home Assistant history.
+
 **Pitch:** These are fixes, not features. Today a history chart can show a wrong number in four places: a big 0.00 above a chart full of values, a dimmed lamp that never seems to dim, a kWh helper drawn as its meter reading, and an energy view that labels Wh as kWh.
 
 **Status quo:**

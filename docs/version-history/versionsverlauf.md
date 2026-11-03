@@ -1,5 +1,50 @@
 # Versionsverlauf
 
+## Version 1.1.2520 - 2026-11-03
+
+**Title:** 📈 Charts tell the truth
+
+**Tags:** charts, repair
+
+**Four repairs from roadmap #120.**
+- **One answer, one headline (S1).** The big number above a chart now comes from the same answer as the chart:
+  - Counters show the sum of their bars.
+  - A reading (temperature, power, a number helper) shows its current value for the running period, and follows it live while the view is open; while the sensor is unavailable it shows "–". For a past period it shows the last value.
+  - Nothing to show gives "–" instead of 0.00.
+  - Before, the headline asked separately and showed a big 0.00 above a full chart for number helpers, counters without statistics and new sensors.
+  - The duplicate request and the counters' two extra baseline requests are gone. Counters now read Home Assistant's own per-bar `change`.
+- **Dimming is history too (S2).** Lights, fans and covers are not on the recorder's "significant" list. Brightness or speed changes while the device stayed on were filtered out, so the chart only showed values at on/off. Their attribute charts now ask without that filter and use the time of the attribute change.
+- **`total` counts as a counter (S3).** The integration helper that turns watts into kWh, and net meters, carry `state_class: total`. They were drawn as averages of their meter reading. Now they are drawn as consumption per bar like other counters. Net meters may go below zero. MJ, GJ, TWh, mL and CCF are recognised as counter units.
+- **No data from 1970 (S4).** The energy view's history fallback read seconds as milliseconds, so every row was dated 1970, and multiplied the values by 1000. It is removed; a failed statistics request now shows an empty chart.
+
+An adversarial review before the release confirmed seven findings, all fixed:
+- The headline could freeze when it switched between the animated number and plain text.
+- A counter's headline added up already rounded bars and lost small consumption.
+- Net meters were still clamped to zero in the year comparison.
+- The comparison pill read "+-50 %" for a negative previous period.
+- The two-bar year chart counted last year twice in its comparison pill.
+- A sensor that went unavailable kept its old live value.
+- Going back from the running period, the number counted up from 0.
+
+A second pass over those fixes found three more, also fixed:
+- A counter without statistics yet, as right after midnight or a new meter, showed its meter reading as the period's consumption, live, all day on a wall tablet. It now shows "–".
+- Opening a running period flashed an old value for one frame.
+- Leaving live mode jumped the number back to the value from when the data was loaded.
+
+While testing, one more problem came up and was fixed: the detail view hands down a frozen copy of Home Assistant's state. A sensor that was unavailable at that moment made the running period stop following live.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant in Chrome:
+- **Number helper without statistics:** headline 21.50 °C instead of 0.00, with one request less. It follows 22.0 live without a new request, shows "–" while unavailable and 23.00 when back. One period back shows that period's last value; back on today it follows live again (24.00). This was stable over three runs.
+- **`total` meter in kWh:** statistics path, one request without a baseline request. The headline is the sum of `change` (7.00), and a negative hour is not clamped.
+- **kWh counter without statistics:** headline "–", not its meter reading.
+- **Dimmable light:** the brightness history is requested with `significant_changes_only=0`.
+
+Guards green, load check without page errors.
+
+Not checked: a real dimmable light against Home Assistant's own history, real `total` helpers and real statistics with `change`. Tests were not run. Still open from S4: the energy view's unit and period energy (they wait on decision D3).
+
+**Bundle:** 2 359 608 bytes, 667 721 gzip (+0.5 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2519 - 2026-11-03
 
 **Title:** 🎵 Music Assistant: the artist tap works, dead calls are gone, the heart finds its button

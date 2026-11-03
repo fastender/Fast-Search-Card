@@ -311,6 +311,8 @@ Chart.js graphs. 24-hour, 7-day, 30-day timeframes. Time-of-day analysis. State-
 
 Universal across every entity type, not just Universal devices — sensors, switches, climates, covers all use the same view (rolled out in v1.1.1866). Per-domain chart presets pick the right scale automatically.
 
+**Numbers you can trust (v1.1.2520, roadmap #120):** the big number above a chart comes from the same answer as the chart — a counter shows the sum of its bars, a reading shows its current value for the running period (following live while the view is open) and the last value for a past one, and an empty answer shows "–" instead of 0.00. Dimming a light or changing a fan's speed while it stays on appears in its history, and integration helpers that turn watts into kWh (`state_class: total`) are drawn as consumption, not as their meter reading.
+
 </details>
 
 <details>
