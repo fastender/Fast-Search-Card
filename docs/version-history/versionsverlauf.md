@@ -1,5 +1,46 @@
 # Versionsverlauf
 
+## Version 1.1.2515 - 2026-11-03
+
+**Title:** 🔉 This tablet's speaker, and music that drops while you dictate
+
+**Tags:** settings, music-assistant, dictation, ai-mode
+
+**This tablet's speaker (roadmap #138 S1).** A new section under Settings → General → *This tablet* → *Speaker* picks one media player for this browser. Music Assistant speakers are listed first. The choice is stored only in this browser and never synced. "None" means the speaker that is playing is used. Two things use it now:
+- **AI mode.** Without a room, "Play some jazz" or "a bit louder" go to this speaker. If none is set, or it is unavailable right now, they go to the one speaker that is playing; if none plays, the AI asks which one. The speaker is only named to the AI when it is in the device list the card sends.
+- **Dictation.** See below.
+
+Proposing a speaker automatically from the tablet's own device or room needs #108, which does not exist yet.
+
+**Lower music while dictating (roadmap #139 S3).** A new switch under Settings → General → Dictation, off by default, and only usable once a tablet speaker is set. While the microphone listens and that speaker plays, its volume drops to a fifth. Afterwards the old volume comes back, unless someone changed it in between. Other cases:
+- **Backup.** It lives in localStorage (`fscDiktatLeiser`) and stays until Home Assistant reports the restored volume, so a second dictation right after the first keeps the real original volume.
+- **Speaker off or gone.** If the page closes mid-dictation, the next start restores the volume once the speaker reports it again, waiting at most a minute. A speaker that no longer exists clears its backup.
+- **Two places at once.** With dictation running in the search and in the task form, only the last one to finish restores.
+- **Coarse volume steps.** Devices like Android TV with 15 steps still count as "unchanged".
+
+An adversarial review before the release found six problems, all fixed in this version:
+- A second dictation right after the first took the lowered volume as the original.
+- A missing volume or a failed call threw the backup away.
+- A backup for a removed speaker stayed forever.
+- Coarse volume steps were taken for a user change.
+- The AI was told "no speaker set" when the set one was only unavailable.
+- An unneeded time stamp was stored.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with a mock Home Assistant in Chrome:
+- **Dropping and coming back.** The volume goes from 0.5 to 0.1 and back to 0.5, and the backup is kept until confirmed.
+- **Second dictation at once.** It drops from the real 0.5 again, not from 0.1.
+- **Changed by hand.** Changed to 0.8 meanwhile, the volume is not restored.
+- **Coarse steps.** 8/15 is restored.
+- **Next start.** The speaker is off: the backup is kept, then restored once it plays. A speaker that no longer exists clears its backup. With no speaker set, nothing is lowered.
+- **AI prompt.** The rule is right for a set speaker, for the playing fallback and for a set but unavailable speaker.
+- **Settings.** The section and sub-page render, and the switch is greyed out with a hint while no speaker is set.
+
+Guards green, load check without page errors.
+
+Not checked: real speakers (how fast they report a new volume), real dictation on a device. Tests were not run.
+
+**Bundle:** 2 344 626 bytes, 662 310 gzip (+2 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2514 - 2026-11-03
 
 **Title:** 🎵 AI mode plays music, and Music Assistant speakers are recognised when they are off

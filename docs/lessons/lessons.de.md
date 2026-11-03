@@ -465,6 +465,9 @@ Die Karte nutzt die Spracherkennung deiner Assist-Pipeline in Home Assistant, so
 ### Ausschalten
 Einstellungen → Allgemein → Diktat. Der Schalter gilt für die Suche und für neue Aufgaben, sofort und ohne Neuladen. Aus heißt: kein Knopf und kein Zugriff aufs Mikrofon.
 
+### Musik leiser
+Mit „Musik leiser beim Diktieren“ fällt der Lautsprecher dieses Tablets auf ein Fünftel, solange das Mikrofon hört. Danach kommt die alte Lautstärke zurück, außer jemand hat sie inzwischen verstellt. Den Lautsprecher wählst du unter Allgemein → Dieses Tablet.
+
 ---
 
 ## Tipp ki-termine-aufgaben - Suchen
@@ -496,6 +499,9 @@ Ja, auf Lautsprechern von Music Assistant. Schreib im KI-Modus zum Beispiel „S
 
 ### Was dann passiert
 Die KI sucht die Musik nach Namen, also nach Interpret, Album, Titel, Playlist oder Sender. Die Wiedergabe startet ohne Rückfrage wie bei Play und Pause. Unter der Aktion steht kurz danach, was wirklich läuft, denn Music Assistant findet manchmal etwas anderes als gemeint.
+
+### Ohne Raumangabe
+Nennst du keinen Raum, spielt sie auf dem Lautsprecher dieses Tablets: Einstellungen → Allgemein → Dieses Tablet → Lautsprecher. Ist keiner gewählt, nimmt sie den, der gerade spielt.
 
 ### Grenzen
 Links und Dateipfade lehnt die Karte ab. Zufall, Wiederholen, Quelle sowie Lauter und Leiser gehen auf jedem Mediaplayer, den die Karte zeigt.

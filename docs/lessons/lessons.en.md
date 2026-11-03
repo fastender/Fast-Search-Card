@@ -465,6 +465,9 @@ The card uses the speech recognition of your Assist pipeline in Home Assistant, 
 ### Turning it off
 Settings → General → Dictation. The switch covers search and new tasks, at once and without a reload. Off means no button and no access to the microphone.
 
+### Lower music
+With "Lower music while dictating", this tablet's speaker drops to a fifth while the microphone listens. Afterwards the old volume comes back, unless someone changed it in between. Choose the speaker under General → This tablet.
+
 ---
 
 ## Tipp ki-termine-aufgaben - Search
@@ -496,6 +499,9 @@ Yes, on Music Assistant speakers. In AI mode write for example "Play Kind of Blu
 
 ### What happens then
 The AI looks the music up by name: artist, album, track, playlist or station. Playback starts without asking, like play and pause. Shortly after, the action shows what really plays, because Music Assistant sometimes finds something other than meant.
+
+### Without a room
+If you name no room, it plays on this tablet's speaker: Settings → General → This tablet → Speaker. If none is set, it uses the one that is playing.
 
 ### Limits
 The card refuses links and file paths. Shuffle, repeat, source, volume up and down work on every media player the card shows.
