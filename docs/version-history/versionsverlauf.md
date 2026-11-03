@@ -1,5 +1,69 @@
 # Versionsverlauf
 
+## Version 1.1.2517 - 2026-11-03
+
+**Title:** 🗓️ Editing a schedule keeps what you did not touch
+
+**Tags:** schedules, repair
+
+**The repair (roadmap #125).** Open a plan, change the time, save — and the days, the other time slots, the conditions, the date range, the name and whether it repeats now stay as they were. Before, an ordinary save could do several kinds of damage:
+- a one-shot timer became a weekly plan;
+- a Mon–Fri plan became a one-day plan, or failed to save ("wer");
+- the other time slots and every condition were gone;
+- the date range was cleared;
+- the plan got a generated name, which makes the integration rebuild its switch under a new entity ID, so automations pointing at it broke.
+
+**How.** The card now reads each plan whole from the scheduler integration's own WebSocket list (`{type: 'scheduler'}`, no admin needed), not from the attributes of its switch. On save it reads the plan again and sends it back with only the fields you changed:
+- **Time slot.** Only the one the editor shows changes. Within it, this device's action changes only if you touched the action, its position or (for climate) its settings, and only if it then differs from the stored one. Other devices in the same slot keep theirs.
+- **Kept as they are.** Actions the editor cannot show (brightness, media play), sun times, "workdays" and seconds in a time all stay unchanged.
+- **Never sent:** the name.
+- **Nothing changed:** nothing is sent. The integration treats every edit as a change and runs the current slot's actions again, so a heating you had turned down by hand would jump back.
+- **Changed elsewhere:** if the plan was changed in between, nothing is saved, the list reloads and you are asked to open it again.
+- **List unreadable:** if the list cannot be read, the card still shows the plans from their switches but does not save them, even if the list is back by the time you tap Save.
+
+**Timer or plan.** A timer is now what the countdown editor can write back without loss: one time slot without an end time, not repeating, no date range, and due today or tomorrow. Everything else opens in the plan editor, the same in the device tab and the overview; the overview's timer chip counted zero before.
+- **Start time only:** a repeating plan like "Mon–Fri 06:30 heating on" opens with its days. Its end time reads "–" and is only added if you turn the wheel.
+- **Another day:** a one-shot "Sat 09:00" made in the scheduler card opens as a plan with its day, instead of a countdown to today.
+- **Switching a plan to Timer on purpose:** it becomes a real timer — one slot, no date range.
+- **One-shot plans:** a one-shot plan with an end time also opens in the plan editor, so its window is not lost.
+- **From the overview:** editing opens the same entry as the device tab, so a timer no longer comes back as "HH:MM–01:00". Save stays disabled until that entry has loaded; before, it could create a new timer.
+
+**Smaller fixes along the way:**
+- **Days.** Labels round-trip in both languages, with one weekday map. "Workdays" is shown as such.
+- **Sun times.** They read "☀ Sunrise −0:30" instead of "sunri". The row stays fixed in the editor and saves unchanged.
+- **Timer chip.** Switching a new entry to Timer clears the days, so it no longer saves as a plan at 00:00.
+- **Device tab.** Action labels follow the card's language.
+- **Hint.** A plan with more slots or conditions shows "This schedule's other time slots and conditions stay as they are."
+
+An adversarial review before the release confirmed eleven findings, about six distinct problems, all fixed in this version:
+- A one-shot plan with an end time opened in the countdown editor, and a countdown change deleted its end.
+- A save without changes still called the integration, which re-runs the current slot.
+- Entries read from the switch attributes could still be saved once the list was back.
+- "Please open it again" did not reload the list, so it kept failing.
+- An action the editor cannot show ("toggle", "media play") could never be changed on purpose.
+- The overview's inline editor could create a new timer while loading.
+
+A second pass over those fixes found four more, also fixed:
+- Switching a plan to Timer kept its other slots and its date range, so the result was no timer.
+- A timer switched to a plan could no longer get an end time.
+- A one-shot plan for another day counted down to today.
+- An action change could overwrite another device's action if this device had been removed from the slot elsewhere.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant whose scheduler list holds seven plans, in Chrome:
+- **Unchanged save:** sends nothing and closes.
+- **Action changed:** only this light's action changes, the kitchen light in the same slot stays. A "toggle" plan set to Off on purpose sends `light.turn_off`.
+- **Days changed:** only the days change, start and end stay.
+- **Kept:** conditions without null fields, the second slot with its sun time, "workday", the date range; no name.
+- **Refused:** a plan changed in between, and an entry read from the switch attributes (with a message); after the reload the same edit saves correctly.
+- **Switched to Timer:** a two-slot plan with a date range is saved as one slot, one day, one-shot, without dates.
+- **Display:** the one-shot plan with a window, the one-shot "Sat 09:00" and the "Mon–Fri" start-only plan list as plans, the timer as a timer. Sun times read "☀ Sonnenaufgang −0:30" and their row is fixed. The overview counts 1 timer and 6 plans, and its inline Save is disabled while loading.
+
+Guards green, load check without page errors.
+
+Not checked: a real scheduler integration in Home Assistant. Tests were not run. Before relying on it, edit one real plan and look at it in the scheduler card.
+
+**Bundle:** 2 356 951 bytes, 666 370 gzip (+1.1 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2516 - 2026-11-03
 
 **Title:** 📍 This tablet knows its room, its name and its device

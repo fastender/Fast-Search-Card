@@ -318,7 +318,7 @@ Universal across every entity type, not just Universal devices — sensors, swit
 
 <br>
 
-Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pickers rebuilt as iOS-style stacked cards. Day-of-week chips. Inline editing — no submenu. Accordion backgrounds unified with the rest of the device settings.
+Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pickers rebuilt as iOS-style stacked cards. Day-of-week chips. Inline editing — no submenu. Accordion backgrounds unified with the rest of the device settings. **Edits keep what you did not touch (v1.1.2517, roadmap #125):** the card reads each plan whole from the integration and saves back only what you changed — other time slots, conditions, the date range, sun times, workdays, the repeat type and the name stay as they were. Only a one-shot entry with a single start time is a timer; everything else opens as a plan.
 
 </details>
 
@@ -423,7 +423,7 @@ Reads `lessons/*.md`. Random rotation in Bento every five seconds. Tag-based cat
 
 <br>
 
-Cross-device overview. Filter by timer or schedule. Domain badges. Click navigates to the device.
+Cross-device overview. Filter by timer or schedule. Domain badges. Click navigates to the device. Since v1.1.2517 the timer chip counts one-shot timers, plans with a renamed switch are listed too, and editing from here opens the same entry as the device tab.
 
 </details>
 
