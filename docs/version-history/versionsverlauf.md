@@ -1,5 +1,73 @@
 # Versionsverlauf
 
+## Version 1.1.2523 - 2026-11-04
+
+**Title:** ⏸️ Now playing holds still
+
+**Tags:** music-assistant, media-player, island, live-activities, repair
+
+**Two repairs from roadmap #132, plus one rule for the island's "done" moment.**
+- **The music panel's header (S1).** The header now shows for every state the card counts as active: playing, paused, buffering and on. Before, it showed only for playing and paused. A speaker that buffered for a moment on a track change dropped the header, and the tabs below jumped.
+  - Next and Previous briefly report idle. The full header now stays for 5 s after the last active state instead of switching to "Ready" and back.
+  - While buffering, the title and cover of the same track (`media_content_id`) stay for up to 5 s, and the play button shows pause.
+  - An idle speaker shows a small header: "Ready", a power button (only when the speaker supports it) and one entry for grouping and moving. A speaker that is off or on standby shows "Off" with a power button. Before, idle closed the group and move lists and showed nothing.
+  - The detail view's large cover is keyed by the track, not by the image URL. The proxy URL can change for the same track, and each change rebuilt the picture. The short hold while buffering belongs to one speaker.
+- **The live row (S2).** On the island and in the notification centre:
+  - Buffering counts as playing.
+  - A paused player stays as "Paused · title" for three minutes after it paused. This is checked whenever the list is built, and in the notification centre also on the shared minute tick, so no extra timer runs. Only a player this page saw playing counts as just paused. After a Home Assistant restart, players paused hours ago do not reappear.
+  - A paused player is the open island's head only when nothing else is live.
+  - Playback without a title is no longer a live activity. A soundbar on the TV input no longer fills the island with "Playing" all evening.
+- **Done is for things that finish.** The island's green "done" moment now plays only when an activity really finished:
+  - a timer that reached its end time, judged by Home Assistant's own time of the change and not by when the tablet noticed it;
+  - a vacuum that docked;
+  - a cover that reached closed while closing, or fully open while opening;
+  - a script that ended;
+  - an automation whose run ended while it stayed on.
+  Music that pauses or stops, a cancelled timer, a cover stopped halfway, an automation switched off mid-run and a light that goes off show no "done". Before, every pause flashed "done". Every row that can finish is watched, not only the front one, so a second kitchen timer gets its moment too. An end older than two minutes (hidden page, sleeping tablet) shows nothing.
+- **Speaker lists.** The group and move lists grow up to 220 px and scroll after that. They give way first when the panel is full: the results, library or announcement below keep at least 96 px. In 1.1.2522 the lists had a fixed minimum height that left empty space under a single speaker.
+
+An adversarial review before the release confirmed three problems, all fixed:
+- With both idle lists open, the last speakers were out of reach because the lists did not shrink.
+- The timer check used the tablet's clock at the moment it noticed the change. A cancel that was noticed late (folded island, deep rest, hidden page) counted as done.
+- A paused player at the front hid the end of a script behind it for three minutes.
+
+A second pass over those fixes found nine more, also fixed:
+- An automation switched off mid-run counted as done.
+- A cover stopped halfway reports "open" and counted as done.
+- Only one row was watched, so when two timers ran, the one that finished second-in-line got no moment.
+- A timer that finished hours ago showed "done" when the tablet woke or the page came back.
+- After a Home Assistant restart, every player paused long ago came back as "Paused" for three minutes.
+- A pause made the paused player the head of the open island, ahead of a running timer.
+- With both idle lists open, the results, library or announcement below shrank to nothing.
+- Next and Previous still switched the header to "Ready" and back, because they briefly report idle.
+- After switching speakers in the detail view, the cover hold could show the previous speaker's cover.
+
+Verified:
+- **Live row (Node, on the module itself):**
+  - Playing and buffering show their title.
+  - Paused 1 min and 2:59 ago shows "Paused · title"; paused 4 min ago does not.
+  - No title, or idle, shows nothing.
+  - A player paused before the page saw it play is not listed. Seen playing, then paused, it is listed.
+- **Island, on the built bundle in Shadow DOM against a mock Home Assistant in Chrome with a state stream:**
+  - Pause shows "Paused · Song" without "done". Stop removes the row without "done".
+  - A cancelled timer shows no "done". A finished timer shows "Pizza done". A cancel noticed after the end time shows no "done".
+  - Playback without a title shows no row.
+  - A script ending behind a paused player shows "done".
+  - With two timers, the one behind ending first shows "Eier done".
+  - A cover stopped at 40 % shows no "done"; a closed cover shows "done".
+  - An automation switched off mid-run shows no "done".
+- **Music panel, same setup:**
+  - Buffering keeps the header, and the button shows pause.
+  - A new URL for the same cover keeps the picture element; a new track replaces it.
+  - A brief idle keeps the full header. A real idle shows "Ready" after 5 s, with power (`turn_off`) and one entry that opens "Group with" and "Transfer to".
+  - Off shows "Off" with power (`turn_on`) and closes the lists. Unavailable hides the header.
+
+Guards green, load check without page errors.
+
+Not checked: the mock stream merges attributes like the card does, so the hold of title and cover was only seen through merged values. Also not checked: real speakers that buffer, real timers, vacuums and covers, and a real soundbar on a TV input. Tests were not run.
+
+**Bundle:** 2 373 654 bytes, 671 804 gzip (+1.1 KB; the estimate was 0.4 KB, the rest came from the review fixes), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2522 - 2026-11-04
 
 **Title:** ✋ A touch never changes the music by accident

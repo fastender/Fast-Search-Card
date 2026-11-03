@@ -479,6 +479,8 @@ When Music Assistant fails, the panel says what happened instead of looking empt
 
 On a touch screen, the media ring no longer jumps to where a finger lands: a tap on the ring sends nothing, a drag moves on from the current value, and a second finger or a palm cancels it. Music panel buttons are finger-sized (44 px, tabs 40 px), each result has ▶ and a labelled ⋯ menu (Play now, Play next, Add to queue, Start radio from this), and the on-screen keyboard only opens when you tap a field (v1.1.2522, roadmap #131).
 
+The music panel's header stays put on a track change and while buffering; an idle speaker shows a small header to switch it on and group it before the music starts. On the island, a paused song stays as "Paused" for three minutes, playback without a title is not a live activity, and the green "done" moment plays only for things that finish — a timer that ran out, a docked vacuum, a cover at its end — never for a pause (v1.1.2523, roadmap #132).
+
 </details>
 
 <details>

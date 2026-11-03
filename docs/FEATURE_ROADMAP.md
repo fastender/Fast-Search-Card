@@ -2640,6 +2640,8 @@ Nineteen entries from reading the documentation of a kiosk browser app for Andro
 
 ### 102. The timer rings — what happens when a timer ends
 
+> 🔸 **Part of S1 shipped v1.1.2523** (with #132): the island's done moment plays only when a timer reached its `finishes_at` (judged by HA's `last_changed`), never for a cancel; every finishing row is watched. Open from S1: a `paused` timer staying in the live list.
+
 **Pitch:** The kitchen timer runs out. The resting tablet wakes, the clock face says "Pizza · done" in the clock's own type, with only "Stop" and "+1 min" below it. A tone repeats until someone taps Stop or five minutes pass. A cancelled timer ends quietly.
 
 **Status quo:** A timer is live activity number one, but leaves the list without a trace once its state is not `active` (`utils/liveActivitySources.js:130–131`); a paused timer leaves it too. The island plays a 2-s "done" moment whenever the leading activity disappears, for any reason (`hooks/useIslandMomente.js:57–65`), so a cancelled or paused timer looks finished. #3 names "timer done" as an alert; nothing produces it. The tone module knows one double ping with a 1.5-s debounce (`utils/kritischTon.js:15–16`, `:34–46`). Timer services have no hit in `src` (#82 is open). The rest overlay lets every tap through (`utils/tiefeRuheStore.js:38`).
@@ -3451,6 +3453,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 ---
 
 ### 132. Now playing holds still, and the live row tells the truth
+
+> ✅ **Shipped v1.1.2523** (2026-11-04) — S1: header for playing/paused/buffering/on (`isMediaPlayerActive`), a brief idle keeps it 5 s (one-shot re-render), title and cover held 5 s while buffering per `media_content_id`; idle/off/standby show a small header with power (feature bits 128/256) and one entry that opens group and move (until #138 S2); the detail cover is keyed by `media_content_id`, its buffering hold is per entity. S2: buffering = playing, paused stays "Paused · title" for 3 min (`PAUSE_HALTEN_MS`, only if this page saw it playing), no title → no row; the notification centre rebuilds on `useMinute`; a paused player heads the open island only when nothing else is live. Done rule (shared with #102 S1, built here): `useIslandMomente` watches every row of timer/vacuum/cover/script/automation; timer by HA `last_changed` ≥ finishes_at − 2 s, vacuum docked, cover reached its direction's end, script off, automation on with no run; ends older than 2 min are skipped. Speaker lists: flex 0 1 auto, 80–220 px; tab content keeps 96 px. Bundle +1.1 KB (estimate was +0.4 KB).
 
 **Pitch:** On a track change the panel's header stays where it is. An idle speaker shows a small header from which it can be switched on and grouped before the music starts. Pausing a song no longer flashes the island's green "done" moment.
 
