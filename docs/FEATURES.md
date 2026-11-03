@@ -645,6 +645,15 @@ Locks, alarm panels, garage, gate and door covers, scripts and buttons — and s
 </details>
 
 <details>
+<summary><b>This tablet knows where it hangs.</b></summary>
+
+<br>
+
+Settings → General → *This tablet*: name, room and Home Assistant device, for this browser only. "Light off" in AI mode then means this room, and search shows this room's results first. Pick the tablet's device (Fully Kiosk, Browser Mod, the Companion app …) and its room is taken from there; its screen, motion and light sensors come first in their pickers, its battery is shown, and its speaker is proposed — nothing is set by itself.
+
+</details>
+
+<details>
 <summary><b>Music by name.</b></summary>
 
 <br>

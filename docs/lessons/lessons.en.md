@@ -501,7 +501,7 @@ Yes, on Music Assistant speakers. In AI mode write for example "Play Kind of Blu
 The AI looks the music up by name: artist, album, track, playlist or station. Playback starts without asking, like play and pause. Shortly after, the action shows what really plays, because Music Assistant sometimes finds something other than meant.
 
 ### Without a room
-If you name no room, it plays on this tablet's speaker: Settings → General → This tablet → Speaker. If none is set, it uses the one that is playing.
+If you name no room, the AI means this tablet's room (General → This tablet → Room) and plays on its speaker: Settings → General → This tablet → Speaker. If none is set, it uses the one that is playing.
 
 ### Limits
 The card refuses links and file paths. Shuffle, repeat, source, volume up and down work on every media player the card shows.

@@ -1,5 +1,38 @@
 # Versionsverlauf
 
+## Version 1.1.2516 - 2026-11-03
+
+**Title:** 📍 This tablet knows its room, its name and its device
+
+**Tags:** settings, ai-mode, search, wall-tablet
+
+**Room and name (roadmap #108 S1).** Settings → General → *This tablet* now has a name, a room and a device, next to the speaker from v1.1.2515. All of it lives in this browser only.
+- **AI mode:** "Light off" without a room means this room. The prompt gets one rule with the room, and the name if you typed one, as quoted data; the device list sent does not change. Questions about states may still cover the whole home, and music and volume keep following the speaker rule.
+- **Search:** this room's group comes first. Exact matches still come before fuzzy ones, and an explicit room ("bad licht") still filters as before.
+- **No room chosen, but a device:** the device's room is used and shown as "From device: …". If the device moves to another room in Home Assistant, search follows without a reload.
+
+**Which device is this tablet (roadmap #108 S2).** Pick the tablet's Home Assistant device, for example from Fully Kiosk, Browser Mod or the Companion app. Tablet-like devices are listed first; services and devices without entities are left out. The card then proposes its entities, and never sets them by itself:
+- **Screensaver settings:** the device's screen, motion and light sensors come first in their pickers, marked "from this tablet's device". For motion only real motion sensors are lifted; the tablet's own tracker always reads "home".
+- **Battery:** its battery is shown in the section.
+- **Speaker picker:** it lists the device's media player first, then Music Assistant speakers in the tablet's room.
+
+An adversarial review before the release found three problems, all fixed:
+- The room rule contradicted the speaker rule when music played in another room.
+- Search kept lifting the old room after the device moved.
+- A name of only spaces counted as "changed" in the settings search.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with a mock Home Assistant with areas, devices and an entity registry in Chrome:
+- **Search:** "licht" shows Wohnzimmer (the tablet's room, from its device) before Bad, and Bad first once the device moves to the bathroom.
+- **AI mode:** the prompt carries the room rule.
+- **Settings:** the section shows the room "From device: Wohnzimmer", the device and the battery at 76 %.
+- **Proposals:** the device page lists the tablet first; the speaker, screen, motion and light pickers list the tablet's entities first with their reason.
+
+Guards green, load check without page errors.
+
+Not checked: a real Fully Kiosk or Browser Mod device, real AI answers with the new rule. Tests were not run.
+
+**Bundle:** 2 354 965 bytes, 665 265 gzip (+3 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2515 - 2026-11-03
 
 **Title:** 🔉 This tablet's speaker, and music that drops while you dictate

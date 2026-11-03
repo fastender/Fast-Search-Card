@@ -501,7 +501,7 @@ Ja, auf Lautsprechern von Music Assistant. Schreib im KI-Modus zum Beispiel „S
 Die KI sucht die Musik nach Namen, also nach Interpret, Album, Titel, Playlist oder Sender. Die Wiedergabe startet ohne Rückfrage wie bei Play und Pause. Unter der Aktion steht kurz danach, was wirklich läuft, denn Music Assistant findet manchmal etwas anderes als gemeint.
 
 ### Ohne Raumangabe
-Nennst du keinen Raum, spielt sie auf dem Lautsprecher dieses Tablets: Einstellungen → Allgemein → Dieses Tablet → Lautsprecher. Ist keiner gewählt, nimmt sie den, der gerade spielt.
+Nennst du keinen Raum, meint die KI den Raum dieses Tablets (Allgemein → Dieses Tablet → Raum) und spielt auf seinem Lautsprecher: Einstellungen → Allgemein → Dieses Tablet → Lautsprecher. Ist keiner gewählt, nimmt sie den, der gerade spielt.
 
 ### Grenzen
 Links und Dateipfade lehnt die Karte ab. Zufall, Wiederholen, Quelle sowie Lauter und Leiser gehen auf jedem Mediaplayer, den die Karte zeigt.
