@@ -1,5 +1,52 @@
 # Versionsverlauf
 
+## Version 1.1.2514 - 2026-11-03
+
+**Title:** 🎵 AI mode plays music, and Music Assistant speakers are recognised when they are off
+
+**Tags:** ai-mode, music-assistant, media-player, bugfix
+
+**Music Assistant is recognised (roadmap #128 S1).** The card used to spot a Music Assistant speaker only by `app_id` or `mass_player_id`. Home Assistant never sets `mass_player_id`, and `app_id` disappears when a speaker is off or plays another source. So a switched-off kitchen speaker had no Music Assistant button and was missing from every group and move list. Recognition now follows these steps:
+- First Music Assistant's own `mass_player_type`, which is always set.
+- Otherwise the `music_assistant` platform in Home Assistant's entity registry, except for TV-class displays (Music Assistant refuses those).
+- `app_id` is only a last fallback.
+- Unavailable speakers stay out of the lists.
+
+Because the panel now also opens for a speaker on an outside source, the card follows two extra rules:
+- It no longer asks Music Assistant for a queue there, and it hides "move playback", since that would move an old queue.
+- A Music Assistant speaker with inputs (line-in, TV) keeps its source button next to the Music Assistant button.
+
+**AI mode plays music (roadmap #139 S1 + S2).**
+- **Music by name.** "Play Kind of Blue in the kitchen", "Radio Paradise in the bathroom". On Music Assistant speakers the AI starts music by artist, album, track, playlist or station, through `music_assistant.play_media`. This is the one service that may pass although its domain differs from the speaker's, and only on speakers recognised as above.
+- **Allowed fields.** The fields are fixed: `media_type` and `enqueue` come from fixed lists, and `radio_mode` is yes/no.
+- **No links or file paths.** Search texts must not look like a URL or a file path. Refused are `://`, `\`, `./` and `../` segments, hidden files, a leading `/` or `~`, a folder such as `media/` in front, several `/`, and file names with an extension. "AC/DC" and "...Ready For It?" still pass.
+- **What really plays.** Music Assistant looks up by name and can find something else. So for ten seconds after the start the card reads the speaker and writes under the action what really plays, for example "playing: Miles Davis – So What".
+- **Every media player.** Shuffle, repeat (off/all/one), source (only from the player's own source list) and volume up and down now work on every media player.
+- **What the AI sees.** It now also sees the artist, the current source, the sources (up to 60 characters each, a shortened name is matched back to the full one) and shuffle and repeat. Music Assistant speakers, groups and stereo pairs are marked.
+- **No tap needed.** Music runs without a tap, like play and pause.
+
+Not built: dimming the music while dictating (#139 S3) and a default speaker per tablet. Both need "this tablet's speaker" (#138 S1), which does not exist yet.
+
+An adversarial review before the release found five problems, all fixed:
+- Relative file paths passed the path check.
+- Music Assistant speakers would have lost their source button.
+- "Move playback" was offered on an outside source.
+- Long source names were cut so the AI could not select them.
+- A refused repeat value was shown as "off".
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), with a mock Home Assistant in Chrome, compared with v1.1.2513:
+- **Music Assistant button.** It now appears for a switched-off Music Assistant speaker, for one on an outside source and for one recognised only by its platform. It does not appear for a Music Assistant TV display or a Sonos speaker. In v1.1.2513 none had it.
+- **Started.** Music started with the right data, and its "playing" line appeared.
+- **Refused.** Refused were:
+  - links, `../../../media/…`, `/config/…`, `secrets.yaml` and `file://` in the album
+  - non-Music-Assistant players and an unknown player
+  - an unknown source, an invalid enqueue and an invalid repeat value
+- **Device actions.** Shuffle, repeat, source (including a long name matched back) and volume up were sent. Guards green, load check without page errors.
+
+Not checked: a real Music Assistant server with real providers, whether it really refuses or plays edge-case names, the queue panel on an outside source, the WebKit engine. Tests were not run.
+
+**Bundle:** 2 337 582 bytes, 660 257 gzip (+2 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2513 - 2026-11-02
 
 **Title:** 🗓️ AI mode creates and edits events and tasks, always after your tap

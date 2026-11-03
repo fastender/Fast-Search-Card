@@ -645,6 +645,15 @@ Locks, alarm panels, garage, gate and door covers, scripts and buttons — and s
 </details>
 
 <details>
+<summary><b>Music by name.</b></summary>
+
+<br>
+
+"Play Kind of Blue in the kitchen", "Radio Paradise in the bathroom", "Shuffle on", "A bit louder". On Music Assistant speakers the AI starts music by name — artist, album, track, playlist or radio station — and below the action the card shows what really started. Links and file paths are refused. Shuffle, repeat, source and volume steps work on every media player.
+
+</details>
+
+<details>
 <summary><b>Calendar and tasks, by tap.</b></summary>
 
 <br>

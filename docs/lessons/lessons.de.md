@@ -486,6 +486,22 @@ Einstellungen → Allgemein → KI-Modus → Termine und Aufgaben. Aus heißt: D
 
 ---
 
+## Tipp ki-musik - Suchen
+
+**Title:** Kann die KI Musik abspielen?
+**Hero:** none
+**Tags:** KI-Modus, Musik, Music Assistant
+
+Ja, auf Lautsprechern von Music Assistant. Schreib im KI-Modus zum Beispiel „Spiel Kind of Blue in der Küche“, „Radio Paradise im Bad“, „Zufall an“ oder „Etwas lauter“.
+
+### Was dann passiert
+Die KI sucht die Musik nach Namen, also nach Interpret, Album, Titel, Playlist oder Sender. Die Wiedergabe startet ohne Rückfrage wie bei Play und Pause. Unter der Aktion steht kurz danach, was wirklich läuft, denn Music Assistant findet manchmal etwas anderes als gemeint.
+
+### Grenzen
+Links und Dateipfade lehnt die Karte ab. Zufall, Wiederholen, Quelle sowie Lauter und Leiser gehen auf jedem Mediaplayer, den die Karte zeigt.
+
+---
+
 ## Tipp kategorien - Suchen
 
 **Title:** Wofür stehen Geräte, Sensoren, Aktionen und Custom?

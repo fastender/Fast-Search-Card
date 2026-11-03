@@ -3329,6 +3329,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 
 ### 128. Music Assistant is recognised, and its dead paths go
 
+> ✅ **S1 shipped v1.1.2514** (2026-11-03) — `isMusicAssistantPlayer` reads `mass_player_type` first, then the `music_assistant` platform from `hass.entities` (not for device class `tv`), `app_id` only as the last fallback; `mass_player_id` is gone. The player list uses the same test and leaves unavailable players out. From S3 the `get_queue` guard came along (no call without `active_queue` on a typed player), because S1 now opens the panel on outside sources; for the same reason the move button needs an active queue, and a Music Assistant speaker with inputs keeps its source button next to the Music Assistant button. S2–S5 open.
+
 **Pitch:** A Music Assistant speaker that is switched off, or plays the TV input or AirPlay, still has its Music Assistant button and still appears in every group and move list. Calls that can only fail are removed. Two versions of a song no longer look the same.
 
 **Status quo:**
@@ -3605,6 +3607,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 ---
 
 ### 139. AI mode plays music, and music ducks while the tablet listens (addendum to #1)
+
+> ✅ **S1 + S2 shipped v1.1.2514** (2026-11-03) — `music_assistant.play_media` (media_id ≤ 120, artist/album ≤ 80, all refused when they look like a URL or file path — `://`, `\`, `./`/`../` segments, hidden files, a leading `/` or `~`, a known folder in front, several `/`, a file extension; media_type and enqueue from fixed lists; radio_mode) on players #128 S1 recognises, plus `shuffle_set`, `repeat_set`, `select_source` (from `source_list` only), `volume_up`/`volume_down` for all media players; the context marks Music Assistant players, groups and stereo pairs and sends artist, source, sources, shuffle and repeat. Without #136 S1 a 10-second look at the player reports what started. Not built: the tablet's default speaker (needs #138 S1), the #99 clamp (not built yet), S3 ducking (needs #138 S1).
 
 **Pitch:** "Play some jazz in the kitchen", "shuffle on", "next song in the living room", "a bit quieter" — through the same check as every AI action. Tap the microphone and the speaker goes quiet until dictation ends.
 

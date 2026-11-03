@@ -486,6 +486,22 @@ Settings → General → AI mode → Calendar and tasks. Off means the AI no lon
 
 ---
 
+## Tipp ki-musik - Search
+
+**Title:** Can the AI play music?
+**Hero:** none
+**Tags:** AI mode, Music, Music Assistant
+
+Yes, on Music Assistant speakers. In AI mode write for example "Play Kind of Blue in the kitchen", "Radio Paradise in the bathroom", "Shuffle on" or "A bit louder".
+
+### What happens then
+The AI looks the music up by name: artist, album, track, playlist or station. Playback starts without asking, like play and pause. Shortly after, the action shows what really plays, because Music Assistant sometimes finds something other than meant.
+
+### Limits
+The card refuses links and file paths. Shuffle, repeat, source, volume up and down work on every media player the card shows.
+
+---
+
 ## Tipp kategorien - Search
 
 **Title:** What are Devices, Sensors, Actions and Custom?
