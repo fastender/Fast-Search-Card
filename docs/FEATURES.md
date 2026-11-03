@@ -477,6 +477,8 @@ Tap the artist in the media ring to search Music Assistant for them (only on Mus
 
 When Music Assistant fails, the panel says what happened instead of looking empty: "Search failed", "Library not loaded" with "Try again", "Your library is empty" only when it really is, "Queue not loaded", and failures that name their step ("Speaker did not respond", "No voice reachable"). While Music Assistant restarts the panel shows "Music Assistant is not connected" and comes back by itself when Home Assistant reports it loaded — no timer. Search answers in order, so "beatles" never shows the hits for "beat" (v1.1.2521, roadmap #129).
 
+On a touch screen, the media ring no longer jumps to where a finger lands: a tap on the ring sends nothing, a drag moves on from the current value, and a second finger or a palm cancels it. Music panel buttons are finger-sized (44 px, tabs 40 px), each result has ▶ and a labelled ⋯ menu (Play now, Play next, Add to queue, Start radio from this), and the on-screen keyboard only opens when you tap a field (v1.1.2522, roadmap #131).
+
 </details>
 
 <details>

@@ -3425,6 +3425,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 
 ### 131. A touch never changes the music by accident, and every button fits a finger
 
+> ✅ **Shipped v1.1.2522** (2026-11-04) — S1: media rings carry `ohneSprung`; a drag starts on the bead (±12°, 8 px) or after 10 px elsewhere and always moves on from the current value (unwrapped angle steps, clamped without collecting overshoot); a plain tap or there-and-back sends nothing; a second pointer cancels; the sent value is shown and used as the base until Home Assistant echoes exactly it or 2.5 s pass; a layout change mid-drag drops the drag; other rings untouched. Thresholds are estimates, not tuned on a tablet. S2: `@media (pointer: coarse)` — 44-px buttons, 40-px tabs, filters, small ✕ marks (transparent border) and tab arrows; tighter now-playing header under 480 px; the speaker list scrolls. S3: one ⋯ per row and on the album/artist header (`ma/ZeilenMenue.jsx`, MorphPopup): Play now, Play next, Add to queue, Start radio from this (track/album/artist); the Radio tab and the header's own add/radio path are gone; arrow keys, acts once and only when fully open. "Ansage" stays in the tab bar until #130 S3. S4: autofocus only with `(pointer: fine)`. Bundle +1.8 KB (estimate was +0.35 KB; menu, its styles and the review fixes).
+
 **Pitch:** A child brushing the ring no longer sets the speaker to 90 %, and a tap on the lower arc no longer jumps the song. In the music panel every button is big enough for a finger and says what it does. The keyboard opens only when asked for.
 
 **Status quo:**

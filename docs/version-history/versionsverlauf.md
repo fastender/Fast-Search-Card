@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.2522 - 2026-11-04
+
+**Title:** ✋ A touch never changes the music by accident
+
+**Tags:** music-assistant, media-player, touch, repair
+
+**Four repairs from roadmap #131, for wall tablets that children and people walking past touch.**
+- **No jump on the ring (S1).** On the media player's ring, touching the volume or position band no longer sets the value to that spot. Before, a brush anywhere on the band set the speaker to that volume, or jumped the song, as soon as the finger lifted. Now:
+  - A plain tap on the band sends nothing, also on the single volume ring while the speaker is idle.
+  - On the bead (within 12°), a drag starts after 8 px of movement. Anywhere else on the band it starts after 10 px. Either way it moves on from the current value, so the speaker never jumps to where the finger landed. Dragging back to the start value sends nothing.
+  - A second finger or a palm cancels the drag without sending anything.
+  - After release, the bead stays on the sent value until Home Assistant confirms it (at most 2.5 s). A quick second drag starts from that value.
+  - If the ring changes layout mid-drag (playing → idle), the drag is dropped.
+  - Other devices' rings and keyboard control are unchanged. The thresholds are estimates and have not been tuned on a real tablet.
+- **Finger-sized buttons (S2).** With a touch screen, the music panel's buttons are 44 px and its tabs and filters 40 px. This covers now playing, row actions, the album header, refresh and back, the announcement's send button and checkbox, and the speaker list. Small ✕ marks (search field, search history) get a 40 px touch area without growing. On phones the now-playing header is tighter, so the title keeps room. With a mouse, the dense sizes stay. The speaker list for transfer and grouping now scrolls instead of cutting off speakers.
+- **One labelled menu (S3).** Each search result, album track and album or artist header now has ▶ and ⋯. Before, there were three small symbols, and the one for "Play next" looked like "skip". ⋯ opens the card's glass window with "Play now", "Play next", "Add to queue" and, for tracks, albums and artists, "Start radio from this". The "Radio" tab is gone: it was a hidden switch that changed what every ▶ did, and it reset each time the panel opened. The menu supports the arrow keys and Escape, and a double tap acts once.
+- **Keyboard only when asked (S4).** Search and announcement no longer focus their text field on open with a touch screen. Before, the on-screen keyboard covered half the panel before anyone wanted to type. With a mouse or trackpad, the field still takes the focus.
+
+An adversarial review before the release confirmed ten problems, all fixed:
+- A second finger or a palm took over a drag and could still send a large jump: volume to 0 or 100, or the song to its start or end.
+- A quick second drag started from the old value, before Home Assistant had confirmed the first one, and undid it.
+- Holding a finger on the playing position ring before dragging sought behind the current playback.
+- A press left over when the ring disappeared (speaker switched off) could later send a volume change.
+- A double tap on a menu row queued the track twice.
+- The menu had no arrow keys, unlike the card's other menus.
+- On phones, four 44-px buttons left the now-playing title almost no room.
+- The ✕ in the search field stayed at 18 px.
+- The larger ✕ on a search-history pill covered the end of the word, so a tap there deleted the entry.
+- With 44-px rows, the speaker list cut off the eighth speaker.
+
+A second pass over those fixes found eight more, also fixed:
+- A normal tap on the bead could move it about 1 % (seconds of a song, half a minute of a podcast). The bead's dead zone was 3 px and is now 8 px.
+- The echo of an earlier send counted as confirmation, so between two quick drags the bead jumped back. Now only the last value sent counts.
+- A small seek on the playing position ring was "confirmed" at once by the old position.
+- A double tap on ⋯ could trigger a row in the still-growing window, and a tap during the fade-out after Escape could still act. The menu now acts only when fully open, and only once.
+- The arrow keys only worked after pressing Tab.
+- On a low screen the last menu row was cut off. The rows now scroll and the header stays.
+- On a short panel the scrolling speaker list could collapse to nothing. It now keeps room for about two speakers.
+- On touch, the search ✕ and the history pills were 36 px and the tab arrows 28 px. All three are now 40 px.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant in Chrome (desktop 1440 px with a mouse, phone 390 px with touch emulation):
+- **Ring:** taps on the volume band, the position band and the bead send nothing, also with 5–7 px of wobble on the bead. A drag of 20° off the bead moves volume from 40 % to 53 %, not to where the finger landed. A drag on the bead works the same way. Less than 10 px off the bead sends nothing. Dragging past the end stops at 100 %. A position drag seeks relative to where the track is. Idle (one volume ring): taps send nothing, ±34° gives ±10 points, and there-and-back sends nothing. Switching from idle to playing mid-drag sends nothing.
+- **Touch (phone emulation):** a second finger on the position band, or a palm in the middle, cancels a drag without sending. A second drag 0.25 s after the first starts from the sent value (53 → 59 %). Without confirmation, the bead returns to the real value after 2.5 s.
+- **Menu:** each result row shows ▶ and ⋯. The menu has four labelled 48-px rows. "Play next" sends `enqueue: next`, "Start radio from this" sends `replace` with `radio_mode`, and ▶ sends `replace`. On an album, the header's ⋯ → "Add to queue" sends the album with `add`, and the header's ▶ plays it. Escape closes the menu. A double tap on ⋯ after 60, 150 or 300 ms sends nothing. A double click on a row sends once, and a tap during the fade-out sends nothing. With the keyboard, the list takes the focus, ArrowDown, Home and End move between rows, and Enter acts. The "Radio" tab is gone.
+- **Sizes:** on touch, now playing and the row buttons are 44 px (favourite and transfer 40 px on a phone). Tabs, filters, the search ✕ and the tab arrows are 40 px, the send button 44 px and the checkbox 20 px. With a mouse, everything stays 32 px and 30 px.
+- **Focus:** with a mouse, search and announcement focus their field. With touch, neither does.
+
+Guards green, load check without page errors.
+
+Not checked: a real wall tablet (thresholds, how the touch sizes feel), Safari, real speakers, and the confirmation by a real Home Assistant echo (in the mock the state change did not reach the ring, so only the 2.5 s fallback was seen). Tests were not run.
+
+**Bundle:** 2 369 913 bytes, 670 665 gzip (+1.8 KB; the estimate was 0.35 KB, most of the difference is the menu and its styles), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2521 - 2026-11-03
 
 **Title:** 🎵 Music Assistant says what went wrong
