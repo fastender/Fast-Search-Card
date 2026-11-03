@@ -1,5 +1,40 @@
 # Versionsverlauf
 
+## Version 1.1.2519 - 2026-11-03
+
+**Title:** 🎵 Music Assistant: the artist tap works, dead calls are gone, the heart finds its button
+
+**Tags:** music-assistant, repair
+
+**Four repairs from roadmap #128 (S2–S5).**
+- **Tapping the artist (S2).** In the media ring, the artist name opens the Music Assistant search for that artist (or for the album or station name when that is what the line shows). The ring's drag surface lay on top of it, so the tap may never have arrived; the name now sits above it. On players without Music Assistant (a TV, a Chromecast) the artist is plain text: before, the tap tried to open a panel those players do not have, and the ring disappeared without anything taking its place.
+- **Calls that could only fail (S3).** `music_assistant.queue_command` does not exist in Home Assistant, so "skip to this track" and "remove from queue" never ran; their wrappers and buttons are gone, and clearing the queue uses only `media_player.clear_playlist`. Moving music to another speaker sends one call instead of a second guess the schema rejects. Opening the library asks once per row instead of trying four variants, three of which failed on every version (up to 24 calls per open).
+- **The heart (S4).** The favourite button is found by what Home Assistant registers for it (the Music Assistant button "favourite now playing" on the same device), not by "favori" in its entity ID — a renamed entity or another language no longer loses the heart, and no unrelated button can be pressed. A filled heart says "Already a favourite" instead of pressing again. While a radio station plays, the heart does not count the station's own favourite as the song's, and after a track change the old state no longer blocks the tap.
+- **What a track really is (S5).** Search, library and queue show the version after the name ("Song (Live)", "25 (Deluxe)"), a small "E" for explicit and a dot for favourites. In long titles the name is shortened first, so the version, the "E" and the dot stay visible. Fields Home Assistant never sends for these lists (owner, provider, publisher, author, duration) are no longer read.
+
+An adversarial review before the release confirmed six findings, all fixed:
+- The new "already a favourite" check would have blocked the heart for good while a favourite radio station played, and for about a second after a track change.
+- The "E" and the dot were cut off by the title's ellipsis.
+- Library cards showed German labels in English.
+- An album name in the ring was tappable but searched nothing.
+- Screen readers skipped the "E" and the dot.
+
+A second pass over those fixes found two more, also fixed:
+- A very long version ("Live at the Royal Albert Hall, 2015") could squeeze the song name to nothing; the version now takes at most about half the row.
+- Library tiles still cut off the "E" and the dot; they now sit beside the two-line name.
+
+Verified on the built bundle, mounted like in Home Assistant (Shadow DOM), against a mock Home Assistant with a Music Assistant speaker, a second speaker and a TV, in Chrome:
+- **Artist tap:** on the Music Assistant speaker the artist sits on top and opens the search for "Adele"; on the TV it is plain text, nothing opens and the ring stays.
+- **Heart:** found through the registry although its entity ID has no "favori"; a filled heart does not press and says "Already a favourite".
+- **Calls:** the library asks `get_library` once per row with one `media_type`; moving to another speaker is one `transfer_queue` call with `source_player`; queue cards have no dead buttons.
+- **Labels:** results read "Hello (Live) E •" and "25 (Deluxe)"; in a very long title the "E" and dot stay inside the row; with a very long version the song name stays whole; a library tile with a long album name keeps its "E" and dot.
+
+Guards green, load check without page errors.
+
+Not checked: a real Music Assistant server and real players. Tests were not run.
+
+**Bundle:** 2 359 723 bytes, 667 216 gzip (−0.2 KB), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2518 - 2026-11-03
 
 **Title:** 📅 A deleted appointment stays deleted in every calendar

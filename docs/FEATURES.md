@@ -471,6 +471,8 @@ Search libraries. Browse the queue. Switch between MA and direct media-player. V
 
 Multi-shape response handling — works across MA versions.
 
+Tap the artist in the media ring to search Music Assistant for them (only on Music Assistant speakers). Results and queue show the version ("Song (Live)"), an "E" for explicit and a dot for favourites; the heart finds Music Assistant's favourite button by what Home Assistant registers for it and never presses twice (v1.1.2519, roadmap #128). Calls Home Assistant does not have are gone.
+
 </details>
 
 <details>
