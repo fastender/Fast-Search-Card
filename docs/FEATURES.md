@@ -481,6 +481,8 @@ On a touch screen, the media ring no longer jumps to where a finger lands: a tap
 
 The music panel's header stays put on a track change and while buffering; an idle speaker shows a small header to switch it on and group it before the music starts. On the island, a paused song stays as "Paused" for three minutes, playback without a title is not a live activity, and the green "done" moment plays only for things that finish — a timer that ran out, a docked vacuum, a cover at its end — never for a pause (v1.1.2523, roadmap #132).
 
+With the music panel open, the card no longer pays twice: the panel stops listening to every change in the house, redraws only when the speaker changes, holds the ring's position tick while the ring is hidden, shows long playlists 50 tracks at a time with "Show all", and loads only the first visible row of covers with high priority. Public http covers show on https dashboards (v1.1.2524, roadmap #133).
+
 </details>
 
 <details>

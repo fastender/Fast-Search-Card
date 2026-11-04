@@ -1,5 +1,76 @@
 # Versionsverlauf
 
+## Version 1.1.2524 - 2026-11-04
+
+**Title:** 🔋 The open music panel stops costing
+
+**Tags:** music-assistant, media-player, performance, thermal, repair
+
+**Four repairs from roadmap #133, for wall tablets that play music for hours with the panel open.**
+- **No second stream (S1).** The music panel no longer subscribes to every state change in the house. It used to receive each change a second time, next to the card's own stream, and filter it by speaker. It now watches the speaker's own entry in Home Assistant: state, title, content, shuffle, repeat, active queue and the track's start time. When one of these changes, the queue reloads after 800 ms, as before.
+  - A volume change no longer reloads the queue.
+  - The same track starting again reloads it once. The start time is worked out from the position and its timestamp, and only a jump of more than 2 s counts. Home Assistant before 2026.9 stamps the position anew on every update; the start time stays put then.
+  - Opening Queue or Up next reloads it too, so changes made on another device show up there.
+  - "Play next", "Add to queue" and playing from the library now reload the queue too. Before, these never changed the speaker's state, so the list could stay behind.
+- **Less redraw (S2).**
+  - The panel redraws only when something it shows changes: the speaker, the other speakers' names and availability, the language. Before, it redrew in full, with a long track list, on every throttled update of any entity in the house (up to 4 per second) and on every second of the ring's position tick.
+  - The position tick pauses while the ring is hidden behind the open panel (desktop) or covered by the sheet (phone). Closing the panel redraws the ring at the right position.
+  - The speaker list and the favourite-button lookup are kept until the speaker list or the entity registry changes.
+- **Long lists (S3).** A playlist, album or artist shows its first 50 tracks and "Show all N". The choice belongs to that level: it survives going deeper and back, and hiding the library behind an announcement. The row buttons (play, ⋯) and the header buttons are plain buttons. They get the card's usual press feedback instead of an animation component per button.
+- **Images (S4).**
+  - Only the first visible library row and the open level's header load with high priority. Before, up to 36 covers did.
+  - The extra preload of the first covers is gone; they load right away anyway.
+  - On an https dashboard, an http cover from a public host on the default port now becomes https, as browsers do for mixed images anyway. Before, every http cover was dropped. Addresses in the home network, and any address with its own port (such as Music Assistant's image proxy on :8095), stay dropped.
+  - A cover that failed no longer hides the next cover shown in the same place. The failure is remembered for that address, not for the image element.
+  - The blurred copy of the album cover under the sharp cover in the detail view is gone. It lay completely beneath a sharp cover of the same size. The visual check at rest in Chrome and WebKit, desktop and phone, found no difference beyond anti-aliased corner pixels. During the first half second the cover now fades in over the panel instead of over its own darkened copy.
+
+An adversarial review before the release confirmed six problems, all fixed:
+- Under the new redraw rule, the short-idle hold from 1.1.2523 measured from the last redraw, which could be minutes old. On Next or Previous the header still jumped to "Ready". It now counts the player as active until the redraw that shows it idle, and the buffering hold counts from the redraw where the title went missing. A single one-shot timer ends every hold.
+- The same track starting again did not reload the queue.
+- The favourite heart could stay missing when the button's state arrived after the registry.
+- "Show all" was remembered for one level only.
+- An http cover on a public name with its own port was upgraded to https on that port, which always fails.
+- A failed cover hid the next cover in the same place.
+
+A second pass over those fixes found two more, also fixed:
+- The fix for the failed cover gave every cover address its own image element. On each track change the now-playing cover then showed the letter tile until the new picture loaded. Now one element stays, and the browser keeps the old picture until the new one is ready.
+- "Show all" was lost when the announcement or the "not connected" row hid the library for a moment.
+It also showed that Home Assistant before 2026.9 stamps the position anew on every update. Watching the timestamp itself would have redrawn the panel and reloaded the queue on every volume step there, so the panel now watches the start time instead.
+
+A third, focused pass over the second round's fixes found three more, also fixed:
+- On Home Assistant before 2026.9, a queue change made on another device or by voice shows only in the position timestamp, which the panel no longer watches. The queue now also reloads when Queue or Up next is opened. If the list is already open, it catches up at the next track or the next action on this tablet.
+- The jump threshold was 3 s and is now 2 s, still above the 1 s rounding of the position. A skip to an identical track within its first 2 s still goes unnoticed until the list is opened or the next track starts.
+- A cover that failed was never tried again, even after its address went away and came back. The failure is now forgotten as soon as the address changes.
+
+Measured on the built bundle in Shadow DOM against a mock Home Assistant in Chrome (render counts with Preact's render hook, desktop 1440 px, panel open on a 139-track playlist while playing):
+
+| | 1.1.2523 | 1.1.2524 |
+|---|---|---|
+| 6 s at rest | 9 686 renders | 156 |
+| 20 changes of another entity | 41 660 renders | 1 076 |
+| 5 volume changes | 33 644 renders, 5 queue reloads | 988, 0 |
+| 4 updates with a re-stamped position (older HA) | – | 706 renders, 0 queue reloads, 0 panel redraws |
+| panel subscriptions | 1 (every state change) | 0 |
+
+On the phone (390 px, sheet): 10 023 → 133 renders at rest, 43 004 → 2 246 for 20 changes of another entity. The queue still reloads once on a track change, once when the same track starts again, once after "Add to queue" and once when the Queue tab opens.
+
+Also verified:
+- 50 rows, then "Show all 139", then all 139, still 139 after opening and closing the announcement.
+- Another playlist starts at 50 again.
+- The group list follows another speaker going unavailable and coming back with a new name.
+- After a long play, a short idle keeps the full header for 5 s, then shows "Ready".
+- Buffering with an empty title keeps the old title for 5 s, then shows "Unknown".
+- The now-playing cover keeps its image element across a track change.
+- A failing cover stays hidden, and is requested again after its address went away and came back.
+- Covers: high priority on 5 of 66 library covers, the public http cover upgraded and fetched once, the LAN cover not requested.
+- Press feedback on the plain buttons.
+
+Guards green, load check without page errors.
+
+Not checked: a real wall tablet (heat, battery), real Music Assistant speakers on old and new Home Assistant, iOS Safari's press feedback on the plain buttons, and public cover hosts without https. Tests were not run.
+
+**Bundle:** 2 376 421 bytes, 672 896 gzip (+1.1 KB; the estimate was 0.2 KB, the rest came from the review fixes), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2523 - 2026-11-04
 
 **Title:** ⏸️ Now playing holds still
