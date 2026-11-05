@@ -1,5 +1,74 @@
 # Versionsverlauf
 
+## Version 1.1.2526 - 2026-11-05
+
+**Title:** 🔎 Search finds your own music first and opens what it found
+
+**Tags:** music-assistant, media-player, search, library
+
+**Four parts from roadmap #135, for the search in the music panel.**
+- **Your music first (S1).** A search now asks Music Assistant twice at the same time: once in your own library, once across all your services.
+  - The hits show in two blocks, "Your music" first and "From your services" below it. A hit from the library does not appear twice.
+  - Choosing a type (albums, tracks …) now asks the server for that type, up to 25 per source. Before, the type only filtered the eight hits per type that were already there. Hits that were already shown stay, even if a slow service drops out of the second answer.
+  - If only your library answers, the panel shows its hits and says "Only your library — the services did not answer". If the services fail and your library has nothing, it says the search failed, not "No matches".
+- **Hits open (S2).** Tapping an album, artist or playlist in the search opens it right under the search field, the same view as in the library. "Back" returns to the hits, and a new search term closes the view. Play and ⋯ on the row still play.
+  - Tapping the artist name in the ring opens that artist directly, when the search finds exactly that name. Your own library comes first. Otherwise the hits stay.
+  - Podcasts and audiobooks no longer open: Home Assistant's media browser can only open artists, albums and playlists, so their view always said "not loaded", also in the library. A tap now plays them.
+- **Play from here (S3).** A track inside an album or playlist plays that album or playlist from this track on. Home Assistant 2026.11 or later is needed for this (`start_item`).
+  - On older versions, the track plays at once and the queue stays, and the message says so.
+  - The same happens when a playlist holds the same track twice and you tap the later copy, and when Music Assistant cannot find the track in the album (for example with "library tracks only").
+  - "Play now" in the ⋯ menu of such a track does the same as the play button on the row.
+  - A podcast's ⋯ menu offers "Latest episode".
+- **Filter (S4).** An album, artist or playlist with more than 20 rows gets a field above its tracks. It searches the rows already loaded, needs no call, and ignores case and accents. The filter belongs to that view and survives going deeper and back.
+- **Fixed along the way:** Home Assistant marks every row inside an album or playlist as "music" and keeps the real type elsewhere. The card now reads the real type. Rows say "Track" instead of "music", "Start radio from it" appears for tracks, and "play from here" can work at all.
+- **Scroll and focus:** Opening a view, going deeper or going back now starts at the top. Before, a view opened from a long, scrolled list started in the middle. With the keyboard, focus goes to "Back" when a view opens and returns to the row you opened.
+
+An adversarial review before the release confirmed one serious and about a dozen smaller problems, all fixed:
+- **Serious:** "Play from here" would never have worked against a real Home Assistant, because every row in a view arrived as "music" (see above). The probe had used the wrong format; it now uses Home Assistant's own.
+- **Podcasts and audiobooks** opened a view that could not load. They now play on tap, and "Latest episode" moved to the ⋯ menu.
+- **Type filter:** switching types quickly left the spinner turning for good.
+- **Failed searches:** "No matches" showed when the services failed and the library had nothing.
+- **Smaller ones:**
+  - A smaller second answer for a type removed hits that were already shown.
+  - A tap on the ring artist left an open view above the new term.
+  - The artist could open late, from an older search.
+  - A later copy of a duplicate track started at the first copy.
+  - A start point Music Assistant could not find played nothing.
+  - With VoiceOver, play and ⋯ were unreachable inside rows that open.
+
+A second pass over those fixes found six small problems. Five are fixed:
+- Focus could return to the wrong copy of an album that appears in several Home rows.
+- Focus could also return after a tab switch.
+- "Only your library" could stand above service hits that were still shown.
+- The ring artist did not open when that exact term was already searched.
+- Episode rows showed a raw type name.
+
+The sixth was the same ring artist tapped again while the panel stays open. The third, focused pass showed that the current layout never lets the ring be tapped while the panel is open, so it cannot happen. That pass found nothing to fix; one optional hardening was taken: only "Back" returns the focus to the opened row.
+
+Measured on the built bundle in Shadow DOM against a mock Home Assistant that searches, browses and plays like Music Assistant, with rows in Home Assistant's own format (Chrome and WebKit, 1440 px and 390 px):
+- "queen": two calls, "Your music" with 5 hits, then "From your services" with 15, no hit twice.
+- Albums type: two calls with `media_type` album and limit 25, and 12 albums.
+- An album opens with "‹ Search", its 30 rows show "Track", and the filter "bohem" leaves 1 row ("xyz" leaves none).
+- Track 4 sends the album with `start_item` = track 4.
+- The later copy of a duplicate track plays alone.
+- Without `start_item`, the track plays with `enqueue: play`.
+- When `start_item` fails, one retry plays the track alone.
+- A podcast does not open; its ⋯ menu plays the latest episode.
+- A new term closes the view.
+- The ring artist "Queen" opens the artist.
+- With the keyboard, Enter opens, focus is on "Back", Enter again returns focus to the row.
+- When only the library search fails, the full list shows without blocks. When the services fail, the library shows with the note.
+
+Guards green, load check without page errors.
+
+Not checked:
+- A real Music Assistant server: the library-only search, `start_item` on Home Assistant 2026.11, and the latest episode of a real podcast.
+- VoiceOver on an iPad.
+
+Tests were not run.
+
+**Bundle:** 2 403 811 bytes, 681 689 gzip (+2.6 KB; the estimate was 0.9 KB, the rest came from the review fixes: open button, focus, menu entry, start_item retry), over the 640 000 warning and under the 700 000 limit. About 18 KB are left before the limit.
+
 ## Version 1.1.2525 - 2026-11-05
 
 **Title:** 🏠 The music panel opens on your own music

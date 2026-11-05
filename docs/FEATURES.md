@@ -485,6 +485,8 @@ With the music panel open, the card no longer pays twice: the panel stops listen
 
 The music panel opens on "Home": rows from your own Music Assistant library (albums and playlists last played first, your playlists, liked songs, stations, recently added; most played and random albums on request), one tap to play or open, kept for ten minutes, chosen and ordered under Settings › General › Music › Home rows. Each library section sorts (A–Z, recently added, last played, most played, year), filters favourites and album types, and loads twelve more on its own (v1.1.2525, roadmap #134).
 
+Search in the music panel shows "Your music" before "From your services", asks the server per type, opens albums, artists and playlists in place, plays an album or playlist from the tapped track (Home Assistant 2026.11, otherwise the track plays and the queue stays), offers "Latest episode" for podcasts, and filters long lists without a call. The ring's artist name opens that artist (v1.1.2526, roadmap #135 S1–S4).
+
 </details>
 
 <details>
