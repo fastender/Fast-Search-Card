@@ -483,6 +483,8 @@ The music panel's header stays put on a track change and while buffering; an idl
 
 With the music panel open, the card no longer pays twice: the panel stops listening to every change in the house, redraws only when the speaker changes, holds the ring's position tick while the ring is hidden, shows long playlists 50 tracks at a time with "Show all", and loads only the first visible row of covers with high priority. Public http covers show on https dashboards (v1.1.2524, roadmap #133).
 
+The music panel opens on "Home": rows from your own Music Assistant library (albums and playlists last played first, your playlists, liked songs, stations, recently added; most played and random albums on request), one tap to play or open, kept for ten minutes, chosen and ordered under Settings › General › Music › Home rows. Each library section sorts (A–Z, recently added, last played, most played, year), filters favourites and album types, and loads twelve more on its own (v1.1.2525, roadmap #134).
+
 </details>
 
 <details>

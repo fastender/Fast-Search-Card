@@ -1,5 +1,92 @@
 # Versionsverlauf
 
+## Version 1.1.2525 - 2026-11-05
+
+**Title:** 🏠 The music panel opens on your own music
+
+**Tags:** music-assistant, media-player, library, settings
+
+**Two parts from roadmap #134: a Home tab with rows from your own library, and library sections that sort, filter and load more on their own.**
+- **Home (S1).** The music panel now opens on a new first tab, "Home". It shows rows from your Music Assistant library. One tap plays a track or a station, or opens an album or a playlist.
+  - The rows, top to bottom:
+    - albums, last played first;
+    - playlists, last played first;
+    - your playlists, A–Z;
+    - liked songs (tracks marked as favourite, newest first);
+    - stations (favourite stations; without any, the last played first);
+    - recently added albums.
+
+    Two more rows are off by default: albums, most played first, and random albums.
+  - Each row is one library query for one media type, 12 items. Home Assistant's answer carries no play dates, so albums and playlists cannot be mixed into one honest timeline.
+  - The rows load in view order, the top one first. Empty rows are left out.
+  - Rows are kept for ten minutes. Closing and reopening the panel costs no call, and coming back to Home reloads only what is older. Random albums stay the same while the panel is open. "↻" reloads everything.
+  - Settings › General › Music › Home rows: a switch for each row and ↑/↓ for the order, only in this browser. An open panel follows at once. With every row off, the panel opens on Search, as before. Home Assistant before 2025.1 has no library query, so there is no Home tab.
+  - Honest titles. Home Assistant's library query has no "played only" filter, and its answer carries no play data. If fewer than 12 albums were ever played, unplayed ones follow. So the rows say "last played first" and not "Recently played", and a note under the rows says so. "Last played" is Music Assistant's history for the whole house, not just this tablet's.
+  - An album or playlist opened from Home goes back to Home ("‹ Home"), not to "Library".
+  - When only the chosen rows are empty, Home says that and points to Library and Search. It does not claim the library is empty.
+- **Library sections (S2).** Each section of the Library tab now has its own controls:
+  - Sort: A–Z, recently added, last played, most played, and year for albums.
+  - "♥ Favourites".
+  - For albums, the type: albums, singles, EPs, compilations.
+
+  A "+" card at the end of a row loads the next 12 of that section only. Before, "Load more" raised one limit for all six sections and reloaded them all from the start, up to 96 each.
+  - Each section remembers its choice in this browser. After a sort or filter change the row starts at the left again.
+  - "12+" appears only when a 13th item exists. A section with exactly 12 items shows "12" and no "+" card.
+  - The card offers only what this Home Assistant's service description lists: sorts, the favourite filter, offset, album types and media types. Home Assistant 2025.1 and 2025.2 have no podcasts or audiobooks, so the card no longer asks for them there and no longer shows "Not everything loaded" each time.
+  - If the server rejects a sort, the section falls back to A–Z, keeps A–Z, and stops offering that sort for the session.
+  - A filtered section whose request failed says "Not everything loaded", not "No matches".
+- **The artist in the ring.** Tapping the artist name in the ring still opens Search with that artist. Before, that artist then stuck: every later open of the panel landed on Search with the old artist until the detail view closed. Now the next normal open lands on Home.
+
+An adversarial review before the release confirmed four medium and about twenty small problems, all fixed. The medium ones:
+- Rows sorted by last played or play count were filled up with never-played items under the title "Recently played". This is the reason for the titles above.
+- After one tap on the artist name in the ring, the panel stopped opening on Home.
+- Home said "Your library is empty" when only the chosen rows were empty.
+- "Random albums" was called "Rediscover" and promised rarely played albums. Depending on the Music Assistant version the order is either a plain shuffle or never-played albums only. The row now uses a plain random order.
+
+The small ones, in short:
+- **Drilldowns:** the one opened on one tab no longer flashes for a frame on the other.
+- **Library sections:**
+  - A sort or filter that failed or was overtaken no longer leaves a chip that disagrees with the list below it.
+  - "+" no longer appends a page in another sort.
+  - A section no longer stays dimmed after a failed refresh.
+  - A section no longer disappears, with the control in your hand, while it loads.
+- **Failures:**
+  - A one-off server error no longer hides a Home row for days.
+  - A failed favourite-stations query is no longer replaced by all stations.
+  - A failed "↻" on Home now says so.
+  - Coming back to Home while it loads no longer sends the same query twice.
+- **Settings and keyboard:**
+  - Moving a row with the keyboard in the settings keeps the focus.
+  - The chips no longer keep an orange ring after a tap.
+
+A second pass over those fixes found five more, also fixed:
+- After a sort or filter change, the row stayed scrolled sideways and the new list started in the middle.
+- A list that appeared only after a filter change did not count as shown, so a failed refresh could replace it with "Library not loaded".
+- The keyboard focus fell off the "+" card while it loaded and when the last page arrived. It now stays on the card, or moves to the first new card.
+- Home rows showed "12", a capped number, while the Library uses "12" to mean exactly 12. Home rows show no count now.
+- The text for random albums was true on only some Music Assistant versions.
+
+A third, focused pass found one more, also fixed: after "+", focus could jump back to the section or the first new card even when the user had moved on to a sort menu or another chip while the page loaded. Focus now moves only when it really went away with the card.
+
+Measured on the built bundle in Shadow DOM against a mock Home Assistant whose library sorts, filters and pages like Music Assistant (Chrome and WebKit, 1440 px and 390 px):
+- The Home rows ask in order: albums and playlists by last played, playlists A–Z, favourite tracks, favourite stations and then stations by last played (there are no favourite stations in the mock), and recently added albums. Seven calls in total.
+- Reopening the panel makes no call; "↻" makes seven.
+- Library: 13 requested, 12 shown, "12+"; "+" 12 → 24 → 30 with offset 12 and 24; the other sections stay untouched.
+- A rejected year sort falls back to A–Z and leaves the list; a one-off "database is locked" on "↻" shows the message, keeps the row and does not block the sort.
+- Rendering: 140 renders in 6 s at rest on Home (1.1.2524: 156 in the library). With 20 changes elsewhere in the house, the panel redraws 0 times.
+
+Guards green, load check without page errors.
+
+Not checked:
+- A real Music Assistant server: its sort keys, the favourite filter on Home Assistant 2026.10 and later (it now also knows "disliked"), and album types.
+- Real Home Assistant 2025.1 and 2025.2.
+- The native sort menu inside Shadow DOM on iOS Safari.
+- A real wall tablet.
+
+Tests were not run.
+
+**Bundle:** 2 396 174 bytes, 679 072 gzip (+6.2 KB; the estimate was 1.7–2.2 KB. The Home tab, the section controls, the settings page and the texts in two languages came out larger, and the review fixes added the rest), over the 640 000 warning and under the 700 000 limit.
+
 ## Version 1.1.2524 - 2026-11-04
 
 **Title:** 🔋 The open music panel stops costing
