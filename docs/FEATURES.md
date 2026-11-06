@@ -487,6 +487,8 @@ The music panel opens on "Home": rows from your own Music Assistant library (alb
 
 Search in the music panel shows "Your music" before "From your services", asks the server per type, opens albums, artists and playlists in place, plays an album or playlist from the tapped track (Home Assistant 2026.11, otherwise the track plays and the queue stays), offers "Latest episode" for podcasts, and filters long lists without a call. The ring's artist name opens that artist (v1.1.2526, roadmap #135 S1–S4).
 
+A tap in the music panel shows a spinner on the cover until the speaker really changes, and says so after 15 s if it did not; quick taps never mix the queue. One queue tab shows Now, Next (tap to skip), "+N more", the radio song on air and the stream quality, with a confirmed Clear and Resume. A single track plays at once and keeps the queue, and Next/Previous are sent once more when a player swallowed them (switch under General › Music) (v1.1.2527, roadmap #136, #98, #100).
+
 </details>
 
 <details>

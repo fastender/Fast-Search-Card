@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.2527 - 2026-11-06
+
+**Title:** ⏳ A tap you can see worked, and one honest queue
+
+**Tags:** music-assistant, media-player, queue, ai-mode, repair
+
+**Roadmap #136 with #98, #100 and the rest of #139: the music panel shows whether a tap really started something, the queue becomes one tab, and Next and Previous get a second chance.**
+- **Confirmation (#136 S1).** The tapped cover shows a spinner until the speaker really changes: new content, a new title, or the same track started again. A container starts with its first track, so the check is "changed", not "equal". After 15 s without a change the panel says "Speaker did not start — try again". If the speaker already plays exactly what was tapped, it stays silent.
+  - Play requests from one panel go out one after the other. A newer tap that replaces the queue drops an older one that has not been sent yet, so a late answer can no longer mix the queue.
+  - Closing the panel does not drop the newest tap.
+  - Music Assistant often reports the new title before the call returns; the watcher catches that too.
+  - The watcher listens to Home Assistant's updates and runs a single one-shot timer; nothing ticks at rest.
+- **A single track keeps the queue (#98).** Playing one track from search, the library, Home or the ⋯ menu starts it at once, and what was queued stays behind it. The message says so. Albums, playlists, artists and stations still replace the queue, and "Start radio from it" keeps building a new one.
+- **One queue tab (#136 S2).** "Queue" and "Up next" showed nearly the same and are now one tab. Home Assistant reports only the playing and the next item plus a count.
+  - The tab shows the count, "Now" and "Next", and "+N more".
+  - Tapping "Next" skips to it.
+  - A radio station shows the song on air, and a quality line appears where Music Assistant knows the format ("FLAC 24/96", "MP3 320 kbps").
+  - "Clear" asks once ("Really clear?") and ignores a double tap, because clearing cannot be undone.
+  - An idle speaker with a queue offers "Resume".
+  - When a track repeats itself, "Next" is not offered as a jump, because Next would go elsewhere.
+  - A queue that has played to the end shows "Last played" and no "Resume".
+- **Next and Previous get a second chance (#100).** Some cast players swallow the first "Next". If nothing changed after 2.5 s and the player still plays, the card sends the command once more, never a third time; a newer press cancels it. This applies to the buttons at the ring and to "Next" in the queue.
+  - It only resends where a change could be seen. A player that reports no title or content is not resent to.
+  - "Previous" is only resent when the player reports a position. Mid-song, many players just restart the track, and a blind resend would go one track too far; a restart counts as a change.
+  - A rejected call is not repeated, and the 2.5 s start when the call was accepted.
+  - The switch is in Settings › General › Music, on by default, and applies only in this browser.
+- **AI mode (#139, rest).** What AI mode started on a speaker is now reported by the same watcher, which listens for Home Assistant's update instead of looking every half second for ten seconds.
+
+An adversarial review before the release confirmed one serious, three medium and six small problems, all fixed:
+- **Serious:** Next was resent on players that report no title or content. A change can never be seen there, so every press would have skipped twice. Such players are no longer resent to.
+- **Medium:**
+  - Previous was resent on players without a position, where a restart is invisible.
+  - The watcher missed a title that Music Assistant reports before the call returns, so the spinner ran for 15 s and warned for nothing.
+  - Closing the panel dropped the newest tap while an older one still played.
+- **Small:**
+  - A rejected first call was resent.
+  - Re-tapping what already plays warned.
+  - With repeat one, "Next" offered a jump.
+  - A double tap cleared the queue.
+  - A finished queue offered "Resume".
+  - An unknown stream format showed "?".
+
+A second pass over those fixes found one medium and six small problems, all fixed:
+- **Medium:** a stopped radio station counted as a finished queue and lost "Resume". Now "finished" needs the last track played to its end, never radio or a one-item queue.
+- **Small:**
+  - A tap still waiting in a closed panel could overtake a newer one from the reopened panel. The play queue now belongs to the speaker, not to the panel.
+  - Two ways of opening the speaker report failure without raising it, and the resend still fired there.
+  - Holding Enter on "Clear" confirmed through key repeat.
+  - A double tap on "Next" skipped two tracks.
+  - A pending resend was not cancelled by a new play, resume or clear.
+
+A third, focused pass found two small ones, also fixed:
+- A play call that never answers (Music Assistant restarting mid-call) kept that speaker's play queue stuck until a reload. After 20 s it moves on and says the speaker did not respond.
+- A failed jump to "Next" swallowed a retry for 3 s.
+
+Measured on the built bundle in Shadow DOM against a mock Home Assistant (Chrome, 1440 px):
+- **Spinner:**
+  - A single track sends `enqueue: play`, and the spinner stays until the title changes.
+  - An album with no change shows the warning after 15 s.
+  - A title that arrives before the answer clears the spinner at once.
+  - Re-tapping the playing track shows no warning.
+- **Quick taps:** three quick taps send the first and the last, never the middle one.
+- **Queue:**
+  - The tab shows "Now", "Next", "+36 more" (40 − 2 − 2).
+  - The radio station shows its stream title and "FLAC 24/96".
+  - "Next" is a button and skips.
+  - Repeat one shows no skip button and "+6 more" (10 − 3 − 1).
+  - A finished queue shows "Last played" without "Resume".
+- **Clear:** the first tap asks, a second tap after 300 ms clears, a double tap within 100 ms does not.
+- **Resend:**
+  - Next at the ring and in the queue is resent exactly once without a change, and not at all with one.
+  - Previous with a restart is not resent.
+  - With the switch off, one call.
+  - A player without a title gets one call.
+  - Previous without a position gets one call.
+- **Earlier probes:** the probes of 1.1.2525 and 1.1.2526 run unchanged.
+
+Guards green, load check without page errors.
+
+Not checked:
+- Real speakers: Music Assistant, Cast and Sonos.
+- Whether a real cast player really swallows the first "Next".
+- Real radio stream titles and formats.
+- AI mode with a real AI task.
+
+Tests were not run.
+
+**Bundle:** 2 410 537 bytes, 684 027 gzip (+2.3 KB; the estimate for #136 alone was 0.3–0.5 KB, plus #98, #100, the settings switch and the review fixes), over the 640 000 warning and under the 700 000 limit. About 16 KB are left before the limit.
+
 ## Version 1.1.2526 - 2026-11-05
 
 **Title:** 🔎 Search finds your own music first and opens what it found

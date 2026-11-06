@@ -2545,6 +2545,8 @@ Three entries from reading a pair of touch-first Music Assistant cards for wall 
 
 ### 98. A single track plays now and keeps the queue
 
+> ✅ **Shipped v1.1.2527** (2026-11-06) with #136 — a single track sent with `replace` goes out as `enqueue: 'play'` (search, library, Home, ⋯ menu), feedback "the queue stays"; containers, stations and radio mode keep `replace`.
+
 **Pitch:** Tap one song in the library and it plays at once. What was queued stays queued behind it.
 
 **Status quo:** A tap on a track inside an album or playlist calls `play_media` with `enqueue: 'replace'` (`components/controls/ma/BrowseTab.jsx:59` → `components/controls/MusicAssistantPanel.jsx:232–243`), and so does the play button of a search hit (`components/controls/ma/SearchTab.jsx:196`), so one tap throws the whole queue away. The direct-play branch at `components/controls/ma/useMaBrowse.js:194` serves the top-level sections, which hold no tracks (`components/controls/ma/BrowseTab.jsx:17–24`); in practice it plays radio stations. The play helper already accepts every mode Music Assistant knows, `play`, `replace`, `next`, `replace_next` and `add` (`utils/musicAssistant.js:104`, `:113–118`). Search hits and album tracks offer play, next and add as separate actions (`components/controls/ma/SearchTab.jsx:196–198`, `components/controls/ma/BrowseTab.jsx:59–61`), all through one handler (`components/controls/MusicAssistantPanel.jsx:232–248`).
@@ -2588,6 +2590,8 @@ Three entries from reading a pair of touch-first Music Assistant cards for wall 
 ---
 
 ### 100. Next and previous are sent once more when nothing happened
+
+> ✅ **Shipped v1.1.2527** (2026-11-06) with #136 — `weiterMitNachsenden` for the ring buttons and the queue's Next: armed only after the call was accepted (also `{ ok: false }` counts as failure), only when a change could be seen (title or content present; Previous only with a position, a restart counts as a change), once, cancelled by a newer press, a play, resume or clear. Switch `systemSettings.music.nochmalSenden` (on).
 
 **Pitch:** Some cast players swallow the first "next". If the title has not changed after 2.5 s, the card sends the command a second time.
 
@@ -3563,6 +3567,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 
 ### 136. A tap you can see worked, and one honest queue tab (addendum to #100)
 
+> ✅ **Shipped v1.1.2527** (2026-11-06) — S1: `utils/wiedergabeWaechter.js` (stand: content id, title, implied start; changed = new content, new title or a start jump > 2 s; listens to `subscribeHass`, checks once at subscribe, one one-shot deadline), cover spinner via `ma/wartet.js`, one play chain and generation per speaker (module Map), 15 s "did not start" (silent when the tapped uri plays), 20 s chain deadline. S2: one queue tab (count, Now, Next as a skip button, "+N more" = items − current_index − 2, −1 with repeat one; radio `stream_title`; quality from `stream_details`; Clear confirmed, double tap and key repeat ignored; Resume when idle unless the queue truly finished). Three review rounds (10 + 7 + 2 fixes).
+
 **Pitch:** The tapped cover shows a spinner until the speaker really plays it, and a second tap replaces the first instead of mixing the queue. The queue tab says "Now · Next · +37 more"; a tap on the next song skips to it, the radio shows the song on air, and "Clear" asks once.
 
 **Status quo:**
@@ -3634,6 +3640,8 @@ Thirteen entries from reading a pair of touch-first Music Assistant cards for wa
 
 ### 139. AI mode plays music, and music ducks while the tablet listens (addendum to #1)
 
+> ✅ **Rest shipped v1.1.2527** (2026-11-06) — what AI mode started is reported by #136 S1's shared watcher (Home Assistant updates, 10 s, no polling); a new AI play cancels a pending #100 resend. The #99 clamp waits for #99.
+>
 > ✅ **S1 + S2 shipped v1.1.2514** (2026-11-03) — `music_assistant.play_media` (media_id ≤ 120, artist/album ≤ 80, all refused when they look like a URL or file path — `://`, `\`, `./`/`../` segments, hidden files, a leading `/` or `~`, a known folder in front, several `/`, a file extension; media_type and enqueue from fixed lists; radio_mode) on players #128 S1 recognises, plus `shuffle_set`, `repeat_set`, `select_source` (from `source_list` only), `volume_up`/`volume_down` for all media players; the context marks Music Assistant players, groups and stereo pairs and sends artist, source, sources, shuffle and repeat. Without #136 S1 a 10-second look at the player reports what started. Not built: the #99 clamp (not built yet). **v1.1.2515:** the tablet's default speaker (#138 S1) is named in the prompt as the target for music and volume without a room (fallback: the one playing speaker), and **S3 shipped**: switch *Lower music while dictating* (off by default, needs a tablet speaker); the volume drops to a fifth while the microphone listens and comes back only if it is still the lowered or the original value (±0.07 for coarse volume steps); the backup in localStorage `fscDiktatLeiser` stays until Home Assistant reports the restored volume, so a second dictation right after keeps the real original; a speaker that is off or unavailable keeps the backup for the next start.
 
 **Pitch:** "Play some jazz in the kitchen", "shuffle on", "next song in the living room", "a bit quieter" — through the same check as every AI action. Tap the microphone and the speaker goes quiet until dictation ends.
