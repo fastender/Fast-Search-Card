@@ -320,7 +320,7 @@ Universal across every entity type, not just Universal devices — sensors, swit
 
 <br>
 
-Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pickers rebuilt as iOS-style stacked cards. Day-of-week chips. Inline editing — no submenu. Accordion backgrounds unified with the rest of the device settings. **Edits keep what you did not touch (v1.1.2517, roadmap #125):** the card reads each plan whole from the integration and saves back only what you changed — other time slots, conditions, the date range, sun times, workdays, the repeat type and the name stay as they were. Only a one-shot entry with a single start time is a timer; everything else opens as a plan.
+Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pickers rebuilt as iOS-style stacked cards. Day-of-week chips. Inline editing — no submenu. Accordion backgrounds unified with the rest of the device settings. **Edits keep what you did not touch (v1.1.2517, roadmap #125):** the card reads each plan whole from the integration and saves back only what you changed — other time slots, conditions, the date range, sun times, workdays, the repeat type and the name stay as they were. Only a one-shot entry with a single start time is a timer; everything else opens as a plan. **Only actions that run (v1.1.2528):** each device type offers just the services Home Assistant has for it (lock/unlock, start/dock, press, trigger, activate …), filtered by what the device can do; devices without a schedule action get no schedule tab, numbers, selects and alarm panels a read-only one. Stored actions the editor cannot show stay as they are and show their values; lights and fans send brightness, colour temperature and speed; new plans have no hidden end time; a 00:00 timer is blocked; without the Scheduler integration the tab says so. Wheels no longer swallow the first turn.
 
 </details>
 
@@ -376,7 +376,7 @@ Bento integration: next event as hero, four follow-ups.
 
 **Week as day columns:** the week tab shows one column per day with all-day pills on top and timed events as small cards below; on narrow screens it steps down from seven to five to three days and finally to the compact week grid (v1.1.2387–2388, roadmap #48).
 
-**One event in several calendars:** it shows once with the colours of all its calendars (v1.1.2478, #87). Editing or deleting it asks *In all 2 calendars · Only here*; "all" is the default and changes or deletes every copy under one undo, skipping and naming read-only calendars (v1.1.2518, #101).
+**One event in several calendars:** it shows once with the colours of all its calendars (v1.1.2478, #87). Editing or deleting it asks *In all 2 calendars · Only here*; "all" is the default and changes or deletes every copy under one undo, skipping and naming read-only calendars (v1.1.2518, #101). **Recurring events (v1.1.2528):** new series are created over the WebSocket (the old service refused every repeat rule), timed series with an end date work in the local calendar, and editing one occurrence changes only that occurrence instead of replacing the whole series. The all-day end field shows the last day, moving the start moves the end, cleared fields are cleared, and saving without a change sends nothing. **Plans in the calendar:** day view, week columns and the day list show your Scheduler plans read-only, calculated like the integration (server time, workdays, windows past midnight, sun times, one-time plans until their next run); a tap opens the device's schedule tab (Display › Show schedules).
 
 </details>
 
@@ -427,7 +427,7 @@ Reads `lessons/*.md`. Random rotation in Bento every five seconds. Tag-based cat
 
 <br>
 
-Cross-device overview. Filter by timer or schedule. Domain badges. Click navigates to the device. Since v1.1.2517 the timer chip counts one-shot timers, plans with a renamed switch are listed too, and editing from here opens the same entry as the device tab.
+Cross-device overview. Filter by timer or schedule. Domain badges. Click navigates to the device. Since v1.1.2517 the timer chip counts one-shot timers, plans with a renamed switch are listed too, and editing from here opens the same entry as the device tab. Since v1.1.2528 actions read like the device tab ("Start" for scripts, values such as "Value 21.5"), plans disabled in Home Assistant are counted, and without the Scheduler integration the overview says so.
 
 </details>
 

@@ -1,5 +1,94 @@
 # Versionsverlauf
 
+## Version 1.1.2528 - 2026-11-07
+
+**Title:** 📅 Schedules that run, series that survive, and plans in the calendar
+
+**Tags:** schedules, scheduler, calendar, repair, wheel-picker
+
+**The schedule tab builds only actions Home Assistant accepts, the calendar can create and edit recurring events without losing any, and your Scheduler plans now show up in the calendar.**
+
+- **Calendar: recurring events work (repair).**
+  - New recurring events failed every time: the card used a service that does not accept a repeat rule. They are now created over the WebSocket, like editing and deleting.
+  - A new one-day all-day event failed too (end equal to start); it is now one day.
+  - A timed series with an end date ("until 31 Dec") failed in the local calendar; the end is now sent as the end of that day.
+  - **Editing one occurrence of a series changes only that occurrence.** Before, the whole series was replaced and moved to start on that day, so every earlier occurrence vanished; with one occurrence already moved (for example by AI mode), only a single event was left.
+  - On an occurrence, the repeat row is fixed and says that changes apply to this occurrence only. Changing the repeat there failed before anyway, and a "from here on" split loses events in Home Assistant's calendar library on a second save.
+  - Saving without a change sends nothing, so no needless exception is created.
+  - A rule the dialog cannot show (such as "every second Tuesday") is sent back as it was when it is unchanged.
+  - The end field of an all-day event shows its last day. Before, a one-day event on the 14th showed "end 15th", and a new Saturday–Sunday event landed on Saturday only. Moving the start day moves the end with it.
+  - A cleared description or place is really cleared.
+  - "Never" on an existing series now says that Home Assistant cannot remove a repeat, instead of reporting success and keeping it.
+- **Schedule tab: only actions that run.** The integration stores any `domain.service` and fails silently later, so the card now checks before saving.
+  - One list of valid actions per device type: lock and unlock, start and dock for vacuums and mowers, open and close for valves, press for buttons, trigger, enable or disable for automations, start for scripts, activate for scenes, and on and off for groups through `homeassistant`. Before, all of these got `turn_on`/`turn_off`, which does not exist for them.
+  - Actions a device cannot do are not offered (its feature bits): a speaker without power control gets no on/off, a cover without positions no position. A thermostat without "off" switches off through its "off" mode.
+  - Devices without any schedule action (numbers, selects, people, weather …) get no schedule tab; numbers, selects and alarm panels keep a read-only tab for plans made elsewhere.
+  - A stored action the editor cannot show (media play, toggle) opens as it is, with its own name and values, and is saved back unchanged. Before, it opened as "Turn off". Lists show values where they help ("Value 21.5", "Eco", "21.5 °C").
+  - An action you change that the device cannot do is not saved silently: the editor says so and stays open.
+  - Lights and fans send brightness, colour temperature and speed with the plan. Before, these fields were shown but never sent. A stored brightness from the Scheduler card is shown in percent, and fields Home Assistant rejects together are not combined.
+  - A thermostat plan combines only what one service accepts; the temperature row appears only on thermostats that support a target temperature (feature bit, so it stays while the thermostat is briefly unavailable), and half degrees stay half degrees.
+  - A new plan no longer gets a hidden end time of 01:00. The end time row says that nothing happens at the end.
+  - Switching to "Schedule" picks "Daily"; switching back to the mode a plan was opened in restores its values.
+  - A timer of 00:00 cannot be saved (it would have run a week later), with a hint why.
+  - Without the Scheduler integration, the tab and the overview say so instead of offering "New".
+  - Plans whose switch is disabled in Home Assistant are counted in the overview; switched-off plans are dimmed in the device tab.
+  - Locks that need a code show a hint that a default code must be set in Home Assistant.
+  - Timer countdowns refresh on the card's shared minute tick, not their own interval.
+- **Wheels take the first turn.** A wheel whose value was its first entry swallowed the first turn: it showed "Schedule", but "Timer" was saved. This hit the schedule editor (action, mode, 00:00 duration) and every other wheel.
+- **Plans in the calendar (read only).**
+  - Day view, week columns and the day list show your Scheduler plans for the days you look at, with the timer or schedule icon, "only if conditions are met" where conditions apply, and no ⋯ menu.
+  - Calculated like the integration: server time zone, workday sensor, date ranges, windows past midnight (including one still running from yesterday), sun times as an entry without a time, one-time plans only until their next run, skipped days in the spring clock change. Disabled plans are left out.
+  - Tapping a plan opens its device's schedule tab.
+  - Plans load once and then only when the integration reports a change, or after a reconnect. They never enter search, reminders, the bento tile or AI mode.
+  - Switch: Calendar › Display › *Show schedules* (on).
+- **Detail view:** after switching to another device, the first frame no longer shows the previous device's tab.
+
+Reviewed in three rounds (17, 14 and 11 confirmed findings), each finding re-checked by a second reviewer. The third round led to dropping a "from this occurrence on" path for repeat changes (it would have doubled later exceptions and brought back deleted occurrences).
+
+Measured on the built bundle in Shadow DOM against a mock Home Assistant (Chrome, 1440 px), plus the changed modules in the browser:
+- **Calendar:**
+  - A new weekly series goes out as `calendar/event/create` with its rule.
+  - A one-day all-day event ends the next day.
+  - A timed series end date becomes the end of that day in UTC; all-day series keep the date.
+  - The all-day dialog shows the last day and saves the exclusive end.
+  - A series occurrence goes out with `recurrence_id` and no rule or range, and its repeat row is fixed.
+  - Saving without a change sends nothing.
+- **Schedule tab:**
+  - A lock gets "Lock/Unlock" and sends `lock.lock`.
+  - A new 00:00 timer is blocked with a hint.
+  - The first wheel turn counts (00:00 → 02:00).
+  - Switching to "Schedule" gives "Daily" and no end time.
+  - Media play opens fixed as "Play".
+  - Light settings stay the same on the second opening.
+  - A number entity has a read-only schedule tab without "New".
+  - Without the integration, the tab says so.
+  - Feature bits filter the wheel (a speaker without power control gets no on/off).
+  - Brightness and colour fields are never combined in a way Home Assistant rejects.
+- **Plans in the calendar:**
+  - Four plans appear in the day list without a ⋯ button, with the `scheduler_updated` subscription.
+  - Tapping a plan opens the device's schedule tab.
+  - The switch hides the plans.
+  - Expansion was checked for workdays, windows past midnight including yesterday's, sun times, one-time plans (also with an end date and with a sun window), date ranges, conditions and the spring clock change.
+- **Overview:** it shows "Start" for scripts and "Disabled in Home Assistant: 1".
+- **Counter-probe on 1.1.2527:** every old fault reproduced.
+  - A number entity had a schedule tab.
+  - A lock plan sent `lock.turn_on`.
+  - The first wheel turn was swallowed, and the timer was saved for "now".
+  - Media play opened as "Turn off".
+  - Light settings toggled between openings.
+  - The calendar showed no plans.
+
+Guards green, load check without page errors, the music probe of 1.1.2527 unchanged.
+
+Not checked:
+- A real Scheduler installation, real locks, thermostats and speakers.
+- A real local calendar, Google or CalDAV calendar with recurring events, and the "from this occurrence on" path when deleting the old part fails.
+- A wall tablet whose time zone differs from Home Assistant's (series end dates).
+
+Tests were not run.
+
+**Bundle:** 2 418 484 bytes, 688 136 gzip (+4.1 KB: the plans in the calendar, the per-device action list with feature bits and its texts, and the review fixes; the removed dead code and settings did not offset it), over the 640 000 warning and under the 700 000 limit. About 12 KB are left before the limit.
+
 ## Version 1.1.2527 - 2026-11-06
 
 **Title:** ⏳ A tap you can see worked, and one honest queue
