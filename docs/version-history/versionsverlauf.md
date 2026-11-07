@@ -1,5 +1,53 @@
 # Versionsverlauf
 
+## Version 1.1.2529 - 2026-11-07
+
+**Title:** 🗑️ Delete one event or the whole series — you choose
+
+**Tags:** calendar, recurring-events, repair
+
+**Deleting an occurrence of a recurring event now asks what to delete: "Delete this event only" or "Delete the whole series".**
+- Since 1.1.2528, editing an occurrence changes only that occurrence, but deleting one still removed the whole series. The edit page of a recurring event now shows two delete buttons instead of one; other events keep the single button.
+- **This event only:**
+  - Removes just that occurrence (for an occurrence that was edited on its own, that edited event).
+  - The undo pill hides only this occurrence while it counts down.
+- **Whole series:** removes every event of the series, as before.
+- **Merged events (#101):** with "In all calendars", the copies follow the same choice.
+- **A series made only of fixed dates (no repeat rule):** in Home Assistant's local calendar, "this event only" would hit the whole series. Deleting would remove it, editing would overwrite every date. This happens with imported waste-collection calendars, for example.
+  - Before deleting or saving an occurrence without its own rule, the card looks for an event of the same series with a rule: first among the loaded events, otherwise ±800 days around it in that calendar.
+  - Without one, it says the event cannot safely be changed or deleted on its own here, and sends nothing; if the calendar cannot be reached, it says that instead.
+  - Copies in other calendars are checked before the undo pill appears and named if they are skipped.
+  - If you cancel or open another event while the check runs, nothing is deleted.
+- **Week columns (repair):** with the edit page open, tapping another occurrence of the same series now loads that occurrence. Before, the page kept showing the first one, and saving or deleting hit the occurrence it did not show.
+
+REVIEWS
+
+Reviewed in two rounds (4 and 3 confirmed findings), each re-checked by a second reviewer:
+- The first round found the stale edit page and the fixed-date series.
+- The second round found:
+  - a too-narrow check window and a misleading message;
+  - a pending check that could close another event's page;
+  - copies checked only after the undo pill.
+
+Measured on the built bundle against a mock Home Assistant (Chrome, 1440 px):
+- **Ordinary event:** shows one "Delete event" button.
+- **Recurring event:**
+  - Shows both buttons.
+  - "This event only" sends `calendar/event/delete` with `recurrence_id`.
+  - "Whole series" sends it without.
+- **Fixed-date series in a local calendar:** stopped with the message, nothing sent, the page stays open.
+- **Edited occurrence of a series with a rule:** deleted on its own, recognised from the loaded events without a further request.
+- **Probe of 1.1.2528:** unchanged; saving an occurrence still goes out with `recurrence_id` only.
+
+Guards green, load check without page errors.
+
+Not checked:
+- A real local, Google or CalDAV calendar.
+
+Tests were not run.
+
+**Bundle:** 2 420 887 bytes, 688 946 gzip (+0.8 KB), over the 640 000 warning and under the 700 000 limit. About 11 KB are left before the limit.
+
 ## Version 1.1.2528 - 2026-11-07
 
 **Title:** 📅 Schedules that run, series that survive, and plans in the calendar
