@@ -1,5 +1,30 @@
 # Versionsverlauf
 
+## Version 1.1.2533 - 2026-11-08
+
+**Title:** 🌐 AI mode answers in your own language
+
+**Tags:** ai-mode, language, repair
+
+**With an own language loaded from a file, AI mode now answers in that language, even when the earlier conversation was in another one.**
+- **Repair:** with Turkish loaded, the question "saat kaç?" got a German answer. The instruction to the AI already said "answer in Turkish", but the earlier conversation in the same request was German, and the model followed the conversation.
+- For an own language, the rule now says to answer in that language also when the question, the device names or the earlier conversation are in another language. A second, short reminder follows right after the question, where the model reads last.
+- The language name still comes from the browser's own list of language names for the checked locale, never from the file. If the browser does not know the language, the AI answers in English, as before.
+- German and English requests are unchanged, byte for byte.
+
+REVIEWS
+
+Reviewed in two rounds, each claim re-checked by a second reviewer. Nothing was confirmed; three claims were refuted (special language codes, a file whose locale and code disagree, and a question that explicitly asks for another language).
+
+Measured with the changed module and Turkish loaded from its kept copy (Chrome and WebKit): the request says "in Turkish, also when the question, the device names or the earlier conversation are in another language" and ends with "Write the "answer" in Turkish." For German and English the request is identical to 1.1.2532.
+
+Not checked:
+- A real answer from the AI with the new request.
+
+Tests were not run.
+
+**Bundle:** 2 435 861 bytes, 693 867 gzip (+70 bytes), over the 640 000 warning and under the 700 000 limit. About 6.1 KB are left before the limit.
+
 ## Version 1.1.2532 - 2026-11-08
 
 **Title:** 🌐 Your own language, and excluded patterns from a file
