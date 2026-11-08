@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2531 - 2026-11-08
+
+**Title:** 📅 Schedules leave the calendar again
+
+**Tags:** calendar, schedules
+
+**The calendar no longer shows your Scheduler plans. The plans that 1.1.2528 added to the day list, the day view and the week columns are gone, and so is the "Show schedules" switch.**
+- Plans that run every day (shutters, lights) filled the day list ahead of the events people actually look for.
+- Plans stay where they are edited: in each device's schedule tab and in the schedule overview. Nothing about the plans themselves changes.
+- While open, the calendar no longer asks the Scheduler integration for plans or listens for its changes.
+- The schedule tab repairs and the recurring-event repairs of 1.1.2528 and 1.1.2529 stay.
+- A stored "Show schedules" setting is simply ignored.
+
+REVIEWS
+
+Reviewed in two rounds, each finding re-checked by a second reviewer. The first round found no defect; a leftover export was tidied anyway. The second found two wording errors in this note.
+
+Measured on the built bundle against a mock Home Assistant with four plans (Chrome, 1440 px):
+- **Calendar:** the day list shows only the two events, each with its ⋯ button. Opening the calendar sends no Scheduler query and starts no subscription.
+- **Unchanged:** the schedule tab (lock, timer, media, light), the schedule overview, and editing events (an occurrence of a series still goes out with `recurrence_id` only).
+- No page errors.
+
+Not checked:
+- A real Scheduler installation.
+
+Tests were not run.
+
+**Bundle:** 2 418 343 bytes, 687 813 gzip (−2.4 KB), over the 640 000 warning and under the 700 000 limit. About 12.2 KB are left before the limit.
+
 ## Version 1.1.2530 - 2026-11-08
 
 **Title:** 🎙️ No microphone on this device? The card now says why
