@@ -1,5 +1,58 @@
 # Versionsverlauf
 
+## Version 1.1.2530 - 2026-11-08
+
+**Title:** 🎙️ No microphone on this device? The card now says why
+
+**Tags:** dictation, settings, search, repair
+
+**On an iPhone that opens Home Assistant over http, the search bar has no microphone, and nothing said why. Settings › General › Dictation now names the reason for this device.**
+- **Why it is missing:** Safari and the Home Assistant app on iPhone both run on WebKit, which offers the microphone and speech recognition only on secure pages (https or localhost). Over an address such as `http://192.168.0.10:8123` neither exists, so the card shows no button rather than one that cannot work. At home, the app often uses an http internal URL.
+- **The note below the Microphone switch** appears only when this device has no way to dictate:
+  - **Over http:** open Home Assistant over https (in the app, the internal URL too). On phones and tablets, the keyboard's own dictation key still works.
+  - **No speech-to-text:** the microphone is there, but Assist has no speech-to-text service and the browser has no recognition of its own. Set one up (such as Whisper or Home Assistant Cloud) and choose it under Settings › Voice assistants.
+  - **Browser:** it offers neither a microphone nor speech recognition.
+  - **Not reachable right now:** Home Assistant could not be asked; the card asks again once Home Assistant is ready again or when the page is opened again.
+  - The check never touches the microphone, so no permission prompt appears.
+- **Search bar (repair):**
+  - The search bar checked for a way to dictate once, when it loaded, and never again. A connection blip at that moment hid the microphone until a reload, and "no speech-to-text" was remembered for ten minutes, so setting one up did not help either.
+  - Every check is now shared by the search bar, the task form and the settings note, so the button and the note always agree. A reconnect checks again, and only a found speech-to-text pipeline is remembered.
+  - **Restarting Home Assistant** does not take a working microphone away: the card reconnects before Assist has loaded, so a failed check keeps the last working way. While Home Assistant is still starting, the card asks nothing and says "not reachable right now" instead of "no speech-to-text"; once it runs, it checks once more.
+  - A microphone error on an http page says "The microphone needs https" instead of "No access to the microphone". Chrome shows the button over http because it offers speech recognition there, but it may still refuse the microphone.
+
+REVIEWS
+
+Reviewed in three rounds, each finding re-checked by a second reviewer:
+- The first round confirmed five issues:
+  - the search bar never checking again;
+  - "no speech-to-text" being remembered;
+  - a keyboard sentence shown on desktops;
+  - a promised re-check that did not happen;
+  - advice that skipped setting up a speech-to-text service first.
+- The second round found that the new re-check after a reconnect ran while Home Assistant was still starting and took a working microphone away.
+- The third round found that the check after startup could still run when nothing was listening any more, for example with the switch off.
+
+Measured on the built bundle against a mock Home Assistant (390 px):
+- **WebKit over http (as on the iPhone):** no microphone and no speech recognition on the page, no button, and the http note in German and English.
+- **Chrome over https:**
+  - With speech recognition: button, no note.
+  - With an Assist speech-to-text pipeline: button through Assist, no note.
+- **Without speech recognition:** no speech-to-text, or Assist not loaded → the speech-to-text note; the pipeline list fails → the "not reachable" note.
+- **A failed first check:** the button appears after opening Settings, or after a reconnect.
+- **Following the speech-to-text advice:** on reopening Settings the note is gone and the search bar has its button.
+- **Home Assistant restart** (eleven minutes after loading, Assist not yet loaded): the Assist button stays throughout. **Loaded while Home Assistant starts:** no query and the "not reachable" note until it runs, then exactly one query and the button; further updates send no more queries.
+- **Switch off while Home Assistant starts:** after closing Settings, nothing waits for the start and no query is sent.
+- **A refused microphone:** over http the search field says "The microphone needs https"; the same error over https keeps "No access to the microphone".
+
+Guards green, load check without page errors.
+
+Not checked:
+- A real iPhone, the Home Assistant app, Firefox and a real Assist pipeline.
+
+Tests were not run.
+
+**Bundle:** 2 424 698 bytes, 690 234 gzip (+1.3 KB), over the 640 000 warning and under the 700 000 limit. About 9.8 KB are left before the limit.
+
 ## Version 1.1.2529 - 2026-11-07
 
 **Title:** 🗑️ Delete one event or the whole series — you choose

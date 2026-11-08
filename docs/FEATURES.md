@@ -263,6 +263,15 @@ Settings → Filter. Three toggles: include hidden entities, include disabled en
 
 </details>
 
+<details>
+<summary><b>Dictation.</b></summary>
+
+<br>
+
+A microphone in the empty search field turns speech into the search text — through Home Assistant Assist when a speech-to-text pipeline exists, otherwise through the browser's own recognition. The text lands in the field and is never sent by itself (v1.1.2507). Settings → General → Dictation switches it off. Where a device has no way to dictate there is no button, and the same section says why: opened over http (on iPhone and iPad, microphone and speech recognition exist only over https), no speech-to-text in Assist, a browser without either, or Home Assistant not reachable right now. A reconnect or the end of a Home Assistant restart checks again without taking a working microphone away (v1.1.2530).
+
+</details>
+
 <br>
 
 ---

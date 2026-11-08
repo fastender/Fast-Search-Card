@@ -3021,6 +3021,8 @@ Nineteen entries from reading the documentation of a kiosk browser app for Andro
 
 **Files (estimate):** `components/tabs/SettingsTab/components/TabletCheckSeite.jsx` (new), `utils/faehigkeiten.js` (new), `utils/kritischTon.js`, `AboutSettingsTab.jsx`, the notification center (E2 note), register, `de.js`/`en.js`, info-popup catalog.
 
+> **v1.1.2530 — the microphone line came first:** Settings › General › Dictation names why this device has no microphone (opened over http, no speech-to-text in Assist, browser without microphone or recognition, Home Assistant not reachable right now). `diktatVerfuegbar` returns the reason (`grund`) and reports every check to `aufDiktatPruefung` listeners, so S1 can read it instead of probing again. Prompted by an iPhone without the search microphone; the likely cause is an http internal URL in the Home Assistant app, not yet confirmed on the device.
+
 ---
 
 ### 118. AI mode and dictation — saved questions, appointments by tap, a microphone that shows it hears
