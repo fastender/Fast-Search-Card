@@ -617,6 +617,8 @@ A second batch shaped by what shipped in the last four weeks (Quick Control patt
 
 > ⏸ **Dormant** (2026-09-24) — v1.1.1381 deleted eight language files ("only DE+EN"). A runtime-loading path is built only when a community PR exists; "start with Dutch" below is the May 2026 view.
 
+> ✅ **Runtime path shipped v1.1.2532** (2026-11-08, user request) — an own language from a JSON file in HA's www folder (`/local/…`), validated leaf by leaf against `en` (`src/utils/translations/laufzeitSprache.js`), cached raw for the first frame, reread once per load. Template download/copy in Settings › General › App language. Texts outside the dictionary go through `basisSprache()` (English, not German). Open: fixed `{de, en}` tables and ~56 inline `de-DE`/`en-US` locale ternaries still show English for an own language; shipping more built-in languages stays a separate decision.
+
 **Pitch:** Translate the card from two languages to ten. Start with Dutch (community request, second-largest HA market after Germany).
 
 **Status quo:** Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; the wiring (`translateUI('key.path')` with German fallback) already covers every language-aware surface that recent passes touched (sidebar, action buttons, history timeframes, visibility filter info popups, climate Heat/Cool, the seven hardcoded DE strings closed in v1.1.1908).

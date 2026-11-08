@@ -1,5 +1,68 @@
 # Versionsverlauf
 
+## Version 1.1.2532 - 2026-11-08
+
+**Title:** 🌐 Your own language, and excluded patterns from a file
+
+**Tags:** language, settings, filter, security
+
+**The card can now speak a language you bring yourself, and read excluded patterns from a file. Both files live in Home Assistant's www folder, the way wallpapers and videos live in its media folder.**
+- **Why www and not the media folder:** Home Assistant's media folder only takes images, video and audio. It refuses a `.json` or `.txt` file, and only admins may upload there. Files in config/www are served at `/local/…` without signing in. You put them there with File editor, Samba or Studio Code Server.
+- **Own language** (Settings › General › App language › *Own language*):
+  - *Download template* or *Copy template* gives the English dictionary as JSON. `_meta` holds the language's code, name and locale. Translate what you like and save it, for example as `config/www/fast-search-card/tr.json`.
+  - Enter `/local/fast-search-card/tr.json` and tap *Load file*. The language appears in the picker next to German and English and is chosen right away. The card says how many texts the file translates.
+  - Anything the file does not translate stays English. So do texts that are not in the dictionary yet (some fixed labels, the weather view, Tips); before, an unknown language fell back to German there.
+  - Most dates and times follow the file's locale, and AI mode answers in that language. A voice that does not know the language reads the announcement in its default language instead of failing.
+  - The card keeps the last good file, so the language is there from the first frame. It reads the file again on every load, and a changed file applies in full the next time the card opens. If the file disappears, the kept copy stays.
+  - *Remove own language* deletes the file's path and the kept copy. If that language was chosen, the card switches to English; otherwise your choice stays.
+  - Older versions wrote the browser's language into the card's language setting on some devices ("fr", "tr" …). Such a value does not count as a choice: without a language file the card still follows Home Assistant's language, as before.
+- **Every text in the file is checked**, because a shared file is someone else's input:
+  - Only keys that exist in English, only text, no control or direction-override characters, a length limit, and nothing that looks like an internal key.
+  - No placeholders and no stray braces the English text does not have. Brackets and backticks no more often than in English, and links only to the addresses the English text links to, also when brackets hide in code. Otherwise that text stays English.
+  - The template's placeholder code "xx" is refused. A code the browser does not know still loads; dates, AI answers and dictation then use English.
+  - The schedule editor finds days, modes and actions again by their names. If the file gives two of them the same name (for example the same word for lock and unlock), that group stays English, so a lock schedule can never be saved as unlock.
+- **Excluded patterns from a file** (Settings › Filter › *Add from file*):
+  - One pattern per line (`#` for comments) or a JSON list.
+  - Loading adds new patterns to the list. Existing ones (in any upper or lower case) and invalid ones are skipped, and the card says how many of each. At most 400 patterns in total, because more slow down every search.
+  - The file is read once per tap; the list then stays yours to edit.
+- **Notification close button (repair):** its label went into the notification's HTML without escaping quotes. With built-in texts that was harmless; with a translation file, a quote could have added code. It is escaped now.
+
+REVIEWS
+
+Reviewed in three rounds, each finding re-checked by a second reviewer:
+- The first round confirmed 18 issues. Among them: old browser-language leftovers would have turned German users English, links slipped past the check, and *Remove* switched German users to English.
+- The second confirmed 6: a link hidden behind a bracket in code, slow bracket runs, a stale copy when storage is full, a late refresh bringing a removed language back, key-path texts, and the "xx" placeholder.
+- The third confirmed 2: the template's locale and rare codes.
+
+Measured on the built bundle against a mock Home Assistant (Chrome, 1280 px and 390 px):
+- **Own language:**
+  - Loading a Turkish file adds "🇹🇷 Türkçe" to the picker and selects it; the page title and the section header switch at once.
+  - After a reload the language is there before the file arrives. A changed file applies on the next open; with the file gone, the kept copy stays.
+  - A chosen language with neither file nor kept copy shows English, not German. A leftover "fr" without a file stays German.
+  - *Remove* with German chosen keeps German; with English chosen keeps English; the language leaves the picker either way.
+  - A file whose code changed (az → tr) keeps the old language for one load, then switches and updates the choice.
+  - Error messages wrap and are announced to screen readers.
+- **Checking the file:**
+  - `__proto__`, objects, numbers and lists in place of text, foreign placeholders, stray braces, key paths, over-long text, and control and direction characters are all dropped.
+  - Foreign links are dropped in six forms: plain, with a space before or after the address, with a long or broken label, and with a bracket hidden in code. 7,990 brackets take 1 ms.
+  - The same name for two weekdays, modes or lock actions turns that group back to English.
+  - The template's "xx" is refused, and its locale "xx-XX" left next to a real code falls back to that code. Rare codes such as "yao" load.
+  - Paths outside `/local/` are refused, also with `..`, `%2e%2e` or another host.
+- **Patterns:**
+  - A text file with a comment, a duplicate in other case, an invalid pattern and a new one gives "1 added · 1 already there · 1 invalid", with a single reload of the device list.
+  - The 400 limit holds, and a broken stored list is repaired.
+- **Notification:** a close label with an injected quote stays plain text; the button has no extra attributes, and hovering runs nothing.
+
+Guards green, load check without page errors.
+
+Not checked:
+- A real Home Assistant with files in www, the Home Assistant apps and Safari.
+- A complete translation, and a real voice that rejects the language.
+
+Tests were not run.
+
+**Bundle:** 2 435 691 bytes, 693 797 gzip (+6.0 KB), over the 640 000 warning and under the 700 000 limit. About 6.2 KB are left before the limit.
+
 ## Version 1.1.2531 - 2026-11-08
 
 **Title:** 📅 Schedules leave the calendar again

@@ -226,6 +226,8 @@ Reset anytime from Settings.
 
 Wildcards. Live preview. Template library. Import and export as JSON.
 
+**From a file (v1.1.2532):** Settings › Filter › *Add from file* reads a file from Home Assistant's www folder (`/local/…`, one pattern per line or a JSON list) and adds the new, valid patterns to the list. Duplicates and invalid lines are skipped and counted; 400 patterns at most.
+
 </details>
 
 <details>
@@ -894,6 +896,8 @@ Thirty search queries. Frequent lookups.
 `translateUI('key.path')` with German fallback. Sidebar labels. System-entity names. History tab timeframes. Action button tooltips. Visibility filter info popups. Climate Heat/Cool button. All language-aware.
 
 Two languages ship today — **English** and **German**. The translation infrastructure (`src/utils/translations/languages/`) is ready for more; additional languages are planned.
+
+**Your own language (v1.1.2532):** Settings › General › App language › *Own language*. Download or copy the template (the English dictionary as JSON with `_meta` code, name and locale), translate it, put it into Home Assistant's www folder and load it from `/local/…`. It joins the picker next to German and English; untranslated texts stay English. The card keeps the last good file for the first frame and rereads it on every load. Every text is checked as foreign input (only known keys and plain text, no new placeholders, braces, brackets or links), and schedule names that would collide stay English.
 
 Recent passes (June 2026) closed seven hardcoded German strings flagged by community feedback (item ⑨ in the Reddit/GitHub feedback list). Tipps content is still DE-only. If you spot another string that falls back to German, screenshot + path opens the next fix.
 
