@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2534 - 2026-11-10
+
+**Title:** 🌐 Own languages reach the rest of the card
+
+**Tags:** language, i18n
+
+**An own language file can now translate almost every text on screen, not only the ones that were in the dictionary before. German and English look exactly as before.**
+- Before, a language file reached only the dictionary. Labels written directly into the code stayed English: the sidebar ("Settings", "Tasks", "News"), the bento tiles ("New Articles", "Incomplete", "Devices"), "Month" in the calendar, "Percent" at a light, greetings, weather words, island lines, watches, quick control, chart labels and parts of the settings and calendar settings.
+- About 310 of these places in 90 files now read from the dictionary: 451 new texts, each with exactly the old German and English wording.
+- Dates and times in more places follow the language's locale.
+- Month names in the date wheel stay unique: if a language file gives two months the same name, the wheel uses English month names.
+- **Not yet:** the energy dashboard, the weather device view and the device setup flows. They are about to be rebuilt, so they follow later.
+- **English repairs:** five texts were German in English: the message after resetting the learning data, "Unbekannt" for a news article without a source, and the calendar and version history loading errors ("Fehler beim Laden", "Versionsverlauf leer", "Fehler beim Laden des Changelogs"). They are English now.
+
+REVIEWS
+
+Reviewed in two rounds, each claim re-checked by a second reviewer. Confirmed were only the two intended English repairs (the reviewers flagged them as changed English text); everything else held.
+
+Measured on the built bundle against a mock Home Assistant with a fixed clock (Chrome, 1440 px): 20 views — start, search, the four settings tabs, calendar, to-dos, news, notifications, schedules overview, version history, a light with its tabs, a sensor, a cover and a thermostat — show the same text in German and English as in 1.1.2533. The only differences are the randomly chosen greeting, the build date and the search field's typing animation. No page errors.
+
+Every new text resolves in German and English to exactly the wording it replaced. Guards green.
+
+Not checked:
+- Views the probe did not open, on a real Home Assistant.
+
+Tests were not run.
+
+**Bundle:** 2 457 166 bytes, 697 105 gzip (+3.2 KB), over the 640 000 warning and under the 700 000 limit. About 2.9 KB are left before the limit; removing the energy dashboard next frees about 20 KB.
+
 ## Version 1.1.2533 - 2026-11-08
 
 **Title:** 🌐 AI mode answers in your own language
