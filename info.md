@@ -2,7 +2,7 @@
 
 **A search card and a complete dashboard for Home Assistant, in one Lovelace card.**
 
-Type to find any entity, tap to control it, and use the start screen, calendar, to-dos, news, energy view and notification center without leaving the card. The card builds itself from what Home Assistant already knows — floors, areas, labels and visibility.
+Type to find any entity, tap to control it, and use the start screen, calendar, to-dos, news, device builder and notification center without leaving the card. The card builds itself from what Home Assistant already knows — floors, areas, labels and visibility.
 
 HACS shows the full [README](https://github.com/fastender/Fast-Search-Card/blob/main/README.md) for this repository. This page is the short version.
 

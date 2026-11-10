@@ -307,20 +307,11 @@ Search libraries. Browse the queue. Multi-engine TTS with language switching. No
 </details>
 
 <details>
-<summary><b>Energy Dashboard.</b> Numbers that make sense.</summary>
-
-<br>
-
-Real-time charts. Sensor setup wizard. Multi-schema support — works with every HA Core since 2025.11.
-
-</details>
-
-<details>
 <summary><b>Device Builder.</b> Custom devices, without code.</summary>
 
 <br>
 
-A visual builder for any device — energy monitors, 3D printers, weather stations, or fully custom. Pick a category, choose your sensors, name them. The card adds the view to your dashboard.
+A visual builder for any device or any set of entities. Pick a device or compose entities, choose rings, charts and quick stats, name it. Energy can be imported from Home Assistant's energy settings: power as rings, meters as charts, tariffs as quick stats.
 
 No YAML. No code. Edit anytime.
 
@@ -340,7 +331,7 @@ Search every setting and jump straight to it, or list what you changed. Backgrou
 
 <br>
 
-**Apps.** Changelog. Tips. All-Schedules. Live weather. Bambu Lab 3D printer support.
+**Apps.** Changelog. Tips. All-Schedules. Live weather.
 
 **Design.** Liquid-Glass sliders and switches. One glass window for every popup. Smooth motion throughout. Handwritten splashscreen. Toast notifications. Chart.js graphs everywhere.
 
