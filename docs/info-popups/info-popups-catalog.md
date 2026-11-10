@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -137,6 +137,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 > v1.1.2496 (Auftrag 31D): Punkte **Zeitzone** und **Serverzeit** ergänzt; die Zeitformat-Aussage berichtigt (sie betrifft nur die Uhrzeit-Räder, nicht „alle Uhrzeiten").
 > v1.1.2535 (Energie-Umbau): **Währung** verspricht keine Energiekosten mehr — die Energie-Ansicht ist entfernt, die Einstellung bleibt (Nutzerentscheid).
+> v1.1.2536: Punkt **Währung** entfernt — die Einstellung ist raus (Nutzerentscheid „Währung raus"; seit v1.1.2535 las sie niemand mehr).
 
 **DE**
 > ## Allgemein
@@ -144,7 +145,6 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Grundeinstellungen, die für die gesamte Karte gelten.
 >
 > - **App-Sprache** – Sprache der Oberfläche (Menüs, Beschriftungen, Datums- und Wochentagsnamen). Unabhängig von der Sprache deines Home Assistant.
-> - **Währung** – deine bevorzugte Währung (Symbol und Format für Geldbeträge).
 > - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM) in den Uhrzeit-Rädern (Zeitpläne, Aufgaben, Termine, Zeit-Entitäten). Alle anderen Uhrzeiten folgen der App-Sprache; der Kalender hat ein eigenes Zeitformat.
 > - **Zeitzone** – in welcher Zone die Karte rechnet: was heute fällig oder überfällig ist, wo ein Tag beginnt und endet, welche Uhrzeit gilt und wann die Ruhezeiten laufen. Automatisch folgt deinem Home-Assistant-Profil (Profil „Server" → Zone des Servers, sonst dieses Gerät), Dieses Gerät nimmt die Zone des Browsers, Home-Assistant-Server die aus der Server-Konfiguration.
 > - **Serverzeit** – Zeitpläne, Datums- und Zeit-Helfer (input_datetime, time), Tages-, Wochen-, Monats- und Jahresbalken aus der Statistik und die tägliche Wettervorhersage richten sich immer nach dem Server. Weicht die Zone der Karte ab, steht bei Zeitplänen und Zeit-Helfern „Serverzeit".
@@ -157,7 +157,6 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Basic settings that apply to the whole card.
 >
 > - **App Language** – language of the interface (menus, labels, date and weekday names). Independent of your Home Assistant's language.
-> - **Currency** – your preferred currency (symbol and format for money values).
 > - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM) in the time wheels (schedules, tasks, events, time entities). All other times follow the app language; the calendar has its own time format.
 > - **Time zone** – the zone the card calculates in: what is due today or overdue, where a day starts and ends, which time is shown and when quiet hours run. Automatic follows your Home Assistant profile (profile "server" → the server's zone, otherwise this device), This device uses the browser's zone, Home Assistant server the one from the server configuration.
 > - **Server time** – schedules, date and time helpers (input_datetime, time), daily, weekly, monthly and yearly bars from statistics and the daily weather forecast always follow the server. If the card's zone differs, schedules and time helpers show "server time".

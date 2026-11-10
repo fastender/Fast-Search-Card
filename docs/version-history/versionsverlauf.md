@@ -1,5 +1,32 @@
 # Versionsverlauf
 
+## Version 1.1.2536 - 2026-11-10
+
+**Title:** 🌐 Own languages reach the device builder, and the currency setting is gone
+
+**Tags:** language, i18n, device-builder, settings
+
+**An own language file now also translates the integration area: the device builder, device management, the weather view and the icon and category lists. The currency setting, which nothing used since 1.1.2535, is removed.**
+- **Integration area:** about 40 places and 5 tables (icons, icon categories, device types, colours, weekdays, weather states) read from the dictionary now; 79 new texts. Header status, the "Integration" tile name and the device builder's lists follow an own language.
+- **Language repairs:**
+  - German showed English: "active"/"inactive" in the header of system views (now "aktiv"/"inaktiv"), "Serial:", "Type:" and "Other" in the device builder.
+  - English showed German: five subtitles in the device builder's customise step, and "T:" for the low temperature in the weather view (now "L:").
+  - The tooltips of the controls, schedule and context buttons on a universal device showed a raw text key; they have proper names now.
+- **Currency removed:** the row and its page in Settings › General, its settings search entry, its texts and the line in the General info popup. The stored choice is removed once from the browser.
+
+REVIEWS
+
+Reviewed in two rounds, each claim re-checked by a second reviewer. The only confirmed point: a Playwright spec in tests/ still checks the removed currency row and would fail if run; it is left untouched because tests are only changed on request.
+
+Measured on the built bundle against a mock Home Assistant (Chrome, 1440 px): 20 views plus the integration list and both steps of the universal device setup show the same German and English text as in 1.1.2535, except the repairs above and the missing currency row. No page errors. Guards green.
+
+Not checked:
+- A real Home Assistant with weather and universal devices.
+
+Tests were not run.
+
+**Bundle:** 2 386 087 bytes, 678 294 gzip (+195 bytes), over the 640 000 warning and under the 700 000 limit. About 21.7 KB are left before the limit.
+
 ## Version 1.1.2535 - 2026-11-10
 
 **Title:** ⚡ Energy moves into the device builder, and the card gets 19 KB lighter

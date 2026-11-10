@@ -448,7 +448,7 @@ Cross-device overview. Filter by timer or schedule. Domain badges. Click navigat
 <br>
 
 - **Search.** A field at the top of every tab finds a setting by its name, description or options, and jumps straight to the marked row. It also covers the settings of Calendar, To-dos and News (v1.1.2419–2420). The **Changed** button beside it lists every setting that differs from its default (v1.1.2426).
-- **General.** Language, currency, time format, island, notifications, sidebar items, start screen widgets, live activities, text-to-speech engine, suggestions and learning speed.
+- **General.** Language, time format, island, notifications, sidebar items, start screen widgets, live activities, text-to-speech engine, suggestions and learning speed.
 - **Appearance.** Background mode and filters, grid columns, card shape, custom wallpaper, Liquid Glass, Quick Control, filter and sorting, detail view videos.
 - **Filter.** Excluded patterns plus visibility toggles for HA's hidden / disabled / diagnostic entities.
 - **About.** Version, build info, links.

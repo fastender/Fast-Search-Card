@@ -41,7 +41,7 @@ The card persists configuration, UI state, and performance caches in your browse
 | `fsc_suggestions_snapshot_v1` | Top suggested entities | Snappy suggestion list on cold start |
 | `excludedPatterns` | Wildcard patterns you defined in Settings | Your exclusion rules |
 | `systemSettings` | UI theme, language, toast preferences, grid columns, news/todos filters, AI mode switches (on/off, calendar and tasks) and chosen AI task, dictation switches (microphone, lower music while dictating), this tablet's speaker, name, room and Home Assistant device | Your settings (this browser only) |
-| `darkMode`, `userLanguage`, `userCurrency` | Theme, language, currency strings | Convenience cache |
+| `darkMode`, `userLanguage` | Theme and language strings | Convenience cache (`userCurrency` is removed once since v1.1.2536) |
 | `newsSettings`, `todosSettings` | Per-feed and per-list preferences | Your settings |
 | `animations`, `soundEffects`, `notificationsEnabled`, `statsBarEnabled`, `predictiveSuggestions` | Feature toggles | Your settings |
 | `confidenceThreshold`, `suggestionTimeWindow`, `maxSuggestions`, `maxEntitiesLimit`, `learningRate` | Suggestion-engine tuning parameters | Your settings |

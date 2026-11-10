@@ -1476,7 +1476,7 @@ Die Einstellung gilt nur für die Card. Card auf Englisch bei deutschem Home Ass
 Menüs, Beschriftungen, Datums- und Wochentagsnamen — und diese Tipps hier.
 
 ### Was sonst noch dazugehört
-Im selben Bereich stellst du **Währung** und **Zeitformat** (24 oder 12 Stunden) ein. Das Zeitformat wirkt überall: Diagramme, Aktivitäten, Zeitpläne, Insel.
+Im selben Bereich stellst du das **Zeitformat** (24 oder 12 Stunden) ein. Das Zeitformat wirkt überall: Diagramme, Aktivitäten, Zeitpläne, Insel.
 
 ### Weitere Sprachen
 Aktuell Deutsch und Englisch. Niederländisch ist als nächstes geplant.

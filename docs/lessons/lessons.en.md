@@ -1476,7 +1476,7 @@ The setting applies to the card only. Card in English with a German Home Assista
 Menus, labels, date and weekday names — and these tips.
 
 ### What else lives there
-The same section sets **currency** and **time format** (24 or 12 hours). Time format applies everywhere: charts, activities, schedules, the island.
+The same section sets the **time format** (24 or 12 hours). Time format applies everywhere: charts, activities, schedules, the island.
 
 ### More languages
 Currently German and English. Dutch is planned next.
