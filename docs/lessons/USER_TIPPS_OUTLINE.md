@@ -99,8 +99,8 @@ Erste 5 Minuten. Was tippen, wo das Detail-View aufgeht, wie man wieder rauskomm
 |---|---|---|
 | `news-hinzufuegen` | Füge RSS-Feeds für deine Nachrichten hinzu | News-Setup |
 | `news-lesen` | Tippe einen Artikel zum Lesen | NewsDetail |
-| `energy-dashboard` | Sieh, wie viel dein Haus verbraucht | EnergyView |
-| `energie-zeitraum` | Wechsle zwischen Tag, Monat, Jahr | Period-Picker |
+| `energie-einrichten` | Hol deine Energiewerte als Universal-Gerät in die Card | UniversalSetup „Aus HA-Energie übernehmen" (seit v1.1.2535; das Energie-Dashboard ist entfernt) |
+| `energie-lesen` | Lies Ringe, „Heute"-Wert und Diagramme deines Energie-Geräts | Universal-Gerät: Ringe, Heute-Zeile, Reiter „Verlauf" |
 | `stats-bar` | Die Leiste oben zeigt deine wichtigsten Zahlen | StatsBar |
 | `stats-anpassen` | Welche Werte erscheinen, kannst du bestimmen | StatsBarSettings |
 

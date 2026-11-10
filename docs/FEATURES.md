@@ -340,7 +340,7 @@ Built-in scheduler with `nielsfaber/scheduler-component` integration. Wheel pick
 
 <br>
 
-Per-device configuration. Bambu Lab printer setup. Energy dashboard sensor wizard. Whatever the entity needs.
+Per-device configuration — whatever the entity needs.
 
 </details>
 
@@ -460,10 +460,9 @@ Cross-device overview. Filter by timer or schedule. Domain badges. Click navigat
 
 <br>
 
-- **Energy Dashboard.** Multi-schema support. Real-time charts. Sensor setup wizard.
-- **3D Printer (Bambu Lab).** Print status. Filament tracking. Diagnostics.
 - **Weather.** Hourly and daily forecasts via `weather.get_forecasts`.
-- **Universal.** Fallback for any unrecognized device.
+- **Universal.** Any Home Assistant device, or any set of entities composed by hand. Up to eight main values as rings: one value gets a ring of its own, two to four share one ring in segments, more page by themselves. A single ring's maximum follows its goal; without a goal it stays 100. Optionally a "Today: x kWh" line under a ring, from a meter of the same device. Day/week/month/year charts and quick stats.
+- **Energy, inside Universal.** "Import from HA energy" reads Home Assistant's energy settings once and proposes a device: power as rings, meters as charts, tariffs and battery percentage as quick stats. Tapping the power value in the sidebar or at the island opens the Universal device that contains that sensor, otherwise the sensor itself. The separate Energy Dashboard type is gone; stored energy dashboards were converted once into such a device, keeping their id, so sidebar, start screen and favorites still point to it (v1.1.2535).
 
 </details>
 

@@ -135,23 +135,24 @@ Want another device class? Copy any of these files and rename it. The pattern is
 
 ## System-entity backgrounds
 
-`media/videos/system-entities/` holds short clips for the system-entity apps (Calendar, Todos, News, Energy Dashboard, …). They double as project-README/social footage **and**, since v1.1.1927, as Detail-View backgrounds: the card looks in the `system-entities/` subfolder and maps each app's internal domain to its file name (the file names differ from the domains).
+`media/videos/system-entities/` holds short clips for the system-entity apps (Calendar, Todos, News, …). They double as project-README/social footage **and**, since v1.1.1927, as Detail-View backgrounds: the card looks in the `system-entities/` subfolder and maps each app's internal domain to its file name (the file names differ from the domains).
 
 Copy `system-entities/` into `/config/www/fast-search-videos/system-entities/` to use them as backgrounds.
 
-Nine clips, roughly 2-3 MB each — file ← internal domain it plays for:
+Eight clips, roughly 2-3 MB each — file ← internal domain it plays for:
 
 | File | Internal domain | Shows |
 |---|---|---|
 | `calendar.mp4` | `calendar` | Calendar app — day/week/month/year views |
 | `changelog.mp4` | `versionsverlauf` | Version-history viewer |
-| `energy.mp4` | `energy_dashboard_device` | Energy dashboard with real-time charts |
 | `integration.mp4` | `integration` | Device Builder (custom views without YAML) |
 | `news.mp4` | `news` | News reader (companion to `fast-news-reader`) |
 | `schedules.mp4` | `all_schedules` | All-Schedules overview |
 | `settings.mp4` | `settings` | In-card settings hub |
 | `tasks.mp4` | `todos` | Todos app aggregating every `todo.*` backend |
 | `tips.mp4` | `tipps` | Tips system entity — rotating tips with markdown detail |
+
+`energy.mp4` stays in the folder as demo footage only. The Energy Dashboard it shows was removed in v1.1.2535, so no app plays it as a background any more.
 
 ---
 

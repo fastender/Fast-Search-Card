@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03) — 65 `settingsInfo` keys in de.js and en.js, 65 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -107,9 +107,6 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 |---|---|---|
 | `integrationTypes` | **Integration „Geräte hinzufügen"** | VERFÜGBARE TYPEN / AVAILABLE TYPES |
 | `universalPickDevice` | **Universal-Setup → Schritt 1** | Gerät wählen / Pick a Device (Titel-ⓘ) |
-| `energySetup` | **Energie-Dashboard hinzufügen** | ENERGIE-QUELLEN / ENERGY SOURCES |
-| `energyValues` | **Energy-Dashboard → Einstellungen** | WERTE / VALUES |
-| `energyCircular` | **Energy-Dashboard → Einstellungen** | CIRCULAR |
 | `calCalendars` | **Kalender → Einstellungen** | KALENDER / CALENDARS |
 | `calEventRules` | **Kalender → Einstellungen** | REGELN / RULES |
 | `calPeople` | **Kalender → Einstellungen** | PERSONEN / PEOPLE |
@@ -134,19 +131,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 | `iconPicker` | **Universal-Gerät bearbeiten** → Icon | STANDARD / DEFAULT |
 | `visibility` | **Universal-Gerät bearbeiten** → Sichtbare Entitäten | Navbar-ⓘ (rechts) |
 
-> **Ausnahme — dynamische Popups ohne settingsInfo-Key:** Die **per-Sensor-Info-Popups**
-> im **Energy-Dashboard → Einstellungen → Werte** (das ⓘ neben jedem einzelnen
-> Sensor-Wert wie „Netzbezug", „PV Leistung" …) sind **keine** `settingsInfo`-Keys.
-> Sie nutzen den dynamischen `content`-Prop von `SettingsInfoButton`: der Markdown
-> (`## Name` + Beschreibung) wird zur Laufzeit aus `sensorNames`/`sensorInfos` in
-> `src/system-entities/entities/integration/device-entities/views/EnergyDashboardSensorUtils.js`
-> gebaut. Zum Ändern dieser Texte → dort editieren, **nicht** in de.js/en.js.
-
 ---
 
 ## general
 
 > v1.1.2496 (Auftrag 31D): Punkte **Zeitzone** und **Serverzeit** ergänzt; die Zeitformat-Aussage berichtigt (sie betrifft nur die Uhrzeit-Räder, nicht „alle Uhrzeiten").
+> v1.1.2535 (Energie-Umbau): **Währung** verspricht keine Energiekosten mehr — die Energie-Ansicht ist entfernt, die Einstellung bleibt (Nutzerentscheid).
 
 **DE**
 > ## Allgemein
@@ -154,12 +144,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Grundeinstellungen, die für die gesamte Karte gelten.
 >
 > - **App-Sprache** – Sprache der Oberfläche (Menüs, Beschriftungen, Datums- und Wochentagsnamen). Unabhängig von der Sprache deines Home Assistant.
-> - **Währung** – Symbol und Format für alle Geldbeträge (z. B. Energiekosten, Tarife).
+> - **Währung** – deine bevorzugte Währung (Symbol und Format für Geldbeträge).
 > - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM) in den Uhrzeit-Rädern (Zeitpläne, Aufgaben, Termine, Zeit-Entitäten). Alle anderen Uhrzeiten folgen der App-Sprache; der Kalender hat ein eigenes Zeitformat.
 > - **Zeitzone** – in welcher Zone die Karte rechnet: was heute fällig oder überfällig ist, wo ein Tag beginnt und endet, welche Uhrzeit gilt und wann die Ruhezeiten laufen. Automatisch folgt deinem Home-Assistant-Profil (Profil „Server" → Zone des Servers, sonst dieses Gerät), Dieses Gerät nimmt die Zone des Browsers, Home-Assistant-Server die aus der Server-Konfiguration.
 > - **Serverzeit** – Zeitpläne, Datums- und Zeit-Helfer (input_datetime, time), Tages-, Wochen-, Monats- und Jahresbalken aus der Statistik und die tägliche Wettervorhersage richten sich immer nach dem Server. Weicht die Zone der Karte ab, steht bei Zeitplänen und Zeit-Helfern „Serverzeit".
 >
-> *Warum wichtig:* Sprache, Zeitformat und Zeitzone sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist – die Währung wird für Energie- und Kosten-Widgets gebraucht.
+> *Warum wichtig:* Sprache, Zeitformat und Zeitzone sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist.
 
 **EN**
 > ## General
@@ -167,12 +157,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Basic settings that apply to the whole card.
 >
 > - **App Language** – language of the interface (menus, labels, date and weekday names). Independent of your Home Assistant's language.
-> - **Currency** – symbol and format for all money values (e.g. energy costs, tariffs).
+> - **Currency** – your preferred currency (symbol and format for money values).
 > - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM) in the time wheels (schedules, tasks, events, time entities). All other times follow the app language; the calendar has its own time format.
 > - **Time zone** – the zone the card calculates in: what is due today or overdue, where a day starts and ends, which time is shown and when quiet hours run. Automatic follows your Home Assistant profile (profile "server" → the server's zone, otherwise this device), This device uses the browser's zone, Home Assistant server the one from the server configuration.
 > - **Server time** – schedules, date and time helpers (input_datetime, time), daily, weekly, monthly and yearly bars from statistics and the daily weather forecast always follow the server. If the card's zone differs, schedules and time helpers show "server time".
 >
-> *Why it matters:* language, time format and time zone make everything read the way you're used to – the currency is needed for energy and cost widgets.
+> *Why it matters:* language, time format and time zone make everything read the way you're used to.
 
 ## statusGreetings
 
@@ -784,6 +774,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > alte Kapsel mit Prioritätswahl (Meldung ▸ Live ▸ Ruhe) existiert nicht mehr.
 > v1.1.2505 (Auftrag 39): neu geschrieben — Glocke und Werte in der Leiste, Kapsel nur
 > noch auf der Startseite.
+> v1.1.2535 (Energie-Umbau): Leistung öffnet das Universal-Gerät mit diesem Sensor, sonst den Sensor selbst (vorher die Energie-Ansicht).
 
 **DE**
 > ## Die Insel
@@ -792,7 +783,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, die höchste anliegende Stufe ist vorgewählt. Noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen und trägt die Farbe der höchsten Stufe.
 > - **Knopfreihe** – ❗ Kritisch, ⚠ Warnung und ℹ Hinweis filtern die Liste, das **Wellen-Symbol** zeigt, was gerade läuft (Timer, Sauger, Medien …).
-> - **Wetter und Leistung** – stehen in der Leiste, am Telefon im Dock rechts neben der Glocke. Wetter öffnet seine Entity, Leistung die Energie-Ansicht. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
+> - **Wetter und Leistung** – stehen in der Leiste, am Telefon im Dock rechts neben der Glocke. Wetter öffnet seine Entity. Leistung öffnet das Universal-Gerät, das diesen Sensor enthält, sonst den Sensor selbst. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
 > - **Startseite** – auf der verriegelten Startseite steht die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr.
 > - **Ohne Leiste** – ist die Leiste aus oder passt sie am Desktop nicht neben die Karte, bleiben Knopf und Werte oben; der Knopf öffnet direkt das Panel.
 >
@@ -807,7 +798,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel with the highest pending level preselected. Another tap closes it. The number on the bell counts all alerts and carries the color of the highest level.
 > - **Button row** – ❗ critical, ⚠ warning and ℹ info filter the list, the **wave symbol** shows what is running (timers, vacuums, media …).
-> - **Weather and power** – sit in the sidebar, on phones in the dock to the right of the bell. Weather opens its entity, power the energy view. During quiet hours (toast settings) only the weather remains, dimmed.
+> - **Weather and power** – sit in the sidebar, on phones in the dock to the right of the bell. Weather opens its entity. Power opens the universal device that contains the sensor, otherwise the sensor itself. During quiet hours (toast settings) only the weather remains, dimmed.
 > - **Start page** – on the locked start page the capsule sits below the greeting, weather and power below the clock.
 > - **Without the sidebar** – if the sidebar is off or does not fit next to the card on desktop, the button and the values stay at the top; the button opens the panel directly.
 >
@@ -1250,28 +1241,33 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 ## heroEntities
 
 > Universal-Gerät bearbeiten → Hero. Ersetzt den grauen Beschreibungstext unter „ENTITIES".
+> v1.1.2535 (Energie-Umbau): bis zu 8 statt 5 Werte (Code `maxHeroes={8}`); Punkte **Ziel** (auch bei nur einem Wert) und **Heute** ergänzt.
 
 **DE**
 > ## Hero-Anzeige
 >
-> Wähle bis zu 5 Werte für die große Hero-Anzeige (der Kreis oben in der Detail-Ansicht).
+> Wähle bis zu 8 Werte für die große Hero-Anzeige (der Kreis oben in der Detail-Ansicht).
 >
-> - Mehrere Heroes **rotieren als Slideshow**.
-> - Entitäten mit **„Bild"- oder „Kamera"-Badge** werden als Foto dargestellt statt als Wert.
-> - Über die Pfeile (↑/↓) an einer ausgewählten Zeile bestimmst du die Reihenfolge der Slideshow.
+> - Zwei bis vier Werte **teilen sich einen Ring** in Segmenten; mehr blättern seitenweise weiter.
+> - Entitäten mit **„Bild"- oder „Kamera"-Badge** werden als Foto auf eigener Seite dargestellt statt als Wert.
+> - Über die Pfeile (↑/↓) an einer ausgewählten Zeile bestimmst du die Reihenfolge der Werte.
+> - **Ziel** – der Wert, bei dem der Ring voll ist; gilt auch, wenn nur ein Wert gewählt ist. Ohne Ziel wählt die Karte das Maximum selbst (bei einem einzelnen Wert 100).
+> - **Heute** – zeigt unter dem Ring, wie viel ein Zähler (kWh, m³ …) seit Mitternacht gezählt hat. Zur Wahl stehen die Zähler dieses Geräts.
 >
-> *Warum wichtig:* Der Hero ist das Erste, was du beim Öffnen des Geräts siehst.
+> *Warum wichtig:* Der Hero ist das Erste, was du beim Öffnen des Geräts siehst – hier legst du fest, was prominent erscheint.
 
 **EN**
 > ## Hero Display
 >
-> Pick up to 5 values for the large hero display (the circle at the top of the detail view).
+> Pick up to 8 values for the large hero display (the circle at the top of the detail view).
 >
-> - Multiple heroes **rotate as a slideshow**.
-> - Entities with an **"Image" or "Camera" badge** render as a picture instead of a value.
-> - Use the arrows (↑/↓) on a selected row to set the slideshow order.
+> - Two to four values **share one ring** in segments; more page on by themselves.
+> - Entities with an **"Image" or "Camera" badge** render as a picture on their own page instead of a value.
+> - Use the arrows (↑/↓) on a selected row to set the order of the values.
+> - **Goal** – the value at which the ring is full; also applies when only one value is picked. Without a goal the card picks the maximum itself (100 for a single value).
+> - **Today** – shows under the ring how much a meter (kWh, m³ …) has counted since midnight. You can pick from this device's meters.
 >
-> *Why it matters:* the hero is the first thing you see when opening the device.
+> *Why it matters:* the hero is the first thing you see when opening the device – this is what appears prominently.
 
 ## chartSensors
 
@@ -1375,12 +1371,14 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## integrationTypes
 
+> v1.1.2535 (Energie-Umbau): Punkt „Energy Dashboard" durch **Energie** ersetzt — kein eigener Gerätetyp mehr.
+
 **DE**
 > ## Verfügbare Gerätetypen
 >
 > Wähle einen Gerätetyp, um ein neues Gerät einzurichten.
 >
-> - **Energy Dashboard** – bindet das Home-Assistant-Energie-Dashboard ein (Verbrauch, Erzeugung, Netz).
+> - **Energie** – kein eigener Typ mehr: unter **Universal Gerät** füllt „Aus HA-Energie übernehmen" Ringe, Diagramme und Kurzwerte aus den Home-Assistant-Energie-Einstellungen vor.
 > - **Wetter** – Vorhersage & aktuelle Bedingungen einer `weather`-Entität.
 > - **Universal Gerät** – umschließt *jedes* HA-Gerät (Tesla, Waschmaschine, beliebige Entität) und macht es als Karte nutzbar.
 >
@@ -1391,7 +1389,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > Choose a device type to set up a new device.
 >
-> - **Energy Dashboard** – embeds the Home Assistant energy dashboard (consumption, production, grid).
+> - **Energy** – no longer a type of its own: under **Universal Device**, "Import from HA energy" pre-fills rings, charts and quick stats from Home Assistant's energy settings.
 > - **Weather** – forecast & current conditions of a `weather` entity.
 > - **Universal Device** – wraps *any* HA device (Tesla, washer, any entity) and turns it into a usable card.
 >
@@ -1399,12 +1397,15 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## universalPickDevice
 
+> v1.1.2535 (Energie-Umbau): Punkt **Aus HA-Energie übernehmen** ergänzt.
+
 **DE**
 > ## Gerät wählen
 >
 > Schritt 1 von 2: Wähle das Home-Assistant-Gerät, das als Universal-Gerät eingebunden werden soll.
 >
 > - **Suchen** filtert die Liste live nach Name.
+> - **Aus HA-Energie übernehmen** – liest einmal die Energie-Einstellungen von Home Assistant und schlägt Ringe (Leistung), Diagramme (Zähler) und Kurzwerte (Tarife, Batterie) vor. Spätere Änderungen in Home Assistant kommen nicht von selbst; tippe dafür beim Bearbeiten erneut darauf.
 > - Geräte sind nach **Integration** gruppiert (z.B. MQTT, Aqara) — tippe auf eine Gruppe zum Aufklappen.
 > - Tippe auf ein Gerät bzw. das **+**, um es auszuwählen und weiter zu Schritt 2 (Anpassen) zu gehen.
 > - Bereits eingebundene Geräte sind **ausgegraut** und als „bereits hinzugefügt" markiert.
@@ -1417,91 +1418,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Step 1 of 2: choose the Home Assistant device to wrap as a Universal Device.
 >
 > - **Search** filters the list live by name.
+> - **Import from HA energy** – reads Home Assistant's energy settings once and proposes rings (power), charts (meters) and quick values (tariffs, battery). Later changes in Home Assistant are not picked up automatically; tap it again while editing.
 > - Devices are grouped by **integration** (e.g. MQTT, Aqara) — tap a group to expand it.
 > - Tap a device or the **+** to select it and continue to step 2 (Customize).
 > - Devices that are already wrapped are **dimmed** and marked "already added".
 >
 > *Why it matters:* the chosen HA device provides the entities you'll then arrange as hero, charts, quick-stats, etc.
-
-## energySetup
-
-**DE**
-> ## Energie-Dashboard
->
-> Das Energie-Dashboard zeigt Echtzeit-Daten zu deinem Energieverbrauch, deiner Produktion und den Kosten — basierend auf deiner Home-Assistant-Konfiguration.
->
-> - Die **Energie-Quellen** (Netz, Solar, Batterie, Gas) werden direkt aus den HA-Energie-Einstellungen gelesen.
-> - **Konfiguriert** = die Quelle ist in Home Assistant eingerichtet; **Nicht konfiguriert** = in HA noch nicht hinterlegt.
-> - Mit **Energie-Dashboard hinzufügen** wird die Karte mit deiner aktuellen Konfiguration erstellt.
->
-> *Warum wichtig:* Konfiguriere Quellen zuerst in den Home-Assistant-Energie-Einstellungen — die Karte spiegelt nur das, was HA liefert.
-
-**EN**
-> ## Energy Dashboard
->
-> The Energy Dashboard shows real-time data about your energy consumption, production, and costs — based on your Home Assistant configuration.
->
-> - The **energy sources** (grid, solar, battery, gas) are read straight from HA's energy settings.
-> - **Configured** = the source is set up in Home Assistant; **Not configured** = not yet defined in HA.
-> - **Add Energy Dashboard** creates the card from your current configuration.
->
-> *Why it matters:* configure sources in Home Assistant's energy settings first — the card only mirrors what HA provides.
-
-## energyValues
-
-> Energy-Dashboard → Einstellungen. ⓘ am „WERTE / VALUES"-Header (Settings-Home).
-> Hinweis: die per-Sensor-ⓘ-Popups *innerhalb* der Werte-Liste sind dynamisch
-> (`content`-Prop, aus `EnergyDashboardSensorUtils`), kein settingsInfo-Key.
-
-**DE**
-> ## Werte
->
-> Hier ordnest du jedem Wert des Energie-Dashboards den passenden **Home-Assistant-Sensor** zu.
->
-> - Die Werte sind nach Typ gruppiert: **Leistung (W/kW)**, **Energie (Wh/kWh)**, **Batterie**, **Tarife** und **Gas / Wasser**.
-> - Tippe eine Zeile an, um ihr einen Sensor zuzuweisen (z.B. Netzbezug, PV-Leistung, Bezugstarif).
-> - Eine **„Auto"**-Pille zeigt, dass der Sensor automatisch aus den Home-Assistant-Energie-Einstellungen übernommen wurde; **„Manuell"** = von dir selbst gewählt.
-> - Mit dem ⓘ neben einem Wert erklärt jede Zeile, was genau gemessen wird.
->
-> *Warum wichtig:* Nur korrekt zugeordnete Sensoren liefern stimmige Live-Werte, Charts und Kosten im Energie-Dashboard.
-
-**EN**
-> ## Values
->
-> Here you assign the matching **Home Assistant sensor** to each value of the energy dashboard.
->
-> - Values are grouped by type: **Power (W/kW)**, **Energy (Wh/kWh)**, **Battery**, **Tariffs** and **Gas / Water**.
-> - Tap a row to assign a sensor to it (e.g. grid import, PV power, purchase tariff).
-> - An **"Auto"** pill shows the sensor was picked up automatically from Home Assistant's energy settings; **"Manual"** = chosen by you.
-> - The ⓘ next to a value explains exactly what each one measures.
->
-> *Why it matters:* only correctly mapped sensors produce accurate live values, charts and costs in the energy dashboard.
-
-## energyCircular
-
-> Energy-Dashboard → Einstellungen. ⓘ am „CIRCULAR"-Header (Settings-Home).
-
-**DE**
-> ## Circular
->
-> Steuert die **runden Anzeigen** (Circular-Gauges) des Energie-Dashboards, die als Slideshow rotieren.
->
-> - Wähle, welche Kennzahlen als Ring-Anzeige erscheinen (z.B. Netzbezug, Solar, Autarkie, Eigenverbrauch).
-> - Die Zahl unter „Circular" zeigt, **wie viele** Gauges gerade aktiv sind.
-> - Mehrere aktive Gauges wechseln sich automatisch als Slideshow ab.
->
-> *Warum wichtig:* So hebst du genau die Energie-Kennzahlen hervor, die dir am wichtigsten sind.
-
-**EN**
-> ## Circular
->
-> Controls the **circular gauges** of the energy dashboard that rotate as a slideshow.
->
-> - Choose which metrics appear as a ring gauge (e.g. grid import, solar, self-sufficiency, self-consumption).
-> - The number under "Circular" shows **how many** gauges are currently active.
-> - Several active gauges cycle automatically as a slideshow.
->
-> *Why it matters:* this is how you highlight exactly the energy metrics that matter most to you.
 
 ## oceanScene
 

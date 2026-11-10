@@ -71,11 +71,13 @@ The card persists configuration, UI state, and performance caches in your browse
 
 ### Home Assistant user data (cross-device sync)
 
-Three keys are written to Home Assistant's `frontend/set_user_data` WebSocket API so your configuration follows you across devices. This data lives inside your HA instance, not on a third-party server:
+One key is written to Home Assistant's `frontend/set_user_data` WebSocket API so your configuration follows you across devices. This data lives inside your HA instance, not on a third-party server:
 
 - `fast_search_card_devices` — integration device configurations
-- `fast_search_card_energy_sensors` — legacy energy sensor mappings
-- `fast_search_card_energy_dashboard` — energy dashboard schema
+
+Two older keys, `fast_search_card_energy_sensors` (legacy energy sensor mappings) and `fast_search_card_energy_dashboard` (energy dashboard schema), are no longer used. In v1.1.2535 the card empties both once, right after it has converted a stored energy dashboard into a Universal device and saved the device list.
+
+Home Assistant's energy settings (`energy/get_prefs`) are only read, never written: during that one-time conversion and when you tap "Import from HA energy" in the Universal device setup. The call goes over the normal connection to your Home Assistant (point 1 under [Outbound network behaviour](#outbound-network-behaviour)).
 
 ### What is explicitly **not** stored
 

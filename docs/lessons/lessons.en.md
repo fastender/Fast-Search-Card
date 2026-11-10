@@ -46,7 +46,7 @@ More than search. The card is a complete dashboard inside a single Lovelace card
 - **The Island** — the panel top center with alerts and running devices, opened from the bell
 - **Notification Center** with history, severity levels and quiet hours
 - **Apps**: calendar, tasks, news, schedules, tips, changelog
-- **Energy dashboard** and a builder for your own device views
+- A **builder** for your own device views, energy included
 
 ### Where it all lives
 Everything runs locally in your browser and talks straight to your Home Assistant. No cloud service, no account, no telemetry.
@@ -1089,59 +1089,53 @@ Tapping an entry takes you to the device it belongs to.
 
 ## Tipp energie-einrichten - Energy
 
-**Title:** How do I set up the energy dashboard?
+**Title:** How do I get my energy values into the card?
 **Hero:** none
 **Tags:** Energy, Setup
 
-Search "Add devices" and pick Energy Dashboard.
+As a Universal device that the card pre-fills from Home Assistant's energy settings.
 
-### What the wizard does
-It reads your Home Assistant energy configuration and takes over whatever it finds — grid import, export, solar, battery, tariffs.
+### How it works
+Search "Add devices", pick **Universal Device** and tap **Import from HA energy**. The card reads your energy settings once and jumps to "Customize" with a ready-made proposal. Look it over, add it, done.
 
-### What you add
-Whatever HA doesn't know, you pick by hand. Every row opens a searchable sensor picker.
+### What gets imported
+- **Power** (W) as rings: home, grid, solar and battery, as far as Home Assistant knows them
+- **Meters** (kWh, m³) as charts for day, week, month and year: grid import, export, solar, home, battery, gas and water
+- **Tariffs** and **battery percentage** as quick stats
 
 ### Afterwards
-The dashboard appears as its own device in your search and can be placed as a start-screen tile.
+The device is called "Energy" and can be changed like any Universal device. Changes in Home Assistant do not arrive by themselves. To pick them up, tap "Import from HA energy" again while editing.
 
----
+### If it doesn't work
+If the line under the button says no energy dashboard is set up, set it up in Home Assistant first. Without power sensors there are no rings, but the charts still come.
 
-## Tipp energie-werte - Energy
-
-**Title:** What do "Auto" and "Manual" mean on the energy values?
-**Hero:** none
-**Tags:** Energy, Sensors
-
-They tell you where a sensor assignment came from.
-
-### The two pills
-- **Auto** — the sensor was taken automatically from your Home Assistant energy settings
-- **Manual** — you assigned it yourself
-
-### How the values are grouped
-By type: power (W/kW), energy (Wh/kWh), battery, tariffs, plus gas and water.
-
-### If a value looks wrong
-Tap the row and pick a different sensor. The ⓘ next to each value explains exactly what's meant to be measured — useful when several sensors have similar names.
+### The old energy dashboard
+If you had set it up, the card converted it once into this device on first start, with your previous sensor assignment. Sidebar, start screen and favorites still point to it.
 
 ---
 
 ## Tipp energie-lesen - Energy
 
-**Title:** What do the circles in the energy dashboard mean?
+**Title:** What does my energy device show?
 **Hero:** none
 **Tags:** Energy, Overview
 
-Each circle is an energy source or consumer: grid, solar, battery, home.
+Live power at the top, today's value below it if you want, and the charts in the "History" tab.
 
-### What you see
-The numbers are live. When power flows the circle shows the current draw; the direction tells you whether you're importing or exporting.
+### The rings
+Each value in the ring is a power sensor and shows live how much is flowing right now. Two to four values share one circle in segments, with the name outside the ring. With more than four, the ring pages through them by itself.
 
-### Adjusting
-In the dashboard's settings you decide which value sits in which circle.
+### Today
+A value can carry a line such as "Today: 4.2 kWh" — what a meter has counted since midnight. You choose it per value while editing, under "Hero" → "Today". You can pick from this device's meters. After "Import from HA energy" it is already set for home, grid and solar when Home Assistant knows the matching meter.
+
+### A single ring
+With only one value, the **goal** is the ring's maximum. Without a goal the maximum stays at 100, so a ring showing 1500 W is always full. Set a goal while editing, under "Hero" — your usual peak load, for example.
 
 ### The charts
-Below the circles are trend charts for day, week, month and year — from Home Assistant's long-term statistics, so gap-free even across months.
+The "History" tab shows the meters for day, week, month and year, from Home Assistant's long-term statistics.
+
+### From the sidebar and the island
+Tapping the power value in the sidebar, the dock or at the island opens the Universal device that contains this sensor. If there is none, the sensor itself opens.
 
 ---
 
@@ -1154,10 +1148,8 @@ Below the circles are trend charts for day, week, month and year — from Home A
 Yes. Search "Add devices" and pick a type.
 
 ### The types
-- **Energy Dashboard** — for power, solar, battery
-- **3D printer** — print status, filament, temperatures
 - **Weather station** — forecast and readings
-- **Universal** — for everything else
+- **Universal** — for everything else, energy included via "Import from HA energy"
 
 ### The flow
 Pick a type, assign sensors, name it, done. The card builds a complete detail view with hero, charts and sensor lists from that.
@@ -1176,13 +1168,13 @@ No YAML, no config file. Everything reachable again through the management scree
 The hero — the circle at the very top of the detail view, for the device's most important value.
 
 ### What you choose
-Up to five values. Several rotate as a slideshow.
+Up to eight values. Several share one ring in segments, up to four per page. Pictures get a page of their own.
 
 ### Pictures instead of numbers
 Entities with an image or camera badge render as a photo instead of a value. That's how a 3D printer gets its camera feed into the hero.
 
 ### Order
-Use the ↑ and ↓ arrows on a selected row to set the order the slideshow runs in.
+Use the ↑ and ↓ arrows on a selected row to set the order the values appear in.
 
 ---
 
@@ -1484,7 +1476,7 @@ The setting applies to the card only. Card in English with a German Home Assista
 Menus, labels, date and weekday names — and these tips.
 
 ### What else lives there
-The same section sets **currency** (for energy costs) and **time format** (24 or 12 hours). Time format applies everywhere: charts, activities, schedules, the island.
+The same section sets **currency** and **time format** (24 or 12 hours). Time format applies everywhere: charts, activities, schedules, the island.
 
 ### More languages
 Currently German and English. Dutch is planned next.

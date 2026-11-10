@@ -1,5 +1,55 @@
 # Versionsverlauf
 
+## Version 1.1.2535 - 2026-11-10
+
+**Title:** ⚡ Energy moves into the device builder, and the card gets 19 KB lighter
+
+**Tags:** energy, device-builder, universal-device, bundle
+
+**The separate Energy Dashboard device is gone. Energy now lives in the universal device builder. An existing energy device becomes a universal device "Energy" on the first start and keeps its place in the sidebar, favourites and start screen.**
+- **Why:** the dashboard was the largest single feature in the card (about 19 KB gzip), while the builder can already show rings, charts and short values.
+- **Import from HA energy:**
+  - A new entry in the universal device builder, next to "Compose entities", reads Home Assistant's energy settings once and fills in the device.
+  - Rings: power of consumption, grid, solar and battery, in the old colours.
+  - Charts: grid import and export, solar, battery, gas and water, with day, week, month and year and the comparison with the previous period.
+  - Short values: tariffs and battery percentage.
+  - It works without admin rights. Without an energy setup in Home Assistant, or when none of its sensors is available here, it says so.
+  - Everything stays editable like any universal device. Changes in Home Assistant's energy settings arrive when you press the entry again.
+- **Today value:** a ring can show "Today: x kWh" from an energy meter, chosen per ring (the import sets it). It reads Home Assistant's statistics since local midnight when the ring is shown, again when the meter changes (at most every five minutes) and at midnight; nothing runs in the background.
+- **A single ring** now fills up to its target when one is set; without a target it keeps the 0–100 scale.
+- **Tapping the power value** in the island, the sidebar or the phone dock opens the universal device that contains this sensor; otherwise the sensor, as before.
+- **Existing energy devices** are converted once, at startup:
+  - your own sensor choices win over Home Assistant's energy settings;
+  - the device keeps its id, so sidebar, favourite and start screen entries still point to it;
+  - the old storage is cleared only after the new device list is saved;
+  - while Home Assistant is still starting, or when its energy settings cannot be reached, nothing is converted and the next start tries again;
+  - leftover records of the 3D printer device type (removed earlier) are cleaned up in the same pass.
+- **Detail view:** universal devices show the icon you chose instead of a box.
+- **Gone:** the production/consumption donut, costs and earnings, the share bars for grid, solar and battery, and the settings page with 16 sensor slots.
+- **Gone with it:** solar totals above 10 kWh shown a thousand times too small, gas and water rings without a label, and "today" at solar showing the whole meter.
+
+REVIEWS
+
+Reviewed in three rounds, each claim re-checked by a second reviewer:
+- The first two rounds confirmed three issues: a tablet that loaded the card while Home Assistant was still starting would have deleted the energy device instead of converting it (the conversion now waits until Home Assistant runs and never deletes when the energy settings were only unreachable); the today lines of neighbouring rings overlapped with four rings; and the hero info text still described a slideshow.
+- The third round, on these fixes, found the same overlap with three rings; that is fixed too.
+
+Measured on the built bundle against a mock Home Assistant (Chrome, 1440 px):
+- **Conversion:** an old energy device with its own sensor choices, Home Assistant energy settings, a 3D printer leftover and another universal device turns into "Energie"/"Energy" (category universal, id unchanged, original date kept) with grid and solar rings, today counters on both, four charts and the energy icon. The printer leftover is gone, the other device untouched, and the old storage is cleared in Home Assistant and in the browser.
+- **Without Home Assistant energy settings:** the conversion uses the own sensor choices only; the builder entry says that no energy dashboard is set up.
+- **Home Assistant still starting, or its energy integration not loaded yet:** nothing is written and the old device stays for the next start. Energy not set up and nothing chosen: the empty old record is removed.
+- **Builder:** as a non-admin user, the entry fills name, icon and five entities and skips a sensor that does not exist.
+- **Ring:** "Heute: 12,3 kWh" / "Today: 12.3 kWh" under each ring, no longer cut off.
+- **Tap on the power value:** opens the energy device.
+- **Everything else:** 20 other views show the same text in German and English as in 1.1.2534, except the sidebar shortcuts hint, which no longer names Energy. No page errors.
+
+Not checked:
+- A real Home Assistant with an existing energy dashboard device, and the Home Assistant apps.
+
+Tests were not run.
+
+**Bundle:** 2 383 579 bytes, 678 099 gzip (−19.0 KB), over the 640 000 warning and under the 700 000 limit. About 21.9 KB are left before the limit.
+
 ## Version 1.1.2534 - 2026-11-10
 
 **Title:** 🌐 Own languages reach the rest of the card

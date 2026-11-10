@@ -46,7 +46,7 @@ Mehr als suchen. Die Card ist ein vollständiges Dashboard in einer einzigen Lov
 - **Die Insel** — das Panel oben mittig mit Meldungen und laufenden Geräten, geöffnet über die Glocke
 - **Mitteilungs-Center** mit Verlauf, Schweregraden und Ruhezeiten
 - **Apps**: Kalender, Aufgaben, News, Zeitpläne, Tipps, Änderungsverlauf
-- **Energie-Dashboard** und ein Baukasten für eigene Geräte-Ansichten
+- Ein **Baukasten** für eigene Geräte-Ansichten, auch für Energie
 
 ### Wo alles lebt
 Alles läuft lokal in deinem Browser und spricht direkt mit deinem Home Assistant. Kein Cloud-Dienst, kein Konto, keine Telemetrie.
@@ -1089,59 +1089,53 @@ Ein Tipp auf einen Eintrag führt zum zugehörigen Gerät.
 
 ## Tipp energie-einrichten - Energie
 
-**Title:** Wie richte ich das Energie-Dashboard ein?
+**Title:** Wie bekomme ich meine Energiewerte in die Card?
 **Hero:** none
 **Tags:** Energie, Einrichten
 
-Such nach „Geräte hinzufügen" und wähle Energie-Dashboard.
+Als Universal-Gerät, das die Card aus den Energie-Einstellungen von Home Assistant vorbefüllt.
 
-### Was der Assistent macht
-Er liest deine Home-Assistant-Energiekonfiguration aus und übernimmt, was er findet — Netzbezug, Einspeisung, Solar, Batterie, Tarife.
+### So geht's
+Such nach „Geräte hinzufügen", wähle **Universal Gerät** und tippe auf **Aus HA-Energie übernehmen**. Die Card liest deine Energie-Einstellungen einmal aus und springt mit einem fertigen Vorschlag zu „Anpassen". Durchsehen, hinzufügen, fertig.
 
-### Was du ergänzt
-Was HA nicht kennt, wählst du von Hand nach. Jede Zeile führt zu einer Sensor-Auswahl mit Suche.
+### Was übernommen wird
+- **Leistung** (W) als Ringe: Haus, Netz, Solar und Batterie, soweit Home Assistant sie kennt
+- **Zähler** (kWh, m³) als Diagramme für Tag, Woche, Monat und Jahr: Netzbezug, Einspeisung, Solar, Haus, Batterie, Gas und Wasser
+- **Tarife** und **Batterie-Prozent** als Kurzwerte
 
 ### Danach
-Das Dashboard erscheint als eigenes Gerät in deiner Suche und lässt sich auch als Startseiten-Kachel setzen.
+Das Gerät heißt „Energie" und lässt sich ändern wie jedes Universal-Gerät. Änderungen in Home Assistant kommen nicht von selbst an. Tippe dafür beim Bearbeiten erneut auf „Aus HA-Energie übernehmen".
 
----
+### Wenn es nicht klappt
+Steht unter dem Knopf, dass kein Energie-Dashboard eingerichtet ist, richte es zuerst in Home Assistant ein. Ohne Leistungssensoren gibt es keine Ringe, die Diagramme kommen trotzdem.
 
-## Tipp energie-werte - Energie
-
-**Title:** Was bedeuten „Auto" und „Manuell" bei den Energie-Werten?
-**Hero:** none
-**Tags:** Energie, Sensoren
-
-Sie sagen dir, woher die Zuordnung eines Sensors stammt.
-
-### Die zwei Pillen
-- **Auto** — der Sensor kam automatisch aus deinen Home-Assistant-Energie-Einstellungen
-- **Manuell** — du hast ihn selbst zugewiesen
-
-### Wie die Werte sortiert sind
-Nach Typ gruppiert: Leistung (W/kW), Energie (Wh/kWh), Batterie, Tarife sowie Gas und Wasser.
-
-### Wenn ein Wert nicht stimmt
-Tippe die Zeile an und wähle einen anderen Sensor. Das ⓘ neben jedem Wert erklärt, was genau gemessen werden soll — hilfreich, wenn mehrere Sensoren ähnlich heißen.
+### Das alte Energie-Dashboard
+Hattest du es eingerichtet, hat die Card es beim ersten Start einmal in dieses Gerät umgewandelt, mit deiner bisherigen Sensor-Belegung. Leiste, Startseite und Favoriten zeigen weiter darauf.
 
 ---
 
 ## Tipp energie-lesen - Energie
 
-**Title:** Was bedeuten die Kreise im Energie-Dashboard?
+**Title:** Was zeigt mein Energie-Gerät?
 **Hero:** none
 **Tags:** Energie, Übersicht
 
-Jeder Kreis ist eine Energiequelle oder ein Verbraucher: Netz, Solar, Batterie, Haus.
+Oben die Leistung live, darunter auf Wunsch den Tageswert, im Reiter „Verlauf" die Diagramme.
 
-### Was du siehst
-Die Zahlen sind live. Fließt Strom, zeigt der Kreis die aktuelle Leistung; die Richtung verrät, ob du beziehst oder einspeist.
+### Die Ringe
+Jeder Wert im Ring ist ein Leistungssensor und zeigt live, wie viel gerade fließt. Zwei bis vier Werte teilen sich einen Kreis in Segmenten, der Name steht außen am Ring. Sind es mehr als vier, blättert der Ring seitenweise von selbst weiter.
 
-### Anpassen
-In den Einstellungen des Dashboards bestimmst du, welcher Wert in welchem Kreis steht.
+### Heute
+Unter einem Wert kann zum Beispiel „Heute: 4,2 kWh" stehen, also was ein Zähler seit Mitternacht gezählt hat. Das wählst du je Wert beim Bearbeiten unter „Hauptanzeige" → „Heute". Zur Wahl stehen die Zähler dieses Geräts. Nach „Aus HA-Energie übernehmen" ist es bei Haus, Netz und Solar schon gesetzt, wenn Home Assistant den passenden Zähler kennt.
+
+### Ein einzelner Ring
+Bei nur einem Wert ist das **Ziel** das Maximum des Rings. Ohne Ziel bleibt das Maximum bei 100, ein Ring mit 1500 W ist dann immer voll. Setz deshalb beim Bearbeiten unter „Hauptanzeige" ein Ziel, etwa deine übliche Höchstlast.
 
 ### Die Diagramme
-Unter den Kreisen liegen Verlaufsdiagramme für Tag, Woche, Monat und Jahr — aus den Langzeit-Statistiken von Home Assistant, also lückenlos auch über Monate.
+Der Reiter „Verlauf" zeigt die Zähler für Tag, Woche, Monat und Jahr, aus den Langzeit-Statistiken von Home Assistant.
+
+### Aus Leiste und Insel
+Ein Tipp auf den Leistungswert in der Leiste, im Dock oder an der Insel öffnet das Universal-Gerät, das diesen Sensor enthält. Gibt es keins, öffnet sich der Sensor selbst.
 
 ---
 
@@ -1154,10 +1148,8 @@ Unter den Kreisen liegen Verlaufsdiagramme für Tag, Woche, Monat und Jahr — a
 Ja. Such nach „Geräte hinzufügen" und wähle einen Typ.
 
 ### Die Typen
-- **Energie-Dashboard** — für Strom, Solar, Batterie
-- **3D-Drucker** — Druckstatus, Filament, Temperaturen
 - **Wetterstation** — Vorhersage und Messwerte
-- **Universal** — für alles andere
+- **Universal** — für alles andere, auch Energie über „Aus HA-Energie übernehmen"
 
 ### Der Ablauf
 Typ wählen, Sensoren zuordnen, benennen, fertig. Die Card baut daraus eine vollständige Detailansicht mit Hero, Diagrammen und Sensor-Listen.
@@ -1176,13 +1168,13 @@ Kein YAML, keine Konfigurationsdatei. Alles über die Verwaltung im Integration-
 Der Hero — der Kreis ganz oben in der Detailansicht, für den wichtigsten Wert des Geräts.
 
 ### Was du wählst
-Bis zu fünf Werte. Mehrere rotieren als Slideshow.
+Bis zu acht Werte. Mehrere teilen sich einen Ring in Segmenten, bis zu vier je Seite. Bilder bekommen eine eigene Seite.
 
 ### Bilder statt Zahlen
 Entitäten mit einem Bild- oder Kamera-Kennzeichen werden als Foto dargestellt statt als Wert. So bekommt ein 3D-Drucker die Kamera-Ansicht in den Hero.
 
 ### Reihenfolge
-Über die Pfeile ↑ und ↓ an einer ausgewählten Zeile bestimmst du, in welcher Folge die Slideshow läuft.
+Über die Pfeile ↑ und ↓ an einer ausgewählten Zeile bestimmst du, in welcher Folge die Werte stehen.
 
 ---
 
@@ -1484,7 +1476,7 @@ Die Einstellung gilt nur für die Card. Card auf Englisch bei deutschem Home Ass
 Menüs, Beschriftungen, Datums- und Wochentagsnamen — und diese Tipps hier.
 
 ### Was sonst noch dazugehört
-Im selben Bereich stellst du **Währung** (für Energiekosten) und **Zeitformat** (24 oder 12 Stunden) ein. Das Zeitformat wirkt überall: Diagramme, Aktivitäten, Zeitpläne, Insel.
+Im selben Bereich stellst du **Währung** und **Zeitformat** (24 oder 12 Stunden) ein. Das Zeitformat wirkt überall: Diagramme, Aktivitäten, Zeitpläne, Insel.
 
 ### Weitere Sprachen
 Aktuell Deutsch und Englisch. Niederländisch ist als nächstes geplant.
