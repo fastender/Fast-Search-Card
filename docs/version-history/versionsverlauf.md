@@ -1,5 +1,36 @@
 # Versionsverlauf
 
+## Version 1.1.2539 - 2026-11-13
+
+**Title:** 🧩 Edit the start screen where it is: long-press menu, edit mode, widget gallery
+
+**Tags:** start-screen, widgets, ai-mode, automations
+
+**The four widgets of the start screen can now be changed on the start screen itself, instead of in the settings. New automations made by the AI are filed under their room and a category.**
+
+**Start screen**
+
+- **Menu on a tile.** Long-press a tile, or right-click it, for a small menu: change the widget, remove it, or edit the start screen.
+- **Edit mode.** The tiles shrink a little, each gets a minus to remove it, and "+" and "Done" appear at the top right. Tap a tile to pick another widget. Drag one tile onto another to swap them. Nothing wiggles; the card keeps to its rule of no endless animations.
+- **Widget gallery.** Instead of a list there is a window with coloured tiles, one per widget, with a tick on the current one.
+- **The slot rules stay.** A swap only happens where both widgets are allowed in the other slot. The large slot still takes only Favorites or Suggestions, so swapping mostly concerns the three slots on the right.
+- **Phone.** Long-press a page for the same menu. "Edit start screen" shows the four slots as a list; there is no dragging on the phone.
+- The settings page (Settings › General › Start screen › Widgets) stays and shows the same assignment.
+
+**AI automations**
+
+- A new automation now gets an area: the room in which most of the devices it switches are. Devices that are only read in a condition do not count.
+- It also gets the category "KI" ("AI" when Home Assistant is not set to German). The category is created the first time and reused afterwards; an existing "KI" or "AI" category is taken.
+- This applies to newly created automations only, not to changed ones.
+
+**Checked**
+
+- Probe on desktop Chrome against a rebuilt Home Assistant: tiles sit pixel for pixel where they sat before, menu by right-click and by long-press, edit mode, two swaps, a refused swap, remove, "+", gallery, Escape, Done; a normal tap still opens the detail. Phone width: menu, slot list, gallery. Automation: category created, area and category written.
+- Two review rounds and a follow-up check: 24 defects fixed. One small one remains: after picking another widget from the tile menu, keyboard focus can land on the page instead of the tile.
+- Not checked: real touch devices (iPhone, iPad, Android wall tablet), a real Home Assistant for area and category.
+
+**Bundle:** 694 834 bytes gzip (+6.1 KB), about 5.2 KB below the limit.
+
 ## Version 1.1.2538 - 2026-11-13
 
 **Title:** 🌅 AI automations: sunrise and sunset work without a sun device
