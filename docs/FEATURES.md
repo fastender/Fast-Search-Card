@@ -645,6 +645,8 @@ Over 100 hand-drawn SVGs with on/off states. Washing machines spin. Locks rotate
 
 > Through the AI task you set up in Home Assistant.
 
+**Automations (v1.1.2537, admins):** ask for a change ("make the hallway automation 30 minutes earlier") or a new automation. The card reads the automation, shows every changed value and a summary, and saves only after a tap; *Undo* restores the old content or deletes the new automation. Only devices the card shows may be added, risky services are refused, locks and garage doors are named in a warning. UI-created automations only, no blueprints.
+
 <details>
 <summary><b>Chat with your home.</b></summary>
 

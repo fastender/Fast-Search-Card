@@ -1,5 +1,54 @@
 # Versionsverlauf
 
+## Version 1.1.2537 - 2026-11-13
+
+**Title:** 🤖 AI mode changes and creates automations
+
+**Tags:** ai-mode, automations
+
+**In AI mode you can now ask for a change to an automation, or for a new one. The AI proposes, the card shows what would change, and nothing is saved until you tap.**
+- **Change:** "Make the hallway automation 30 minutes earlier."
+  - The AI first asks the card for that automation's content; the card reads it from Home Assistant and asks the AI again.
+  - The card then shows each changed value (22:00:00 → 21:30:00), a short summary of triggers, conditions and actions, and the whole content to unfold.
+  - *Save* writes it. If the automation was edited in Home Assistant in the meantime, nothing is written and the card says so.
+- **Create:** "Turn on the hallway light on motion for 3 minutes."
+  - The preview shows the new automation; *Create* saves it, *Create, but switched off* saves it and turns it off right away.
+- **Undo** after saving puts the old content back, or deletes the new automation. It refuses if the automation was changed again since.
+- **Checks before the preview:**
+  - Only devices the card shows may be added; device, area and label targets and templates as targets are refused.
+  - Only services Home Assistant knows. Shell, REST and Python commands, MQTT, add-on and system services, reloads, and "process a voice command" are refused.
+  - Locks, alarm panels, garage doors and gates (also inside groups and scenes), and any other unusual service that is new or changed are named in a warning line.
+  - A changed step is checked as a whole: reusing an old lock in a new step, or turning "close" into "open" on a garage door, is warned too.
+  - Home Assistant validates the automation itself when it is saved.
+- **Limits:**
+  - Admin users only (Home Assistant requires it). For everyone else AI mode works as before and answers with YAML to paste.
+  - Only automations created in the Home Assistant UI; YAML-file and blueprint automations are not edited.
+  - Automations cannot be deleted, except by Undo right after creating one.
+  - The content of an automation you ask about is sent to the AI.
+- **Switch:** Settings › General › AI mode › *Change and create automations* (on).
+
+REVIEWS
+
+Reviewed in three rounds plus a final check, each claim re-checked by a second reviewer:
+- The first two rounds confirmed 12 issues. The two serious ones: template targets and legacy service forms slipped past the device check, and any service Home Assistant knows was accepted, so a proposal could have reached hidden devices through MQTT or a voice command without a warning. Templates as targets are now refused, risky services are refused outright, and other unusual services are named in the warning.
+- The third round found five follow-ups: zone triggers and timer events were refused by mistake, comma lists and templates under other keys were not checked, and a changed step reusing an old lock or garage door got no warning. All fixed; the final check found two more missing warnings in rare cases, also fixed.
+
+Measured on the built bundle against a mock Home Assistant with a scripted AI (Chrome, 1280 px):
+- **Change:** two AI rounds (read, then update); the preview shows `triggers[0].at 22:00:00 → 21:30:00`; *Save* reads, writes and reads again; *Undo* restores 22:00:00.
+- **Edited in between:** with the automation changed in Home Assistant after the proposal, *Save* writes nothing and says it was changed.
+- **Create, switched off:** one write, then `automation.turn_off` for the new entity; *Undo* deletes it.
+- **Refused:** a YAML-file automation (no id), and a new automation naming a device the card does not show.
+- **Warned:** `lock.unlock` on the front door appears in the warning line. **Refused:** a shell command.
+- **Not an admin:** the request is unchanged from 1.1.2536 and an automation action is refused with "admins only"; nothing is read or written.
+- No page errors.
+
+Not checked:
+- A real Home Assistant and a real AI: whether the model follows the two steps and returns complete automations.
+
+Tests were not run.
+
+**Bundle:** 2 422 266 bytes, 688 626 gzip (+10.3 KB), over the 640 000 warning and under the 700 000 limit. About 11.4 KB are left before the limit.
+
 ## Version 1.1.2536 - 2026-11-10
 
 **Title:** 🌐 Own languages reach the device builder, and the currency setting is gone
