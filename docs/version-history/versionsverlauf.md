@@ -1,5 +1,34 @@
 # Versionsverlauf
 
+## Version 1.1.2541 - 2026-11-13
+
+**Title:** 🤖 AI mode: answers with a bracket slip are read again, and a light beam while the AI works
+
+**Tags:** ai-mode, automations, bugfix, animation
+
+**Asked to change an automation, the AI answered and nothing happened: the card showed the raw answer instead of the preview. That is fixed. And the AI mode now shows when the AI is working.**
+
+**Fixed: "the automation is not changed"**
+
+- The AI had closed one bracket too many in its answer. The card could not read it, showed the raw text and no preview, so there was nothing to confirm and nothing was saved.
+- The card now repairs such a slip (a closing bracket too many) and shows the preview as usual. An answer that is cut off is not completed by guessing; it stays text.
+- Extra care for repaired answers: every action from one waits for your tap, also those that would otherwise run directly, and an action with a field in the wrong place is refused.
+- The AI is now asked for a flatter answer form with fewer nested brackets, and told to close every bracket exactly once. The older form is still accepted.
+- An automation answer that carries parts of its content next to the content block is refused instead of silently losing them.
+
+**New: light beam in AI mode**
+
+- A coloured light travels once around the edge of the panel when you enter AI mode, and keeps travelling for as long as the AI is working on an answer. Then it fades out.
+- It does not run while nothing happens, and not behind an open detail view. With "reduce motion" it stays off.
+
+**Checked**
+
+- Probe with a scripted AI: an answer with one bracket too many (and with brackets inside a text) becomes the normal preview and can be saved; the flatter form works for changing and creating; the full automation run from v1.1.2537 is unchanged (change, undo, create switched off, refusals). The beam runs while the AI works and is paused and invisible afterwards.
+- Two review rounds: 10 defects fixed.
+- Not checked: a real AI with the new answer form, Safari and phones for the beam.
+
+**Bundle:** 696 472 bytes gzip (+0.9 KB), about 3.5 KB below the limit.
+
 ## Version 1.1.2540 - 2026-11-13
 
 **Title:** 📱 Phone start screen: only the widgets, edge to edge
