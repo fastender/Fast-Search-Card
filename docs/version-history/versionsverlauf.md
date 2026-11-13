@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2542 - 2026-11-13
+
+**Title:** 📱 Phone: pages as wide as the panel, smooth swiping, dock taps, notification entrance, haptics
+
+**Tags:** mobile, start-screen, dock, notifications, detail-view, bugfix
+
+**Six points from testing on the phone.**
+
+- **Pages as wide as the panel.** A page of the start screen is now exactly as wide as the search panel and the detail view. The neighbouring pages only show in the margin the dashboard leaves beside the card.
+- **Swiping follows the finger.** A sideways swipe with a little up or down in it used to lock the page for the whole gesture: ten pixels of vertical movement were enough, however far the finger went sideways. The gesture is now the card's own: the larger direction wins, and from then on the page follows the finger directly. A swipe that turns back also goes back. Vertical scrolling stays with the browser.
+- **Dots.** The page dots sit in a soft capsule with an elongated bar for the current page, like the pager of the slideshow widget, and have more distance from the page.
+- **Dock taps that needed a second try.** Several causes, all older than the last releases: after the "⋮" menu closed, an invisible full-screen layer swallowed the next tap for about 0.4 s; the same happened for about half a second after any popup window closed; the dock buttons were the only buttons without instant-tap handling; the undo pill could lie over the dock; and Home did nothing in AI mode. All fixed, and the active circle now moves as soon as the finger touches an entry.
+- **Notification panel from the dock.** The round button fades in, moves down, and only then the panel opens. The background is darkened as behind the info popups, also over an open detail view. A tap on the dark area closes it.
+- **Haptics.** Dock entries (Home, Search, and the others) and the buttons of the category bar now give haptic feedback.
+- **Detail header.** The dark band across the whole top of the picture is gone. Only the title has a dark backdrop now, sized to the text. This applies on desktop as well.
+
+**Checked**
+
+- Probe at phone width with an indented card: pages exactly card-wide, straight and diagonal swipes land on the next page, dock Search and Home work, the notification panel opens with the dark layer. Desktop start screen and its edit mode are unchanged.
+- Two review rounds: 15 defects fixed.
+- Not checked: real touch devices (the new swipe gesture is new code and was only driven with a mouse), haptics, the title backdrop over a real picture.
+
+**Bundle:** 697 369 bytes gzip (+0.9 KB), about 2.6 KB below the limit.
+
 ## Version 1.1.2541 - 2026-11-13
 
 **Title:** 🤖 AI mode: answers with a bracket slip are read again, and a light beam while the AI works
