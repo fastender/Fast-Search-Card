@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2540 - 2026-11-13
+
+**Title:** 📱 Phone start screen: only the widgets, edge to edge
+
+**Tags:** start-screen, mobile, widgets
+
+**On the phone the start screen now shows only the widgets. The search bar is gone there, and the widgets reach the edges of the screen.**
+
+- **No search bar on the phone start screen.** The widgets take the freed height as well. Search is opened with the magnifier in the dock at the bottom; the search bar then appears as before. If the dock is switched off, or "Search" was removed from it, the search bar stays where it was, so search is never out of reach.
+- **Full width.** Some dashboards indent the card on the left and right. The card now measures that margin and lets the widget pages run to the edge of the screen (up to 96 px per side). It does not do so when a neighbouring card or a clipping container is in the way.
+- A running dictation stops when the search bar is hidden, and the typing hint of the search bar no longer runs while hidden.
+- The locked start screen keeps its full-screen height.
+
+**Checked**
+
+- Probe at phone width with a card indented by 52 px: no search bar, pages 342 px wide instead of 238, swiping works, the dock magnifier opens search, Home returns. Desktop and the edit mode from v1.1.2539 behave as before.
+- Two review rounds: 9 defects fixed. Left as is: during the transition into a detail view the wider pages can show briefly beside the detail panel.
+- Not checked: a real phone, iOS Safari, a real Home Assistant dashboard (whether it clips the card).
+
+**Bundle:** 695 537 bytes gzip (+0.7 KB), about 4.5 KB below the limit.
+
 ## Version 1.1.2539 - 2026-11-13
 
 **Title:** 🧩 Edit the start screen where it is: long-press menu, edit mode, widget gallery
