@@ -1,5 +1,17 @@
 # Versionsverlauf
 
+## Version 1.1.2538 - 2026-11-13
+
+**Title:** 🌅 AI automations: sunrise and sunset work without a sun device
+
+**Tags:** ai-mode, automations
+
+**Asked for an automation "one hour before sunset", the AI answered that the card has no sun device and asked for a fixed time instead. Sunrise and sunset need no device in Home Assistant, and the AI is now told so.**
+
+- The instructions for automations now say that sunrise and sunset are always available, with the trigger and the condition written out, including an offset such as one hour before.
+- The card's own check already accepted such automations; only the AI held back.
+- Checked with a probe against a rebuilt Home Assistant and a scripted AI: an automation with a sunset trigger and a sunset condition is shown, created and saved. Not checked: a real AI.
+
 ## Version 1.1.2537 - 2026-11-13
 
 **Title:** 🤖 AI mode changes and creates automations
