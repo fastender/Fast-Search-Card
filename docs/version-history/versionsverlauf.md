@@ -1,5 +1,29 @@
 # Versionsverlauf
 
+## Version 1.1.2547 - 2026-11-14
+
+**Title:** 🎨 Device tiles with a solid colour, your own devices in the gallery, side bar font aligned
+
+**Tags:** start-screen, widgets, side-bar, dock
+
+**Start screen**
+- **Device tiles are never see-through.** A device that is off used to show as faint glass and nearly vanished over the wallpaper. Off tiles now have a solid dark Apple grey.
+- **Colour per device.** The long-press menu of a device tile has a new "Colour" row with the Apple system colours (red, orange, yellow, green, mint, teal, blue, indigo, purple, pink, grey) and "Default". On = full colour, off = the same colour dimmed. The colour belongs to the device: swapping slots moves it along, a new device starts without one.
+- **Gallery shows only real widgets.** Home, Settings and Integration are no longer offered as widget tiles (they are plain entries without a widget look); slots that already hold them keep them. The settings page picker matches.
+- **Your own devices.** The device search in the gallery now also finds the devices from your device builder.
+- The gallery window uses the card's own scrollbar.
+
+**Dock and side bar**
+- The labels use the same weight and spacing as the rest of the card (the font was the same; weight and letter-spacing differed).
+- The open notification bell looks like the other active entries again (white circle); the count stays red.
+
+**Checked**
+- Probes: gallery tiles without Home/Settings/Integration; a light placed via the device search; colour menu with 11 colours plus default; blue stored per device and shown dimmed while the light is off; desktop edit mode, phone swipe, notification panel and carousel return unchanged.
+- Two review rounds: 3 defects fixed (colour moved from slot to device; colour row only where it has an effect; sensor value white on coloured tiles).
+- Not checked by eye: the side bar font change, a device-builder device as a tile, the colours on a real wallpaper.
+
+**Bundle:** 698 840 bytes gzip, about 1.2 KB below the limit.
+
 ## Version 1.1.2546 - 2026-11-14
 
 **Title:** 🧩 Any device on the start screen, toasts like the undo pill, microphone in the calendar
