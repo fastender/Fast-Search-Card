@@ -1,5 +1,37 @@
 # Versionsverlauf
 
+## Version 1.1.2546 - 2026-11-14
+
+**Title:** 🧩 Any device on the start screen, toasts like the undo pill, microphone in the calendar
+
+**Tags:** start-screen, widgets, toasts, calendar, dock, refactoring
+
+**Start screen: any device as a tile**
+- The widget gallery now has a "Devices" section below the widget tiles, for the top-right and the two bottom slots. Without a search it lists your favourites; type to find any device by name, room or ID, grouped by room.
+- A chosen device appears as a device tile; a tap opens its detail view, a long press opens the menu as usual. Dragging and "+" accept devices in these slots. The large left slot stays for favourites and suggestions.
+- A Home Assistant calendar in the top-right slot now shows as a device tile instead of the card's own calendar view. A device that is briefly unavailable keeps its slot.
+
+**Toasts**
+- All toast messages now look like the undo pill: a glass capsule at the bottom centre, a round close button and a line that runs down with the display time. They sit above the phone dock and above the undo pill when both show. Screen readers announce them.
+- The default position is now bottom centre; a position you chose yourself stays.
+
+**Calendar**
+- New events have a microphone next to the title, as new tasks do.
+
+**Dock and side bar**
+- The notification count is always Apple red. When the notification panel is open, the bell's circle turns red and the count turns white with a red number.
+- The two-line values (weather, power) have a little more room inside their circle.
+
+**Under the hood**
+- The card's own value animations (sheet snap, ring knob, glass slider, phone carousel) now run through a small helper instead of framer-motion's general animate(); framer-motion stays the engine and the animations are the same. Saves about 1.7 KB.
+
+**Checked**
+- Probes: gallery search finds and places a device; carousel centred after returning from views; diagonal swipe; desktop edit mode; side bar values round; notification panel dark layer.
+- Two review rounds each for toasts/microphone and for the gallery and the animation helper: 9 defects fixed.
+- Not checked by eye: the new toast look, the microphone in the calendar, the red bell, the animation feel of the sheet, ring, slider and carousel on a real device.
+
+**Bundle:** 697 702 bytes gzip, about 2.3 KB below the limit.
+
 ## Version 1.1.2545 - 2026-11-14
 
 **Title:** ⚪ Side bar like the dock: values without icon, round highlights, bell before "⋮"
