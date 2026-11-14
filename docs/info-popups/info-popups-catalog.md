@@ -845,7 +845,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > Die verriegelte Startseite mit der großen Uhr **ist** der Bildschirmschoner der Karte — ruhig, dunkel, nur Uhr, Gruß und Hintergrund.
 >
-> Diese Einstellung baut den Weg **zurück** dorthin: Nach der eingestellten Zeit ohne Berührung räumt die Karte auf — eine offene Detail-Ansicht schließt, die Suche klappt zu, Fenster verschwinden — und die Startseite verriegelt wieder. Die nächste Berührung deckt sie wie gewohnt auf.
+> Diese Einstellung baut den Weg **zurück** dorthin: Nach der eingestellten Zeit ohne Berührung räumt die Karte auf — eine offene Detail-Ansicht schließt, die Suche klappt zu, Fenster verschwinden — und die Startseite verriegelt wieder. Die nächste Berührung deckt sie wie gewohnt auf. Mit **Danach: Suche** öffnet das Aufdecken nach dem Schoner gleich die Suche statt der Startseite.
 >
 > Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück.
 >
@@ -868,7 +868,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > The locked start page with the big clock **is** the card's screensaver — calm, dark, just clock, greeting and background.
 >
-> This setting builds the way **back**: after the configured time without touch the card tidies up — an open detail view closes, the search collapses, windows disappear — and the start page locks again. The next touch reveals it as usual.
+> This setting builds the way **back**: after the configured time without touch the card tidies up — an open detail view closes, the search collapses, windows disappear — and the start page locks again. The next touch reveals it as usual. With **Then: Search**, revealing after the screensaver opens the search right away instead of the start page.
 >
 > Every touch, scroll or key press resets the wait.
 >

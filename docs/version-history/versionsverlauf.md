@@ -1,5 +1,35 @@
 # Versionsverlauf
 
+## Version 1.1.2543 - 2026-11-14
+
+**Title:** 🧭 Dock on tablets, AI in the dock, carousel autoplay, schedules by room, and more
+
+**Tags:** dock, tablet, ai-mode, start-screen, schedules, todos, screensaver, bugfix
+
+**Nine points from testing on a tablet and a phone.**
+
+- **No more pill and bell at the top on tablets.** A tablet held sideways gets the desktop layout. Below about 1364 px the side bar did not fit next to the card and counted as missing, so the card showed weather, power and the bell at the top as a fallback. The bar now becomes the dock at the bottom instead, as on the phone, with bell and values; the start screen leaves room for it. This also applies to narrower desktop windows.
+- **Dock order.** The bell now stands before "⋮"; weather and power show only their value, without the icon.
+- **AI in the dock.** A fixed "AI" entry with the brain icon opens AI mode directly. It appears only when AI mode is set up and can be removed in the side bar settings like "Search".
+- **Carousel with pause.** The page dots of the phone start screen now look exactly like the slideshow's pager, with progress bar and pause button. The pages turn every 10 seconds on their own while the start screen is open; pause stops it, and swiping or touching restarts the time. With "reduce motion" nothing turns by itself.
+- **Notification panel.** More room above the round button, more padding in the panel's header row.
+- **Tasks.** With one list selected, the filter counts (All, Incomplete, Overdue …) count only that list.
+- **Schedules overview.** The list is grouped by room. The arrow on each row is replaced by a "…" menu with Edit and Delete; Delete can be undone for six seconds.
+- **AI chat** uses the card's own scrollbar.
+- **Screensaver.** New setting "Then": after the screensaver, show the start screen (as before) or go straight to the search.
+
+**Under the hood**
+
+- Soft warnings in the browser console are no longer included, to stay under the bundle limit.
+
+**Checked**
+
+- Probes on tablet sizes (1024×768, 820×1180), desktop (1440×900) and phone width: dock at the bottom on tablets with nothing at the top, tiles end above the dock, the AI entry opens AI mode and is marked active, the phone carousel and dock work as before, the desktop start screen and its edit mode are unchanged.
+- Two review rounds: 20 defects fixed.
+- Not checked: real touch devices, the autoplay timing over a longer time, the tasks and schedules views and the screensaver flow in a real Home Assistant.
+
+**Bundle:** 697 927 bytes gzip, about 2 KB below the limit.
+
 ## Version 1.1.2542 - 2026-11-13
 
 **Title:** 📱 Phone: pages as wide as the panel, smooth swiping, dock taps, notification entrance, haptics
