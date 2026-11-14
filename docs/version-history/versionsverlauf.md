@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2550 - 2026-11-15
+
+**Title:** 🪟 Detail title in visionOS style, notification panel on desktop like on mobile, readable input rows
+
+**Tags:** detail-view, notifications, settings, ai-mode, bugfix
+
+- **Detail title like visionOS.** The title in the detail view is left-aligned next to the back button, large and bold, with the subtitle below. Instead of the dark pill, a soft dark glow around the letters keeps it readable over pictures and videos.
+- **Notification panel on desktop like on mobile.** On desktop the round button sat on the edge of the search bar and the panel covered half of it. While the panel is open the search bar now fades out, as on the phone, and the background darkens at the same strength.
+- **Input rows stay readable.** In settings, rows with a text field (for example "This tablet" → Name, quiet hours, folder paths) turned white on hover and the field vanished. These rows no longer light up; switches and sliders keep their highlight.
+- **AI light beam after a detail view.** Opening AI mode from the dock while a view such as Settings was open showed no beam: its lap ran while the view was closing, when the beam is hidden on purpose. The lap now starts once the panel is free.
+
+**Checked**
+- Probes: AI beam after Settings → AI runs a full lap once the detail has closed, then fades out; start screen, edit mode, phone dock, notification panel and carousel return unchanged.
+- Two review rounds: 4 defects fixed (checkmark in the calendar row with a field, title contrast over bright pictures, search bar returning late after closing the panel, the depth transition of the search bar).
+- Not checked by eye: the new title style on real pictures, Safari.
+
+**Bundle:** 699 434 bytes gzip, about 0.6 KB below the limit.
+
 ## Version 1.1.2549 - 2026-11-14
 
 **Title:** 🗂️ Gallery: "All" tab, centred arrows, never taller than the start screen
