@@ -4,7 +4,7 @@ Fast Search Card bundles the packages listed below into `dist/fast-search-card.j
 
 Fast Search Card itself is licensed under [GPL-3.0-or-later](LICENSE).
 
-Package versions as bundled in v1.1.2546 (2026-11-14).
+Package versions as bundled in v1.1.2547 (2026-11-14).
 
 | Package | Version | License | Source |
 |---|---|---|---|
