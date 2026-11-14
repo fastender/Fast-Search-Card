@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2545 - 2026-11-14
+
+**Title:** ⚪ Side bar like the dock: values without icon, round highlights, bell before "⋮"
+
+**Tags:** dock, side-bar, notifications
+
+- **Values in the side bar.** On wide screens the side bar now shows weather and power like the dock: no icon, the number large, the unit small below.
+- **Round highlights.** The weather and power buttons are fully round when hovered, focused or pressed, in the dock and in the side bar, like the other buttons.
+- **Bell before "⋮".** The notification bell now stands before the "⋮" button in the side bar too.
+- **Notification panel from the side bar.** Its round button sits lower, with room above it, and moves down before the panel opens, as from the dock.
+- Slightly smaller bundle: the hidden value icons are gone.
+
+**Checked**
+
+- Probe on desktop (1440×900) and tablet (1024×768): values without icon, two lines, round; order with AI and bell before the rest; phone dock and desktop start screen unchanged.
+- One review round found one leftover (an unused weather field), removed.
+- Not checked: the notification panel's new position on desktop (the probe had no notifications to show).
+
+**Bundle:** 698 915 bytes gzip, about 1.1 KB below the limit.
+
 ## Version 1.1.2544 - 2026-11-14
 
 **Title:** ✨ Dock polish, screensaver pickers, info windows within the panel, carousel back on centre
