@@ -29,6 +29,15 @@ for arg in "$@"; do
   esac
 done
 
+# v1.1.2546: framer's `animate`/`useAnimate` ziehen den Sequenz-Code (~3 KB gzip)
+# zurück ins Bündel. Einzelwerte fahren über src/utils/fahreWert.js. Auch
+# mehrzeilige Importe zählen (perl liest jede Datei am Stück).
+if [ -d "$WURZEL/src" ]; then
+  ANIMATE_IMPORTE=$(find "$WURZEL/src" -type f \( -name '*.js' -o -name '*.jsx' -o -name '*.mjs' \) -print0 \
+    | xargs -0 perl -0777 -ne 'print "$ARGV\n" if /import\s*\{[^}]*\b(?:animate|useAnimate)\b[^}]*\}\s*from\s*["\x27]framer-motion["\x27]/' || true)
+  [ -z "$ANIMATE_IMPORTE" ] || fehler "animate/useAnimate aus framer-motion importiert (statt fahreWert): ${ANIMATE_IMPORTE}"
+fi
+
 [ -f "$DIST_FILE" ] || fehler "Bündel fehlt: $DIST_FILE"
 
 ROH=$(wc -c < "$DIST_FILE" | tr -d ' ')
