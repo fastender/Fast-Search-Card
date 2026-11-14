@@ -1,5 +1,41 @@
 # Versionsverlauf
 
+## Version 1.1.2544 - 2026-11-14
+
+**Title:** ✨ Dock polish, screensaver pickers, info windows within the panel, carousel back on centre
+
+**Tags:** dock, settings, popups, start-screen, todos, bugfix
+
+**Polish from testing on the tablet and phone.**
+
+**Dock**
+- The count on the notification bell is centred in its circle.
+- The AI entry never goes into "⋮"; it always stands directly before the bell.
+- Weather and power show two lines: the number large, the unit small below ("GRAD" for weather, "kW"/"W" for power).
+- The "⋮" menu is exactly as wide as the dock.
+- Search and AI icons have the same colour as the other icons.
+- The notification panel's round button moves further down, with clear room above it.
+
+**Menus and windows**
+- Highlighted rows in the tile menu and the schedules menu keep a margin to the window edge.
+- Info windows (and all centred windows of the card) are never taller than the panel; longer text scrolls inside with the card's own scrollbar, the button stays visible.
+- The list selector in Tasks (and the other views with such a pill) opens so that its first row lies exactly over the pill.
+- The page dots in the device popup sit centred between the ring and the buttons.
+
+**Settings**
+- The screensaver values (After, Then, Deep rest after, Back at night after, picture change, brightness thresholds) open a list to choose from, like the language selection, instead of changing on each tap.
+
+**Fixes**
+- After returning from a view such as Settings or Schedules, the start-screen page on the phone stood 44 px off centre. The carousel measured its step while the start screen was still scaling in; it now measures independently of that.
+- Tasks no longer slide in from the left on first opening; the list and rows fade in from below, as in Schedules.
+
+**Checked**
+- Probes in Chrome and WebKit: carousel centred after returning from Settings, Schedules and Search; list selector row exactly over the pill; tablet dock and AI entry; phone carousel and notification panel; desktop start screen and edit mode unchanged.
+- Two review rounds: 7 defects fixed.
+- Not checked: real devices, the screensaver pickers, info windows on a portrait tablet, the dock value layout and the ring popup spacing by eye.
+
+**Bundle:** 699 084 bytes gzip, about 0.9 KB below the limit.
+
 ## Version 1.1.2543 - 2026-11-14
 
 **Title:** 🧭 Dock on tablets, AI in the dock, carousel autoplay, schedules by room, and more
