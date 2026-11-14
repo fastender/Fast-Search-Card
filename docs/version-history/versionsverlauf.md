@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2548 - 2026-11-14
+
+**Title:** 🗂️ Widget gallery with tabs and the card's own icons
+
+**Tags:** start-screen, widgets, refactoring
+
+**Widget gallery**
+- Tabs at the top, like the filter tabs in the schedules overview, each with its count: **Live widgets**, **Devices** (lights, switches, covers, climate, fans, media, locks, vacuums …), **Custom** (your device-builder devices), **Actions** (scenes, scripts, automations, buttons) and **Sensors** (everything else).
+- The search field searches within the chosen tab. Without a search a device tab shows your favourites first, then everything grouped by room; long lists say how many more there are, and an empty search says so.
+- Rows show the card's own device icons instead of emoji.
+- The large left slot keeps only favourites and suggestions, without tabs.
+
+**Under the hood**
+- Dead data paths removed (an in-memory cache nobody read, a prefetch on hover, an unused area table, an extra database write per tap) and weather icons that carried animation definitions which never ran. Learning from taps and favourites work as before. Saves about 0.8 KB.
+
+**Checked**
+- Probes: tabs with counts, device tab with icons, search "flur" places the light, colour per device unchanged; desktop edit mode, phone swipe and dock, carousel return and the AI automation flow unchanged.
+- Two review rounds: 7 defects fixed (icon contrast in Actions, icon fallback, counts vs. capped lists, tab scroll arrows, empty states, screen-reader labels).
+- Not checked by eye: the gallery on a phone, weather icons in every place.
+
+**Bundle:** 699 219 bytes gzip, about 0.8 KB below the limit.
+
 ## Version 1.1.2547 - 2026-11-14
 
 **Title:** 🎨 Device tiles with a solid colour, your own devices in the gallery, side bar font aligned
