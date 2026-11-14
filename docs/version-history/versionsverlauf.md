@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2549 - 2026-11-14
+
+**Title:** 🗂️ Gallery: "All" tab, centred arrows, never taller than the start screen
+
+**Tags:** start-screen, widgets, popups
+
+- **"All" tab.** The gallery starts with an "All" tab: widget tiles on top, then every device, custom device, action and sensor below (favourites first, then by room; with a search, the matches by room). Its count is the sum.
+- **Arrows centred.** The scroll arrows of the tab row sit exactly on the middle of the tabs.
+- **Never taller than the panel.** On the start screen, windows such as the gallery and the tile menu are now sized and centred on the tile area, not on the whole card. On the tablet the gallery used to be taller than the tiles.
+
+**Checked**
+- Probe with 125 entities on tablet (1024×768) and desktop (1440×900): the gallery window stays inside the tile area with a 12 px margin, the arrow centre matches the tab centre, "All" shows widgets plus all entries; tile menu and detail opening unchanged.
+- Two review rounds: 1 defect fixed (gap above the list when no widget matched).
+
+**Bundle:** 699 321 bytes gzip, about 0.7 KB below the limit.
+
 ## Version 1.1.2548 - 2026-11-14
 
 **Title:** 🗂️ Widget gallery with tabs and the card's own icons
