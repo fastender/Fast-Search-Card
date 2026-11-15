@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen), in v1.1.2552 (2026-11-15) `sidebarItems` neu geschrieben — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen), in v1.1.2552 (2026-11-15) `sidebarItems` neu geschrieben, in v1.1.2553 (2026-11-15) `aiMode`, `zenRueckkehr`, `calTasks`, `calDisplay`, `island`, `general`, `reminders`, `sidebarItems`, `calCalendars` und `calEventRules` gestrafft (Prüfrunde: `aiMode` Szenen/Gruppen-Satz, Code legt nicht an, Neuer Chat verwirft; `calCalendars` EN „color“; `calTasks` Aufgaben-App ausgeblendet, Personenfarbe, Spalten ohne Überfällig; `zenRueckkehr` Wecken, Fotorahmen, Übergabe nur wenn gewählt) — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -138,30 +138,31 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > v1.1.2496 (Auftrag 31D): Punkte **Zeitzone** und **Serverzeit** ergänzt; die Zeitformat-Aussage berichtigt (sie betrifft nur die Uhrzeit-Räder, nicht „alle Uhrzeiten").
 > v1.1.2535 (Energie-Umbau): **Währung** verspricht keine Energiekosten mehr — die Energie-Ansicht ist entfernt, die Einstellung bleibt (Nutzerentscheid).
 > v1.1.2536: Punkt **Währung** entfernt — die Einstellung ist raus (Nutzerentscheid „Währung raus"; seit v1.1.2535 las sie niemand mehr).
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
 
 **DE**
 > ## Allgemein
 >
-> Grundeinstellungen, die für die gesamte Karte gelten.
+> Grundeinstellungen für die ganze Karte.
 >
-> - **App-Sprache** – Sprache der Oberfläche (Menüs, Beschriftungen, Datums- und Wochentagsnamen). Unabhängig von der Sprache deines Home Assistant.
-> - **Zeitformat** – 24-Stunden (14:30) oder 12-Stunden (2:30 PM) in den Uhrzeit-Rädern (Zeitpläne, Aufgaben, Termine, Zeit-Entitäten). Alle anderen Uhrzeiten folgen der App-Sprache; der Kalender hat ein eigenes Zeitformat.
-> - **Zeitzone** – in welcher Zone die Karte rechnet: was heute fällig oder überfällig ist, wo ein Tag beginnt und endet, welche Uhrzeit gilt und wann die Ruhezeiten laufen. Automatisch folgt deinem Home-Assistant-Profil (Profil „Server" → Zone des Servers, sonst dieses Gerät), Dieses Gerät nimmt die Zone des Browsers, Home-Assistant-Server die aus der Server-Konfiguration.
-> - **Serverzeit** – Zeitpläne, Datums- und Zeit-Helfer (input_datetime, time), Tages-, Wochen-, Monats- und Jahresbalken aus der Statistik und die tägliche Wettervorhersage richten sich immer nach dem Server. Weicht die Zone der Karte ab, steht bei Zeitplänen und Zeit-Helfern „Serverzeit".
+> - **App-Sprache** – Sprache der Oberfläche, unabhängig von Home Assistant.
+> - **Zeitformat** – **24-Stunden** (14:30) oder **12-Stunden** (2:30 PM) in den Uhrzeit-Rädern. Andere Uhrzeiten folgen der App-Sprache, der Kalender hat ein eigenes Zeitformat.
+> - **Zeitzone** – bestimmt, was heute fällig oder überfällig ist, wann ein Tag beginnt und wann die Ruhezeiten laufen. **Automatisch** folgt deinem Home-Assistant-Profil, **Dieses Gerät** nimmt die Zone des Browsers, **Home-Assistant-Server** die des Servers.
+> - **Serverzeit** – Zeitpläne, Datums- und Zeit-Helfer, Statistik-Balken und die Tagesvorhersage richten sich immer nach dem Server. Weicht die Zone ab, steht bei Zeitplänen und Zeit-Helfern „Serverzeit".
 >
-> *Warum wichtig:* Sprache, Zeitformat und Zeitzone sorgen dafür, dass alle Anzeigen so aussehen wie du es gewohnt bist.
+> *Warum wichtig:* So sehen alle Anzeigen aus, wie du es gewohnt bist.
 
 **EN**
 > ## General
 >
-> Basic settings that apply to the whole card.
+> Basic settings for the whole card.
 >
-> - **App Language** – language of the interface (menus, labels, date and weekday names). Independent of your Home Assistant's language.
-> - **Time format** – 24-hour (14:30) or 12-hour (2:30 PM) in the time wheels (schedules, tasks, events, time entities). All other times follow the app language; the calendar has its own time format.
-> - **Time zone** – the zone the card calculates in: what is due today or overdue, where a day starts and ends, which time is shown and when quiet hours run. Automatic follows your Home Assistant profile (profile "server" → the server's zone, otherwise this device), This device uses the browser's zone, Home Assistant server the one from the server configuration.
-> - **Server time** – schedules, date and time helpers (input_datetime, time), daily, weekly, monthly and yearly bars from statistics and the daily weather forecast always follow the server. If the card's zone differs, schedules and time helpers show "server time".
+> - **App Language** – language of the interface, independent of Home Assistant.
+> - **Time format** – **24-hour** (14:30) or **12-hour** (2:30 PM) in the time wheels. Other times follow the app language, the calendar has its own time format.
+> - **Time zone** – decides what is due today or overdue, when a day starts and when quiet hours run. **Automatic** follows your Home Assistant profile, **This device** uses the browser's zone, **Home Assistant server** the server's.
+> - **Server time** – schedules, date and time helpers, statistics bars and the daily forecast always follow the server. If the zone differs, schedules and time helpers show "server time".
 >
-> *Why it matters:* language, time format and time zone make everything read the way you're used to.
+> *Why it matters:* everything reads the way you're used to.
 
 ## statusGreetings
 
@@ -350,48 +351,46 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > v1.1.2539: Punkt **Automationen** nennt Bereich und Kategorie neuer Automationen.
 > v1.1.2537: neuer Punkt **Automationen** (nur Admins; Vorschau, Tipp, Rückgängig; nur in der HA-Oberfläche angelegte, keine Blaupausen), Punkt **Code** nennt jetzt Skripte, Szenen und Helfer.
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
+> v1.1.2553 (Prüfrunde): Code — die KI legt Skripte, Szenen und Helfer nicht an; Neuer Chat und Ausschalten verwerfen eine laufende Frage.
 
 **DE**
 > ## KI-Modus
 >
-> Fragen und Befehle an deine eigene KI in Home Assistant. Text ins Suchfeld tippen: **Enter** wechselt in den KI-Modus, das **zweite Enter** schickt die Frage ab. **Tab** übernimmt zuerst einen angezeigten Vorschlag und wechselt sonst, **Alt+A** wechselt nur. Findet die Suche nichts, wechselt sie nach kurzer Pause von selbst; dann schickt **ein Enter** die Frage ab. Gibt es wieder Treffer, geht es zurück zur Liste.
+> Fragen und Befehle an deine eigene KI in Home Assistant. Im Suchfeld wechselt **Enter** in den KI-Modus, das **zweite Enter** schickt ab. **Tab** übernimmt zuerst einen Vorschlag und wechselt sonst, **Alt+A** wechselt nur. Findet die Suche nichts, wechselt sie nach kurzer Pause selbst; dann reicht **ein Enter**.
 >
-> - **Was gesendet wird** – nur Geräte, die die Karte zeigt (nicht über Filter, Ausschlussmuster oder Sichtbarkeit ausgeblendet): je entity_id, Name, Raum, Zustand, seit wann und wenige Werte (z. B. Helligkeit, Temperaturen, Medientitel und Interpret, Quellen). Dazu Datum, Uhrzeit, Zeitzone, Einheitensystem, deine Frage und die letzten 10 Chat-Beiträge. Höchstens 500 Geräte bzw. rund 60 000 Zeichen, schaltbare zuerst.
-> - **Wer schaltet** – die KI schaltet nie selbst. Sie schlägt Aktionen vor; die Karte prüft jede einzelne (nur gesendete Geräte, nur erlaubte Befehle, Werte im erlaubten Bereich) und führt sie erst dann aus. Einstellungen, die die Karte nicht kennt, werden abgelehnt.
-> - **Nur nach deinem Tipp auf „Ausführen“** – Schlösser, Alarmanlagen, Abdeckungen der Art Garage/Tor/Tür, Skripte und Tasten — auch Szenen und Gruppen, die so ein Gerät enthalten (auch verschachtelt).
-> - **Ohne Rückfrage** – alles andere, auch Szenen und Gruppen ohne solche Geräte, Automationen und Schalter. Sie können mehr schalten, als die Karte zeigt.
-> - **Musik** – auf Lautsprechern von Music Assistant spielt die KI Musik nach Namen (Interpret, Album, Titel, Playlist, Sender), ohne Rückfrage wie die übrige Wiedergabe. Links und Dateipfade lehnt die Karte ab. Unter der Aktion steht, was danach wirklich läuft. Ohne Raumangabe nimmt sie den Lautsprecher dieses Tablets (Allgemein › Dieses Tablet), sonst den, der gerade spielt. Dazu für alle Mediaplayer Zufall, Wiederholen, Quelle sowie Lauter und Leiser.
-> - **Raum dieses Tablets** – unter Allgemein › Dieses Tablet legst du Raum, Name und Gerät fest (nur in diesem Browser). Ohne Raumangabe meint die KI dann diesen Raum; Raum und Name gehen dafür als Daten mit.
-> - **Termine und Aufgaben** – mit dem Schalter **Termine und Aufgaben** gehen zusätzlich die Kalender und Aufgabenlisten mit, die die Karte zeigt, dazu ihre Termine von heute bis in 13 Tagen (höchstens 80: Titel, Zeit, Ort) und die offenen Aufgaben (höchstens 120: Titel, Fälligkeit). Beschreibungen gehen nicht mit. Die KI kann Termine anlegen, ändern, verschieben und löschen, Aufgaben anlegen, umbenennen, erledigen und löschen — **jede** dieser Aktionen erst nach deinem Tipp auf „Ausführen“, mit Vorschau (Titel, Tag, Uhrzeit, Kalender bzw. Liste). Bei Serienterminen nur den einen Termin. Ohne den Schalter sieht die KI keine Kalender und Aufgaben.
-> - **Automationen** – nur als Admin und mit dem Schalter **Automationen ändern und anlegen**: Die KI schlägt eine Änderung oder eine neue Automation vor. Du siehst eine Vorschau (was sich ändert, der ganze Inhalt), gespeichert wird erst nach deinem Tipp, danach gibt es **Rückgängig**. Zum Ändern liest die Karte den Inhalt der Automation und schickt ihn an die KI. Eine neue Automation bekommt als Bereich den Raum ihrer geschalteten Geräte und die Kategorie **KI**. Nur Automationen, die in der Home-Assistant-Oberfläche angelegt wurden; keine Blaupausen, kein Löschen.
-> - **Code** – Skripte, Szenen und Helfer legt die KI nicht selbst an (Automationen nur wie oben). Sie schreibt das YAML als Codeblock mit Knopf **Kopieren**, zum Einfügen in Home Assistant.
-> - **Verlauf** – der Chat bleibt auf diesem Gerät gespeichert (die letzten 30 Fragen), auch nach Neuladen und Bildschirmschoner. Die KI sieht davon die letzten 10 Beiträge. **Neuer Chat** löscht ihn, eine geänderte Ausschlussliste ebenfalls, ebenso ein abgeschalteter Kalender oder eine abgeschaltete Liste und der Schalter **Termine und Aufgaben**. Offene Bestätigungen gelten nach dem Neuladen nicht mehr.
-> - **Abbrechen** – Schließen und der Bildschirmschoner behalten eine laufende Frage (ihre Aktionen laufen). „Neuer Chat“ und Ausschalten verwerfen sie.
-> - **Kosten** – jede Frage schickt die ganze Geräteliste erneut, grob 10 000–20 000 Tokens bei 300–500 Geräten. Sie laufen über deinen eigenen KI-Anbieter.
-> - **Voraussetzung** – Home Assistant ab 2025.8 mit einer „KI-Aufgabe“ deiner KI-Integration (z. B. Anthropic). „Automatisch“ nimmt die Vorgabe von Home Assistant.
+> - **Was gesendet wird** – nur Geräte, die die Karte zeigt (Filter, Ausschlussmuster und Sichtbarkeit wirken mit): entity_id, Name, Raum, Zustand, seit wann und wenige Werte. Dazu Datum, Uhrzeit, Zeitzone, Einheiten, deine Frage und die letzten 10 Chat-Beiträge. Höchstens 500 Geräte bzw. rund 60 000 Zeichen.
+> - **Wer schaltet** – die KI schlägt nur vor. Die Karte prüft jede Aktion (nur gesendete Geräte, erlaubte Befehle und Werte) und führt sie dann aus.
+> - **Nur nach deinem Tipp auf „Ausführen“** – Schlösser, Alarmanlagen, Garage/Tor/Tür, Skripte, Tasten und Szenen oder Gruppen, die so ein Gerät enthalten. Alles andere ohne Rückfrage, auch Szenen und Gruppen ohne solche Geräte, Automationen und Schalter – sie können mehr schalten, als die Karte zeigt.
+> - **Musik** – auf Lautsprechern von Music Assistant nach Namen (Interpret, Album, Titel, Playlist, Sender); ohne Raumangabe auf dem Lautsprecher dieses Tablets, sonst auf dem, der gerade spielt. Links und Dateipfade lehnt die Karte ab. Für alle Mediaplayer dazu Zufall, Wiederholen, Quelle, Lauter und Leiser.
+> - **Raum dieses Tablets** – Raum, Name und Gerät unter Allgemein › Dieses Tablet (nur in diesem Browser). Ohne Raumangabe meint die KI diesen Raum; Raum und Name gehen dafür mit.
+> - **Termine und Aufgaben** – mit diesem Schalter gehen die gezeigten Kalender und Listen mit: Termine der nächsten 13 Tage (höchstens 80; Titel, Zeit, Ort) und offene Aufgaben (höchstens 120), ohne Beschreibungen. Anlegen, Ändern, Erledigen und Löschen jeweils erst nach deinem Tipp, mit Vorschau; bei Serien nur der eine Termin.
+> - **Automationen** – nur als Admin mit dem Schalter **Automationen ändern und anlegen**. Zum Ändern geht ihr Inhalt an die KI. Vorschau, gespeichert erst nach deinem Tipp, danach **Rückgängig**. Neue bekommen den Raum ihrer Geräte und die Kategorie **KI**. Nur in der Oberfläche angelegte; keine Blaupausen, kein Löschen.
+> - **Code** – Skripte, Szenen und Helfer legt die KI nicht an; sie schreibt sie als YAML mit Knopf **Kopieren**.
+> - **Verlauf** – die letzten 30 Fragen bleiben auf diesem Gerät. **Neuer Chat** löscht ihn, ebenso eine geänderte Ausschlussliste oder ein abgeschalteter Kalender, eine Liste oder **Termine und Aufgaben**. Schließen und Bildschirmschoner brechen eine laufende Frage nicht ab, **Neuer Chat** und Ausschalten verwerfen sie; offene Bestätigungen verfallen beim Neuladen.
+> - **Kosten** – jede Frage schickt die Geräteliste neu, grob 10 000–20 000 Tokens bei 300–500 Geräten, über deinen eigenen KI-Anbieter.
+> - **Voraussetzung** – Home Assistant ab 2025.8 mit einer „KI-Aufgabe“ (z. B. Anthropic). „Automatisch“ nimmt die Vorgabe von Home Assistant.
 >
-> *Warum wichtig:* Der Assist-Agent von Home Assistant sieht alle freigegebenen Geräte — hier sieht die KI nur, was die Karte zeigt.
+> *Warum wichtig:* Der Assist-Agent sieht alle freigegebenen Geräte, diese KI nur, was die Karte zeigt.
 
 **EN**
 > ## AI mode
 >
-> Questions and commands for your own AI in Home Assistant. Type into the search field: **Enter** switches to AI mode, the **second Enter** sends the question. **Tab** first accepts a shown suggestion and otherwise switches, **Alt+A** only switches. When the search finds nothing, it switches by itself after a short pause; then **one Enter** sends the question. Once there are results again, it goes back to the list.
+> Questions and commands for your own AI in Home Assistant. In the search field **Enter** switches to AI mode, the **second Enter** sends. **Tab** first accepts a suggestion and otherwise switches, **Alt+A** only switches. When the search finds nothing, it switches by itself after a short pause; then **one Enter** is enough.
 >
-> - **What is sent** – only devices the card shows (not hidden by filters, exclusion patterns or visibility): for each its entity_id, name, area, state, since when and a few values (e.g. brightness, temperatures, media title and artist, sources). Plus date, time, time zone, unit system, your question and the last 10 chat messages. At most 500 devices or about 60,000 characters, controllable ones first.
-> - **Who switches** – the AI never switches anything itself. It proposes actions; the card checks every single one (only sent devices, only allowed commands, values inside the allowed range) and only then runs it. Settings the card does not know are refused.
-> - **Only after you tap "Run"** – locks, alarm panels, covers of the garage/gate/door kind, scripts and buttons — also scenes and groups that contain such a device (nested too).
-> - **Without asking** – everything else, including scenes and groups without such devices, automations and switches. They can control more than the card shows.
-> - **Music** – on Music Assistant speakers the AI plays music by name (artist, album, track, playlist, station), without asking, like other playback. The card refuses links and file paths. Below the action it shows what really started. Without a room it uses this tablet's speaker (General › This tablet), otherwise the one that is playing. For all media players also shuffle, repeat, source, volume up and down.
-> - **This tablet's room** – under General › This tablet you set room, name and device (this browser only). Without a room the AI then means this one; room and name are sent as data for that.
-> - **Calendar and tasks** – with the **Calendar and tasks** switch, the calendars and task lists the card shows are sent too, with their events from today to 13 days ahead (at most 80: title, time, place) and the open tasks (at most 120: title, due date). Descriptions are not sent. The AI can create, change, move and delete events, and add, rename, complete and delete tasks — **each** of these only after you tap "Run", with a preview (title, day, time, calendar or list). For repeating events only that one occurrence. Without the switch the AI sees no calendars or tasks.
-> - **Automations** – admins only, and with the switch **Change and create automations**: the AI proposes a change or a new automation. You see a preview (what changes, the whole content), nothing is saved until you tap, and afterwards there is **Undo**. To change one, the card reads the automation's content and sends it to the AI. A new automation gets the room of the devices it switches as its area, and the category **AI** (**KI** in a German Home Assistant). Only automations created in the Home Assistant UI; no blueprints, no deleting.
-> - **Code** – the AI does not create scripts, scenes or helpers itself (automations only as above). It writes the YAML as a code block with a **Copy** button, to paste into Home Assistant.
-> - **History** – the chat stays saved on this device (the last 30 questions), also after a reload and the screensaver. The AI sees the last 10 messages of it. **New chat** deletes it, and so does a changed exclusion list, a calendar or list switched off, and the **Calendar and tasks** switch. Open confirmations no longer apply after a reload.
-> - **Cancelling** – closing and the screensaver keep a running question (its actions run). "New chat" and switching off discard it.
-> - **Costs** – every question sends the whole device list again, roughly 10,000–20,000 tokens for 300–500 devices. They are billed by your own AI provider.
-> - **Requirement** – Home Assistant 2025.8 or later with an "AI task" of your AI integration (e.g. Anthropic). "Automatic" uses the Home Assistant default.
+> - **What is sent** – only devices the card shows (filters, exclusion patterns and visibility apply): entity_id, name, area, state, since when and a few values. Plus date, time, time zone, units, your question and the last 10 chat messages. At most 500 devices or about 60,000 characters.
+> - **Who switches** – the AI only proposes. The card checks every action (only sent devices, allowed commands and values) and then runs it.
+> - **Only after you tap "Run"** – locks, alarm panels, garage/gate/door, scripts, buttons and scenes or groups that contain such a device. Everything else without asking, including scenes and groups without such a device, automations and switches – they can control more than the card shows.
+> - **Music** – on Music Assistant speakers by name (artist, album, track, playlist, station); without a room on this tablet's speaker, otherwise on the one that is playing. The card refuses links and file paths. For all media players also shuffle, repeat, source, volume up and down.
+> - **This tablet's room** – room, name and device under General › This tablet (this browser only). Without a room the AI means this one; room and name are sent for that.
+> - **Calendar and tasks** – with this switch the calendars and lists the card shows are sent too: events of the next 13 days (at most 80; title, time, place) and open tasks (at most 120), without descriptions. Creating, changing, completing and deleting each only after you tap, with a preview; for repeating events only that one occurrence.
+> - **Automations** – admins only, with the switch **Change and create automations**. To change one, its content is sent to the AI. Preview, saved only after you tap, then **Undo**. New ones get the room of their devices and the category **AI** (**KI** in a German Home Assistant). Only ones created in the UI; no blueprints, no deleting.
+> - **Code** – the AI does not create scripts, scenes or helpers; it writes them as YAML with a **Copy** button.
+> - **History** – the last 30 questions stay on this device. **New chat** deletes it, and so does a changed exclusion list or switching off a calendar, a list or **Calendar and tasks**. Closing and the screensaver do not cancel a running question, **New chat** and switching off discard it; open confirmations expire on reload.
+> - **Costs** – every question sends the device list again, roughly 10,000–20,000 tokens for 300–500 devices, billed by your own AI provider.
+> - **Requirement** – Home Assistant 2025.8 or later with an "AI task" (e.g. Anthropic). "Automatic" uses the Home Assistant default.
 >
-> *Why it matters:* the Home Assistant Assist agent sees every exposed device — here the AI only sees what the card shows.
+> *Why it matters:* the Assist agent sees every exposed device, this AI only what the card shows.
 
 ## favorites
 
@@ -783,36 +782,35 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > noch auf der Startseite.
 > v1.1.2535 (Energie-Umbau): Leistung öffnet das Universal-Gerät mit diesem Sensor, sonst den Sensor selbst (vorher die Energie-Ansicht).
 > v1.1.2552 (Prüfrunde): Werte der Leiste kommen aus Sidebar-Einträge; die Dauerwerte gelten nur für die Kapsel ohne Leiste und die Statuszeile, das Dimmen nur für die Kapsel.
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
 
 **DE**
 > ## Die Insel
 >
 > Das Panel oben mittig: Meldungen und laufende Geräte an einem Ort.
 >
-> - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, die höchste anliegende Stufe ist vorgewählt. Noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen und trägt die Farbe der höchsten Stufe.
+> - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen, ihre Farbe zeigt die höchste Stufe.
 > - **Knopfreihe** – ❗ Kritisch, ⚠ Warnung und ℹ Hinweis filtern die Liste, das **Wellen-Symbol** zeigt, was gerade läuft (Timer, Sauger, Medien …).
-> - **Wetter und Leistung** – die Werte in der Leiste wählst du unter „Sidebar-Einträge". Die Dauerwerte der Insel gelten für die Kapsel ohne Leiste und für die Statuszeile der verriegelten Startseite. Wetter öffnet seine Ansicht. Leistung öffnet das Universal-Gerät, das diesen Sensor enthält, sonst den Sensor selbst. In den Ruhezeiten (Toast-Einstellungen) zeigt die Kapsel nur das Wetter, gedämpft.
-> - **Startseite** – auf der verriegelten Startseite steht die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr.
-> - **Ohne Leiste** – ist die Leiste aus oder passt sie am Desktop nicht neben die Karte, bleiben Knopf und Werte oben; der Knopf öffnet direkt das Panel.
+> - **Wetter und Leistung** – die Werte der Leiste wählst du unter „Sidebar-Einträge". Die Dauerwerte der Insel gelten für die Kapsel ohne Leiste und die Statuszeile der Startseite. Ein Tipp öffnet das Wetter bzw. das Gerät mit dem Leistungssensor. In den Ruhezeiten zeigt die Kapsel nur das Wetter.
+> - **Ohne Leiste** – ist die Leiste aus oder passt sie nicht, bleiben Knopf und Werte oben; der Knopf öffnet das Panel.
 >
-> Kritisches (Leck, Rauch, Gas) erscheint zusätzlich als roter Banner. Über „Mitteilungszentrum öffnen" im Panel geht es zur Vollansicht.
+> Kritisches (Leck, Rauch, Gas) erscheint zusätzlich als roter Banner. „Mitteilungszentrum öffnen" im Panel führt zur Vollansicht.
 >
-> *Warum wichtig:* Ein ruhiges Element statt vieler Widgets — es meldet sich nur, wenn es etwas zu sagen gibt.
+> *Warum wichtig:* Ein ruhiges Element statt vieler Widgets.
 
 **EN**
 > ## The Island
 >
 > The panel top center: alerts and running devices in one place.
 >
-> - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel with the highest pending level preselected. Another tap closes it. The number on the bell counts all alerts and carries the color of the highest level.
+> - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel, another tap closes it. The number on the bell counts all alerts, its color shows the highest level.
 > - **Button row** – ❗ critical, ⚠ warning and ℹ info filter the list, the **wave symbol** shows what is running (timers, vacuums, media …).
-> - **Weather and power** – you pick the values in the sidebar under "Sidebar Items". The island's standing values apply to the capsule without the sidebar and to the status line of the locked start page. Weather opens its view. Power opens the universal device that contains the sensor, otherwise the sensor itself. During quiet hours (toast settings) the capsule shows only the weather, dimmed.
-> - **Start page** – on the locked start page the capsule sits below the greeting, weather and power below the clock.
-> - **Without the sidebar** – if the sidebar is off or does not fit next to the card on desktop, the button and the values stay at the top; the button opens the panel directly.
+> - **Weather and power** – you pick the sidebar's values under "Sidebar Items". The island's standing values apply to the capsule without the sidebar and to the status line of the start page. A tap opens the weather or the device with the power sensor. During quiet hours the capsule shows only the weather.
+> - **Without the sidebar** – if the sidebar is off or does not fit, the button and the values stay at the top; the button opens the panel.
 >
 > Critical alerts (leak, smoke, gas) additionally raise the red banner. "Open notification center" in the panel leads to the full view.
 >
-> *Why it matters:* one calm element instead of many widgets — it only speaks up when there's something to say.
+> *Why it matters:* one calm element instead of many widgets.
 
 ## islandSources
 
@@ -843,51 +841,36 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## zenRueckkehr
 
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
+> v1.1.2553 (Prüfrunde): Wecken, Fotorahmen und Display-Übergabe wirken nur, wenn gewählt bzw. eingeschaltet; kritische Meldung = Vorgabe an.
+
 **DE**
 > ## Bildschirmschoner
 >
-> Die verriegelte Startseite mit der großen Uhr **ist** der Bildschirmschoner der Karte — ruhig, dunkel, nur Uhr, Gruß und Hintergrund.
+> Die verriegelte Startseite mit der großen Uhr **ist** der Bildschirmschoner. Nach der eingestellten Zeit ohne Berührung räumt die Karte auf (Detail, Suche und Fenster schließen) und verriegelt die Startseite wieder. Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück. Mit **Danach: Suche** öffnet das Aufdecken gleich die Suche.
 >
-> Diese Einstellung baut den Weg **zurück** dorthin: Nach der eingestellten Zeit ohne Berührung räumt die Karte auf — eine offene Detail-Ansicht schließt, die Suche klappt zu, Fenster verschwinden — und die Startseite verriegelt wieder. Die nächste Berührung deckt sie wie gewohnt auf. Mit **Danach: Suche** öffnet das Aufdecken nach dem Schoner gleich die Suche statt der Startseite.
+> - **Tiefe Ruhe** – bleibt es weiter still, dunkelt der Bildschirm, Gruß und Statuszeile treten ab, die Insel wird zum Knopf und die Uhr rückt ab und zu ein Stück (Einbrennschutz). Ein Tipp holt die normale Uhrseite zurück.
+> - **Nachts** – in den Ruhezeiten der Meldungen kehrt die Karte schneller zurück und dunkelt tiefer.
+> - **Wecken** – gewählte Sensoren für Bewegung oder Anwesenheit holen die normale Uhrseite zurück; eine kritische Meldung weckt (Vorgabe an), die Türklingel, wenn gewählt. Sind alle gewählten Sensoren aus, kehrt die Karte schneller zurück.
+> - **Fotorahmen** – eingeschaltet wechselt in tiefer Ruhe das Bild hinter der Uhr alle paar Minuten, aus dem Wallpaper-Ordner oder einem eigenen.
+> - **Display-Übergabe** – ein Browser kann das Display nicht abschalten. Ist eine Bildschirm-Entity gewählt, schaltet die Karte sie in tiefer Ruhe aus (etwa „Screen" von Fully Kiosk) und führt ein Skript aus, beim Wecken das Gegenteil. Den eigenen Schoner der Kiosk-App dann ausschalten.
+> - **Automatische Helligkeit** – ein Lux-Sensor dunkelt die Karte bei Dunkelheit ab und gibt sie über der Hell-Schwelle wieder frei; dazwischen bleibt es, wie es ist (Hysterese). Gilt auch ohne Schoner.
 >
-> Jede Berührung, jedes Scrollen und jede Taste setzt die Wartezeit zurück.
->
-> **Tiefe Ruhe** – die zweite Stufe: Bleibt es nach der Rückkehr weiter still, dunkelt der Bildschirm, die Uhr wird blasser, Gruß und Statuszeile treten ab und die Insel faltet sich zum Knopf. Die Uhr rückt dabei alle paar Minuten um ein paar Pixel (Einbrennschutz). Ein Tipp holt die normale Uhrseite zurück; aufgedeckt wird wie immer erst mit der Bewegung.
->
-> **Nachts** – in den Ruhezeiten der Meldungen – kehrt die Karte schneller zurück und dunkelt tiefer. Das nutzt das vorhandene Zeitfenster, ohne eigenen Zeitplan.
->
-> **Wecken** – neben der Berührung können gewählte Signale wecken: Bewegung oder Anwesenheit hebt die tiefe Ruhe um eine Stufe (auf die normale Uhrseite, nie bis zur aufgedeckten Seite), eine kritische Meldung weckt immer, eine Türklingel ebenso. Und umgekehrt: Sind alle gewählten Sensoren aus, ist niemand da – dann kehrt die Karte schneller zurück.
->
-> **Fotorahmen** – in tiefer Ruhe kann das Bild hinter der Uhr alle paar Minuten wechseln, aus dem Wallpaper-Ordner (oder einem eigenen). Ein Wechsel ist eine kurze Blende durchs Dunkel; dazwischen steht alles still. Beim Wecken kommt das gewählte Wallpaper zurück.
->
-> **Display-Übergabe** – ein Browser kann das Display nicht selbst abschalten. Dafür kann die Karte beim Eintritt in die tiefe Ruhe eine Bildschirm-Entity ausschalten (etwa „Screen" von Fully Kiosk) und ein Skript ausführen, beim Wecken das Gegenteil. Dann führt die Karte das Display – der eigene Schoner der Kiosk-App gehört aus, sonst kämpfen zwei um ein Display. Schaltet die App das Display selbst ein, wacht die Karte mit auf.
->
-> - **Automatische Helligkeit** – ein Lux-Sensor aus Home Assistant dunkelt die Karte ab, wenn es im Raum dunkel wird, und gibt sie über der Hell-Schwelle wieder frei. Zwischen den Schwellen ändert sich nichts (Hysterese), damit eine Wolke nicht flackert. Gilt unabhängig vom Schoner. Das Display selbst kann der Browser nicht dimmen; dafür ist die Übergabe an eine Bildschirm-Entity da.
->
-> *Warum wichtig:* Auf dem Wandtablet bleibt sonst stehen, was zuletzt offen war — tagelang dieselbe Detail-Seite statt des ruhigen Startbilds. Und ein Bildschirm, der die ganze Nacht hell leuchtet, ist kein Ruhebild.
+> *Warum wichtig:* Sonst bleibt auf dem Wandtablet tagelang stehen, was zuletzt offen war, und der Bildschirm leuchtet die ganze Nacht.
 
 **EN**
 > ## Screensaver
 >
-> The locked start page with the big clock **is** the card's screensaver — calm, dark, just clock, greeting and background.
+> The locked start page with the big clock **is** the screensaver. After the configured time without touch the card tidies up (detail, search and windows close) and locks the start page again. Every touch, scroll or key press resets the wait. With **Then: Search**, revealing opens the search right away.
 >
-> This setting builds the way **back**: after the configured time without touch the card tidies up — an open detail view closes, the search collapses, windows disappear — and the start page locks again. The next touch reveals it as usual. With **Then: Search**, revealing after the screensaver opens the search right away instead of the start page.
+> - **Deep rest** – if it stays quiet, the screen dims, greeting and status line step back, the island folds to its button and the clock shifts a little now and then against burn-in. A tap brings the normal clock page back.
+> - **At night** – during the notifications' quiet hours the card returns sooner and dims deeper.
+> - **Waking** – chosen motion or presence sensors bring the normal clock page back; a critical alert wakes (on by default), the doorbell if chosen. If all chosen sensors are off, the card returns sooner.
+> - **Photo frame** – when on, in deep rest the picture behind the clock changes every few minutes, from the wallpaper folder or one of your own.
+> - **Display handoff** – a browser cannot switch the display off. If a screen entity is chosen, the card turns it off in deep rest (such as Fully Kiosk's "Screen") and runs a script, and does the opposite on wake. Then switch the kiosk app's own screensaver off.
+> - **Automatic brightness** – an illuminance sensor dims the card when it gets dark and releases it above the bright threshold; in between nothing changes (hysteresis). Works without the screensaver too.
 >
-> Every touch, scroll or key press resets the wait.
->
-> **Deep rest** – the second stage: if it stays quiet after the return, the screen dims, the clock fades, greeting and status line step back and the island folds to its button. The clock shifts by a few pixels every few minutes (burn-in protection). A tap brings the normal clock page back; revealing still takes the usual gesture.
->
-> **At night** – during the notifications' quiet hours – the card returns sooner and dims deeper. It reuses that time window; there is no separate schedule.
->
-> **Waking** – besides touch, chosen signals can wake the card: motion or presence lifts deep rest by one stage (to the normal clock page, never to the revealed page), a critical alert always wakes, a doorbell too. And the inverse: if all chosen sensors are off, nobody is home – then the card returns sooner.
->
-> **Photo frame** – in deep rest the picture behind the clock can change every few minutes, from the wallpaper folder (or one of your own). A change is a short dip through dark; nothing moves in between. On wake the chosen wallpaper returns.
->
-> **Display handoff** – a browser cannot switch the display off itself. Instead, when deep rest begins the card can turn a screen entity off (such as Fully Kiosk's "Screen") and run a script, and do the opposite on wake. The card then drives the display – the kiosk app's own screensaver belongs off, or two fight over one display. If the app turns the display on itself, the card wakes with it.
->
-> - **Automatic brightness** – an illuminance sensor from Home Assistant dims the card when the room gets dark and releases it above the bright threshold. Between the thresholds nothing changes (hysteresis), so a passing cloud does not flicker. Independent of the screensaver. The browser cannot dim the panel itself; that is what the handoff to a screen entity is for.
->
-> *Why it matters:* on a wall tablet, whatever was last open would otherwise stay — the same detail page for days instead of the calm start face. And a screen glowing at full brightness all night is no resting face.
+> *Why it matters:* otherwise a wall tablet keeps whatever was last open for days, and the screen glows all night.
 
 ## islandStandby
 
@@ -1067,18 +1050,18 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > v1.1.2552: neu geschrieben — feste Einträge (Home, Suche, KI, Glocke), eigene Liste über
 > die Galerie, Sensoren und Wetter als Wert; Abschnittskopf jetzt „Feste Einträge".
 > v1.1.2552 (Prüfrunde): Wert nur für Sensoren mit Zahl oder Einheit (und Wetter).
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
 
 **DE**
 > ## Einträge der Leiste
 >
 > Die Leiste (am Desktop links, auf Telefon und Tablet unten als Dock) hat zwei Teile.
 >
-> - **Feste Einträge** – Home, Suche, KI und die Glocke stehen immer da und lassen sich nicht entfernen. KI erscheint nur mit nutzbarem KI-Modus, die Glocke nur mit der Insel; im Dock steht die Glocke direkt vor dem ⋮, KI direkt vor der Glocke.
-> - **Deine Einträge** – „Eintrag hinzufügen" öffnet die Galerie der Startseite: Ansichten der Karte (Einstellungen, Zeitpläne, Aufgaben, News …), Geräte, eigene Geräte, Aktionen und Sensoren. Ein Tipp in der Leiste öffnet die Ansicht bzw. das Detail.
-> - **Werte** – Sensoren mit Zahl oder Einheit und Wetter stehen als Wert da: oben groß die Zahl, darunter klein die Einheit. Alles andere (auch Sensoren mit Text oder Zeitpunkt) steht als Symbol da.
+> - **Feste Einträge** – Home, Suche, KI und Glocke lassen sich nicht entfernen. KI erscheint nur mit nutzbarem KI-Modus, die Glocke nur mit der Insel.
+> - **Deine Einträge** – „Eintrag hinzufügen" öffnet die Galerie der Startseite: Ansichten der Karte (Einstellungen, Zeitpläne, Aufgaben, News …), Geräte, eigene Geräte, Aktionen und Sensoren.
+> - **Werte** – Sensoren mit Zahl oder Einheit und Wetter stehen als Wert da, alles andere als Symbol.
 > - **Reihenfolge** – mit ↑/↓ verschieben, mit – entfernen.
-> - **Wenig Platz** – was nicht passt, liegt im ⋮-Menü. Glocke und die ersten zwei Werte rutschen nie hinein.
-> - **Mitteilungen** – steht neben der Glocke nicht doppelt in der Leiste.
+> - **Wenig Platz** – was nicht passt, liegt im ⋮-Menü; Glocke und die ersten zwei Werte nie.
 >
 > *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
 
@@ -1087,12 +1070,11 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > The bar (on the left on desktop, as a dock at the bottom on phones and tablets) has two parts.
 >
-> - **Fixed items** – Home, Search, AI and the bell are always there and cannot be removed. AI appears only when AI mode is usable, the bell only with the island; in the dock the bell sits right before the ⋮, AI right before the bell.
-> - **Your items** – "Add item" opens the start-screen gallery: the card's views (Settings, Schedules, Tasks, News …), devices, custom devices, actions and sensors. A tap in the bar opens the view or the detail.
-> - **Values** – sensors with a number or unit and weather appear as a value: the number large on top, the unit small below. Everything else (including sensors showing text or a time) appears as an icon.
+> - **Fixed items** – Home, Search, AI and the bell cannot be removed. AI appears only when AI mode is usable, the bell only with the island.
+> - **Your items** – "Add item" opens the start-screen gallery: the card's views (Settings, Schedules, Tasks, News …), devices, custom devices, actions and sensors.
+> - **Values** – sensors with a number or unit and weather appear as a value, everything else as an icon.
 > - **Order** – move with ↑/↓, remove with –.
-> - **Little space** – whatever does not fit sits in the ⋮ menu. The bell and the first two values never move there.
-> - **Notifications** – does not appear twice next to the bell.
+> - **Little space** – whatever does not fit sits in the ⋮ menu; never the bell or the first two values.
 >
 > *Why it matters:* this is how you decide the contents and order of your quick-access bar.
 
@@ -1148,31 +1130,33 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## reminders
 
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
+
 **DE**
 > ## Erinnerungen
 >
-> Aufgaben und Termine erscheinen dort, wo alle anderen Meldungen wohnen: Insel, Glocke und Mitteilungen-Center – mit denselben Verwerfen- und Schlummern-Gesten.
+> Aufgaben und Termine melden sich wie alle Meldungen in Insel, Glocke und Mitteilungen-Center, mit Verwerfen und Schlummern.
 >
-> - **Überfällige Aufgaben** – eine Warnung, solange offene Aufgaben ein vergangenes Fälligkeitsdatum haben. Nach dem Verwerfen bleibt sie still; erst ein neuer Tag oder eine **weitere** überfällige Aufgabe weckt sie erneut.
-> - **Heute fällige Aufgaben** – ein Hinweis mit den heutigen Aufgaben, gleiche Ruhe-Regel.
-> - **Anstehende Termine** – ein Hinweis kurz vor Terminbeginn („Zahnarzt · Beginnt um 10:00"); der **Vorlauf** bestimmt, wie früh. Ganztägige Termine melden hier nicht – für sie gibt es die nächste Zeile.
-> - **Ganztägiges von morgen** – Müll, Schulfrei, Geburtstage: ab der eingestellten Abendstunde ein Hinweis mit den ganztägigen Terminen von morgen („Morgen: Restmüll"), einmal pro Abend.
-> - Verwerfen wirkt nur lokal auf der Karte – in Home Assistant wird nichts verändert. Auch die Ruhezeiten gelten wie für alle Meldungen.
+> - **Überfällige Aufgaben** – eine Warnung, solange offene Aufgaben überfällig sind. Verworfen bleibt sie still, bis ein neuer Tag oder eine **weitere** überfällige Aufgabe kommt.
+> - **Heute fällige Aufgaben** – ein Hinweis mit den heutigen Aufgaben, gleiche Regel.
+> - **Anstehende Termine** – ein Hinweis kurz vor Beginn; der **Vorlauf** bestimmt, wie früh. Ganztägige Termine melden sich nur über die nächste Zeile.
+> - **Ganztägiges von morgen** – ab der eingestellten Abendstunde einmal ein Hinweis mit den ganztägigen Terminen von morgen (Müll, Geburtstage …).
+> - Verwerfen wirkt nur in der Karte, nicht in Home Assistant. Die Ruhezeiten gelten auch hier.
 >
-> *Warum wichtig:* Die Meldungen, die eine Familie wirklich betreffen – „Aufgabe überfällig", „Termin in 15 Minuten" – erreichen damit die Insel, nicht nur die jeweilige Ansicht.
+> *Warum wichtig:* „Aufgabe überfällig" oder „Termin in 15 Minuten" erreichen die Insel, nicht nur ihre Ansicht.
 
 **EN**
 > ## Reminders
 >
-> Tasks and appointments appear where every other alert lives: island, bell and notification center – with the same dismiss and snooze verbs.
+> Tasks and events report like every other alert in the island, bell and notification center, with dismiss and snooze.
 >
-> - **Overdue tasks** – a warning while open tasks have a past due date. Dismissing keeps it quiet; only a new day or an **additional** overdue task wakes it again.
-> - **Tasks due today** – a notice listing today's tasks, same quiet rule.
-> - **Upcoming events** – a notice shortly before an event starts ("Dentist · Starts at 10:00"); **lead time** sets how early. All-day events don't announce here – they get the next line.
-> - **All-day events of tomorrow** – bins, school-free days, birthdays: from the chosen evening hour a notice listing tomorrow's all-day events ("Tomorrow: Bins"), once per evening.
-> - Dismissing is local to the card – nothing changes in Home Assistant. Quiet hours apply as they do to every alert.
+> - **Overdue tasks** – a warning while open tasks are overdue. Once dismissed it stays quiet until a new day or an **additional** overdue task.
+> - **Tasks due today** – a notice listing today's tasks, same rule.
+> - **Upcoming events** – a notice shortly before the start; **lead time** sets how early. All-day events only report through the next line.
+> - **All-day events of tomorrow** – from the chosen evening hour, one notice listing tomorrow's all-day events (bins, birthdays …).
+> - Dismissing is local to the card, not in Home Assistant. Quiet hours apply here too.
 >
-> *Why it matters:* the alerts a family actually cares about – "task overdue", "event in 15 minutes" – now reach the island, not just their own view.
+> *Why it matters:* "task overdue" or "event in 15 minutes" reach the island, not just their own view.
 
 ## weatherAlerts
 
@@ -1470,58 +1454,56 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > Kalender → Einstellungen. ⓘ am „Kalender"-Sektionskopf. (Inhalts-Abschnitt
 > nachgetragen in v1.1.2320 — der Key selbst ist älter; Anlass war der neue
 > HA-Sichtbarkeits-Hinweis.)
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
 
 **DE**
 > ## Kalender
 >
-> Jeder in Home Assistant eingerichtete Kalender erscheint hier.
+> Jeder in Home Assistant eingerichtete Kalender erscheint hier, außer dort versteckten oder deaktivierten (Einstellungen → Filter → Sichtbarkeit).
 >
-> - **Schalter** rechts: Kalender ein-/ausblenden — ausgeblendete Termine verschwinden aus allen Ansichten.
-> - **Tippen auf die Zeile** öffnet die **Farbauswahl** — überschreibt die automatisch vergebene Farbe (oder „Standard" für die Auto-Farbe).
-> - In **Home Assistant versteckte oder deaktivierte** Kalender tauchen gar nicht erst auf — gesteuert über Einstellungen → Filter → Sichtbarkeit.
-> - **Gruppen** („Gruppe anlegen"): mehrere Kalender unter einem Namen, einer Farbe und **einem Schalter** — z. B. „Familie". Die Mitglieder erscheinen dann nur noch als Gruppe; in der Kalender-Ansicht wählt das Menü der Pille oben die Gruppe aus (vorübergehend); ein- und ausgeschaltet wird sie hier. Die Gruppenfarbe färbt ihre Mitglieder, ein eigener Farb-Override bleibt möglich.
+> - **Schalter** – Kalender in allen Ansichten ein- oder ausblenden.
+> - **Tippen auf die Zeile** – eigene Farbe wählen; „Standard" nimmt die Auto-Farbe.
+> - **Gruppen** („Gruppe anlegen") – mehrere Kalender unter einem Namen, einer Farbe und **einem Schalter**, z. B. „Familie". Die Mitglieder erscheinen nur noch als Gruppe und tragen ihre Farbe, außer sie haben eine eigene. In der Kalender-Ansicht wählt das Menü der Pille oben eine Gruppe vorübergehend aus.
 >
-> *Warum wichtig:* So blendest du z.B. Geburtstags- oder Feiertags-Kalender aus und gibst jedem Kalender eine eindeutige Farbe — und „nur Familie zeigen" ist eine Wahl statt sechs Schalter.
+> *Warum wichtig:* Geburtstags- oder Feiertags-Kalender ausblenden, jedem Kalender eine eigene Farbe geben und „nur Familie" mit einer Wahl.
 
 **EN**
 > ## Calendars
 >
-> Every calendar configured in Home Assistant shows up here.
+> Every calendar configured in Home Assistant shows up here, except those hidden or disabled there (Settings → Filters → Visibility).
 >
-> - **Switch** on the right: show/hide a calendar — hidden events disappear from all views.
-> - **Tap the row** to open the **color picker** — overrides the auto-assigned color ("Default" restores it).
-> - Calendars **hidden or disabled in Home Assistant** don't appear at all — controlled via Settings → Filters → Visibility.
-> - **Groups** ("Create group"): several calendars under one name, one color and **one switch** — e.g. "Family". Members then show up only as their group; in the calendar view the pill menu at the top picks the group (temporarily); it is switched on and off here. The group color tints its members; an individual color override stays possible.
+> - **Switch** – show or hide a calendar in all views.
+> - **Tap the row** – pick its own color; "Default" restores the auto color.
+> - **Groups** ("Create group") – several calendars under one name, one color and **one switch**, e.g. "Family". Members then show up only as their group and take its color unless they have their own. In the calendar view the pill menu at the top picks a group temporarily.
 >
-> *Why it matters:* hide e.g. birthday or holiday calendars and give each calendar a distinct color — and "family only" becomes one choice instead of six switches.
+> *Why it matters:* hide birthday or holiday calendars, give each calendar its own color, and make "family only" one choice.
 
 ## calEventRules
 
 > Kalender → Einstellungen. ⓘ am „Regeln"-Sektionskopf (v1.1.2380, Roadmap #54).
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
 
 **DE**
 > ## Regeln
 >
-> Regeln färben, markieren oder verstecken Termine nach dem, **was** sie sind — nicht nur, woher sie kommen.
+> Regeln färben, markieren oder verstecken Termine nach dem, **was** sie sind.
 >
-> - **Wenn** – eine von vier Bedingungen: *Titel enthält* („Geburtstag" – wahlweise im Titel, Ort, in der Beschreibung oder überall), *aus Kalender / Gruppe*, *ganztägig*, *vergangen*.
-> - **Dann** – Farbe, Symbol (🎂 🗑️ …), *abgeblendet*, *als Tages-Chip statt Zeile* (klein am Tag im Monatsgitter) oder *ausblenden*.
-> - **Rang** – die Reihenfolge der Liste. Passt mehr als eine Regel, gewinnt je Eigenschaft die oberste, die sie setzt: eine Regel, die nur ein Symbol setzt, legt sich sauber über eine, die nur färbt.
-> - Kein Regel-Editor mit „und/oder": vier Formulare decken ab, was man wirklich braucht.
+> - **Wenn** – eine Bedingung: *Titel enthält* (wahlweise im Titel, Ort, in der Beschreibung oder überall), *aus Kalender / Gruppe*, *ganztägig* oder *vergangen*.
+> - **Dann** – Farbe, Symbol (🎂 🗑️ …), *abgeblendet*, *als Tages-Chip statt Zeile* (im Monatsgitter) oder *ausblenden*.
+> - **Rang** – passen mehrere Regeln, gewinnt je Eigenschaft die oberste, die sie setzt. Eine Regel nur mit Symbol legt sich so über eine, die nur färbt.
 >
-> *Warum wichtig:* Der Unterschied zwischen einem Kalender, der deine Termine zeigt, und einem, der dir **deine** Termine zeigt — Geburtstage mit Torte, Müll als kleiner Chip, Vergangenes leise.
+> *Warum wichtig:* Geburtstage mit Torte, Müll als kleiner Chip, Vergangenes leise.
 
 **EN**
 > ## Rules
 >
-> Rules colour, mark or hide events by **what** they are — not just where they come from.
+> Rules colour, mark or hide events by **what** they are.
 >
-> - **When** – one of four conditions: *title contains* ("Birthday" – in the title, location, description or anywhere), *from calendar / group*, *all-day*, *past*.
-> - **Then** – colour, icon (🎂 🗑️ …), *dimmed*, *as day chip instead of row* (small on the day in the month grid) or *hide*.
-> - **Rank** – the order of the list. If several rules match, the topmost rule that sets a property wins for that property: a rule that only sets an icon layers cleanly over one that only colours.
-> - No rule editor with "and/or": four forms cover what people actually need.
+> - **When** – one condition: *title contains* (in the title, location, description or anywhere), *from calendar / group*, *all-day* or *past*.
+> - **Then** – colour, icon (🎂 🗑️ …), *dimmed*, *as day chip instead of row* (in the month grid) or *hide*.
+> - **Rank** – if several rules match, the topmost rule that sets a property wins for that property. A rule that only sets an icon thus layers over one that only colours.
 >
-> *Why it matters:* the difference between a calendar that shows your events and one that shows you **your** events — birthdays with a cake, bins as a small chip, the past kept quiet.
+> *Why it matters:* birthdays with a cake, bins as a small chip, the past kept quiet.
 
 ## calPeople
 
@@ -1553,73 +1535,73 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 
 ## calDisplay
 
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
+
 **DE**
 > ## Anzeige
 >
-> - **Standardansicht beim Öffnen** – mit welcher Ansicht der Kalender startet (Tag/Woche/Monat/Jahr).
-> - **Zum nächsten Termin springen** – ist die Startansicht leer, rückt der Kalender automatisch zum Zeitraum des nächsten Termins vor (sucht bis 90 Tage voraus).
-> - **Vergangene Events anzeigen** – aus: nur kommende Termine; an: auch bereits beendete.
-> - **Doppelte Termine zusammenfassen** – steht derselbe Termin (gleicher Titel, gleiche Zeit, gleicher Ort) in mehreren Kalendern, erscheint er einmal mit den Farben aller Quellen; in der Personen-Ansicht nur innerhalb einer Spalte.
-> - **Relative Zeit anzeigen** – neben der Uhrzeit steht „in 45 Min.“, „in 3 Std.“, „morgen“ oder „in 3 Tagen“ (bis sechs Tage voraus); unter dem Termin, der gerade läuft, zeigt eine dünne Linie in seiner Farbe, wie weit er ist. In den Tages- und Personen-Spalten nennt der Kopf den Tag schon, dort steht nur „in 45 Min.“ oder „in 3 Std.“, in schmalen Spalten nur die Linie. Aktualisiert sich einmal pro Minute, nur solange der Kalender offen und die Seite sichtbar ist.
-> - **Wochenende hervorheben** – Samstag und Sonntag stehen in den Tagesköpfen von Monat und Woche in gedämpftem Rot.
-> - **Sortierung** – Reihenfolge der Event-Liste (auf-/absteigend nach Startzeit).
-> - **Wochenstart** – Montag oder Sonntag (wirkt auf Monats-/Wochenraster).
-> - **Zeitformat** – 24-Stunden oder 12-Stunden (AM/PM).
-> - **Ort öffnet Karte** – aus (Vorgabe), Karten-App des Geräts, OpenStreetMap oder Google Maps. Eingeschaltet wird der Ort eines Termins antippbar; erst bei diesem Tipp geht der Ortstext als Suchbegriff an den gewählten Anbieter, sonst an niemanden – die Karte selbst ruft dafür nichts ab.
-> - **Wochennummern** – KW-Spalte im Monatsraster ein-/ausblenden.
-> - **Wetter im Kalender** – Symbol und Tageshöchstwert im Tageskopf, Stundenwert neben Terminen (jenseits des Stunden-Horizonts der Tageswert). Vier Stufen: aus, nur Tagesköpfe, nur Termine, beides. Wetter-Entity: automatisch die der Wetter-Kachel oder eine gewählte.
+> - **Standardansicht beim Öffnen** – Tag, Woche, Monat oder Jahr.
+> - **Zum nächsten Termin springen** – ist die Startansicht leer, rückt der Kalender zum nächsten Termin vor (bis 90 Tage).
+> - **Vergangene Events anzeigen** – aus: nur kommende Termine.
+> - **Doppelte Termine zusammenfassen** – derselbe Termin (Titel, Zeit, Ort) aus mehreren Kalendern erscheint einmal, mit den Farben aller Quellen.
+> - **Relative Zeit anzeigen** – „in 45 Min.“, „morgen“ oder „in 3 Tagen“ neben der Uhrzeit (bis sechs Tage voraus); unter dem laufenden Termin zeigt eine dünne Linie, wie weit er ist.
+> - **Wochenende hervorheben** – Samstag und Sonntag in gedämpftem Rot.
+> - **Sortierung** – Event-Liste auf- oder absteigend nach Startzeit.
+> - **Wochenstart** – Montag oder Sonntag.
+> - **Zeitformat** – 24 oder 12 Stunden (AM/PM).
+> - **Ort öffnet Karte** – aus (Vorgabe), Karten-App, OpenStreetMap oder Google Maps. Erst beim Tipp auf den Ort geht sein Text als Suchbegriff an den gewählten Anbieter.
+> - **Wochennummern** – KW-Spalte im Monatsraster.
+> - **Wetter im Kalender** – Symbol und Höchstwert im Tageskopf, Stundenwert neben Terminen: aus, nur Tagesköpfe, nur Termine oder beides. Wetter-Entity automatisch die der Wetter-Kachel oder eine gewählte.
 
 **EN**
 > ## Display
 >
-> - **Default view on open** – which view the calendar starts in (Day/Week/Month/Year).
-> - **Jump to next event** – if the opening view is empty, the calendar rolls forward to the period of the next upcoming event (looks up to 90 days ahead).
-> - **Show past events** – off: only upcoming; on: also finished events.
-> - **Merge duplicate events** – if the same event (same title, time and place) is in several calendars, it appears once with the colours of all sources; in the People view only within one column.
-> - **Show relative time** – next to the time it says “in 45 min.”, “in 3 hr.”, “tomorrow” or “in 3 days” (up to six days ahead); under the event that is running right now, a thin line in its colour shows how far along it is. In the day and people columns the header already names the day, so only “in 45 min.” or “in 3 hr.” appears there, and narrow columns show just the line. Updates once a minute, only while the calendar is open and the page is visible.
-> - **Highlight weekends** – Saturday and Sunday appear in a muted red in the day headers of the month and week views.
-> - **Sort order** – order of the event list (ascending/descending by start time).
-> - **Week starts on** – Monday or Sunday (affects the month/week grid).
+> - **Default view on open** – Day, Week, Month or Year.
+> - **Jump to next event** – if the opening view is empty, the calendar rolls forward to the next event (up to 90 days).
+> - **Show past events** – off: only upcoming events.
+> - **Merge duplicate events** – the same event (title, time, place) from several calendars appears once, with the colours of all sources.
+> - **Show relative time** – “in 45 min.”, “tomorrow” or “in 3 days” next to the time (up to six days ahead); under the running event a thin line shows how far along it is.
+> - **Highlight weekends** – Saturday and Sunday in a muted red.
+> - **Sort order** – event list ascending or descending by start time.
+> - **Week starts on** – Monday or Sunday.
 > - **Time format** – 24-hour or 12-hour (AM/PM).
-> - **Location opens map** – off (default), the device's maps app, OpenStreetMap or Google Maps. When on, an event's location becomes tappable; only on that tap is the location text sent, as a search term, to the chosen provider, and to no one else – the card itself fetches nothing for it.
-> - **Week numbers** – show/hide the week-number column in the month grid.
-> - **Weather in the calendar** – condition icon and the day's high in each day header, the hourly value beside events (beyond the hourly horizon the day's value). Four levels: off, day headers only, events only, both. Weather entity: automatically the weather tile's, or a chosen one.
+> - **Location opens map** – off (default), maps app, OpenStreetMap or Google Maps. Only when you tap the location is its text sent as a search term to the chosen provider.
+> - **Week numbers** – week-number column in the month grid.
+> - **Weather in the calendar** – icon and high in the day header, hourly value beside events: off, day headers only, events only or both. Weather entity automatically the weather tile's, or a chosen one.
 
 ## calTasks
 
 > Kalender → Einstellungen. ⓘ am „Aufgaben"-Sektionskopf (v1.1.2491, Roadmap #86).
+> v1.1.2553 (Auftrag 07): gestrafft — Wiederholungen, Interna und lange Beispiele raus, alle Bedienfakten bleiben.
+> v1.1.2553 (Prüfrunde): Tipp öffnet nur, wenn die Aufgaben-App nicht ausgeblendet ist; Monatspunkt ohne Listenfarbe in Personenfarbe; Personen-Spalten ohne Überfällig.
 
 **DE**
 > ## Aufgaben
 >
-> Offene Aufgaben aus der Aufgaben-App erscheinen im Kalender an ihrem Fälligkeitstag – zwischen den Terminen, mit ihrem Haken. Aufgaben bleiben Aufgaben: Der Kalender legt keine an und macht keine Termine daraus.
+> Offene Aufgaben aus der Aufgaben-App erscheinen im Kalender an ihrem Fälligkeitstag, mit Haken. Der Kalender legt keine Aufgaben an und macht keine Termine daraus.
 >
-> - **Aufgaben im Kalender** – *Aus*: der Kalender zeigt nur Termine, wie zuvor. *Fällige* (Vorgabe): eine Aufgabe mit Fälligkeit steht an ihrem Tag – in der Liste, in den Tages-Spalten der Woche, als hohler Punkt im Monat und in der Personen-Spalte. *Fällige und überfällige*: zusätzlich steht über dem heutigen Tag der Block **Überfällig**; dieselbe Aufgabe, die im regelmäßigen Abstand mehrfach fällig war, wird dort eine Zeile mit Zähler.
-> - **Reihenfolge eines Tages** – ganztägige Termine, dann Aufgaben ohne Uhrzeit, dann Termine und Aufgaben mit Uhrzeit gemeinsam nach der Zeit. Eine Aufgabe mit reinem Datum bekommt nie eine Uhrzeit.
-> - **Erkennen** – in der Liste steht die Aufgabe wie in der Aufgaben-App, mit dem Symbol ihrer Liste und dem Haken rechts. Im Monat zeigt sie ein hohler Kreis in der Farbe der Liste (hat die Liste keine Farbe, die Farbe ihrer Person).
-> - **Abhaken** – wirkt sofort; die Zeile bleibt durchgestrichen stehen, solange der Kalender offen ist, damit du den Haken zurücknehmen kannst. Ein Stapel wird als Ganzes erledigt. Ein Tipp auf die Zeile öffnet die Aufgabe in der Aufgaben-App – sofern die Aufgaben-App in der Karte nicht ausgeblendet ist. Der ⋯-Knopf öffnet sie gleich hier im Fenster, zum Ändern und Löschen.
-> - **Aufgaben ohne Datum** – zeigt unter dem heutigen Tag den Block **Ohne Datum** mit den offenen Aufgaben ohne Fälligkeit. Vorgabe aus.
-> - **Personen** – eine Aufgabe steht in der Spalte der Person, der ihre Liste gehört (Aufgaben → Einstellungen → Listen), sonst in **Gemeinsam**. In den Spalten erscheint der Überfällig-Block nicht.
-> - In der Aufgaben-App ausgeblendete Listen bleiben auch hier weg. Regeln, Zusammenfassen und Wetter gelten nur für Termine; die Jahresansicht zählt nur Termine.
-> - **Zum nächsten Termin springen** – Aufgaben zählen mit: Steht in der Startansicht eine fällige Aufgabe oder heute ein Block **Überfällig** bzw. **Ohne Datum**, gilt sie nicht als leer, und der Kalender bleibt bei heute.
+> - **Aufgaben im Kalender** – *Aus*: nur Termine. *Fällige* (Vorgabe): Aufgaben stehen an ihrem Tag, im Monat als hohler Punkt in der Farbe ihrer Liste (ohne Listenfarbe: die ihrer Person). *Fällige und überfällige*: dazu über heute der Block **Überfällig**; eine mehrfach fällige Aufgabe steht dort einmal mit Zähler.
+> - **Reihenfolge eines Tages** – ganztägige Termine, dann Aufgaben ohne Uhrzeit, dann alles mit Uhrzeit nach der Zeit.
+> - **Abhaken** – wirkt sofort; die Zeile bleibt durchgestrichen stehen, solange der Kalender offen ist, damit du es zurücknehmen kannst. Ein Stapel wird als Ganzes erledigt. Ein Tipp auf die Zeile öffnet die Aufgabe in der Aufgaben-App (sofern sie in der Karte nicht ausgeblendet ist), der ⋯-Knopf hier im Fenster zum Ändern und Löschen.
+> - **Aufgaben ohne Datum** – Block **Ohne Datum** unter heute. Vorgabe aus.
+> - **Personen** – eine Aufgabe steht in der Spalte der Person, der ihre Liste gehört (Aufgaben → Einstellungen → Listen), sonst in **Gemeinsam**; dort ohne Block **Überfällig**.
+> - In der Aufgaben-App ausgeblendete Listen bleiben auch hier weg. Regeln, Zusammenfassen und Wetter gelten nur für Termine. Für **Zum nächsten Termin springen** zählen fällige Aufgaben und die Blöcke als Inhalt.
 >
-> *Warum wichtig:* Der Kalender wird der eine Ort, der „Was steht an?" beantwortet – und die Aufgaben bleiben trotzdem in ihrer eigenen App.
+> *Warum wichtig:* Der Kalender beantwortet „Was steht an?", und die Aufgaben bleiben in ihrer eigenen App.
 
 **EN**
 > ## Tasks
 >
-> Open tasks from the to-dos app appear in the calendar on their due day – between the events, with their checkbox. Tasks stay tasks: the calendar does not create any and never turns them into events.
+> Open tasks from the to-dos app appear in the calendar on their due day, with their checkbox. The calendar creates no tasks and never turns them into events.
 >
-> - **Tasks in the calendar** – *Off*: the calendar shows events only, as before. *Due tasks* (default): a task with a due date sits on its day – in the list, in the day columns of the week, as a hollow dot in the month and in the people columns. *Due and overdue*: on top of that, an **Overdue** block sits above today; the same task that fell due several times at a regular interval becomes one row with a counter there.
-> - **Order of a day** – all-day events, then tasks without a time, then events and timed tasks together by time. A task with a plain date never gets a time.
-> - **Telling them apart** – in the list a task looks as it does in the to-dos app, with its list's icon and the checkbox on the right. In the month a hollow circle in the list's colour marks it (if the list has no colour, its person's colour).
-> - **Ticking off** – takes effect at once; the row stays, struck through, while the calendar is open, so you can untick it. A stack is completed as a whole. Tapping the row opens the task in the to-dos app – as long as the to-dos app isn't hidden in the card. The ⋯ button opens it right here in a window, to edit or delete it.
-> - **Tasks without a date** – shows a **No date** block below today with the open tasks that have no due date. Off by default.
-> - **People** – a task sits in the column of the person its list belongs to (To-dos → Settings → Lists), otherwise in **Shared**. The overdue block does not appear in the columns.
-> - Lists hidden in the to-dos app stay hidden here too. Rules, merging and weather apply to events only; the year view counts events only.
-> - **Jump to next event** – tasks count too: if the opening view holds a due task, or today carries an **Overdue** or **No date** block, it is not empty and the calendar stays on today.
+> - **Tasks in the calendar** – *Off*: events only. *Due tasks* (default): tasks sit on their day, in the month as a hollow dot in their list's colour (no list colour: their person's). *Due and overdue*: on top of that an **Overdue** block above today; a task that fell due several times sits there once with a counter.
+> - **Order of a day** – all-day events, then tasks without a time, then everything with a time, by time.
+> - **Ticking off** – takes effect at once; the row stays, struck through, while the calendar is open, so you can untick it. A stack is completed as a whole. Tapping the row opens the task in the to-dos app (unless it's hidden in the card), the ⋯ button opens it here in a window to edit or delete it.
+> - **Tasks without a date** – a **No date** block below today. Off by default.
+> - **People** – a task sits in the column of the person its list belongs to (To-dos → Settings → Lists), otherwise in **Shared**; the columns show no **Overdue** block.
+> - Lists hidden in the to-dos app stay hidden here too. Rules, merging and weather apply to events only. For **Jump to next event**, due tasks and the blocks count as content.
 >
-> *Why it matters:* the calendar becomes the one place that answers "what's coming up?" – while tasks stay in their own app.
+> *Why it matters:* the calendar answers "what's coming up?", while tasks stay in their own app.
 
 ## calVisibleViews
 

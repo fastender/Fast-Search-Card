@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2553 - 2026-11-15
+
+**Title:** 📷 Camera pictures as backgrounds, shorter info texts
+
+**Tags:** cameras, detail-view, info-popups, bundle
+
+**Cameras**
+- **Detail view:** a camera's current picture is the background of the left pane, renewed every 5 seconds while the view is open and you are using it (it pauses after a minute without touch and when the tab is hidden). New pictures are loaded in the background and swapped in without flashing. No live stream.
+- **Tiles:** camera tiles on the start screen and in the search show a still picture with a dark fade at the bottom so name and state stay readable. They load the picture once.
+- If a camera is unavailable or the picture fails, the normal look stays.
+
+**Info texts**
+- The ten longest info texts (AI mode, screensaver, calendar tasks and display, island, general, reminders, side bar items, calendars, event rules) are shorter in German and English: every fact needed to use a setting stays, repetition and technical internals are gone. The info popup catalog matches.
+- Saves about 4.5 KB, room for the next wishes.
+
+**Checked**
+- Probe with a simulated doorbell camera: still on the search tile, picture in the detail view renewed about every 5 s, no renewal after closing; start screen, phone, carousel and AI automations unchanged.
+- Two review rounds: 9 defects fixed (among them four operating facts the shortening had dropped, a camera token that could get stuck, endless renewal while nobody looks, no retry after a first failed picture).
+- Not checked: a real camera in Home Assistant, Safari, the info windows by eye.
+
+**Bundle:** 695 284 bytes gzip, about 4.7 KB below the limit.
+
 ## Version 1.1.2552 - 2026-11-15
 
 **Title:** 🧭 Navigation bar: fixed basics, everything else your choice — including any sensor as a value
