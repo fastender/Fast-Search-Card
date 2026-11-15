@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2555 - 2026-11-15
+
+**Title:** 🌡️ Animated device icons rest while nobody can see them
+
+**Tags:** performance, heat, refactoring
+
+- The eleven device icons that animate endlessly (fan, heating, cooling, drying, auto climate, siren, washing machine, dishwasher, air purifier, vacuum, music) now pause while they are off screen, behind an open detail view, in AI mode or on the locked start screen. When they come back into view they continue exactly where they stopped — a fan does not jump back to 0°.
+- The scrolling state text of long device names also pauses behind an open detail view.
+- Visible icons animate exactly as before; nothing was removed.
+
+**Measured** (402 entities, 1280×800, Chrome, at rest):
+
+| Situation | Layouts per second before → after | Main-thread time per second before → after |
+|---|---|---|
+| Device list open | 2 967 → 60 | 575 → 332 ms |
+| Detail view over the list | 2 940 → 0 | 345 → 1 ms |
+| AI mode | 60 → 0 | 143 → ~0 ms of layout |
+| Locked start screen | 60 → 0 | 128 → 6 ms |
+
+**Checked**
+- Before/after measurement and picture sequences: fans on the start screen and in the visible list turn, a fan under the open detail stands still at the same angle, and after "back" all turn again at once; the music icon shows its notes fully when scrolled into view.
+- Two review rounds: 2 defects fixed (icons on the locked start screen kept running; the music icon could freeze half-way in its fade-in).
+- Not checked: Safari/iPad, real tablets.
+
+**Bundle:** 696 981 bytes gzip, about 3 KB below the limit.
+
 ## Version 1.1.2554 - 2026-11-15
 
 **Title:** ✋ Edit the navigation bar by long-press, like the start screen
