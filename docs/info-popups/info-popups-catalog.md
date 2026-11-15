@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen), in v1.1.2552 (2026-11-15) `sidebarItems` neu geschrieben, in v1.1.2553 (2026-11-15) `aiMode`, `zenRueckkehr`, `calTasks`, `calDisplay`, `island`, `general`, `reminders`, `sidebarItems`, `calCalendars` und `calEventRules` gestrafft (Prüfrunde: `aiMode` Szenen/Gruppen-Satz, Code legt nicht an, Neuer Chat verwirft; `calCalendars` EN „color“; `calTasks` Aufgaben-App ausgeblendet, Personenfarbe, Spalten ohne Überfällig; `zenRueckkehr` Wecken, Fotorahmen, Übergabe nur wenn gewählt) — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen), in v1.1.2552 (2026-11-15) `sidebarItems` neu geschrieben, in v1.1.2553 (2026-11-15) `aiMode`, `zenRueckkehr`, `calTasks`, `calDisplay`, `island`, `general`, `reminders`, `sidebarItems`, `calCalendars` und `calEventRules` gestrafft (Prüfrunde: `aiMode` Szenen/Gruppen-Satz, Code legt nicht an, Neuer Chat verwirft; `calCalendars` EN „color“; `calTasks` Aufgaben-App ausgeblendet, Personenfarbe, Spalten ohne Überfällig; `zenRueckkehr` Wecken, Fotorahmen, Übergabe nur wenn gewählt), in v1.1.2554 (2026-11-15) `sidebarItems` (Langdruck in der Leiste) — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -1060,7 +1060,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Feste Einträge** – Home, Suche, KI und Glocke lassen sich nicht entfernen. KI erscheint nur mit nutzbarem KI-Modus, die Glocke nur mit der Insel.
 > - **Deine Einträge** – „Eintrag hinzufügen" öffnet die Galerie der Startseite: Ansichten der Karte (Einstellungen, Zeitpläne, Aufgaben, News …), Geräte, eigene Geräte, Aktionen und Sensoren.
 > - **Werte** – Sensoren mit Zahl oder Einheit und Wetter stehen als Wert da, alles andere als Symbol.
-> - **Reihenfolge** – mit ↑/↓ verschieben, mit – entfernen.
+> - **Reihenfolge** – mit ↑/↓ verschieben, mit – entfernen. Oder direkt in der Leiste: lange drücken.
 > - **Wenig Platz** – was nicht passt, liegt im ⋮-Menü; Glocke und die ersten zwei Werte nie.
 >
 > *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
@@ -1073,7 +1073,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Fixed items** – Home, Search, AI and the bell cannot be removed. AI appears only when AI mode is usable, the bell only with the island.
 > - **Your items** – "Add item" opens the start-screen gallery: the card's views (Settings, Schedules, Tasks, News …), devices, custom devices, actions and sensors.
 > - **Values** – sensors with a number or unit and weather appear as a value, everything else as an icon.
-> - **Order** – move with ↑/↓, remove with –.
+> - **Order** – move with ↑/↓, remove with –. Or right in the bar: long-press.
 > - **Little space** – whatever does not fit sits in the ⋮ menu; never the bell or the first two values.
 >
 > *Why it matters:* this is how you decide the contents and order of your quick-access bar.

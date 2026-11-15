@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2554 - 2026-11-15
+
+**Title:** ✋ Edit the navigation bar by long-press, like the start screen
+
+**Tags:** side-bar, dock, gestures
+
+- **Long-press, right-click or the menu key** on an entry of the side bar or dock (also values and rows in "⋮") opens a small menu at the entry: **Change** (gallery, replaces the entry), **Move forward**, **Move back**, **Remove** and **Add entry**.
+- **Fixed entries** (Home, Search, AI, bell) only offer **Add entry**.
+- A normal tap stays an instant tap; a long-press does not open the entry. The desktop side bar stays expanded while the menu or gallery is open.
+- Picking an entry that is already in the bar shows it ticked and changes nothing, in the bar and on the settings page alike.
+- The start screen's tile menu now shares the same long-press code and also opens with the menu key.
+
+**Checked**
+- Probe: tap opens Tasks; right-click shows the full menu and "Move back" swaps Tasks and News; long-press on Search shows only "Add entry" and does not open the search; start-screen tile menu and phone dock unchanged.
+- Two review rounds: 6 defects fixed (Windows menu key showing the browser menu as well, focus after remove/change, gallery title when changing, side bar collapsing between menu and gallery, moving across the dock/"⋮" boundary, moving extra value entries).
+- Not checked: touch devices, Safari/Firefox keyboard shortcuts.
+
+**Bundle:** 696 545 bytes gzip, about 3.5 KB below the limit.
+
 ## Version 1.1.2553 - 2026-11-15
 
 **Title:** 📷 Camera pictures as backgrounds, shorter info texts
