@@ -1,5 +1,31 @@
 # Versionsverlauf
 
+## Version 1.1.2552 - 2026-11-15
+
+**Title:** 🧭 Navigation bar: fixed basics, everything else your choice — including any sensor as a value
+
+**Tags:** side-bar, dock, settings
+
+**How the bar works now**
+- **Fixed:** Home, Search, AI (when AI mode is set up) and the notification bell (when enabled). They cannot be removed.
+- **Your choice:** every other place is picked with the same gallery as the start screen — tabs All, Views (the card's own pages), Devices, Custom, Actions, Sensors, with search. Devices and actions open their detail view on tap.
+- **Values:** sensors and weather entities you pick appear as a two-line value (number large, unit small below), on the start screen too. Any numeric sensor works — temperature, power, humidity, and so on.
+- The automatic choice of the "largest power sensor" no longer drives the bar; it shows exactly what you picked.
+
+**Nothing is lost**
+- Your existing bar is taken over once: its entries stay, and the weather and power values you saw before are added as value entries.
+
+**Settings**
+- "Sidebar items" shows the fixed entries greyed out, then your own list with move up/down and remove, and "Add entry" opens the gallery.
+- Info texts for the side bar and the island updated.
+
+**Checked**
+- Probes: desktop and tablet order (entries, AI, bell, values), two-line values, an old bar with Settings and Tasks taken over with weather and power added; phone dock, start screen, edit mode and carousel unchanged.
+- Two review rounds: 13 defects fixed (among them: the takeover now waits for the entity list, keeps values that are briefly unavailable, uses the exact entities the island showed; live names and states of entity icons; the settings page no longer overwrites the takeover).
+- Not checked: the settings page and the gallery in bar mode by eye, a takeover with real older data.
+
+**Bundle:** 699 006 bytes gzip, about 1 KB below the limit.
+
 ## Version 1.1.2551 - 2026-11-15
 
 **Title:** 🧹 Lighter card: dead weight and CSS trimmed, two placeholder texts fixed

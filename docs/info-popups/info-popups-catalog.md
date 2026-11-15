@@ -1,6 +1,6 @@
 # Info-Popup Catalog (kartenweit / card-wide)
 
-> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen) — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
+> **Stand:** v1.1.2481 (2026-10-20), dazu `calTasks` in v1.1.2491 (2026-10-26) `general` (Zeitzone) in v1.1.2496 (2026-10-26) `design` (Tönung) in v1.1.2500/2501 (2026-10-28) sowie `island`, `islandSources`, `islandStandby`, `statusGreetings`, `sidebar` und `sidebarItems` in v1.1.2505 (2026-10-31) sowie `aiMode` (Termine und Aufgaben) in v1.1.2513 (2026-11-02) und (Musik) in v1.1.2514 (2026-11-03) und (Lautsprecher dieses Tablets) in v1.1.2515 (2026-11-03) und (Raum dieses Tablets) in v1.1.2516 (2026-11-03), in v1.1.2535 (2026-11-10) `energySetup`, `energyValues` und `energyCircular` entfernt sowie `integrationTypes`, `island`, `heroEntities`, `universalPickDevice` und `general` (Währung) umformuliert, in v1.1.2536 (2026-11-10) in `general` der Punkt Währung entfernt, in v1.1.2537 (2026-11-13) `aiMode` (Automationen ändern und anlegen), in v1.1.2552 (2026-11-15) `sidebarItems` neu geschrieben — 62 `settingsInfo` keys in de.js and en.js, 62 sections below.
 
 > **Zweck:** Gepflegte Übersicht **aller** Info-Popup-Texte in der Karte — der
 > Text, der hinter einem **ⓘ**-Button erscheint.
@@ -92,7 +92,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 | `islandSources` | Insel (Detail) | Dauerwerte / Standing values |
 | `zenRueckkehr` | Start Screen (Detail) | Bildschirmschoner |
 | `islandStandby` | Insel (Detail) | Standby |
-| `sidebarItems` | Sidebar-Items (Detail) | Verfügbare Einträge |
+| `sidebarItems` | Sidebar-Items (Detail) | Feste Einträge |
 | `homeScreenSlots` | Start Screen (Detail) | Bento-Widgets |
 | `liveActivities` | Start Screen (Detail) | Live-Aktivitäten |
 | `toastConfig` | Toasts (Detail) | Wann Toasts erscheinen |
@@ -218,6 +218,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 ## sidebar
 
 > v1.1.2505 (Auftrag 39): Punkt „Glocke und Werte" ergänzt.
+> v1.1.2552 (Prüfrunde): Punkt „Feste Einträge und Werte" — Werte wählt man unter Sidebar-Einträge, sie stehen auch auf der Startseite.
 
 **DE**
 > ## Sidebar
@@ -227,7 +228,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Sidebar aktivieren** – blendet die seitliche Leiste mit deinen Schnellzugriffen ein oder aus.
 > - **Immer sichtbar** – hält die Sidebar dauerhaft offen.
 > - **Einträge verwalten** – lege fest, welche Bereiche und Verknüpfungen in der Sidebar erscheinen.
-> - **Glocke und Werte** – unter den Einträgen stehen die Glocke (öffnet die Meldungen) sowie Wetter und Leistung, am Telefon alle drei rechts im Dock. Auf der verriegelten Startseite stehen sie dort nicht.
+> - **Feste Einträge und Werte** – Home, Suche, KI und die Glocke (öffnet die Meldungen) stehen fest in der Leiste. Alles andere wählst du unter „Sidebar-Einträge"; Sensoren mit Zahl und Wetter stehen dort als Wert, auch auf der Startseite.
 >
 > *Warum wichtig:* Die Sidebar ist dein Schnellzugriff.
 
@@ -239,7 +240,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > - **Enable sidebar** – shows or hides the side bar with your quick shortcuts.
 > - **Always visible** – keeps the sidebar open permanently.
 > - **Manage items** – decide which areas and shortcuts appear in the sidebar.
-> - **Bell and values** – below the items sit the bell (opens the alerts) plus weather and power; on phones all three sit at the right of the dock. They do not appear on the locked start page.
+> - **Fixed items and values** – Home, Search, AI and the bell (opens the alerts) are fixed in the bar. Everything else you pick under "Sidebar Items"; sensors with a number and weather appear there as a value, on the start page too.
 >
 > *Why it matters:* the sidebar is your quick access.
 
@@ -781,6 +782,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > v1.1.2505 (Auftrag 39): neu geschrieben — Glocke und Werte in der Leiste, Kapsel nur
 > noch auf der Startseite.
 > v1.1.2535 (Energie-Umbau): Leistung öffnet das Universal-Gerät mit diesem Sensor, sonst den Sensor selbst (vorher die Energie-Ansicht).
+> v1.1.2552 (Prüfrunde): Werte der Leiste kommen aus Sidebar-Einträge; die Dauerwerte gelten nur für die Kapsel ohne Leiste und die Statuszeile, das Dimmen nur für die Kapsel.
 
 **DE**
 > ## Die Insel
@@ -789,7 +791,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Öffnen** – ein Tipp auf die **Glocke** in der Leiste (am Telefon im Dock) öffnet das Panel, die höchste anliegende Stufe ist vorgewählt. Noch ein Tipp schließt es. Die Zahl an der Glocke zählt alle Meldungen und trägt die Farbe der höchsten Stufe.
 > - **Knopfreihe** – ❗ Kritisch, ⚠ Warnung und ℹ Hinweis filtern die Liste, das **Wellen-Symbol** zeigt, was gerade läuft (Timer, Sauger, Medien …).
-> - **Wetter und Leistung** – stehen in der Leiste, am Telefon im Dock rechts neben der Glocke. Wetter öffnet seine Entity. Leistung öffnet das Universal-Gerät, das diesen Sensor enthält, sonst den Sensor selbst. In den Ruhezeiten (Toast-Einstellungen) bleibt nur das Wetter, gedämpft.
+> - **Wetter und Leistung** – die Werte in der Leiste wählst du unter „Sidebar-Einträge". Die Dauerwerte der Insel gelten für die Kapsel ohne Leiste und für die Statuszeile der verriegelten Startseite. Wetter öffnet seine Ansicht. Leistung öffnet das Universal-Gerät, das diesen Sensor enthält, sonst den Sensor selbst. In den Ruhezeiten (Toast-Einstellungen) zeigt die Kapsel nur das Wetter, gedämpft.
 > - **Startseite** – auf der verriegelten Startseite steht die Sammel-Kapsel unter dem Gruß, Wetter und Leistung stehen unter der Uhr.
 > - **Ohne Leiste** – ist die Leiste aus oder passt sie am Desktop nicht neben die Karte, bleiben Knopf und Werte oben; der Knopf öffnet direkt das Panel.
 >
@@ -804,7 +806,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 >
 > - **Open** – a tap on the **bell** in the sidebar (in the dock on phones) opens the panel with the highest pending level preselected. Another tap closes it. The number on the bell counts all alerts and carries the color of the highest level.
 > - **Button row** – ❗ critical, ⚠ warning and ℹ info filter the list, the **wave symbol** shows what is running (timers, vacuums, media …).
-> - **Weather and power** – sit in the sidebar, on phones in the dock to the right of the bell. Weather opens its entity. Power opens the universal device that contains the sensor, otherwise the sensor itself. During quiet hours (toast settings) only the weather remains, dimmed.
+> - **Weather and power** – you pick the values in the sidebar under "Sidebar Items". The island's standing values apply to the capsule without the sidebar and to the status line of the locked start page. Weather opens its view. Power opens the universal device that contains the sensor, otherwise the sensor itself. During quiet hours (toast settings) the capsule shows only the weather, dimmed.
 > - **Start page** – on the locked start page the capsule sits below the greeting, weather and power below the clock.
 > - **Without the sidebar** – if the sidebar is off or does not fit next to the card on desktop, the button and the values stay at the top; the button opens the panel directly.
 >
@@ -817,11 +819,12 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > NEU v1.1.2243: Dauerwert-Picker (Wetter/Energie manuell statt Heuristik) —
 > der lange offene Rest der Insel-Settings-Reorg aus v2212.
 > v1.1.2505 (Auftrag 39): erster Satz nennt die neuen Orte.
+> v1.1.2552 (Prüfrunde): erster Satz — die Leiste zeigt ihre eigenen, gewählten Werte.
 
 **DE**
 > ## Dauerwerte
 >
-> Woher die Karte (Leiste, am Telefon das Dock, Statuszeile des Sperrbildschirms) ihre beiden Dauerwerte nimmt:
+> Woher die Kapsel der Insel (wenn keine Leiste steht) und die Statuszeile des Sperrbildschirms ihre beiden Dauerwerte nehmen — die Leiste zeigt ihre eigenen, unter „Sidebar-Einträge" gewählten Werte:
 >
 > - **Wetter** – Automatisch nimmt die erste Wetter-Entity der Geräteliste. Manuell lässt sich jede `weather.*`-Entity wählen — auch eine ohne zugewiesenen Raum.
 > - **Energie** – Automatisch nimmt den betragsstärksten Leistungssensor (in den meisten Häusern der Gesamtverbrauch). Manuell lässt sich jeder Sensor mit `device_class: power` wählen.
@@ -831,7 +834,7 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 **EN**
 > ## Standing values
 >
-> Where the card (sidebar, the dock on phones, the lock screen's status line) takes its two standing values from:
+> Where the island's capsule (when no sidebar is shown) and the lock screen's status line take their two standing values from — the sidebar shows its own values, picked under "Sidebar Items":
 >
 > - **Weather** – Automatic takes the first weather entity of the device list. Manual lets you pick any `weather.*` entity — including one without an assigned room.
 > - **Power** – Automatic takes the strongest power sensor by magnitude (in most homes the total consumption). Manual lets you pick any sensor with `device_class: power`.
@@ -1061,30 +1064,35 @@ Die Liquid-Glass-Unteransicht samt ihren 14 ⓘ-Popups (Texte aus `ui.settings.l
 > GEÄNDERT v1.1.2489 (Auftrag 28): Satz zu den festen Einträgen Home und Suche;
 > Abschnitt auf den vollen Wörterbuchtext gebracht (war eine ältere Fassung).
 > v1.1.2505 (Auftrag 39): Punkte zum ⋮-Menü und zu „Mitteilungen" neben der Glocke.
+> v1.1.2552: neu geschrieben — feste Einträge (Home, Suche, KI, Glocke), eigene Liste über
+> die Galerie, Sensoren und Wetter als Wert; Abschnittskopf jetzt „Feste Einträge".
+> v1.1.2552 (Prüfrunde): Wert nur für Sensoren mit Zahl oder Einheit (und Wetter).
 
 **DE**
-> ## Verfügbare Einträge
+> ## Einträge der Leiste
 >
-> Aktiviere die Einträge, die in der Sidebar (links neben dem Suchpanel) erscheinen sollen.
+> Die Leiste (am Desktop links, auf Telefon und Tablet unten als Dock) hat zwei Teile.
 >
-> - Pro Eintrag ein Schalter – an = sichtbar in der Sidebar.
-> - **Home** und **Suche** sind feste Einträge: Home führt zurück zur Startseite, Suche öffnet das Geräte-Panel, ohne das Suchfeld zu fokussieren (auf dem Telefon also ohne Tastatur).
-> - **Reihenfolge** = Aktivierungsreihenfolge: bestehende Einträge zuerst, neu aktivierte landen am Ende.
-> - **Mehr als sechs Einträge** – die Leiste zeigt fünf und das ⋮-Menü mit dem Rest. Am Telefon teilen sich Einträge, Glocke und Werte das Dock: je nach Breite sechs bis acht Plätze, was nicht passt, liegt im ⋮-Menü. Glocke und Werte rutschen nie hinein.
-> - **Mitteilungen** – steht neben der Glocke nicht doppelt in der Leiste; die Vollansicht erreichst du über „Mitteilungszentrum öffnen" im Panel.
+> - **Feste Einträge** – Home, Suche, KI und die Glocke stehen immer da und lassen sich nicht entfernen. KI erscheint nur mit nutzbarem KI-Modus, die Glocke nur mit der Insel; im Dock steht die Glocke direkt vor dem ⋮, KI direkt vor der Glocke.
+> - **Deine Einträge** – „Eintrag hinzufügen" öffnet die Galerie der Startseite: Ansichten der Karte (Einstellungen, Zeitpläne, Aufgaben, News …), Geräte, eigene Geräte, Aktionen und Sensoren. Ein Tipp in der Leiste öffnet die Ansicht bzw. das Detail.
+> - **Werte** – Sensoren mit Zahl oder Einheit und Wetter stehen als Wert da: oben groß die Zahl, darunter klein die Einheit. Alles andere (auch Sensoren mit Text oder Zeitpunkt) steht als Symbol da.
+> - **Reihenfolge** – mit ↑/↓ verschieben, mit – entfernen.
+> - **Wenig Platz** – was nicht passt, liegt im ⋮-Menü. Glocke und die ersten zwei Werte rutschen nie hinein.
+> - **Mitteilungen** – steht neben der Glocke nicht doppelt in der Leiste.
 >
 > *Warum wichtig:* So bestimmst du Inhalt und Reihenfolge deiner Schnellzugriff-Leiste.
 
 **EN**
-> ## Available Items
+> ## Bar items
 >
-> Enable the items that should appear in the sidebar (next to the search panel).
+> The bar (on the left on desktop, as a dock at the bottom on phones and tablets) has two parts.
 >
-> - One toggle per item – on = visible in the sidebar.
-> - **Home** and **Search** are built-in items: Home returns to the start screen, Search opens the device panel without focusing the search field (so no keyboard on the phone).
-> - **Order** = activation order: existing items first, newly enabled ones at the end.
-> - **More than six items** – the sidebar shows five and the ⋮ menu with the rest. On phones the items, the bell and the values share the dock: six to eight places depending on the width, whatever does not fit sits in the ⋮ menu. The bell and the values never move there.
-> - **Notifications** – does not appear twice next to the bell; the full view is reached via "Open notification center" in the panel.
+> - **Fixed items** – Home, Search, AI and the bell are always there and cannot be removed. AI appears only when AI mode is usable, the bell only with the island; in the dock the bell sits right before the ⋮, AI right before the bell.
+> - **Your items** – "Add item" opens the start-screen gallery: the card's views (Settings, Schedules, Tasks, News …), devices, custom devices, actions and sensors. A tap in the bar opens the view or the detail.
+> - **Values** – sensors with a number or unit and weather appear as a value: the number large on top, the unit small below. Everything else (including sensors showing text or a time) appears as an icon.
+> - **Order** – move with ↑/↓, remove with –.
+> - **Little space** – whatever does not fit sits in the ⋮ menu. The bell and the first two values never move there.
+> - **Notifications** – does not appear twice next to the bell.
 >
 > *Why it matters:* this is how you decide the contents and order of your quick-access bar.
 
