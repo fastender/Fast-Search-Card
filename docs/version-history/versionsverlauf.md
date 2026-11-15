@@ -1,5 +1,27 @@
 # Versionsverlauf
 
+## Version 1.1.2551 - 2026-11-15
+
+**Title:** 🧹 Lighter card: dead weight and CSS trimmed, two placeholder texts fixed
+
+**Tags:** refactoring, bundle, bugfix
+
+**Fixed**
+- A vacuum that is unavailable showed the raw text "ui.controls.vacuum_unavailable"; it now says "Unavailable". Unknown vacuum states (e.g. mopping) show the state instead of a placeholder.
+- The detail header no longer shows a placeholder path when a device has no translated name; it uses the device's own name.
+
+**Under the hood**
+- Fallback texts that could never appear were removed, as well as an unreachable display mode of the category bar, old German/English duplicate fields next to the dictionary and 26 dictionary entries nobody read.
+- CSS: one shared search-field style for the feed views (news, tips, version history), a narrower browser target list (modern Chrome/Android WebView, Safari/iOS 15+, Firefox 91+) so fewer vendor prefixes are generated, two dead rules removed, and small style blocks that were inserted at runtime now live in normal stylesheets. Opening the search no longer adds 13 extra style blocks to the page.
+- Nothing else changes visibly; on iPad, chip labels can no longer be text-selected by a long press.
+- Together about 3 KB smaller.
+
+**Checked**
+- Probes before/after: vacuum texts in German and English, tab button labels of all system views, computed styles and screenshots of the chip bar and search fields, cover slat animations; full probe set (start screen, gallery, edit mode, phone dock and carousel, AI automations, side bar values, AI beam) unchanged.
+- Two review rounds: no defects found.
+
+**Bundle:** 696 453 bytes gzip, about 3.5 KB below the limit.
+
 ## Version 1.1.2550 - 2026-11-15
 
 **Title:** 🪟 Detail title in visionOS style, notification panel on desktop like on mobile, readable input rows
