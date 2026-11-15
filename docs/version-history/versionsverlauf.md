@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2558 - 2026-11-15
+
+**Title:** ⌨️ The typing hint in the search field rests while you cannot see it
+
+**Tags:** performance, heat, refactoring
+
+- The greeting and hints that type themselves into the search field now pause while a detail view is open or the notification panel has the content stepped back. Behind an open detail view it used to keep typing invisibly — about 60 timers and 120 redraws every 10 seconds.
+- The sentence and cursor fade with the search bar and come back with it; after closing the detail the line starts a new sentence.
+- Internally one timer replaces a list that grew by every keystroke of the hint (on a wall tablet without the island this list grew all day).
+- The cursor is now moved with a transform instead of a layout property, which is cheaper.
+- What you see while it types is unchanged, character by character.
+
+**Measured** (10 s at rest): typing-hint timers / redraws on the start screen 64 / 122 (unchanged); behind an open detail 61 / 118 → 0 / 0; with the notification panel open 72 / 140 → 0 / 0.
+
+**Checked**
+- Before/after picture sequences of the line (same text, same cursor position), measurements above, the start-screen breathing animation pauses at rest; start screen, phone, edit mode, AI automations and AI beam unchanged.
+- Two review rounds: 2 defects fixed (sentence and cursor vanished abruptly instead of fading with the bar; the field came back empty on the way back from a detail).
+- Not checked: tablets, iPad, Safari.
+
+**Bundle:** 698 073 bytes gzip, about 1.9 KB below the limit.
+
 ## Version 1.1.2557 - 2026-11-15
 
 **Title:** 📐 Polish: notification panel centred on the bar, Apple-style list rows, centred detail title
