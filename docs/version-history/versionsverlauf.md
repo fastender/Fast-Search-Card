@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2556 - 2026-11-15
+
+**Title:** 🔔 Notifications in visionOS style: the content steps back, the panel slides in from above
+
+**Tags:** notifications, side-bar, dock, animation
+
+- When you tap the bell in the side bar or the dock, the search bar, the start-screen tiles and an open detail view step back — they shrink slightly and fade — and the wallpaper darkens. The notification panel then slides in from the top, centred over the card.
+- The side bar and the dock stay visible and usable: a second tap on the bell closes the panel, as do ✕, a tap on the dark area and Escape. Tapping another bar entry opens it.
+- The round button above the panel is gone in this case; the capsule on the start screen without a side bar is unchanged.
+- While the panel is open, the content behind it can no longer be reached with the keyboard or a screen reader; after closing, focus returns to the bell.
+- With "reduce motion" the content and panel only fade.
+- On very short screens (phone held sideways) the ✕ below the panel is left out so the panel ends above the dock; close with the dark area, the bell or Escape.
+
+**Checked**
+- Probes on desktop, tablet and several phone sizes: content steps back, panel centred at the top, bar stays usable, Escape closes and focus lands on the bell, the detail view steps back and returns, nothing reachable behind the panel; start screen, gallery, bar long-press, AI beam and camera unchanged.
+- Two review rounds: 5 defects fixed (Escape after opening by mouse, content reachable by keyboard while hidden, panel under the dock on short phones, an invisible ✕ as tab stop, Escape ending other modes instead of closing the panel).
+- Not checked: touch devices, Safari, real Home Assistant with its top bar.
+
+**Bundle:** 697 614 bytes gzip, about 2.4 KB below the limit.
+
 ## Version 1.1.2555 - 2026-11-15
 
 **Title:** 🌡️ Animated device icons rest while nobody can see them
