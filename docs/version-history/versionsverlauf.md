@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2557 - 2026-11-15
+
+**Title:** 📐 Polish: notification panel centred on the bar, Apple-style list rows, centred detail title
+
+**Tags:** notifications, device-list, detail-view, toasts, bugfix
+
+- **Notification panel centred on the navigation bar.** On desktop the panel's middle sits at the height of the side bar's middle; with the dock at the bottom it is centred horizontally over the dock and sits just above it. It always stays fully on screen. The close button below the panel is gone — close with the bell, a tap on the dark area or Escape.
+- **Device list rows in Apple style.** Name larger and semibold, the second line in grey with room and state in normal case ("Study · Heating") instead of an upper-case room label. Where the list already shows the room as a heading, the row shows only the state. Long texts end with "…".
+- **Detail title** centred again between the back and heart buttons and a little smaller (20/14 px, phone 18/13); long names end with "…".
+- **Toast close button:** the cross is drawn and sits exactly in the middle of its circle.
+- **Ring arrows no longer jump.** Pressing "‹ ›" on a ring page moved the arrow 14 px down: the general press effect replaced the arrow's centring. The arrows are centred differently now and stay put.
+
+**Checked**
+- Probes: panel position on desktop, tablet and phone (centre of bar or dock), no close button, Escape and reopening; detail title centred over a camera picture; start screen, phone carousel, edit mode and camera unchanged.
+- Review rounds: 9 defects fixed (side bar detected as dock while expanded, bar switching while open, top margin with the Home Assistant header, panel detaching on scroll, card lower on the page; empty second line in list rows, stray dot in tip rows).
+- Not checked: touch devices, Safari.
+
+**Bundle:** 697 958 bytes gzip, about 2 KB below the limit.
+
 ## Version 1.1.2556 - 2026-11-15
 
 **Title:** 🔔 Notifications in visionOS style: the content steps back, the panel slides in from above
