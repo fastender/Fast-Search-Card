@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2560 - 2026-11-17
+
+**Title:** 🔎 Typing "sensor" in the search now offers the Sensors category
+
+**Tags:** search, bugfix, accessibility
+
+- **Category suggestions with their icon.** Typing a category word such as "sensor", "sensoren", "sensors", "aktionen" or "actions" now suggests that category, shown with its real icon. Whole words work (before, the suggestion vanished as soon as the word was complete), and prefixes from three letters on in the current language. Rooms still come first.
+- **Accept with tap, Tab, → or Enter.** Enter now takes a room, type or category suggestion (never a device name); without such a suggestion Enter works as before. If the word is no prefix of the category name ("sensors" → "Sensoren"), the field shows "sensors → Sensoren".
+- **No more stale chips.** A type chip such as "Lights" left over from an earlier search no longer keeps filtering: it is cleared when you switch to a category it does not belong to and when the search panel closes. Before, "sensor" searched only among lights and showed nothing but content results.
+- While a room, type or category suggestion is waiting, the automatic switch to AI mode for searches without results holds back, so the suggestion does not disappear under your fingers.
+- Screen readers now hear the target ("Use suggestion: Sensors") and that Enter accepts it.
+
+**Checked**
+- German and English: "licht"/"light" → type chip; then "sensor" → Sensors suggestion with icon, Enter switches to Sensors and the Lights chip is gone; room prefix "flu" → room; "aktionen" → Actions; a normal question with Enter still goes to the AI.
+- Two review rounds: 4 defects fixed (German prefixes stealing device suggestions in the English UI, target not announced to screen readers, auto AI mode swallowing the suggestion, unsafe placeholder replacement).
+- Not checked: tablets, iPad, Safari, a real Home Assistant.
+
+**Bundle:** about 698 620 bytes gzip, about 1.4 KB below the limit.
+
 ## Version 1.1.2559 - 2026-11-17
 
 **Title:** 🗂️ Category popup in the search, compact list rows, larger AI text
