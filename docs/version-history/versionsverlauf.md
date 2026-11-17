@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2562 - 2026-11-17
+
+**Title:** ✨ Blur fade on the start screen, cards recede when held, lists appear like Schedules
+
+**Tags:** animation, start-screen, carousel, notifications, ai, design
+
+- **Start screen widgets blur in.** When the start screen appears (after start, coming back from search or settings, after the screensaver), the tiles fade in from a soft blur, staggered by 50 ms, in about half a second. Afterwards no filter stays on the tiles. Coming back from a detail view keeps its own transition; reduced motion shows the tiles at once.
+- **Held cards recede.** Holding a card in the phone carousel or the slideshow makes it step back after a moment: slightly smaller, a little darker and softly blurred. Letting go, swiping or the menu opening brings it back; a short tap does nothing. The long-press menu now anchors to the card's full size.
+- **Carousel and slideshow pause while a popup is open.** Opening a device popup (⋯) or any other popup over the start screen stops the automatic page turn; it continues when the popup closes. Your own pause choice is kept.
+- **Changelog, Tips and News appear like Schedules and Tasks.** Entries slide up 20 px and fade in one after another with the same spring. Changing a filter plays it again. A CSS rule that smeared the motion on these cards was removed (hover highlight stays).
+- **Notifications on the phone are centred on the screen** instead of sitting right above the dock.
+- **AI answers always bold the device name and the reported value or state** (at most four bold parts).
+
+**Checked**
+- Blur fade measured frame by frame (12 px → sharp, no filter afterwards), held carousel card (scale 0.95, blur 3 px, filter gone after release), staggered Changelog entries, phone notification panel centred (middle at 430 of 860 px); regression run on desktop, tablet and phone without errors.
+- Two review rounds per part; fixes included an exception that could leave tiles blurred when locking mid-fade, the fade fighting the detail opening, an over-broad press rule and the menu anchoring to the shrunken card.
+- Not checked: the carousel pause with a real device popup (the test home has no list widget on the phone), the slideshow press on desktop, tablets, iPad, Safari.
+
+**Bundle:** about 699 240 bytes gzip, about 0.8 KB below the limit.
+
 ## Version 1.1.2561 - 2026-11-17
 
 **Title:** ↕️ List rows back to their full size, only the two text lines closer together
