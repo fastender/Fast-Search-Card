@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2559 - 2026-11-17
+
+**Title:** 🗂️ Category popup in the search, compact list rows, larger AI text
+
+**Tags:** search, device-list, ai, bugfix
+
+- **Category popup instead of a back button.** The category button in the open search no longer turns into a back arrow. It always opens the same category popup as on the start screen (Devices, Sensors, Actions, Custom). Picking the category that is already active closes the search panel, so there is still a way out without the bar.
+- **List rows tighter and calmer.** Less padding, a slightly smaller icon circle, and the second line is now as large as the first (17 px, grey) instead of a small caption. A row is about 66 px high on desktop.
+- **AI answers larger and more Apple-like.** Answers are set at 22 px (the newest one 25 px, phone 19/21) with more relaxed line spacing and a comfortable line length; question, card titles, status and meta lines were rescaled to match. The AI may now set one to three key terms in bold.
+- **Bugfix:** in the Sensors tab of the search, room chips showed a raw key such as "ui.subcategories.Flur" instead of the room name.
+
+**Checked**
+- Category popup opens from the search and switches to Sensors; list rows, AI answer with bold term, AI automation change, camera detail, notification panel on tablet, phone carousel and dock, start-screen tile menu.
+- Two review rounds per part.
+- Not checked: tablets, iPad, Safari.
+
+**Bundle:** about 698 200 bytes gzip, about 1.8 KB below the limit.
+
 ## Version 1.1.2558 - 2026-11-15
 
 **Title:** ⌨️ The typing hint in the search field rests while you cannot see it
