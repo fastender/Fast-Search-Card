@@ -1,5 +1,21 @@
 # Versionsverlauf
 
+## Version 1.1.2561 - 2026-11-17
+
+**Title:** ↕️ List rows back to their full size, only the two text lines closer together
+
+**Tags:** device-list, design
+
+- The device list rows return to their size before 1.1.2559: 100 px high on desktop (80 px on phones), with the large 68 px icon circle, the original padding and the larger quick buttons.
+- Only the space between the first line (name) and the second line (state) is smaller: no extra gap and a tighter line height, so both lines read as one block.
+- The second line stays as large as the first, just regular weight and grey.
+
+**Checked**
+- Desktop list: row 100 px, circle 68 px, no gap between name and state.
+- Not checked: tablets, iPad, Safari.
+
+**Bundle:** about 698 600 bytes gzip.
+
 ## Version 1.1.2560 - 2026-11-17
 
 **Title:** 🔎 Typing "sensor" in the search now offers the Sensors category
