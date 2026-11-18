@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2563 - 2026-11-18
+
+**Title:** 👆 Safari: one tap on the dock is enough again; cards recede only while swiping
+
+**Tags:** safari, ios, dock, bugfix, carousel, animation
+
+- **Dock in Safari reacts to the first tap.** With the notification panel open, touching any dock entry (most noticeably AI) closed the panel already on touch-down. The search row then faded back in while iOS Safari was deciding whether the tap changed the page, so Safari treated the tap as a mere hover: the icon turned grey and only a second tap worked. The panel now closes on the click itself (or when a long-press / right-click opens the bar menu), so the first tap goes through.
+- The same trap was removed from the start-screen blur fade: a touch no longer cancels it on touch-down (which made waiting tiles pop into view mid-tap); a click still does.
+- The grey hover background on dock and side bar entries now only appears with a real mouse, so it no longer sticks after a tap on touch screens.
+- On iPhones with a home bar the dock keeps clear of the bottom edge (safe area); toasts, the AI history, the detail sheet, the phone carousel and the tablet layout leave the matching room.
+- **Cards recede only while swiping.** Holding a card no longer makes it shrink and blur — holding opens the edit menu as before 1.1.2562. Instead, while you swipe the phone carousel or the slideshow, the cards step back slightly (95 %, soft blur, a little darker) and return when you let go. Automatic page turns show no effect; a slideshow with one slide neither.
+
+**Checked**
+- Simulated touch taps in WebKit: Settings, AI, Home each active after one tap, also with the notification panel open; a rebuilt iOS content-change check reports no blocking change on touch-down in the start screen, search, settings and AI states.
+- Carousel: swiping shows the effect (blur 3 px), holding shows none, no filter afterwards; regression run on desktop, tablet and phone without errors.
+- Three review rounds for the dock fix (the root cause was found in round 2, round 3 fixed long-press/right-click no longer closing the panel); two for the swipe effect.
+- Not checked on a real iPhone/iPad. Known: in deep rest with "bar always visible", the first tap only wakes the screen (intended wake tap).
+
+**Bundle:** about 699 370 bytes gzip, about 0.6 KB below the limit.
+
 ## Version 1.1.2562 - 2026-11-17
 
 **Title:** ✨ Blur fade on the start screen, cards recede when held, lists appear like Schedules
