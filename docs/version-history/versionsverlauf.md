@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2565 - 2026-11-19
+
+**Title:** 🔎 Settings search finds typos; the fuzzy-search library is gone (5 KB smaller)
+
+**Tags:** search, settings, tasks, bundle, refactoring
+
+- **Device and content search use the card's own exact matcher.** Results and their order are identical to before; a search is about five times faster in the median (measured in Node).
+- **Settings search now tolerates typos** using the card's own typo matching (at most two typing errors per search): "Sprahce" finds the language settings, "waether" finds Weather, "vorschlaege" finds everything "vorschläge" finds. Exact matches still come first. **The settings search can return slightly different results than before:** chance neighbours are gone ("cache" no longer lists "Sprache", "sprache" no longer "Lautsprecher"), a few fuzzy matches inside compound words are lost ("weter" no longer finds "Unwetterwarnungen"), and long lists may end with a few related rows.
+- **Duplicate hint when adding a task** uses the same typo matching: "Mlich kaufen" still points to "Milch kaufen!", unrelated titles that merely share a word ("Oma anrufen" / "Zahnarzt anrufen") no longer do. Known gap: "Email" does not match "E-Mail".
+- The third-party fuzzy-search library (fuse.js) is removed from the bundle.
+- Refactoring tasks 05 and 06 of the 2026-11-14 audit.
+
+**Checked**
+- Device and content search: 10 457 fixed comparison cases and 16 407 random queries against the old library, plus 4 010 queries through the whole search path (ranking, typo fallback, cache) — 0 differences, scores bit-identical. The old test corpus was lost in a machine move; the comparison ran on a newly generated test house.
+- Settings search: 198 terms (German and English) old versus new, table confirmed by the owner; nonsense input returns nothing in both.
+- Two review rounds: 9 weaknesses found, 8 fixed (noise from several short words, punctuation-only words wiping all results, duplicate hint lost when a quantity is added, and others).
+- Not checked: tablets, iPad, Safari, a real Home Assistant; the identity proof ran in Node, not in the browsers.
+
+**Bundle:** about 694 230 bytes gzip (5.1 KB less), about 5.8 KB below the limit.
+
 ## Version 1.1.2564 - 2026-11-19
 
 **Title:** 🌤️ Weather tile shares the forecast with calendar and context line
