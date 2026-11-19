@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2564 - 2026-11-19
+
+**Title:** 🌤️ Weather tile shares the forecast with calendar and context line
+
+**Tags:** performance, weather, refactoring
+
+- The weather tile on the start screen no longer fetches its own forecast with its own cache and timer. Tile, calendar, context line and the weather detail view now read one shared forecast store: one request for all places, both forecast types (hourly and daily) requested in parallel.
+- No forecast requests while the tab is hidden or the screen is in deep rest; on waking up the tile reloads only if the data is older than 10 minutes.
+- If only one of the two requests fails, the other part is still updated and the old part stays visible (dropped after 3 hours). High/low now also shows for weather integrations that only offer a daily forecast.
+- "Clear cache" also clears the shared forecast, and a visible tile reloads at once.
+- Refactoring task 18 of the 2026-11-14 audit.
+
+**Measured** (simulated clock, weather tile on the start screen): forecast calls at start 4 → 2; 31 minutes visible 12 → 8; a further 31 minutes hidden +6 → 0; coming back: one request pair. Tile text identical before and after (six hours, high/low).
+
+**Checked**
+- Two review rounds: 3 defects fixed (daily values shown as hours in the detail view fallback, age stamp renewed on a partial failure, fresh hours counted as old).
+- Not checked: a real Home Assistant, tablets, iPad, Safari; the weather detail view was only read, not looked at.
+
+**Bundle:** 699 371 bytes gzip (10 bytes less), about 0.6 KB below the limit.
+
 ## Version 1.1.2563 - 2026-11-18
 
 **Title:** 👆 Safari: one tap on the dock is enough again; cards recede only while swiping
