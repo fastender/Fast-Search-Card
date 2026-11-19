@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2569 - 2026-11-19
+
+**Title:** 🌡️ Climate coach: the AI asks a few questions and sets up your heating with you
+
+**Tags:** ai, climate, thermostat, automation
+
+- **New button "Climate coach: set up your heating smartly"** on the empty AI screen, shown when the card shows at least one thermostat. It starts a short conversation: the AI first says what it sees, then asks at most three questions per answer (when the home is empty, when people get up and go to bed, how warm each room should be, radiators or underfloor heating, window pause, existing schedules). After two or three rounds it proposes a plan per room and asks before setting anything up.
+- **What the AI gets:** a per-area overview built only from the devices the card shows (thermostats, whether they report what they are doing, Scheduler plans on them, window/door contacts, humidity and temperature sensors, people), plus fixed experience values (typical room temperatures, night and away setback, a lower limit against mould, frost protection, airing, radiators versus underfloor heating) and safety rules: save energy by lowering the temperature or with an eco/away preset, never by switching off; a window pause must bring the room back when the window closes and after a Home Assistant restart; no second rule for a thermostat that already has a schedule or is controlled by another integration.
+- **Nothing switches on its own:** in a coach chat every device action waits for a tap. Automations are created only through the existing preview with "Create" (administrators with "Change and create automations" switched on); everyone else gets one YAML block per rule to copy. The chat header shows "Climate coach" until "New chat".
+- **Automation preview warns about heating off:** any new step that switches a thermostat off (turn_off, toggle, or hvac_mode off) now appears in the "Attention" line, also outside the coach.
+- The coach does not learn or run in the background; it sets things up once and can be started again at any time.
+
+**Checked**
+- Build and static guards (i18n keys, PurgeCSS classes, hooks, unused imports) green.
+- Two independent review rounds, 2 defects fixed: the coach mode was lost after a failed first answer, and when a visibility change emptied the chat before the next question — in both cases device actions could have run without a tap. Also: paused Scheduler plans count, at most three automations or YAML blocks per answer.
+- Not checked: no tests were run; not tried with a real AI (in particular small local models writing automations), real thermostats, a real Home Assistant, tablets, phones (four buttons on the empty screen), iPad or Safari. A custom language file shows the German button text until it gets the new key.
+
+**Bundle:** 697 314 bytes gzip (2 416 bytes more), about 2.7 KB below the limit.
+
 ## Version 1.1.2568 - 2026-11-19
 
 **Title:** 🏷️ Category bar counts in one pass and redraws only when a number changes
