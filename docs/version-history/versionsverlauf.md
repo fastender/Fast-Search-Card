@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2568 - 2026-11-19
+
+**Title:** 🏷️ Category bar counts in one pass and redraws only when a number changes
+
+**Tags:** performance, search, refactoring
+
+- The chip bar above the device list (All, Lighting, Switches, rooms …) used to copy every device twice and count each chip with two filter passes on every data update, then redraw — even if nothing visible changed. It now counts in one pass without copies and redraws only when a chip or one of its numbers changes.
+- Chips, order, numbers, the favourites chip and the selected chip are unchanged.
+- Chip labels still follow a changed language file at once.
+- Refactoring task 15 of the 2026-11-14 audit.
+
+**Measured** (about 1 500 entities, search panel open): redraws of the bar for 10 data updates without a visible change 10 → 0 (devices, sensors and favourites alike); with a changing number 1 per change as before. Counting per update 3 to 16 times faster depending on category (Node, e.g. sensors 2.2 → 0.35 ms).
+
+**Checked**
+- 55 720 comparison cases old versus new (random homes with 0 to 1 500 devices, all categories, both modes, favourites, suggestions): 0 differences. In the browser the chip texts are identical in all 8 combinations of mode and category, including the favourites chip appearing and disappearing.
+- Two review rounds: 1 defect fixed (chip labels could stay stale after loading an own language file).
+- Not checked: the suggestions chip in the browser (covered only by the comparison cases), tablets, iPad, Safari.
+
+**Bundle:** 694 898 bytes gzip (+196 bytes), about 5.1 KB below the limit.
+
 ## Version 1.1.2567 - 2026-11-19
 
 **Title:** 🚦 Exclusion filter remembers its verdict per entity
