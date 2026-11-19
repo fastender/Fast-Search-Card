@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2567 - 2026-11-19
+
+**Title:** 🚦 Exclusion filter remembers its verdict per entity
+
+**Tags:** performance, filter, refactoring
+
+- The exclusion filter (your patterns under Settings → Filter) used to test every entity against every pattern on every data update, two to three times — although the list was already filtered. It now remembers the verdict per entity until the patterns change.
+- While you search, the full pass over all devices is no longer computed and thrown away.
+- The entity limit is read from storage once instead of on every rejected update. One difference: if another browser window on the same device changes the limit, this window sees it after a reload.
+- What is shown or hidden is unchanged. Adding or removing a pattern and the visibility switches take effect at once, as before.
+- Refactoring task 14 of the 2026-11-14 audit.
+
+**Measured** (1 500 entities, 20 patterns): pattern tests per data update about 43 900 → 0 (browser, 40 updates); filter time per update 0.90 → 0.05 ms, whole update 1.5 → 0.16 ms (Node); with 400 patterns 47 → 0.16 ms. The first update after a pattern change costs one old pass.
+
+**Checked**
+- 1 475 comparison cases old versus new (0 / 5 / 20 / 100 / 400 patterns, search, categories, invalid patterns, switches, integration devices, entity limit): byte-identical results. In the browser, adding and removing patterns changes the list exactly as before.
+- Two review rounds without findings.
+- Not checked: patterns and limit were changed through storage and the settings event, not by clicking in the Filter tab; pattern file import; tablets, iPad, Safari.
+
+**Bundle:** 694 702 bytes gzip (+112 bytes), about 5.3 KB below the limit.
+
 ## Version 1.1.2566 - 2026-11-19
 
 **Title:** 🌡️ Thermostats: no invented 20 °C, the power button fits the device, the AI sees what the heating is doing
