@@ -1,5 +1,22 @@
 # Versionsverlauf
 
+## Version 1.1.2566 - 2026-11-19
+
+**Title:** 🌡️ Thermostats: no invented 20 °C, the power button fits the device, the AI sees what the heating is doing
+
+**Tags:** climate, thermostat, ai, bugfix
+
+- **No invented numbers in the climate ring.** Missing values used to fall back to 20: a thermostat in heat/cool or auto mode that only reports a target band (low/high, no single target) showed "20" as its target, and a room at 0 °C showed "20" as its current temperature. Now a single target shows as before; a band shows as "20–24" (longer bands such as "20.5–23.5" one size smaller so they fit the ring); no target at all shows "–" without a handle. The current-temperature line is left out when the device reports none.
+- In band mode the ring can only be dragged if the device also accepts a single target temperature; otherwise it is read-only.
+- **The power button switches on in a mode the device knows.** Switching on always requested "heat_cool", which heating-only thermostats (off/heat) rejected. Now the device's own turn-on is used when it offers one (the device picks its mode itself); otherwise the first available mode of heat_cool, heat, cool, auto. Switching off is unchanged.
+- **AI context for thermostats** now also carries the target band, what the device is doing right now (heating, idle …) and the active preset, so a question like "why isn't it heating?" is answered from the real state. The AI still cannot change presets.
+
+**Checked**
+- Build only: the bundle carries 1.1.2566, the new code paths are in it.
+- Not checked: no tests were run; nothing was tried with a real Home Assistant or real thermostats (band mode, heating-only, turn-on), nor on tablets, iPad or Safari; the band text in the ring was not looked at.
+
+**Bundle:** 694 590 bytes gzip (360 bytes more), about 5.4 KB below the limit.
+
 ## Version 1.1.2565 - 2026-11-19
 
 **Title:** 🔎 Settings search finds typos; the fuzzy-search library is gone (5 KB smaller)
