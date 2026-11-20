@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2575 - 2026-11-20
+
+**Title:** 🧹 Deleted devices no longer come back at start; the local device cache stops growing
+
+**Tags:** bugfix, startup, cache, refactoring
+
+- **Bugfix — ghosts at start.** The card keeps a local copy of your devices so tiles are there at once after a reload. This copy was only ever added to: a device that was deleted or renamed in Home Assistant, lost its room or was excluded stayed in it for good and showed up again at every start until the fresh data arrived (permanently when offline). Now the copy is brought in line after every complete load: it contains exactly the current devices.
+- **Careful by design.** Tidying only happens after a complete load (Home Assistant fully started, registries present, every active entity has a state) and in a single database step that is rolled back on any error. An incomplete load — empty or partial states, Home Assistant still starting, a registry request failing — only adds, as before. Devices that are merely "unavailable" at the moment stay in the copy as long as they still exist in Home Assistant.
+- At start, entries that no longer exist or lost their room are skipped right away when the live data is complete enough to judge.
+- Only the device copy is affected. Learning data, favourites and settings are not touched.
+- Refactoring task 21 of the 2026-11-14 audit.
+
+**Measured** (mock home, 370 devices, then 50 deleted, 20 without room, 5 excluded): local copy after the load 370 → 295 (before: stayed 370); list at the next start 365 → 295; offline start 365 → 295. Incomplete loads (empty states, 5 or 250 of 370 states, Home Assistant starting, 40 devices unavailable, registry failing): copy stays 370. A forced write error in the middle: rolled back, copy stays 370. Page closed during the write (10 timings): always a complete old or new state. Other stores identical in every step. Start-up time marks unchanged (about 31 ms either way).
+
+**Checked**
+- 16 scenarios in Chromium, the central ones in WebKit; four review rounds: 8 defects fixed along the way (among them: the 1.1.2574 fix for vanishing tiles would have regressed with partial states; a load shortly after a Home Assistant restart would have dropped "unavailable" devices from the copy), the fourth round found nothing.
+- Known limit: if the frontend registry itself is only partly loaded but more than half of it is there, the start list can be shortened until the load finishes; not observed with a real Home Assistant.
+- Not checked: a real Home Assistant, a real tablet, iPad, Android.
+
+**Bundle:** about 698 230 bytes gzip (+253 bytes), about 1.8 KB below the limit.
+
 ## Version 1.1.2574 - 2026-11-20
 
 **Title:** 🚀 Start-up: tiles no longer vanish when Home Assistant delivers its states late
