@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2576 - 2026-11-20
+
+**Title:** 🔁 "Clear cache" during a running load is no longer lost
+
+**Tags:** bugfix, refactoring
+
+- **Bugfix.** If you pressed "Clear cache" while the card was still loading the device list, the request was silently dropped: a room change or a new device that Home Assistant reported only after the load had started appeared only at the next occasion. Now a request that arrives during a running load is carried out once, right after it. Two loads never run at the same time, several requests during one load still lead to only one extra load, and nothing follows after the card has been closed.
+- The other two cases the audit had listed — a pattern change or late-growing states during a load — were already closed by 1.1.2573 and 1.1.2574; this release confirms that by measurement.
+- Small side effect: a pattern change or a burst of new states during a load can now cause the second load right after the first instead of at the next update; the number of loads stays the same in a live home.
+- Refactoring task 30 of the 2026-11-14 audit.
+
+**Measured** (mock home, 300 entities, registry answers delayed by 1.5 s): "Clear cache" after a room change and a new device during the load — before: 1 load, old room, new device missing; now: 2 loads, new room, new device present (also in WebKit and with 1 500 entities). No occasion: 1 load (also after 62 s of rest). Two requests in one load: 2 loads, not 3. Card closed during the load: no follow-up load. Never two loads at once.
+
+**Checked**
+- 20 collision cases old versus new; two review rounds (the second after a network interruption was repeated): 1 defect fixed (late-growing states in a narrow window could keep the list shortened until the next update), the second round found nothing.
+- Not checked: the real "Clear cache" button with its confirmation dialog (the probe sends the event directly), a real Home Assistant, Android, iPad.
+
+**Bundle:** about 698 280 bytes gzip (+47 bytes), about 1.7 KB below the limit.
+
 ## Version 1.1.2575 - 2026-11-20
 
 **Title:** 🧹 Deleted devices no longer come back at start; the local device cache stops growing
