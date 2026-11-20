@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2572 - 2026-11-20
+
+**Title:** 🎚️ Start-screen settings: sliders no longer reload the gallery picture or redraw bystanders
+
+**Tags:** performance, settings, start-screen, refactoring
+
+- **Gallery picture of the large tile.** Every start-screen setting change (each step of an ocean or screensaver slider) used to resolve the gallery picture again; each answer carried a new address, so the tile redrew and the picture was loaded again per slider step. The picture is now resolved only when its source changes, when the connection changes, or once an hour (so the address does not expire). A late answer for an old source can no longer overwrite a newer choice.
+- **Bystanders stay still.** The island, the search field, the idle timers (screensaver, deep rest, island standby) and the device colours now react only when their own setting changed, not to every start-screen setting event. A changed weather or power source for the island still takes effect at once.
+- Small difference: a foreign slider no longer restarts the idle timers; your touch on the slider itself still counts as activity.
+- Refactoring task 38 of the 2026-11-14 audit.
+
+**Measured** (20 steps of the ocean slider, gallery picture on the large tile): picture requests 20 → 0; redraws of the island 20 → 0, search field 20 → 0, large tile 20 → 0, start screen 40 → 20. Changing the picture source: exactly one request. Whole test run: 74 → 5 picture requests.
+
+**Checked**
+- Picture source changes (gallery, direct address, none, back), failed and slow answers, two card instances, remount, refresh after one hour; screensaver and deep-rest sequence second by second identical to before; changed wake sources re-arm the screensaver timer at once.
+- Three review rounds: 2 defects fixed (a changed island weather/power source did not arrive at once; the screensaver timer did not follow changed wake sources), the third round found nothing.
+- Not checked: the real sliders in the settings window (events were generated as the settings do), WebKit, a real tablet, iPad, a real Home Assistant with real signed picture addresses.
+
+**Bundle:** about 697 880 bytes gzip (9 bytes less), about 2.1 KB below the limit.
+
 ## Version 1.1.2571 - 2026-11-20
 
 **Title:** 💡 Suggestions: computed only when visible, ignored suggestions no longer count as usage
