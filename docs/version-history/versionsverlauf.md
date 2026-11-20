@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2574 - 2026-11-20
+
+**Title:** 🚀 Start-up: tiles no longer vanish when Home Assistant delivers its states late
+
+**Tags:** bugfix, startup, android, performance, refactoring
+
+- **Bugfix — tiles vanished after start (seen on Android).** If Home Assistant handed over an empty state list at first and the real states a moment later, the card started a load over the empty list: the tiles shown from the cache disappeared, the device list showed placeholders, and the reload was blocked for about 5 seconds. The quick-start snapshot was emptied as well, so a restart in that phase began without tiles. Now there is one trigger for the first load, and it waits until the states are really there. The cached tiles stay until fresh data replaces them.
+- **States arriving in bursts.** If only a few states are there at first and the rest follow, the card now reloads per burst during the first 30 seconds (from 20 new states on) instead of staying on the shortened list.
+- **The cache is no longer in the way.** The first load from Home Assistant no longer waits for the local cache to be read; the cache is only applied if the fresh data is not there yet. Without a connection the cache is read once instead of twice, in the same order as before.
+- Refactoring task 20 of the 2026-11-14 audit.
+
+**Measured** (mock home, 370 entities, cache filled, states empty at first): real tiles in the open device list — before: 4 → 0 with 16 placeholders at 2.3 s → 12 only at 7.1 s; now: 4 → 8 → 12 at 2.4 s, never fewer. Loads at start 2 → 1, registry requests 2 → 1 per type. Few states first, then all: before the list stayed at 5 for the whole measurement, now the full list arrives after about 0.6 s. Normal start: the load begins about 5 ms earlier (1 474 entities, throttled CPU: 227 → 190 ms); practically no gain in WebKit.
+
+**Checked**
+- Normal, late connection, empty states for 9 seconds (cache stays, no requests), offline, pattern change without connection, two card instances, states in bursts; time marks from 1.1.2573 still fire once and in order.
+- Two review rounds: 1 defect fixed (the burst case above), the second round found only comments to correct.
+- Not checked: a real Android device or the Home Assistant app, a real Home Assistant with network delay, reconnect during start, iPad.
+
+**Bundle:** about 697 980 bytes gzip (43 bytes less), about 2.0 KB below the limit.
+
 ## Version 1.1.2573 - 2026-11-20
 
 **Title:** ⏱️ Fresh tiles appear before the local cache is written; start-up is measurable in the release
