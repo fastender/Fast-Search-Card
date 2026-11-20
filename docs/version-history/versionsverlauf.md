@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2571 - 2026-11-20
+
+**Title:** 💡 Suggestions: computed only when visible, ignored suggestions no longer count as usage
+
+**Tags:** performance, suggestions, bugfix, refactoring
+
+- **No suggestion runs while nobody can look.** Suggestions used to be recomputed every 5 minutes around the clock, also in deep rest and in a hidden tab. Now the 5-minute rhythm only runs while the page is visible and not in deep rest; on waking up or coming back, one run follows at once if the last one is older than 5 minutes.
+- **No redraw when nothing changed.** A run with the same suggestions (same devices, same states and shown values) no longer redraws the search or the start screen and does not rewrite the stored snapshot.
+- **Only the needed time window is read.** A run reads the learning data of the last 30, 60 or 90 days (your learning rate) instead of the whole table. Nothing is deleted.
+- **Bugfix — ignored suggestions counted as usage.** Every stored record, including "suggestion ignored", used to raise a device's usage count, so devices you kept ignoring could be suggested again. Now only real use counts (opening a device, switching it, navigating to it, the favourite star in the detail view) within the last 90 days. **The order of suggestions and the relevance ranking can change slightly for long-time users.**
+- Refactoring task 17 of the 2026-11-14 audit, without its clean-up step (owner's decision: no learning data is removed).
+
+**Measured** (simulated clock; 2 000 seeded records): 15 minutes hidden or in deep rest — runs 3 → 0, database transactions 3 → 0, redraws 6 → 0; one run within 2 seconds after coming back; unchanged run — 2 redraws → 0; records read per run 2 000 → 329. With 20 000 records over a year: computing suggestions 37 → 14 ms, scoring 35 → 17 ms; devices that were only ignored: usage count about 600 → 0.
+
+**Checked**
+- Suggestion lists identical old versus new at a fixed clock for all three learning rates (formula unchanged); index read returns the same records as the old full read in Chromium and WebKit.
+- Two review rounds: 3 defects fixed (shown values of suggested devices could go stale, an empty list could stay through deep rest after a first start, the snapshot was not rewritten after "reset learning data").
+- Not checked: "reset learning data" by clicking, a real tablet, iPad, a real Home Assistant.
+
+**Bundle:** about 697 880 bytes gzip (+307 bytes), about 2.1 KB below the limit.
+
 ## Version 1.1.2570 - 2026-11-20
 
 **Title:** 🕰️ Locked start screen: clock on the minute, power value follows at once, tips rest when idle
