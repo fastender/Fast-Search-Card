@@ -1,5 +1,25 @@
 # Versionsverlauf
 
+## Version 1.1.2573 - 2026-11-20
+
+**Title:** ⏱️ Fresh tiles appear before the local cache is written; start-up is measurable in the release
+
+**Tags:** performance, startup, refactoring
+
+- **Fresh data first, cache second.** After loading from Home Assistant the card used to write all entities to its local database and wait for that write before showing them — although only the NEXT start reads this cache. Now the fresh tiles are shown first and the cache is written afterwards in the background. What is written is unchanged.
+- The usage data needed for the relevance ranking is read in parallel to the Home Assistant requests instead of after them.
+- **Start-up time marks in the release bundle:** start of the script, end of bundle evaluation, card revealed, first tiles. They can be read with the browser's performance tools and are the basis for the next start-up tasks. The automatic timing dump of the development build is gone.
+- Refactoring task 19 of the 2026-11-14 audit.
+
+**Measured** (mock home, medians of 5 runs): time from scored data to the first painted frame — Chromium 370 entities 20 → 10 ms cold, 22 → 6 ms warm; 1 474 entities 44 → 9 ms cold, 73 → 9 ms warm; WebKit 1 474 entities 74 → 19 ms cold, 69 → 18 ms warm. The cache is complete on the next start in all runs (370 or 1 474 entries, same number of writes as before). All time marks appear exactly once and in order.
+
+**Checked**
+- Cold and warm start in Chromium and WebKit, cache content after reload, no console errors, no new console output.
+- Two review rounds: 1 small defect fixed (the "revealed" mark fired again on every remount), the second round found nothing.
+- Not checked: a real Home Assistant (the mock answers at once, so the gain from reading usage data in parallel is not visible), a real tablet, iPad, several loads running at the same time.
+
+**Bundle:** about 698 020 bytes gzip (+141 bytes), about 2.0 KB below the limit.
+
 ## Version 1.1.2572 - 2026-11-20
 
 **Title:** 🎚️ Start-screen settings: sliders no longer reload the gallery picture or redraw bystanders
