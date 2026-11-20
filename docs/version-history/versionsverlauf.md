@@ -1,5 +1,26 @@
 # Versionsverlauf
 
+## Version 1.1.2570 - 2026-11-20
+
+**Title:** 🕰️ Locked start screen: clock on the minute, power value follows at once, tips rest when idle
+
+**Tags:** performance, start-screen, heat, refactoring
+
+- **Clock on the minute.** The clock on the locked start screen used to redraw the whole start screen every 15 seconds and still showed the new minute up to 15 seconds late. It now follows the shared minute tick: it changes with the minute, pauses in a hidden tab and is correct at once when the tab comes back or the screen locks again. The greeting changes on time as well.
+- **Status line as its own small part.** The power value (and the weather of a chosen source) under the clock no longer waits for the clock tick: it follows a change at once and redraws only itself. Which sensor is shown is re-chosen at most 15 seconds after a change, as before.
+- **Tips tile rests when idle.** A tips tile used to rotate every 5 seconds around the clock. It now stops after 3 minutes without a touch, in a hidden tab and in deep rest, like the other automatic rotations, and continues with the first touch. It still rotates with "reduce motion" switched on.
+- Small differences: after start-up the context line asks again after 5 and 15 seconds and then once per minute (before: every 15 seconds while empty); the burn-in offset changes on the minute.
+- Refactoring task 16 of the 2026-11-14 audit.
+
+**Measured** (locked start screen, simulated clock, 1 500 entities): clock change after the full minute 5.1 s → 0.14 s; start-screen redraws in 5 minutes 22 → 7, in a hidden tab 22 → 2; the 15-second interval is gone; power change visible after 1 second: no → yes; tips tile at rest 12 → 0 redraws per minute. Chromium and WebKit alike.
+
+**Checked**
+- Daylight-saving change, foreign time zone, hidden tab, deep rest, re-locking, start-up of the context line, sensor failing or another sensor becoming the strongest.
+- Three review rounds: 1 defect fixed (the power value could stay on the wrong sensor), the third round found nothing.
+- Not checked: a real tablet, iPad, a real Home Assistant.
+
+**Bundle:** 697 579 bytes gzip (+265 bytes), about 2.4 KB below the limit.
+
 ## Version 1.1.2569 - 2026-11-19
 
 **Title:** 🌡️ Climate coach: the AI asks a few questions and sets up your heating with you
