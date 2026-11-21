@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2577 - 2026-11-21
+
+**Title:** 😴 Rest mode works without the island
+
+**Tags:** performance, heat, refactoring
+
+- Decorative animations (the typing hint in the search field, the blinking cursor, the start-screen handle, animated tile icons and similar) pause after three minutes without a touch. Until now this rest gate lived inside the island, so with the island turned off they kept running around the clock. The gate now runs on its own and works with or without the island and the start screen.
+- With the island nothing changes; waking up is slightly faster (the same moment as your touch instead of one frame later).
+- Refactoring task 22 of the 2026-11-14 audit.
+
+**Measured** (rest time shortened to 5 seconds for the probe, Chromium): island off — running animations 1 → 0, timers and animation frames in 10 seconds of rest 187 / 62 → 0 / 0; island off with the search field focused — layout work in 10 seconds 1 803 → 0; two cards with the island off — start-screen breathing 1 per card → 0. With the island, phone dock and the other cases: unchanged at 0. WebKit shows the same picture.
+
+**Checked**
+- Eight configurations (standard, island off, start screen off, search focused, phone dock, two cards); after the first touch everything runs again.
+- Two review rounds: no defects, only outdated comments corrected.
+- Not checked: the real three minutes, switching the island or start screen at runtime, a real tablet, iPad.
+
+**Bundle:** about 698 310 bytes gzip (+34 bytes), about 1.7 KB below the limit.
+
 ## Version 1.1.2576 - 2026-11-20
 
 **Title:** 🔁 "Clear cache" during a running load is no longer lost
