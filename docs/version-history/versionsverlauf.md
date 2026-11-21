@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2580 - 2026-11-21
+
+**Title:** 📰 News list cleans each headline once instead of on every redraw
+
+**Tags:** performance, news, refactoring
+
+- The news list cleaned every headline (HTML entities, tags, feed leftovers) again on every redraw, building a small HTML document per card — with 100 articles that is 100 documents per scroll step. Each headline is now cleaned once per article and remembered in memory only (nothing extra is stored). Marking an article as read cleans just that one headline again.
+- Headlines look exactly as before; the detail view, the news search and the AI keep working on the same text as before.
+- Refactoring task 32 of the 2026-11-14 audit.
+
+**Measured** (Chromium, HTML documents built): 100 articles — loading 196 → 98, scrolling 10 times 1 960 → 0, marking 5 as read 1 010 → 35; 500 articles — loading 1 000 → 500, scrolling 10 000 → 0. Task time of the scroll phase with 500 articles 571 → 300 ms. All card headlines identical before and after (entities, tags, emojis, umlauts, very long, empty and missing titles); nothing executes from a headline.
+
+**Checked**
+- Two review rounds without findings.
+- Not checked: WebKit/iPad, a real wall tablet, real feeds from Home Assistant.
+
+**Bundle:** about 697 725 bytes gzip (+45 bytes), about 2.3 KB below the limit.
+
 ## Version 1.1.2579 - 2026-11-21
 
 **Title:** 🖱️ Moving the mouse over a list no longer redraws the whole view
