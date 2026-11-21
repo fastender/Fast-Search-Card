@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2582 - 2026-11-21
+
+**Title:** 🧩 Feed views share one header helper (search focus, chip arrows, scroll fade)
+
+**Tags:** refactoring, bundle
+
+- Tips, news, changelog, tasks and schedules each carried their own copy of the same header code: focusing the search field when it opens, scrolling the filter chips with the arrow buttons, and the fade at the top of the list while scrolling (also in the detail views of tips, changelog and news). This now lives in one shared helper, so a fix there applies to all five views. The calendar is not included yet.
+- Nothing visible changes.
+- Refactoring task 35 of the 2026-11-14 audit.
+
+**Measured** (Chromium 1280×800 and 560×420, news and tasks also in WebKit): search focus, scroll fade and chip-arrow scroll steps identical in all five views; page snapshots identical in 35 of 35 steps (only mid-animation values and a random switch ID differ).
+
+**Checked**
+- Two review rounds without findings.
+- Known and unchanged from before: after opening the settings of tips, changelog or tasks and then tapping "Search", the search field does not get the focus.
+- Not checked: a real tablet, iPad, touch.
+
+**Bundle:** about 697 630 bytes gzip (0.1 KB smaller), about 2.4 KB below the limit.
+
 ## Version 1.1.2581 - 2026-11-21
 
 **Title:** ✅ Tasks and news: no flash of the unfiltered list, one redraw per change
