@@ -1,5 +1,23 @@
 # Versionsverlauf
 
+## Version 1.1.2578 - 2026-11-21
+
+**Title:** 📡 The data layer no longer redraws on every Home Assistant update
+
+**Tags:** performance, refactoring
+
+- The card's central data layer used to redraw up to four times a second while Home Assistant sent updates, although nothing it shows depended on most of them. It now listens to a narrow signal instead: it redraws only when the connection changes or the state list appears or fills up. The start-up checks (first load only with real states, late-arriving states on Android, reloading after bursts of states) run at the same moments as before.
+- Refactoring task 24 of the 2026-11-14 audit.
+
+**Measured** (mock home, Chromium): redraws of the data layer for 10 updates one second apart — 370 entities 12 → 2, 1 474 entities 12 → 2 (the remaining 2 are the list updates themselves); all redraws in the card for the same run 512 → 305; 10 fast updates 50 ms apart 3 → 0. Start-up with late states, Android case and reconnect: identical lists, loads and subscriptions.
+
+**Checked**
+- 50 of 50 regression probes from the start-up tasks (four start modes, 16 cache scenarios, 26 load-collision cases, time marks) return the same results as 1.1.2577; reconnect also in WebKit.
+- Two review rounds without findings.
+- Not checked: a real Home Assistant reconnect, a real Android device or tablet, iPad.
+
+**Bundle:** about 698 400 bytes gzip (+92 bytes), about 1.6 KB below the limit.
+
 ## Version 1.1.2577 - 2026-11-21
 
 **Title:** 😴 Rest mode works without the island
