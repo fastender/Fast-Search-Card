@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2581 - 2026-11-21
+
+**Title:** ✅ Tasks and news: no flash of the unfiltered list, one redraw per change
+
+**Tags:** performance, tasks, news, refactoring
+
+- **No more flash when opening.** Tasks and news briefly showed the complete, unfiltered list before the filter applied (e.g. 20 tasks, then the 13 open ones). The filtered list now appears directly.
+- **One redraw instead of two.** Both views computed the filtered list in a second step after every change. It is now derived directly, so switching a filter, ticking off a task or typing in the search redraws once instead of twice. Typing "milch" in the tasks: 10 → 5 redraws.
+- The filter and sort logic moved into separate files; an unused delete handler is gone. Lists, order, counters, stacks, keyboard navigation and the fade-in when switching filters are unchanged. After a language change the tasks are re-sorted with the new language at once.
+- Refactoring task 33 of the 2026-11-14 audit.
+
+**Measured** (mock home, Chromium): cards when opening — tasks 0 → 20 → 13 now 0 → 13, news 0 → 22 → 18 now 0 → 18; redraws per filter switch 2 → 1, ticking off a task 6 → 4, typing 5 letters in tasks 10 → 5, 4 letters in news 8 → 4. Page content identical in 35 of 35 snapshots.
+
+**Checked**
+- Two review rounds without findings.
+- Not checked: real Home Assistant to-do lists and feeds, WebKit/iPad, a real tablet.
+
+**Bundle:** about 697 730 bytes gzip (+7 bytes), about 2.3 KB below the limit.
+
 ## Version 1.1.2580 - 2026-11-21
 
 **Title:** 📰 News list cleans each headline once instead of on every redraw
