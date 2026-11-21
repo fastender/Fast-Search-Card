@@ -1,5 +1,24 @@
 # Versionsverlauf
 
+## Version 1.1.2579 - 2026-11-21
+
+**Title:** 🖱️ Moving the mouse over a list no longer redraws the whole view
+
+**Tags:** performance, refactoring, bundle
+
+- Every view with the card's own scrollbar (search, news, tips, changelog, settings, calendar, schedules, AI chat, notifications, start-screen tiles and more — 42 places) remembered by itself whether the mouse was over it, and redrew the whole view on every mouse enter and leave just to fade the scrollbar in or out. The scrollbar now keeps track of this itself; only the thin scrollbar redraws.
+- The scrollbar shows and hides exactly as before. One small visible difference: in the changelog the scrollbar used to stay visible for about a second after leaving the list (caused by that needless redraw); it now fades out right away like everywhere else.
+- Refactoring task 31 of the 2026-11-14 audit.
+
+**Measured** (5 times in and out with the mouse): view redraws — search 10 → 0, news 10 → 0, tips 10 → 0, changelog 10 → 0, settings 10 → 0, detail view 10 → 0, first settings sub-page 6 → 0. Scrollbar fade identical in 14 of 15 picture comparisons (the 15th is the changelog difference above). WebKit shows the same values.
+
+**Checked**
+- All 42 places moved over, no leftover hover handlers or states; on touch screens nothing clickable appears through hover.
+- Two review rounds: 2 defects fixed (an unused hover state in the detail view, the scrollbar hover in one step of the device setup).
+- Not checked by probe (code read only): music panel, device setup, printer and climate preset lists, activity feed, gallery, start-screen tiles, island lists, calendar, schedules, AI chat, tasks; a real tablet, iPad.
+
+**Bundle:** about 697 680 bytes gzip (0.7 KB smaller), about 2.3 KB below the limit.
+
 ## Version 1.1.2578 - 2026-11-21
 
 **Title:** 📡 The data layer no longer redraws on every Home Assistant update
