@@ -14,7 +14,7 @@ Type to find. Tap to control. Glance to know.
 A modern dashboard for Home Assistant.<br>
 **Setup in under 10 seconds. One line.**
 
-[![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
+[![Version](https://img.shields.io/github/v/release/fastender/Fast-Search-Card?style=flat-square&color=007AFF&label=version)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/version-history.md)
 [![Releases](https://img.shields.io/badge/releases-2%2C000%2B-34C759?style=flat-square)](https://github.com/fastender/Fast-Search-Card/blob/main/docs/version-history/versionsverlauf.md)
 [![Downloads](https://img.shields.io/github/downloads/fastender/Fast-Search-Card/total?style=flat-square&color=AF52DE&label=downloads)](https://github.com/fastender/Fast-Search-Card/releases)
 [![Stars](https://img.shields.io/github/stars/fastender/Fast-Search-Card?style=flat-square&color=FF9500&label=stars)](https://github.com/fastender/Fast-Search-Card/stargazers)
